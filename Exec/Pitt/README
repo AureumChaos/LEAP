@@ -1,0 +1,13 @@
+1) To building the C version of the Pitt rule interpreter
+
+   type: sudo python setup.py install
+
+2) To examine the results of the ruleInterp unit test
+
+    The easiest way to examine map.dat is using R
+
+    In R type:
+
+    > data = read.table("map.dat")
+    > plot(data)
+
