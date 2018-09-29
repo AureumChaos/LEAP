@@ -9,6 +9,7 @@ Computation: A Unified Approach".  He was my Ph.D. advisor, so I am quite
 familiar with his approach.
 
 As of 9/29/2018:
+
 I wouldn't exactly call this stable just yet, but anyone is free to use it if
 they wish.  The current license is GPL v2, but I'm likely to change that to
 something that is more permissive and more academic (the MIT license?) at some
@@ -20,7 +21,7 @@ the code now, I see that there are some pieces that I'm not completely happy
 with.  It's clear that I was learning Python at the same time that I wrote
 much of this.
 
-I just upgraded the core parst of the library to Python 3.  I believe that
+I just upgraded the core parts of the library to Python 3.  I believe that
 everything at the top level should work in Python 2 or Python 3.  I wouldn't
 trust anything in the sub-modules just yet though.
 
