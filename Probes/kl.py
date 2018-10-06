@@ -6,6 +6,9 @@
 #
 ##############################################################################
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 #import sys
 #import random
 #import string
@@ -74,11 +77,11 @@ pop0 = array([[gauss(0,mut_sigma*100) for trait in range(nt)] for ind in range(n
 mu0 = mean(pop0, axis=0)
 Sigma0 = cov(pop0.T)
 
-print "pop0:"
-print pop0
-print "mu0 =", mu0
-print "Sigma0:"
-print Sigma0
+print("pop0:")
+print(pop0)
+print("mu0 =", mu0)
+print("Sigma0:")
+print(Sigma0)
 
 # ----- Generate offspring population -----
 #mu1 = array([0.0] * nt)
@@ -93,12 +96,12 @@ pop1 = array([mutate(p, mut_sigma) for p in pop0])
 mu1 = mean(pop1, axis=0)
 Sigma1 = cov(pop1.T)
 
-print
-print "pop1:"
-print pop1
-print "mu1 =", mu1
-print "Sigma1:"
-print Sigma1
+print()
+print("pop1:")
+print(pop1)
+print("mu1 =", mu1)
+print("Sigma1:")
+print(Sigma1)
 
 # ----- Compare distributions -----
 kl0 = KLdivergence(mu0, Sigma0, mu1, Sigma1)
@@ -106,10 +109,10 @@ kl1 = KLdivergence(mu1, Sigma1, mu0, Sigma0)
 
 kldistance = kl0+kl1
 
-#print "kl0 =", kl0
-#print "kl1 =", kl1
-#print "kldistance =", kldistance
+#print("kl0 =", kl0)
+#print("kl1 =", kl1)
+#print("kldistance =", kldistance)
 
-print
-print "1/(1 + kldistance) =", 1.0/(1.0 + kldistance)
+print()
+print("1/(1 + kldistance) =", 1.0/(1.0 + kldistance))
 

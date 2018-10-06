@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 import sys
 import random
 import string
@@ -9,8 +12,9 @@ import LEAP
 #import scipy.stats
 
 from math import *
-from Numeric import *
+#from Numeric import *
 #from numarray import *
+from numpy import *
 
 
 #############################################################################
@@ -53,24 +57,24 @@ def HIFFscrambleMeasure(map, block = None):
     if b == 1:
         return 0
 
-    #print "block =", block
+    #print("block =", block)
 
     # Calculate defining length as if the genome were circular
     sortedBlock = block[:]
     sortedBlock.sort()
     maxGap = sortedBlock[0] - sortedBlock[-1] + l
-    #print "gap (",sortedBlock[-1],",",sortedBlock[0],") = ", maxGap
+    #print("gap (",sortedBlock[-1],",",sortedBlock[0],") = ", maxGap)
     for i in range(b-1):
         gap = sortedBlock[i+1] - sortedBlock[i]
         maxGap = max(maxGap, gap)
-        #print "gap (",sortedBlock[i],",",sortedBlock[i+1],") = ", gap
+        #print("gap (",sortedBlock[i],",",sortedBlock[i+1],") = ", gap)
     defLen = l-maxGap
     extra = defLen - b + 1
 
-    #print "extra = ", extra
+    #print("extra = ", extra)
 
-    return extra + HIFFscrambleMeasure(map, block[:b/2]) \
-                 + HIFFscrambleMeasure(map, block[b/2:])
+    return extra + HIFFscrambleMeasure(map, block[:b//2]) \
+                 + HIFFscrambleMeasure(map, block[b//2:])
 
 
 
@@ -82,29 +86,29 @@ def HIFFscrambleMeasure(map, block = None):
 def findScrambles(desiredMeasure, numGenomes = 1):
     length = 64
     HIFFproblem = LEAP.FunctionOptimization(LEAP.HIFFfunction)
-    binEncoder = LEAP.BinaryEncoder(HIFFproblem, length)
+    binDecoder = LEAP.BinaryDecoder(HIFFproblem, length)
 
     measure = -1
     numFound = 0
     while numFound < numGenomes:
-        scrambledEncoder = LEAP.ScramblerEncoder(binEncoder)
-        #scrambledEncoder = LEAP.PerturbingEncoder(binEncoder, 0.2, 32) # 1600
-        #scrambledEncoder = LEAP.PerturbingEncoder(binEncoder, 0.2, 8) # 800
-        #scrambledEncoder = LEAP.PerturbingEncoder(binEncoder, 0.2, 5) # 400
-        #scrambledEncoder = LEAP.PerturbingEncoder(binEncoder, 0.2, 3) # 200
-        #scrambledEncoder = LEAP.PerturbingEncoder(binEncoder, 0.2, 2) # 100
+        scrambledDecoder = LEAP.ScramblerDecoder(binDecoder)
+        #scrambledDecoder = LEAP.PerturbingDecoder(binDecoder, 0.2, 32) # 1600
+        #scrambledDecoder = LEAP.PerturbingDecoder(binDecoder, 0.2, 8) # 800
+        #scrambledDecoder = LEAP.PerturbingDecoder(binDecoder, 0.2, 5) # 400
+        #scrambledDecoder = LEAP.PerturbingDecoder(binDecoder, 0.2, 3) # 200
+        #scrambledDecoder = LEAP.PerturbingDecoder(binDecoder, 0.2, 2) # 100
 
-        genome = scrambledEncoder.randomGenome()
-        map = scrambledEncoder.map
+        genome = scrambledDecoder.randomGenome()
+        map = scrambledDecoder.map
         measure = HIFFscrambleMeasure(map)
         #if measure > desiredMeasure:
-        #    print measure,
-        print measure,
+        #    print(measure, end='')
+        print(measure, end='')
 
         if measure == desiredMeasure:
-            print
-            print "map =", map
-            print "measure = ", HIFFscrambleMeasure(map)
+            print()
+            print("map =", map)
+            print("measure = ", HIFFscrambleMeasure(map))
             numFound += 1
 
 
@@ -115,10 +119,10 @@ def findScrambles(desiredMeasure, numGenomes = 1):
 #
 #############################################################################
 def test_measure(map, val):
-    print "map =", map
+    print("map =", map)
     measure = HIFFscrambleMeasure(map)
-    print "measure ==", measure, "==", val
-    print
+    print("measure ==", measure, "==", val)
+    print()
     return measure == val
 
 
@@ -155,9 +159,9 @@ def unit_test():
     passed = passed and test_measure(map, 14)
 
     if passed:
-        print "Passed"
+        print("Passed")
     else:
-        print "FAILED"
+        print("FAILED")
 
 
 if __name__ == '__main__':

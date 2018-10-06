@@ -23,6 +23,9 @@
 #
 ##############################################################################
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 import sys
 import random
 import string
@@ -129,7 +132,7 @@ class BaseMeasure:
         return self.zeroVal
 
     def measure(self, ind):
-        raise NotImplementedError
+        raise(NotImplementedError)
 
     def __call__(self, ind = None):
         """
@@ -168,23 +171,23 @@ class ParameterMeasure(BaseMeasure):
     Measures the parameters (i.e. phenotype) for function optimzation type
     problems.
 
-    This function needs to have access to an encoder when performing
+    This function needs to have access to a decoder when performing
     measurements in order to know how many parameters there are.  All
-    individuals have a reference to an encoder, but when None is passed in to
+    individuals have a reference to a decoder, but when None is passed in to
     get the zero value, it has no such reference.  To solve this problem, I've
-    added an internal state variable called 'encoder' which can be used in
-    these situations.  But this means that phenotypeMeasure.encoder needs to
+    added an internal state variable called 'decoder' which can be used in
+    these situations.  But this means that phenotypeMeasure.decoder needs to
     be set before calling this function with a None.  There are two ways of
-    doing this.  1) Call this function with a real individual, and the encoder
-    will be saved, or 2) set phenotypeMeasure.encoder = <some encoder>.
+    doing this.  1) Call this function with a real individual, and the decoder
+    will be saved, or 2) set phenotypeMeasure.decoder = <some decoder>.
     """
-    def __init__(self, encoder):
-        self.encoder = encoder
-        phenome = encoder.decodeGenome(encoder.randomGenome())
+    def __init__(self, decoder):
+        self.decoder = decoder
+        phenome = decoder.decodeGenome(decoder.randomGenome())
         BaseMeasure.__init__(self, zeros(len(phenome)))
 
     def measure(self, ind):
-        return array(self.encoder.decodeGenome(ind.genome))
+        return array(self.decoder.decodeGenome(ind.genome))
 
 
 
@@ -239,7 +242,7 @@ class ExObjSampleMeasure(BaseMeasure):
         BaseMeasure.__init__(self, zeros(len(self.samples)))
 
     def measure(self, ind):
-        exObj = ind.encoder.decodeGenome(ind.genome)
+        exObj = ind.decoder.decodeGenome(ind.genome)
         #return array([exObj.execute(sample) for sample in self.samples])
         return array([exObj.execute(sample)[0] for sample in self.samples])
 
@@ -257,33 +260,33 @@ def unit_test():
     bounds = LEAP.sphereBounds
     function = LEAP.sphereFunction
     problem = LEAP.FunctionOptimization(function, LEAP.sphereMaximize)
-    encoder = LEAP.FloatEncoder(problem, bounds, bounds)
+    decoder = LEAP.FloatDecoder(problem, bounds, bounds)
 
     fitMeasure = FitnessMeasure()
     zero = fitMeasure.zero()
-    print "fitMeasure.zero() =", zero
+    print("fitMeasure.zero() =", zero)
     assert(zero == 0.0)
 
     genome = [1.0, 2.0, 3.0]
-    ind = LEAP.Individual(encoder, genome)
+    ind = LEAP.Individual(decoder, genome)
     measure = fitMeasure(ind)
-    print "fitMeasure.measure(ind) =", measure
+    print("fitMeasure.measure(ind) =", measure)
     assert(measure == function(genome))
-    print
+    print()
 
 
     # Test ParameterMeasure
-    paramMeasure = ParameterMeasure(encoder)
+    paramMeasure = ParameterMeasure(decoder)
     zero = paramMeasure.zero()
-    print "paramMeasure.zero() =", zero
+    print("paramMeasure.zero() =", zero)
     assert(len(zero) == len(bounds))
     assert(all(zero == array([0.0] * len(bounds))))
 
     measure = paramMeasure(ind)
-    print "paramMeasure.measure(ind) =", measure
+    print("paramMeasure.measure(ind) =", measure)
     assert(len(measure) == len(genome))
     assert(all(measure == genome))
-    print
+    print()
 
 
     # Test RankMeasure (doesn't work yet).
@@ -302,8 +305,8 @@ def unit_test():
 
     minRules = 2
     maxRules = 10
-    ruleEncoder = LEAP.FloatEncoder(None, allBounds, allBounds)
-    pittEncoder = LEAP.Exec.Pitt.PittRuleEncoder(problem, ruleEncoder, \
+    ruleDecoder = LEAP.FloatDecoder(None, allBounds, allBounds)
+    pittDecoder = LEAP.Exec.Pitt.PittRuleDecoder(problem, ruleDecoder, \
                     minRules, maxRules, len(condBounds), 1, \
                     ruleInterpClass = LEAP.Exec.Pitt.pyInterpolatingRuleInterp)
 
@@ -311,24 +314,24 @@ def unit_test():
     b = condBounds[0]
     samples = [[i * (b[1]-b[0]) / numSamples + b[0]] \
                    for i in range(numSamples+1)]
-    print "samples =", samples
+    print("samples =", samples)
 
     sampleMeasure = ExObjSampleMeasure(samples)
     zero = sampleMeasure.zero()
-    print "sampleMeasure.zero() =", zero
+    print("sampleMeasure.zero() =", zero)
     assert(len(zero) == len(samples))
     assert(all(zero == array([0.0] * len(samples))))
 
     genome = [ [1.0, 1.0, 1.0], [9.0, 9.0, 9.0] ]
-    ind = LEAP.Individual(pittEncoder, genome)
+    ind = LEAP.Individual(pittDecoder, genome)
     answer = [1,1,2,3,4,5,6,7,8,9,9]
     measure = sampleMeasure.measure(ind)
-    print "sampleMeasure.measure(ind) =", measure
+    print("sampleMeasure.measure(ind) =", measure)
     assert(len(measure) == len(answer))
     assert(all(measure == answer))
 
 
-    print "Passed"
+    print("Passed")
     return
 
 

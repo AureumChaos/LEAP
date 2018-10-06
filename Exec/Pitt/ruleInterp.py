@@ -21,6 +21,9 @@
 #
 ##############################################################################
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 import sys
 #sys.path.insert(0,'..')
 import string
@@ -30,7 +33,8 @@ import math
 
 import LEAP
 import LEAP.Exec
-import cRuleFuncs
+#import LEAP.Exec.ExecutableObject
+#import cRuleFuncs
 
 
 #############################################################################
@@ -55,11 +59,11 @@ class RuleInterp(LEAP.Exec.ExecutableObject):
 
     def __init__(self, ruleset, numInputs, numOutputs, initMem=[],
                  priorityMetric = PERIMETER):
-        raise NotImplementedError
+        raise(NotImplementedError)
 
 
     def execute(self, input):
-        raise NotImplementedError
+        raise(NotImplementedError)
 
 
 
@@ -81,7 +85,7 @@ class pyRuleInterp(RuleInterp):
         self.numMemory = len(initMem)
 
 #        if len(tapes) != len(tapeHeads):
-#            raise ValueError, "Number of tapes and tape heads do not match."
+#            raise(ValueError, "Number of tapes and tape heads do not match.")
 #
 #        if tapes != []:
 #            if tapeHeads == []:   # Need to set default values for tape heads
@@ -89,7 +93,7 @@ class pyRuleInterp(RuleInterp):
 #            else:                 # Need to check validity of tape heads
 #                for i in len(tapeHeads): 
 #                    if tapeHeads[i] >= len(tapes[i]):
-#                        raise ValueError, "Invalid tape head value."
+#                        raise(ValueError, "Invalid tape head value.")
 #
 #        self.tapes = tapes
 #        self.tapeHeads = tapeHeads
@@ -101,8 +105,8 @@ class pyRuleInterp(RuleInterp):
         self.rulePriorities = self.calcRulePriorities(ruleset,
                                                       metric=priorityMetric)
 
-        #print "ruleset =", self.ruleset
-        #print "rulePriorities =", self.rulePriorities
+        #print("ruleset =", self.ruleset)
+        #print("rulePriorities =", self.rulePriorities)
 
 
     def calcRulePriorities(self, ruleset, metric=RuleInterp.PERIMETER):
@@ -115,7 +119,7 @@ class pyRuleInterp(RuleInterp):
         default since this is the metric most commonly used.
         """
         if metric not in range(RuleInterp.numPriorityMetrics):
-            raise ValueError, "Illegal value for priorityMetric"
+            raise(ValueError, "Illegal value for priorityMetric")
 
         priorities = []
         for r in range(len(ruleset)):
@@ -146,8 +150,8 @@ class pyRuleInterp(RuleInterp):
         Selects the appropriate rule and fires it.  The output is returned.
         Python version.
         """
-        #print "input =", input
-        #print "memRegs =", self.memRegs
+        #print("input =", input)
+        #print("memRegs =", self.memRegs)
         assert len(input) == self.numInputs
         allInput = input + self.memRegs
         bestMatchScore = -1
@@ -157,10 +161,10 @@ class pyRuleInterp(RuleInterp):
         for r in range(len(self.ruleset)):
             rule = self.ruleset[r]
             matchScore = 0
-            #print "rule #", r, "=", rule
+            #print("rule #", r, "=", rule)
             for c in range(len(allInput)):   # just conditions
-                #print "condition #", c, "=", (rule[c*2], rule[c*2+1])
-                #print "input #", c ,"=", allInput[c]
+                #print("condition #", c, "=", (rule[c*2], rule[c*2+1]))
+                #print("input #", c ,"=", allInput[c])
                 diff1 = rule[c*2] - allInput[c]   # I should normalize this,
                 diff2 = rule[c*2+1] - allInput[c] # especially if the possible
                                                   # ranges are very different.
@@ -169,10 +173,10 @@ class pyRuleInterp(RuleInterp):
                 else:
                     diff = min(abs(diff1), abs(diff2)) 
                 matchScore += diff * diff  # Distance w/o sqrt
-                #print "diff1, diff2, diff, matchScore =", \
-                #       diff1, diff2, diff, matchScore
+                #print("diff1, diff2, diff, matchScore =", \
+                #       diff1, diff2, diff, matchScore)
 
-            #print "matchScore =", matchScore
+            #print("matchScore =", matchScore)
 
             if matchList == [] or matchScore < bestMatchScore:
                 bestMatchScore = matchScore
@@ -180,7 +184,7 @@ class pyRuleInterp(RuleInterp):
             elif matchScore == bestMatchScore:
                 matchList.append(r)
 
-        #print "matchList =", matchList
+        #print("matchList =", matchList)
 
         # Conflict resolution
         # For exact matches, choose the rule(s) with the lowest generality.
@@ -189,7 +193,7 @@ class pyRuleInterp(RuleInterp):
             for i in matchList[1:]:
                 highestPriority = min(highestPriority, self.rulePriorities[i])
 
-            #print "highestPriority =", highestPriority
+            #print("highestPriority =", highestPriority)
             # Cull the matchList based on priority.
             i = 0
             while i < len(matchList):
@@ -198,7 +202,7 @@ class pyRuleInterp(RuleInterp):
                 else:
                     i += 1
 
-        #print "matchList =", matchList
+        #print("matchList =", matchList)
 
         # More conflict resolution
         # A common approach is to select the output which has the most
@@ -208,7 +212,7 @@ class pyRuleInterp(RuleInterp):
         winner = random.choice(matchList)
 
         # "Fire" the rule.
-        #print "Firing:", winner, self.ruleset[winner]
+        #print("Firing:", winner, self.ruleset[winner])
         if self.numMemory == 0:
             self.memRegs = []
             output = self.ruleset[winner][-self.numOutputs:]
@@ -228,7 +232,7 @@ class pyRuleInterp(RuleInterp):
         else:
             output = [0]
 
-        #print "output =", output
+        #print("output =", output)
         return output
         #return output, self.memRegs
 
@@ -247,21 +251,28 @@ class cRuleInterp(RuleInterp):
     def __init__(self, ruleset, numInputs, numOutputs, initMem=[],
                  priorityMetric=RuleInterp.PERIMETER):
         if priorityMetric not in range(RuleInterp.numPriorityMetrics):
-            raise ValueError, "Illegal value for priorityMetric"
+            raise(ValueError, "Illegal value for priorityMetric")
 
-        #print ruleset
-        self.addr = cRuleFuncs.cInit(ruleset, numInputs, numOutputs, initMem,
-                                     priorityMetric)
+        #print(ruleset)
+        # XXX Fix this once we work out the cython stuff
+        #self.addr = cRuleFuncs.cInit(ruleset, numInputs, numOutputs, initMem,
+        #                             priorityMetric)
+
+        raise(NotImplementedError)
 
 
     def __del__(self):
-        cRuleFuncs.cDel(self.addr)
+        # XXX Fix this once we work out the cython stuff
+        #cRuleFuncs.cDel(self.addr)
         return None
 
 
     def execute(self, input):
-        output = cRuleFuncs.cExecute(self.addr, input)
-        return output
+        # XXX Fix this once we work out the cython stuff
+        #output = cRuleFuncs.cExecute(self.addr, input)
+        #return output
+
+        raise(NotImplementedError)
 
 
 
@@ -311,12 +322,15 @@ def test():
     output += pyInterp.execute([0])
     output += pyInterp.execute([1])
 
-    print " output =", output
-    print " memRegs =", pyInterp.memRegs
+    print(" output =", output)
+    print(" memRegs =", pyInterp.memRegs)
     assert(output == [1, 0, 0, 1])
     assert(pyInterp.memRegs == [1])
+    passed = True
 
     # Test the C version
+    # XXX Fix this once the cython stuff is worked out
+    comment = """
     pyOutput = output
     cInterp = cRuleInterp(ruleset, numInputs, numOutputs, initMem)
 
@@ -325,7 +339,7 @@ def test():
     output += cInterp.execute([0])
     output += cInterp.execute([1])
 
-    print " output =", output
+    print(" output =", output)
     assert(output == pyOutput)
 
 
@@ -341,10 +355,14 @@ def test():
     #assert(interp.execute([0.61, 0.0]) == [0])
     #assert(interp.execute([0.5, 0.6]) == [1])
 
-    print "Writing map file..."
+    print("Writing map file...")
     makeMap(interp)
+    """
 
-    print "Passed"
+    if passed:
+        print("Passed")
+    else:
+        print("Failed!")
 
 
 def test2():
@@ -361,7 +379,7 @@ def test2():
     modval = 100000 #max/100
     while i < max:
         if i % modval == 0:
-            print i,"   ", str(100*i/max)+"%"
+            print(i,"   ", str(100*i/max)+"%")
         cInterp = cRuleInterp(ruleset, numInputs, numOutputs, initMem)
         output = cInterp.execute([1])
         del cInterp

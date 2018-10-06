@@ -21,6 +21,9 @@
 #
 ##############################################################################
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 #import sys
 #import random
 #import string
@@ -71,7 +74,7 @@ class ProbeOperator(LEAP.PipelineOperator):
         Aggregate the traits and record them somehow (e.g. print them,
         write them to file, etc).
         """
-        raise NotImplementedError    # Subclasses should redifine this
+        raise(NotImplementedError)   # Subclasses should redifine this
 
 
 
@@ -106,7 +109,7 @@ class PopulationProbe(ProbeOperator):
         Aggregate the traits and record them somehow (e.g. print them,
         write them to file, etc).
         """
-        raise NotImplementedError    # Subclasses should redifine this
+        raise(NotImplementedError)   # Subclasses should redifine this
 
     def apply(self, children):
         if self.generation % self.frequency == 0 or self.generation == 1:
@@ -126,7 +129,7 @@ class AveragePopulationProbe(PopulationProbe):
     """
     def examineTraits(self, traits):
         avg = average(traits, 0)
-        print "Gen:", self.generation, "PopAvg:", LEAP.mystr(avg)
+        print("Gen:", self.generation, "PopAvg:", LEAP.mystr(avg))
 
 
 
@@ -214,10 +217,10 @@ class PopulationDiversityProbe(PopulationProbe):
         centroid = mean(myTraits,0)
         moi = sum((myTraits - centroid)**2)
 
-        print "Gen:", self.generation, 
+        print("Gen:", self.generation, end='')
         if self.tag:
-            print " Tag:", self.tag,
-        print " Diversity:", moi
+            print(" Tag:", self.tag, end='')
+        print(" Diversity:", moi)
 
 
 
@@ -265,7 +268,7 @@ class OffspringPopulationProbe(PopulationProbe):
         self.compareTraits(self.parentProbe.getParentTraits(), self.traits)
 
     def compareTraits(self, parentTraits, offspringTraits):
-        raise NotImplementedError     # Subclasses should override this
+        raise(NotImplementedError)    # Subclasses should override this
 
 
 #############################################################################
@@ -431,7 +434,7 @@ class OffspringFamilyProbe(ProbeOperator):
         self.parentTraits = []   # Contains the parent traits associated
                                  # with the children sent to apply()
         if self.lookahead != []:
-            print "Warning: Probe pulled too many children"
+            print("Warning: Probe pulled too many children")
             self.lookahead = []  
 
         self.allParentTraits = []
@@ -467,9 +470,9 @@ class OffspringFamilyProbe(ProbeOperator):
 #        # be fairly simple as a result.
 #        individuals = []
 #
-##        print "self.expectedPulls =", self.expectedPulls
+##        print("self.expectedPulls =", self.expectedPulls)
 #        if self.lookahead == []:  # First pull this gen, or since reset?
-##            print "get lookahead"
+##            print("get lookahead")
 #            self.lookahead = [self.provider[0].pull()]
 #            self.currentPulls += 1
 #
@@ -481,22 +484,22 @@ class OffspringFamilyProbe(ProbeOperator):
 #        # avoid pulling extra individuals down the pipeline.
 #        self.parentTraits = self.submittedTraits
 #        self.submittedTraits = []
-##        print "self.currentPulls =", self.currentPulls
+##        print("self.currentPulls =", self.currentPulls)
 #        while self.submittedTraits == []:
 #            # Prevent lookahead if possible
 #            individuals += self.lookahead
 #            if self.expectedPulls and self.expectedPulls == self.currentPulls:
 #                self.currentPulls = 0
 #                self.lookahead = []
-##                print "    currentPulls == expectedPulls.  Reset"
+##                print("    currentPulls == expectedPulls.  Reset")
 #                break
 #            self.lookahead = [self.provider[0].pull()]
 #            self.currentPulls += 1
-##            print "    len(individuals) =", len(individuals)
-##            print "    len(self.lookahead) =", len(self.lookahead)
+##            print("    len(individuals) =", len(individuals))
+##            print("    len(self.lookahead) =", len(self.lookahead))
 #
-##        print "len(self.submittedTraits) =", len(self.submittedTraits) 
-##        print "self.currentPulls =", self.currentPulls
+##        print("len(self.submittedTraits) =", len(self.submittedTraits) )
+##        print("self.currentPulls =", self.currentPulls)
 #
 #        # self.resetFitnesses(individuals)  # Subclasses may want to do this
 #        children = self.apply(individuals)
@@ -535,7 +538,7 @@ class OffspringFamilyProbe(ProbeOperator):
         This method is called once at the end of each generation.
         The traits of all parents and offspring can be compared at once.
         """
-        raise NotImplementedError     # Subclasses should override this
+        raise(NotImplementedError)    # Subclasses should override this
 
 
 
@@ -552,22 +555,22 @@ class TestOffspringFamilyProbe(OffspringFamilyProbe):
         numRows = max(len(parentTraits), len(offspringTraits))
         for i in range(numRows):
             if i < len(self.parentTraits):
-                print self.parentTraits[i],
-            print "\t",
+                print(self.parentTraits[i], end='')
+            print("\t", end='')
             if i < len(offspringTraits):
-                print offspringTraits[i],
-            print
+                print(offspringTraits[i], end='')
+            print()
 
-        print "currentPulls = ", self.currntPulls
-        print
+        print("currentPulls = ", self.currntPulls)
+        print()
 
         return OffspringFamilyProbe.associateTraits(self, parentTraits,
                                                           offspringTraits)
 
     def compareTraits(self, allParentTraits, allOffspringTraits):
         for parentT, offspringT in zip(allParentTraits, allOffspringTraits):
-            print parentT, offspringT
-        print
+            print(parentT, offspringT)
+        print()
 
 
 
@@ -638,9 +641,9 @@ class OutputFamilyProbe(OffspringFamilyProbe):
 
         for i, (parentT, offspringT) in \
                      enumerate(zip(allParentTraits, allOffspringTraits)):
-            #print i, parentT
-            #print i, offspringT
-            #print
+            #print(i, parentT)
+            #print(i, offspringT)
+            #print()
             pfields = [str(self.row), str(self.generation), str(i+1), "parent"]
             ofields = [str(self.row), str(self.generation), str(i+1), "offspring"]
             self.row += 1
@@ -720,7 +723,7 @@ class OutputAssocFamilyProbe(OffspringFamilyProbe):
         allParentTraits[i] and allOffspringTraits[i].
         """
         if len(allParentTraits) == 0 or len(allOffspringTraits) == 0:
-            print "Error: Incompatable number of traits"
+            print("Error: Incompatable number of traits")
             return
         firstTrait = allParentTraits[0]
 
@@ -744,9 +747,9 @@ class OutputAssocFamilyProbe(OffspringFamilyProbe):
 
         for i, (parentT, offspringT) in \
                      enumerate(zip(allParentTraits, allOffspringTraits)):
-            #print i, parentT
-            #print i, offspringT
-            #print
+            #print(i, parentT)
+            #print(i, offspringT)
+            #print()
             dfields = [str(self.row), str(self.generation), str(i+1)]
             self.row += 1
             if self.tag:
@@ -776,10 +779,10 @@ class UnivariateHeritabilityProbe(OffspringFamilyProbe):
     def compareTraits(self, parentTraits, offspringTraits):
         m = cov(parentTraits, offspringTraits)
         h2 = m[0][1] / m[0][0]
-        print "Gen:", self.generation, 
+        print("Gen:", self.generation,  end='')
         if self.tag:
-            print " Tag:", self.tag,
-        print " h^2:", h2
+            print(" Tag:", self.tag, end='')
+        print(" h^2:", h2)
 
 
 
@@ -799,10 +802,10 @@ class AverageDistanceProbe(OffspringFamilyProbe):
         #                               zip(parentTraits, offspringTraits)])
         #delta = offspringTraits[0] - parentTraits[0]
         #distBar = sqrt(sum(delta * delta))
-        print "Gen:", self.generation, 
+        print("Gen:", self.generation,  end='')
         if self.tag:
-            print " Tag:", self.tag,
-        print " AvgDist:", distBar
+            print(" Tag:", self.tag, end='')
+        print(" AvgDist:", distBar)
 
 
 
@@ -817,13 +820,13 @@ class CorrelationProbe(OffspringFamilyProbe):
     """
     def compareTraits(self, parentTraits, offspringTraits):
         corr = corrcoef(parentTraits, offspringTraits)
-        #print zip(parentTraits, offspringTraits)
+        #print(zip(parentTraits, offspringTraits)
         if isnan(corr[0,1]):
-            print len(parentTraits), len(offspringTraits)
-        print "Gen:", self.generation, 
+            print(len(parentTraits), len(offspringTraits))
+        print("Gen:", self.generation,  end='')
         if self.tag:
-            print " Tag:", self.tag,
-        print " Correlation:", corr[0,1]
+            print(" Tag:", self.tag, end='')
+        print(" Correlation:", corr[0,1])
 
 
 
@@ -873,15 +876,15 @@ class KullbackLeiblerProbe(OffspringPopulationProbe):
         kl_01 = self.KLdivergence(mu0, Sigma0, mu1, Sigma1)
         kl_10 = self.KLdivergence(mu1, Sigma1, mu0, Sigma0)
         sim = 1/(1 + kl_01 + kl_10)
-        print "Gen:", self.generation,
+        print("Gen:", self.generation, end='')
         if self.tag:
-            print " Tag:", self.tag,
-        print " KL_similarity:", sim
+            print(" Tag:", self.tag, end='')
+        print(" KL_similarity:", sim)
 
-        #print "Sigma0:"
-        #print Sigma0
-        #print "Sigma1:"
-        #print Sigma1
+        #print("Sigma0:")
+        #print(Sigma0)
+        #print("Sigma1:")
+        #print(Sigma1)
 
 
 
@@ -928,12 +931,12 @@ class NormalityPopulationProbe(PopulationProbe):
     def examineTraits(self, traits):
         self.makeDataFrame("df", traits)
         result = self.robj.r("myMardia(df)")
-        print "Gen:", self.generation,
+        print("Gen:", self.generation, end='')
         if self.tag:
-            print " Tag:", self.tag,
-        print " Norm:", result[0] == 1.0,
-        print " P1:", result[1],
-        print " P2:", result[2]
+            print(" Tag:", self.tag, end='')
+        print(" Norm:", result[0] == 1.0, end='')
+        print(" P1:", result[1], end='')
+        print(" P2:", result[2])
 
 
 #############################################################################
@@ -1027,7 +1030,7 @@ class MultivariateOffspringFamilyProbe(OffspringFamilyProbe):
         H2 = dot(O, Pinv)
 
         dQ = cov(deltas, rowvar=0, bias=1)
-        #print "dQ =", dQ
+        #print("dQ =", dQ)
 
         return P, O, G, h2, H2, dQ
 
@@ -1297,26 +1300,26 @@ class MultivariateOffspringFamilyProbe(OffspringFamilyProbe):
 #            #        correlations[i] = covs[i] / math.sqrt(varpre[i]*varpost[i])
 #
 #            # print the results
-#            print "Gen:", self.generation,
-#            print "Tag:", self.tag,
+#            print("Gen:", self.generation, end='')
+#            print("Tag:", self.tag, end='')
 #            for i in range(len(self.wrappedOps)):
-#                print "r"+str(i+1)+":", ratios[i],
+#                print("r"+str(i+1)+":", ratios[i], end='')
 #
 #            for i in range(len(self.wrappedOps)):
-#                print "DeltaBar"+str(i+1)+":", deltabar[i],
+#                print("DeltaBar"+str(i+1)+":", deltabar[i], end='')
 #
 #            for i in range(len(self.wrappedOps)):
-#                print "VarPre"+str(i+1)+":", varpre[i],
+#                print("VarPre"+str(i+1)+":", varpre[i], end='')
 #
 #            for i in range(len(self.wrappedOps)):
-#                print "VarPost"+str(i+1)+":", varpost[i],
+#                print("VarPost"+str(i+1)+":", varpost[i], end='')
 #
 #            for i in range(len(self.wrappedOps)):
-#                print "VarDelta"+str(i+1)+":", vardelta[i],
+#                print("VarDelta"+str(i+1)+":", vardelta[i], end='')
 #
 #            for i in range(len(self.wrappedOps)):
-#                print "Cov"+str(i+1)+":", covs[i],
-#            print
+#                print("Cov"+str(i+1)+":", covs[i], end='')
+#            print()
 #
 #            # print the results
 #            if self.measureFile:
@@ -1442,17 +1445,17 @@ if __name__ == '__main__':
     # ...for binary genes
     #bitsPerReal = 16
     #genomeSize = bitsPerReal * numVars
-    #encoder = LEAP.BinaryRealEncoder(problem, [bitsPerReal] * numVars, bounds)
+    #decoder = LEAP.BinaryRealDecoder(problem, [bitsPerReal] * numVars, bounds)
 
     # ...for float genes
-    encoder = LEAP.FloatEncoder(problem, bounds, bounds)
+    decoder = LEAP.FloatDecoder(problem, bounds, bounds)
 
     # ...for adaptive real genes
     #sigmaBounds = (0.0, bounds[0][1] - bounds[0][0])
     #initSigmas = [(bounds[0][1] - bounds[0][0]) / sqrt(numVars)] * numVars
-    #encoder = LEAP.AdaptiveRealEncoder(problem, bounds, bounds, initSigmas)
+    #decoder = LEAP.AdaptiveRealDecoder(problem, bounds, bounds, initSigmas)
 
-    phenMeasure = ParameterMeasure(encoder)
+    phenMeasure = ParameterMeasure(decoder)
     fitMeasure = FitnessMeasure()
 
     #measureFile = open("unit_test.measure", "w")
@@ -1550,7 +1553,7 @@ if __name__ == '__main__':
 #    initPipe = PriceMeasureOperator(initPipe, measure)
 #    initPipe = GaussInit(initPipe, bounds)
 
-    ea = LEAP.GenerationalEA(encoder, pipeline, popSize, initPipeline=initPipe)
+    ea = LEAP.GenerationalEA(decoder, pipeline, popSize, initPipeline=initPipe)
     ea.run(maxGeneration)
 
 #    import profile

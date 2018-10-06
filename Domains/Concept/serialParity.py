@@ -21,6 +21,9 @@
 #
 ##############################################################################
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 import random
 import copy
 import math
@@ -149,12 +152,12 @@ def test():
     ind = Individual(encoder, genome)
     ind2 = Individual(encoder)
     fitness = ind.evaluate()
-    print "fitness =", fitness
+    print("fitness =", fitness)
 
     if fitness == 4:
-        print "Passed"
+        print("Passed")
     else:
-        print "FAILED"
+        print("FAILED")
 
 
 if __name__ == '__main__':

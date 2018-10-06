@@ -21,6 +21,9 @@
 #
 ##############################################################################
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 import sys
 #sys.path.insert(0,'..')
 import string
@@ -30,9 +33,13 @@ import math
 import numpy
 
 import LEAP
-import LEAP.Exec
+
+# XXX ModuleNotFoundError: No module named 'ruleInterp'
+#     The way I originally implemented my modules was broken.  With the
+#     upgrade to Python 3, I'm getting a chicken-and-egg problem, so I can't
+#     import some things (like this) without making major changes to the
+#     structure of the code.  It still seems to work in Python 2.
 from ruleInterp import *
-#import cRuleFuncs
 
 
 #############################################################################
@@ -142,7 +149,7 @@ class pyInterpolatingRuleInterp(InterpolatingRuleInterp):
 #        if priorityMetric not in range(ExecInterpolate.numPriorityMetrics):
 #            raise ValueError, "Illegal value for priorityMetric"
 #
-#        #print ruleset
+#        #print(ruleset)
 #        self.addr = cRuleFuncs.cInit(ruleset, numInputs, numOutputs, initMem,
 #                                     priorityMetric)
 #
@@ -206,7 +213,7 @@ def test():
     output += pyInterp.execute([2.75])
     output += pyInterp.execute([3.5])
 
-    print " output =", output
+    print(" output =", output)
     assert(output == [4.0, 2.0, 1.0, 3.0, 3.5, 4.0])
 
     # Test the C version
@@ -218,14 +225,14 @@ def test():
 #    output += cInterp.execute([0])
 #    output += cInterp.execute([1])
 #
-#    print " output =", output
+#    print(" output =", output)
 #    assert(output == pyOutput)
 
 
-#    print "Writing map file..."
+#    print("Writing map file...")
 #    makeMap(interp)
 
-    print "Passed"
+    print("Passed")
 
 
 if __name__ == '__main__':

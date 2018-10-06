@@ -121,20 +121,24 @@ def unit_test():
     genome = decoder.randomGenome()
 
     assert(len(genome) == 8)
+    passed = True
 
     # Test the decoder
     genome = '10000101'
     phenome = decoder.decodeGenome(genome)
     print("phenome =", phenome)
-    assert(phenome == [8.0, 5.0])
+    passed = passed and (phenome == [8.0, 5.0])
 
     genome = '00000001'
     phenome = decoder.decodeGenome(genome)
     print("phenome =", phenome)
-    assert(phenome == [0.0, 1.0])
+    passed = passed and (phenome == [0.0, 1.0])
 
-    print("Passed?")
-
+    print()
+    if passed:
+        print("Passed")
+    else:
+        print("FAILED")
 
 
 if __name__ == '__main__':

@@ -22,6 +22,9 @@
 #
 ##############################################################################
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 import math
 
 import LEAP
@@ -149,7 +152,7 @@ def unit_test():
              if e[1] == [1]]
     f.writelines(lines)
         
-    print "Passed"
+    print("Passed")
 
 
 if __name__ == '__main__':

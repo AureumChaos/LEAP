@@ -33,7 +33,7 @@ import math
 import LEAP
 #import pyximport; pyximport.install()
 from g2pDecoder import *
-from g2pDecoderCy import *
+#from g2pDecoderCy import *
 from g2pMappingDecoder import *
 from g2pMappingGaussianMutation import *
 from g2pMappingMagnitudeGaussianMutation import *
@@ -63,8 +63,8 @@ class g2pMappingProblem(LEAP.Problem):
         """
         fitness = 0
         for subProblem in self.subProblems:
-            #decoder = g2pDecoder(subProblem, phenome)
-            decoder = g2pDecoderCy(subProblem, phenome)
+            decoder = g2pDecoder(subProblem, phenome)
+            #decoder = g2pDecoderCy(subProblem, phenome)
             self.subEA.decoder = decoder
             bsf = self.subEA.run()
             fitness += bsf.getFitness() / len(self.subProblems)

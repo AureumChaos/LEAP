@@ -21,6 +21,9 @@
 #
 ##############################################################################
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 import sys
 #sys.path.insert(0,'..')
 import string
@@ -29,10 +32,16 @@ import random
 import math
 
 import LEAP
+import LEAP.Exec.Pitt
 
-from ruleInterp import *
+# Define the default rule interpreter version
+def getDefaultRuleInterp():
+    #return cRuleInterp
+    return LEAP.Exec.Pitt.pyRuleInterp
 
-defaultRuleInterp = cRuleInterp  # define the default rule interpreter version
+def getDefaultPriorityMetric():
+    return LEAP.Exec.Pitt.RuleInterp.PERIMETER
+    
 
 
 #############################################################################
@@ -52,8 +61,9 @@ class PittDecoder(LEAP.Decoder):
     Check the RuleInterp class to see if this is still the case.
     """
     def __init__(self, problem, minRules, maxRules, numInputs, numOutputs, \
-                 initMem = [], priorityMetric = RuleInterp.PERIMETER,
-                 ruleInterpClass = defaultRuleInterp):
+                 initMem = [], \
+                 priorityMetric = None, \
+                 ruleInterpClass = None):
         LEAP.Decoder.__init__(self, problem)
 
         self.minRules = minRules
@@ -63,8 +73,15 @@ class PittDecoder(LEAP.Decoder):
         self.numOutputs = numOutputs
         self.initMem = initMem
 
-        self.priorityMetric = priorityMetric
-        self.ruleInterpClass = ruleInterpClass
+        if priorityMetric is None:
+            self.priorityMetric = getDefaultPriorityMetric()
+        else:
+            self.priorityMetric = priorityMetric
+
+        if ruleInterpClass is None:
+            self.ruleInterpClass = getDefaultRuleInterp()
+        else:
+            self.ruleInterpClass = ruleInterpClass
 
         # XXX Do I need these?
         self.numConditions = numInputs + len(initMem)
@@ -82,7 +99,7 @@ class PittDecoder(LEAP.Decoder):
 
 
     def randomGenome(self):
-        raise NotImplementedError
+        raise(NotImplementedError)
 
 
 
@@ -97,8 +114,8 @@ class PittRuleDecoder(PittDecoder):
     """
     def __init__(self, problem, ruleDecoder, minRules, maxRules, \
                  numInputs, numOutputs, initMem=[], \
-                 priorityMetric = RuleInterp.PERIMETER, \
-                 ruleInterpClass = defaultRuleInterp):
+                 priorityMetric = None, \
+                 ruleInterpClass = None):
         PittDecoder.__init__(self, problem, minRules, maxRules, numInputs,
                              numOutputs, initMem, priorityMetric,
                              ruleInterpClass)
@@ -138,8 +155,8 @@ class PittFixedDecoder(PittDecoder):
     """
     def __init__(self, problem, fixedDecoder, ruleSize, \
                  numInputs, numOutputs, initMem=[], \
-                 priorityMetric = RuleInterp.PERIMETER, \
-                 ruleInterpClass = defaultRuleInterp):
+                 priorityMetric = None, \
+                 ruleInterpClass = None):
         PittDecoder.__init__(self, problem, 0, 0, numInputs, numOutputs, \
                              initMem, priorityMetric, ruleInterpClass)
         self.fixedDecoder = fixedDecoder
@@ -257,10 +274,10 @@ def unit_test():
 
     myProblem = MyProblem()
     fitness = myProblem.evaluate(phenome);
-    print "fitness =", fitness
+    print("fitness =", fitness)
     assert(fitness == 1.0)
 
-    print "Passed"
+    print("Passed")
 
 
 

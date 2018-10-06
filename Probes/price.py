@@ -21,18 +21,24 @@
 #
 ##############################################################################
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 import sys
 import random
 import string
-import copy
 
 import LEAP
 #import scipy.stats
 
 from math import *
-from Numeric import *
+#from Numeric import *
 #from numarray import *
+from numpy import *
 
+import functools
+
+import copy
 
 #############################################################################
 #
@@ -119,7 +125,7 @@ class RandomSearchOperator(LEAP.CloneOperator):
         @return: A list of the resulting individuals.
         """
         for ind in individuals:
-            ind.genome = ind.encoder.randomGenome()
+            ind.genome = ind.decoder.randomGenome()
 
         return individuals
 
@@ -135,18 +141,18 @@ def printPopulation(population, generation = None):
     qBar = sum([i.q[-1] for i in population]) / len(population)
     for i, ind in enumerate(population):
         if generation != None:
-            print "Gen:", generation,
-        print "Ind:", i, "", ind,
+            print("Gen:", generation, end='')
+        print("Ind:", i, "", ind, end='')
 
         #qdiff = population[i].z * (population[i].q[-1] - qBar)
-        #print " z(q-qBar): %16.10f" % qdiff,
+        #print(" z(q-qBar): %16.10f" % qdiff, end='')
 
-        print " deltaQx:",
+        print(" deltaQx:", end='')
         for parent in ind.parents:
             deltaq = ind.q[0] - parent.q[-1]
-            #print "%16.10f" % deltaq, 
-            print mystr(deltaq), 
-        print
+            #print("%16.10f" % deltaq,  end='')
+            print(mystr(deltaq),  end='')
+        print()
 
 
 
@@ -184,12 +190,12 @@ class PriceIndividual(LEAP.Individual):
     def clone(self):
         #clone = LEAP.Individual.clone(self)
         if isinstance(self.genome, str):
-            clone = PriceIndividual(self.encoder, self.genome)
+            clone = PriceIndividual(self.decoder, self.genome)
         elif isinstance(self.genome[0], float) \
              or isinstance(self.genome[0], int):
-            clone = PriceIndividual(self.encoder, self.genome[:])
+            clone = PriceIndividual(self.decoder, self.genome[:])
         else:  # Gene class
-            clone = PriceIndividual(self.encoder,
+            clone = PriceIndividual(self.decoder,
                                     [copy.copy(i) for i in self.genome])
         clone.rawFitness = self.rawFitness
         clone.fitness = self.fitness
@@ -217,7 +223,7 @@ class LexPriceIndividual(LEAP.Individual):
         if self == None or other == None:
             return cmp(self, other)
 
-        result = self.encoder.cmpFitness(self.getFitness(), other.getFitness())
+        result = self.decoder.cmpFitness(self.getFitness(), other.getFitness())
         if result == 0:
             return -cmp(size(self.genome), size(other.genome))
         else:
@@ -323,12 +329,12 @@ class AverageMeasureOperator(CollectPopulationOperator):
 
         if len(self.samples) > 0:
             self.qBar = E(self.samples)
-        print "Gen:", self.generation,
-        print "%10s" % self.tag + ": %16.10f" % self.qBar,
-        print " len(samples):", len(self.samples),
-        print " delta: %16.10f" % (self.qBar - self.prevqBar),
-#        print " samples:", self.samples
-        print " indices:", self.indices
+        print("Gen:", self.generation, end='')
+        print("%10s" % self.tag + ": %16.10f" % self.qBar, end='')
+        print(" len(samples):", len(self.samples), end='')
+        print(" delta: %16.10f" % (self.qBar - self.prevqBar), end='')
+#        print(" samples:", self.samples
+        print(" indices:", self.indices)
 
         AverageMeasureOperator.prevqBar = self.qBar
         self.generation += 1
@@ -377,9 +383,9 @@ class PriceCalcOperator(CollectPopulationOperator):
     def calcPrice(self):
         #printPopulation(self.P1, self.generation-1)
         if self.P1 and self.P2:
-            print "Gen:", self.generation - 1,
+            print("Gen:", self.generation - 1, end='')
             if self.tag:
-                print "Tag:", self.tag,
+                print("Tag:", self.tag, end='')
             calcPriceFunc(self.P1, self.P2, self.zero)
 
 
@@ -414,7 +420,7 @@ class VarianceCalcOperator(CollectPopulationOperator):
     def calcVariance(self):
         #printPopulation(self.P1, self.generation-1)
         if self.P1 and self.P2:
-            print "Gen:", self.generation - 1,
+            print("Gen:", self.generation - 1, end='')
             calcVarianceFunc(self.P1, self.P2, self.zero)
 
 
@@ -471,7 +477,7 @@ def locationMeasure(ind = None):
     numVars = 30  # This is a hack!  I shouldn't have to define this here!
     if ind == None:
         return zeros(numVars)   # define a zero measurement
-    return array(ind.encoder.decodeGenome(ind.genome))
+    return array(ind.decoder.decodeGenome(ind.genome))
 
 
 def rankMeasure(ind = None):
@@ -585,12 +591,12 @@ def calcPriceFunc(P1, P2, zero, genStep=1):
     qPrimeBar = E([i.q[-1] for i in P2])  # Avg of child final measurements
 
     # For debugging
-    #print
-    #print "N =", N
-    #print "sum(z) =", sum([i.z for i in P1])
-    #print "zBar =", zBar
-    #print "qBar =", qBar
-    #print "qPrimeBar =", qPrimeBar
+    #print()
+    #print("N =", N)
+    #print("sum(z) =", sum([i.z for i in P1]))
+    #print("zBar =", zBar)
+    #print("qBar =", qBar)
+    #print("qPrimeBar =", qPrimeBar)
 
     # Calculate the selection term
     T1 = Cov([i[0].z for i in opMatchList], [i[0].q[-1] for i in opMatchList])
@@ -650,19 +656,19 @@ def calcPriceFunc(P1, P2, zero, genStep=1):
 
         # Try to catch some obvious errors.
         if len(deltaList) != int(N * zBar):
-            print
-            print "len(deltaList) =", len(deltaList)
-            print "N =", N
-            print "zBar =", zBar
-            print "N * zBar =", N * zBar
-            raise RuntimeError, "Mismatch in number of operations"
+            print()
+            print("len(deltaList) =", len(deltaList))
+            print("N =", N)
+            print("zBar =", zBar)
+            print("N * zBar =", N * zBar)
+            raise(RuntimeError, "Mismatch in number of operations")
 
         T_opsMins[j] = min(deltaList)
         T_opsMaxs[j] = max(deltaList)
 
-        T_ops[j] = reduce(add,deltaList) / float(len(deltaList))
+        T_ops[j] = functools.reduce(add,deltaList) / float(len(deltaList))
         deltaSqList = [x * x for x in deltaList]
-        operatorVariance = reduce(add,deltaSqList) / (N * zBar) - T_ops[j] ** 2
+        operatorVariance = functools.reduce(add,deltaSqList) / (N * zBar) - T_ops[j] ** 2
 
         # Try to make sure we're not taking sqrt() of a negative number
         if operatorVariance > zero:  # XXX This may not work for some measures,
@@ -678,7 +684,7 @@ def calcPriceFunc(P1, P2, zero, genStep=1):
         # Price does because sometimes a child can have 2 parents (crossover)
         # or just one parent (clone).
         NzBar = int(N * zBar)
-        #print "NzBar:", NzBar,
+        #print("NzBar:", NzBar, end=''))
         op_qBars[j] = sum(op_qs) / NzBar
         op_qPrimeBars[j] = sum(op_qPrimes) / NzBar
 
@@ -692,47 +698,49 @@ def calcPriceFunc(P1, P2, zero, genStep=1):
                         for i in range(NzBar)]) / NzBar
 
     DeltaQmeasure = qPrimeBar - qBar
-    DeltaQcalc = T1 + reduce(add,T_ops)  # As I recall, I used reduce() instead
-                                         # of sum() here because sum() wasn't
-                                         # working well when q was a vector.
+    # As I recall, I used reduce() instead of sum() here because sum() wasn't
+    # working well when q was a vector.
+    DeltaQcalc = T1 + functools.reduce(add,T_ops)
 
 
     # Print out the results
     # XXX I don't like the fact that I'm printing information from here.
     #     I would prefer to print the results from within
     #     PriceEA.printStats().
-    print "best:", LEAP.fittest(P1).fitness,
-    print "qPrimeBar:", mystr(qPrimeBar),
-    print "DeltaQmeasure:", mystr(DeltaQmeasure),
-    print "DeltaQcalc:", mystr(DeltaQcalc),
-    print "T1measure:", mystr(T1measure),
-    print "T1:", mystr(T1),
+    print("best:", LEAP.fittest(P1).fitness, end='')
+    print("qPrimeBar:", mystr(qPrimeBar), end='')
+    print("DeltaQmeasure:", mystr(DeltaQmeasure), end='')
+    print("DeltaQcalc:", mystr(DeltaQcalc), end='')
+    print("T1measure:", mystr(T1measure), end='')
+    print("T1:", mystr(T1), end='')
     for j in range(k):
-        print "T" + str(j+2) + ":", mystr(T_ops[j]),
-    print "S1:", mystr(S1),
+        print("T" + str(j+2) + ":", mystr(T_ops[j]), end='')
+    print("S1:", mystr(S1), end='')
     for j in range(k):
-        print "S" + str(j+2) + ":", mystr(S_ops[j]),
+        print("S" + str(j+2) + ":", mystr(S_ops[j]), end='')
 
-    print "T1min:", mystr(T1min),
-    print "T1max:", mystr(T1max),
+    print("T1min:", mystr(T1min), end='')
+    print("T1max:", mystr(T1max), end='')
     for j in range(k):
-        print "T" + str(j+2) + "min:", mystr(T_opsMins[j]),
-        print "T" + str(j+2) + "max:", mystr(T_opsMaxs[j]),
+        print("T" + str(j+2) + "min:", mystr(T_opsMins[j]), end='')
+        print("T" + str(j+2) + "max:", mystr(T_opsMaxs[j]), end='')
 
-    #print "deltaList:", mystr(deltaList)
+    #print("deltaList:", mystr(deltaList)
 
     # Temporary?
     # Print out the "op_" statistics gathered about the operators.
     # I'm looking for a relationship between parent and child, hopefully
     # covariance with maybe a couple of these other factors thrown in.
     for j in range(k):
-        print "op_qBar" + str(j+2) + ":", mystr(op_qBars[j]),
-        print "op_qStdev" + str(j+2) + ":", mystr(op_qStdevs[j]),
-        print "op_qPrimeBar" + str(j+2) + ":", mystr(op_qPrimeBars[j]),
-        print "op_qPrimeStdev" + str(j+2) + ":", mystr(op_qPrimeStdevs[j]),
-        print "op_Covs" + str(j+2) + ":", mystr(op_Covs[j]),
+        print("op_qBar" + str(j+2) + ":", mystr(op_qBars[j]), end='')
+        print("op_qStdev" + str(j+2) + ":", mystr(op_qStdevs[j]), end='')
+        print("op_qPrimeBar" + str(j+2) + ":", mystr(op_qPrimeBars[j]),
+        end='')
+        print("op_qPrimeStdev" + str(j+2) + ":", mystr(op_qPrimeStdevs[j]),
+        end='')
+        print("op_Covs" + str(j+2) + ":", mystr(op_Covs[j]), end='')
 
-    print
+    print()
 
 
 #############################################################################
@@ -767,12 +775,12 @@ def calcPriceFunc2(P1, P2, zero, genStep=1):
     qPrimeBar = E([i.q[-1] for i in P2])
 
     # For debugging
-    #print
-    #print "N =", N
-    #print "sum(z) =", sum([i.z for i in P1])
-    #print "zBar =", zBar
-    #print "qBar =", qBar
-    #print "qPrimeBar =", qPrimeBar
+    #print()
+    #print("N =", N)
+    #print("sum(z) =", sum([i.z for i in P1]))
+    #print("zBar =", zBar)
+    #print("qBar =", qBar)
+    #print("qPrimeBar =", qPrimeBar)
 
     # Calculate the selection term
     covList = [(i.z - zBar) * (i.q[-1] - qBar) for i in P1]
@@ -822,19 +830,19 @@ def calcPriceFunc2(P1, P2, zero, genStep=1):
 
         # Try to catch some obvious errors.
         if len(deltaList) != int(N * zBar):
-            print
-            print "len(deltaList) =", len(deltaList)
-            print "N =", N
-            print "zBar =", zBar
-            print "N * zBar =", N * zBar
-            raise RuntimeError, "Mismatch in number of operations"
+            print()
+            print("len(deltaList) =", len(deltaList))
+            print("N =", N)
+            print("zBar =", zBar)
+            print("N * zBar =", N * zBar)
+            raise(RuntimeError, "Mismatch in number of operations")
 
         T_opsMins[j] = min(deltaList)
         T_opsMaxs[j] = max(deltaList)
 
-        T_ops[j] = reduce(add,deltaList) / float(len(deltaList))
+        T_ops[j] = functools.reduce(add,deltaList) / float(len(deltaList))
         deltaSqList = [x * x for x in deltaList]
-        operatorVariance = reduce(add,deltaSqList) / (N * zBar) - T_ops[j] ** 2
+        operatorVariance = functools.reduce(add,deltaSqList) / (N * zBar) - T_ops[j] ** 2
 
         # Try to make sure we're not taking sqrt(-x)
         if operatorVariance > zero:  # XXX This may not work for some measures
@@ -848,7 +856,7 @@ def calcPriceFunc2(P1, P2, zero, genStep=1):
         # covariance just wouldn't make sense if we used averages the way
         # Price does.
         NzBar = int(N * zBar)
-        #print "NzBar:", NzBar,
+        #print("NzBar:", NzBar, end='')
         op_qBars[j] = sum(op_qs) / NzBar
         op_qPrimeBars[j] = sum(op_qPrimes) / NzBar
 
@@ -862,45 +870,47 @@ def calcPriceFunc2(P1, P2, zero, genStep=1):
                         for i in range(NzBar)]) / NzBar
 
     DeltaQmeasure = qPrimeBar - qBar
-    DeltaQcalc = T1 + reduce(add,T_ops)
+    DeltaQcalc = T1 + functools.reduce(add,T_ops)
 
 
     # Print out the results
     # XXX I don't like the fact that I'm printing information from here.
     #     I would prefer to print the results from within
     #     PriceEA.printStats().
-    print "best:", LEAP.fittest(P1).fitness,
-    print "qPrimeBar:", mystr(qPrimeBar),
-    print "DeltaQmeasure:", mystr(DeltaQmeasure),
-    print "DeltaQcalc:", mystr(DeltaQcalc),
-    print "T1measure:", mystr(T1measure),
-    print "T1:", mystr(T1),
+    print("best:", LEAP.fittest(P1).fitness, end='')
+    print("qPrimeBar:", mystr(qPrimeBar), end='')
+    print("DeltaQmeasure:", mystr(DeltaQmeasure), end='')
+    print("DeltaQcalc:", mystr(DeltaQcalc), end='')
+    print("T1measure:", mystr(T1measure), end='')
+    print("T1:", mystr(T1), end='')
     for j in range(k):
-        print "T" + str(j+2) + ":", mystr(T_ops[j]),
-    print "S1:", mystr(S1),
+        print("T" + str(j+2) + ":", mystr(T_ops[j]), end='')
+    print("S1:", mystr(S1), end='')
     for j in range(k):
-        print "S" + str(j+2) + ":", mystr(S_ops[j]),
+        print("S" + str(j+2) + ":", mystr(S_ops[j]), end='')
 
-    print "T1min:", mystr(T1min),
-    print "T1max:", mystr(T1max),
+    print("T1min:", mystr(T1min), end='')
+    print("T1max:", mystr(T1max), end='')
     for j in range(k):
-        print "T" + str(j+2) + "min:", mystr(T_opsMins[j]),
-        print "T" + str(j+2) + "max:", mystr(T_opsMaxs[j]),
+        print("T" + str(j+2) + "min:", mystr(T_opsMins[j]), end='')
+        print("T" + str(j+2) + "max:", mystr(T_opsMaxs[j]), end='')
 
-    #print "deltaList:", mystr(deltaList)
+    #print("deltaList:", mystr(deltaList)
 
     # Temporary?
     # Print out the "op_" statistics gathered about the operators.
     # I'm looking for a relationship between parent and child, hopefully
     # covariance with maybe a couple of these other factors thrown in.
     for j in range(k):
-        print "op_qBar" + str(j+2) + ":", mystr(op_qBars[j]),
-        print "op_qStdev" + str(j+2) + ":", mystr(op_qStdevs[j]),
-        print "op_qPrimeBar" + str(j+2) + ":", mystr(op_qPrimeBars[j]),
-        print "op_qPrimeStdev" + str(j+2) + ":", mystr(op_qPrimeStdevs[j]),
-        print "op_Covs" + str(j+2) + ":", mystr(op_Covs[j]),
+        print("op_qBar" + str(j+2) + ":", mystr(op_qBars[j]), end='')
+        print("op_qStdev" + str(j+2) + ":", mystr(op_qStdevs[j]), end='')
+        print("op_qPrimeBar" + str(j+2) + ":", mystr(op_qPrimeBars[j]),
+        end='')
+        print("op_qPrimeStdev" + str(j+2) + ":", mystr(op_qPrimeStdevs[j]),
+        end='')
+        print("op_Covs" + str(j+2) + ":", mystr(op_Covs[j]), end='')
 
-    print
+    print()
 
 
 #############################################################################
@@ -910,7 +920,7 @@ def calcPriceFunc2(P1, P2, zero, genStep=1):
 ##############################################################################
 def leastCommonMultiple(l):
     l.sort()
-    multiple = reduce(lambda x,y: x*y, l)
+    multiple = functools.reduce(lambda x,y: x*y, l)
     # This is not done
     
 
@@ -932,7 +942,7 @@ def calcVarianceFunc(P1, P2, zero, opStep=1):
     # individuals that have fewer parents.  Its really about adding fractions
     # properly.
     numParents = unique([len(child.parents) for child in P2])
-    lcm = reduce(lambda x,y: x*y, numParents)  # Least common multiple
+    lcm = functools.reduce(lambda x,y: x*y, numParents)  # Least common multiple
 
     # Create the q lists, one for each op including selection
     qs = [ [] ] * k+1
@@ -950,7 +960,7 @@ def calcVarianceFunc(P1, P2, zero, opStep=1):
     #------------- rewrite everything below
 
     # Calculate means
-    print "qs[0], qPrimes[0]:", qs[0], qPrimes[0]
+    print("qs[0], qPrimes[0]:", qs[0], qPrimes[0])
     N = len(qs)
     qBar = sum(qs) / N
     qPrimeBar = sum(qPrimes) / N
@@ -984,21 +994,21 @@ def calcVarianceFunc(P1, P2, zero, opStep=1):
     # Print out the results
     # XXX I don't like the fact that I'm printing information from here.
     #     I would prefer to print the results from within PriceEA.printStats().
-    print "op:", mystr(len(P2[0].q)),
+    print("op:", mystr(len(P2[0].q)), end='')
 
-    print "qBar:", mystr(qBar),
-    print "qPrimeBar:", mystr(qPrimeBar),
-    print "deltaqBar:", mystr(deltaqBar),
+    print("qBar:", mystr(qBar), end='')
+    print("qPrimeBar:", mystr(qPrimeBar), end='')
+    print("deltaqBar:", mystr(deltaqBar), end='')
 
-    print "qVar:", mystr(qVar),
-    print "qPrimeVar:", mystr(qPrimeVar),
-    print "deltaqVar:", mystr(deltaqVar),
+    print("qVar:", mystr(qVar), end='')
+    print("qPrimeVar:", mystr(qPrimeVar), end='')
+    print("deltaqVar:", mystr(deltaqVar), end='')
 
-    print "deltaqVar/qVar:", mystr(deltaqVar/qVar),
-    print "corr(q,qPrime):", mystr(corr),
-    #print "qPrimeSigma/qSigma:", mystr(qPrimeSigma/qSigma),
+    print("deltaqVar/qVar:", mystr(deltaqVar/qVar), end='')
+    print("corr(q,qPrime):", mystr(corr), end='')
+    #print("qPrimeSigma/qSigma:", mystr(qPrimeSigma/qSigma), end='')
 
-    print
+    print()
 
 
 
@@ -1017,9 +1027,9 @@ class PriceEA(LEAP.GenerationalEA):
         initPipeline = PriceInitOperator(initPipeline)
         initPipeline = PriceMeasureOperator(initPipeline, <measureFunc>)
     """
-    def __init__(self, encoder, pipeline, popSize, zero, initPipeline, \
+    def __init__(self, decoder, pipeline, popSize, zero, initPipeline, \
                  indClass=PriceIndividual, initPopsize=None):
-        LEAP.GenerationalEA.__init__(self, encoder, pipeline, popSize, \
+        LEAP.GenerationalEA.__init__(self, decoder, pipeline, popSize, \
                                      initPipeline = initPipeline, \
                                      indClass = indClass,
                                      initPopsize = initPopsize)
@@ -1063,15 +1073,15 @@ if __name__ == '__main__':
     # ...for binary genes
     #bitsPerReal = 16
     #genomeSize = bitsPerReal * numVars
-    #encoder = LEAP.BinaryRealEncoder(problem, [bitsPerReal] * numVars, bounds)
+    #decoder = LEAP.BinaryRealDecoder(problem, [bitsPerReal] * numVars, bounds)
 
     # ...for float genes
-    #encoder = LEAP.FloatEncoder(problem, bounds, bounds)
+    #decoder = LEAP.FloatDecoder(problem, bounds, bounds)
 
     # ...for adaptive real genes
     sigmaBounds = (0.0, bounds[0][1] - bounds[0][0])
     initSigmas = [(bounds[0][1] - bounds[0][0]) / sqrt(numVars)] * numVars
-    encoder = LEAP.AdaptiveRealEncoder(problem, bounds, bounds, initSigmas)
+    decoder = LEAP.AdaptiveRealDecoder(problem, bounds, bounds, initSigmas)
 
     measure = fitnessMeasure
     #measure = rankMeasure
@@ -1109,8 +1119,8 @@ if __name__ == '__main__':
     initPipe = PriceInitOperator(initPipe)
     initPipe = PriceMeasureOperator(initPipe, measure)
 
-    print "popSize =", popSize
-    ea = PriceEA(encoder, pipeline, popSize, measure(), initPipe)
+    print("popSize =", popSize)
+    ea = PriceEA(decoder, pipeline, popSize, measure(), initPipe)
     ea.run(maxGeneration)
 
 #    import profile

@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 import string
 import sys
 import re
@@ -146,35 +149,35 @@ def unit_test():
 
     examples, legalVals = readUCI("readUCI-test.data")
 
-    print
-    print "Examples:"
+    print()
+    print("Examples:")
     for example in examples:
-        print example
+        print(example)
 
-    print
-    print "Legal values:"
+    print()
+    print("Legal values:")
     for featureVals in legalVals[0]:
-        print featureVals
-    print legalVals[1]
-    print
+        print(featureVals)
+    print(legalVals[1])
+    print()
 
-    print "Running tests:"
+    print("Running tests:")
     t = len(examples) == 4
-    print "len(examples) == 4           (" + str(t) + ")"
+    print("len(examples) == 4           (" + str(t) + ")")
     passed = passed and t
 
     t = [type(feature) for feature in examples[0][0]] == [str, int, float]
-    print "types == [str, int, float]   (" + str(t) + ")"
+    print("types == [str, int, float]   (" + str(t) + ")")
     passed = passed and t
 
     t = reduce(lambda x,y:x and y, [e[0][1] == e[0][2] for e in examples])
-    print "ints == floats               (" + str(t) + ")"
+    print("ints == floats               (" + str(t) + ")")
     passed = passed and t
 
     if passed:
-        print "Passed"
+        print("Passed")
     else:
-        print "FAILED"
+        print("FAILED")
 
 
 #############################################################################
@@ -190,7 +193,7 @@ if __name__ == '__main__':
     if argc == 1:
         unit_test()
     elif argc > 4:
-        print "Usage: readUCI.py [UCI datafile [classIndex ['delimiter']]]"
+        print("Usage: readUCI.py [UCI datafile [classIndex ['delimiter']]]")
     else:
         filename = sys.argv[1]
         if argc > 2:
@@ -200,11 +203,11 @@ if __name__ == '__main__':
 
         examples, legalVals = readUCI(sys.argv[1], classIndex, delimiter)
         for example in examples:
-            print example
-        print
-        print "Legal values:"
+            print(example)
+        print()
+        print("Legal values:")
         for featureVals in legalVals[0]:
-            print featureVals
-        print legalVals[1]
+            print(featureVals)
+        print(legalVals[1])
 
 

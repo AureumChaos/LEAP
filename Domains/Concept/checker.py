@@ -22,6 +22,9 @@
 #
 ##############################################################################
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 import math
 
 import LEAP
@@ -91,9 +94,9 @@ def unit_test():
 
     import LEAP.Exec.Pitt
     bounds = [(0.0, 0.1)]*3
-    ruleEncoder = LEAP.FloatEncoder(None, bounds, bounds)
+    ruleDecoder = LEAP.FloatDecoder(None, bounds, bounds)
 
-    encoder = LEAP.Exec.Pitt.PittNearestNeighborEncoder(checker, ruleEncoder,
+    decoder = LEAP.Exec.Pitt.PittNearestNeighborDecoder(checker, ruleDecoder,
                                                         10, 10, 2, 1)
 
     perfectGenome = \
@@ -102,28 +105,28 @@ def unit_test():
      [0.1, 0.5, 1],[0.3, 0.5, 0],[0.5, 0.5, 1],[0.7, 0.5, 0],[0.9, 0.5, 1],\
      [0.1, 0.3, 0],[0.3, 0.3, 1],[0.5, 0.3, 0],[0.7, 0.3, 1],[0.9, 0.3, 0],\
      [0.1, 0.1, 1],[0.3, 0.1, 0],[0.5, 0.1, 1],[0.7, 0.1, 0],[0.9, 0.1, 1]]
-    perfectIndividual = LEAP.Individual(encoder, perfectGenome)
+    perfectIndividual = LEAP.Individual(decoder, perfectGenome)
 
     wrongGenome = [[r[0], r[1], int(not r[2])] for r in perfectGenome]
-    wrongIndividual = LEAP.Individual(encoder, wrongGenome)
+    wrongIndividual = LEAP.Individual(decoder, wrongGenome)
 
     perfectFitness = perfectIndividual.evaluate()
-    print "perfectFitness =", perfectFitness
+    print("perfectFitness =", perfectFitness)
     assert(perfectFitness == 1.0)
 
     wrongFitness = wrongIndividual.evaluate()
-    print "wrongFitness =", wrongFitness
+    print("wrongFitness =", wrongFitness)
     assert(wrongFitness == 0.0)
 
 
     f = open("checker.dat", mode="w")
     examples = checker.generateExamples(100000)
-    print examples[0]
+    print(examples[0])
     lines = [str(e[0][0]) + " " + str(e[0][1]) + "\n" for e in examples
              if e[1] == [1]]
     f.writelines(lines)
         
-    print "Passed"
+    print("Passed")
 
 
 if __name__ == '__main__':

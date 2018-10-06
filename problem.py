@@ -26,7 +26,17 @@
 # Python 2 & 3 compatibility
 from __future__ import print_function
 def cmp(a,b):
+    if a is None:
+        if b is None:
+            return(0)
+        else:
+            return(-1)
+
+    if b is None:
+        return(1)
+
     return int(a>b) - int(a<b)
+
 
 import sys
 import string
