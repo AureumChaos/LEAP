@@ -31,13 +31,22 @@ import random
 import math
 
 import LEAP
+
+##import pyximport; pyximport.install()
+#from g2pDecoder import *
+##from g2pDecoderCy import *
+#from g2pMappingDecoder import *
+#from g2pMappingGaussianMutation import *
+#from g2pMappingMagnitudeGaussianMutation import *
+#from g2pMappingVectorGaussianMutation import *
+
 #import pyximport; pyximport.install()
-from g2pDecoder import *
+from LEAP.Contrib.g2pMapping.g2pDecoder import *
 #from g2pDecoderCy import *
-from g2pMappingDecoder import *
-from g2pMappingGaussianMutation import *
-from g2pMappingMagnitudeGaussianMutation import *
-from g2pMappingVectorGaussianMutation import *
+from LEAP.Contrib.g2pMapping.g2pMappingDecoder import *
+from LEAP.Contrib.g2pMapping.g2pMappingGaussianMutation import *
+from LEAP.Contrib.g2pMapping.g2pMappingMagnitudeGaussianMutation import *
+from LEAP.Contrib.g2pMapping.g2pMappingVectorGaussianMutation import *
 
 
 

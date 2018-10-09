@@ -87,8 +87,10 @@ def unit_test():
     """
     Test mutation operator
     """
-    from g2pDecoder import g2pDecoder
-    from g2pMappingDecoder import g2pMappingDecoder
+    #from g2pDecoder import g2pDecoder
+    #from g2pMappingDecoder import g2pMappingDecoder
+    from LEAP.Contrib.g2pMapping.g2pDecoder import g2pDecoder
+    from LEAP.Contrib.g2pMapping.g2pMappingDecoder import g2pMappingDecoder
 
     numDimensions = 2
     initRanges = [(-5, 2)] + [(0.5, 1.0)] * numDimensions

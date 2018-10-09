@@ -31,8 +31,10 @@ import random
 import math
 
 import LEAP
-from g2pMappingDecoder import *
-from g2pMappingGaussianMutation import *
+#from g2pMappingDecoder import *
+#from g2pMappingGaussianMutation import *
+from LEAP.Contrib.g2pMapping.g2pMappingDecoder import *
+from LEAP.Contrib.g2pMapping.g2pMappingGaussianMutation import *
 
 
 

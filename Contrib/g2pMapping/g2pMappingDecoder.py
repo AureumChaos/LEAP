@@ -93,7 +93,8 @@ def unit_test():
     """
     Test the mapping decoder.
     """
-    from g2pDecoder import g2pDecoder
+    #from g2pDecoder import g2pDecoder
+    from LEAP.Contrib.g2pMapping.g2pDecoder import g2pDecoder 
 
     numDimensions = 2
     initRanges = [(-5, 2)] + [(0.5, 1.0)] * numDimensions
