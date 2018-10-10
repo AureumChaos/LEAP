@@ -22,6 +22,9 @@
 #
 ##############################################################################
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 import random
 import math
 
@@ -86,9 +89,9 @@ class BaseFunctionApproximation(LEAP.Problem):
         @param phenome: An executableObject.
         @return: The sum squared error.
         """
-        #print "training set:"
+        #print("training set:")
         #for example in self.trainingSet:
-        #    print example
+        #    print(example)
         return self.compareFit(phenome, self.trainingSet)
 
 
@@ -135,14 +138,14 @@ class BaseFunctionApproximation(LEAP.Problem):
         Returns the maximum number of examples available or possible.
         If there is no upper limit, None is returned.
         """
-        raise NotImplementedError
+        raise(NotImplementedError)
 
 
     def generateExamples(self, numExamples):
         """
         Returns a list of examples for use in either training or testing.
         """
-        raise NotImplementedError
+        raise(NotImplementedError)
 
 
 
@@ -264,41 +267,41 @@ def unit_test():
     fa.selectTestSetGroup(0)
     assert(len(fa.testSet) == numExamples/numGroups)
     assert(len(fa.trainingSet) == numExamples - numExamples/numGroups)
-    print "Test set :"
+    print("Test set :")
     for ex in fa.testSet:
-        print ex
-    print
+        print(ex)
+    print()
 
-    print "Training set :"
+    print("Training set :")
     for ex in fa.trainingSet:
-        print ex
-    print
+        print(ex)
+    print()
 
-    print "Regenerate examples"
+    print("Regenerate examples")
     oldTestSet = fa.testSet
     fa.generateExampleGroups(numExamples, numGroups)
     fa.selectTestSetGroup(0)
     fa.testSet = oldTestSet  # This is a hack
 
-    print "Test set :"
+    print("Test set :")
     for ex in fa.testSet:
-        print ex
-    print
+        print(ex)
+    print()
 
-    print "Training set :"
+    print("Training set :")
     for ex in fa.trainingSet:
-        print ex
-    print
+        print(ex)
+    print()
 
     fa.selectTestSetGroup(1)
     assert(len(fa.testSet) == numExamples/numGroups)
     assert(len(fa.trainingSet) == numExamples - numExamples/numGroups)
-    #print "Test set =", fa.testSet[0]
+    #print("Test set =", fa.testSet[0])
 
     numRules = 100
     epsilon = 0.01
 
-    print "badRuleset"
+    print("badRuleset")
     badRuleset = []
     for ruleIndex in range(numRules):
         condition = []
@@ -309,18 +312,18 @@ def unit_test():
             action = [random.uniform(ab[0], ab[1])]
         badRuleset.append(condition + action)
 
-    #print "badRuleset =", badRuleset
+    #print("badRuleset =", badRuleset)
     interp = LEAP.Exec.Pitt.pyInterpolatingRuleInterp(badRuleset, 1, 1)
     train = fa.evaluate(interp)
-    print "training eval: ", train
+    print("training eval: ", train)
     test = fa.classifyTests(interp)
-    print "testing eval: ", test
+    print("testing eval: ", test)
     assert(train > epsilon)
     assert(test > epsilon)
 
 
-    print
-    print "goodRuleset"
+    print()
+    print("goodRuleset")
     goodRuleset = []
     for ruleIndex in range(numRules):
         condition = []
@@ -329,29 +332,29 @@ def unit_test():
         action = [targetFunc(condition)]
         goodRuleset.append(condition + action)
 
-    #print "goodRuleset =", badRuleset
+    #print("goodRuleset =", badRuleset)
     interp = LEAP.Exec.Pitt.pyInterpolatingRuleInterp(goodRuleset, 1, 1)
     train = fa.evaluate(interp)
-    print "training eval: ", train
+    print("training eval: ", train)
     test = fa.classifyTests(interp)
-    print "testing eval: ", test
+    print("testing eval: ", test)
     assert(train < epsilon)
     assert(test < epsilon)
 
-    print
-    print "shuffled goodRuleset"
-    #print "goodRuleset =", goodRuleset
+    print()
+    print("shuffled goodRuleset")
+    #print("goodRuleset =", goodRuleset)
     random.shuffle(goodRuleset)
     interp = LEAP.Exec.Pitt.pyInterpolatingRuleInterp(goodRuleset, 1, 1)
     train2 = fa.evaluate(interp)
-    print "training eval: ", train2
+    print("training eval: ", train2)
     test2 = fa.classifyTests(interp)
-    print "testing eval: ", test2
+    print("testing eval: ", test2)
     assert(train == train2)
     assert(test == test2)
 
-    print
-    print "Define a function using a rule interpreter"
+    print()
+    print("Define a function using a rule interpreter")
     condbounds = [ (-10.0, 10.0) ]
     actionbounds = [(-10.0, 10.0)]
     cb = condbounds[0]
@@ -362,7 +365,7 @@ def unit_test():
                for i in range(numRules)]
     points.sort()
     ruleset = [[p[0], p[0], p[1]] for p in points]
-    print "ruleset =", ruleset
+    print("ruleset =", ruleset)
     targetInterp = LEAP.Exec.Pitt.pyInterpolatingRuleInterp(ruleset, 1, 1)
     targetFunc = lambda x: targetInterp.execute(x)[0]
 
@@ -376,10 +379,10 @@ def unit_test():
     
     interp = LEAP.Exec.Pitt.pyInterpolatingRuleInterp(ruleset, 1, 1)
     selfEval = fa.evaluate(interp)
-    print "selfEval =", selfEval
+    print("selfEval =", selfEval)
 
 
-    print "Passed"
+    print("Passed")
 
 
 if __name__ == '__main__':

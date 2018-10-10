@@ -21,10 +21,10 @@
 #
 ##############################################################################
 
-from concept import *
-from funcApprox import *
-from checker import *
-from twoSpiral import *
+from LEAP.Domains.Concept.concept import *
+from LEAP.Domains.Concept.funcApprox import *
+from LEAP.Domains.Concept.checker import *
+from LEAP.Domains.Concept.twoSpiral import *
 
 #__all__ = []
 

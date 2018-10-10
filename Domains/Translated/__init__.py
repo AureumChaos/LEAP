@@ -21,7 +21,7 @@
 #
 ##############################################################################
 
-from translatedProblem import *
+from LEAP.Domains.Translated.translatedProblem import *
 
 #__all__ = []
 

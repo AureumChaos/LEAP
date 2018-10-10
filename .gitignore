@@ -1,9 +1,9 @@
-# Just naively copied over from original docker-nom .gitignore, so some possibly irrelevant stuff came along.
-#Developer specific project files
+# Just copied of .gitignore that covers All The Things.  (Hopefully.)
+#
 /tmp.*
 /local
 *.log
-.pyc
+*.pyc
 __pycache__
 docker-nom/build/
 

@@ -22,6 +22,9 @@
 #
 ##############################################################################
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 import math
 
 import LEAP
@@ -91,12 +94,12 @@ def unit_test():
     f = open("exec.dat", mode="w")
     examples = execCon.generateExamples(100000)
 
-    print examples[0]
+    print(examples[0])
     lines = [str(e[0][0]) + " " + str(e[0][1]) + "\n" for e in examples
              if e[1] == 1]
     f.writelines(lines)
 
-    print "Passed"
+    print("Passed")
 
 
 if __name__ == '__main__':

@@ -107,6 +107,7 @@ class Decoder:
         return genome
 
     def evaluate(self, genome):
+        # I really shouldn't have put this here!
         "Decodes the genome and evaluates it."
         phenome = self.decodeGenome(genome)
         return self.problem.evaluate(phenome)

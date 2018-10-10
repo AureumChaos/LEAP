@@ -21,9 +21,9 @@
 #
 ##############################################################################
 
-from pittDecoder import *
-from ruleInterp import *
-from interpolatingRuleInterp import *
+from LEAP.Exec.Pitt.PittDecoder import *
+from LEAP.Exec.Pitt.ruleInterp import *
+from LEAP.Exec.Pitt.interpolatingRuleInterp import *
 
 #__all__ = []
 

@@ -31,13 +31,22 @@ import random
 import math
 
 import LEAP
+
+##import pyximport; pyximport.install()
+#from g2pDecoder import *
+##from g2pDecoderCy import *
+#from g2pMappingDecoder import *
+#from g2pMappingGaussianMutation import *
+#from g2pMappingMagnitudeGaussianMutation import *
+#from g2pMappingVectorGaussianMutation import *
+
 #import pyximport; pyximport.install()
-from g2pDecoder import *
-from g2pDecoderCy import *
-from g2pMappingDecoder import *
-from g2pMappingGaussianMutation import *
-from g2pMappingMagnitudeGaussianMutation import *
-from g2pMappingVectorGaussianMutation import *
+from LEAP.Contrib.g2pMapping.g2pDecoder import *
+#from g2pDecoderCy import *
+from LEAP.Contrib.g2pMapping.g2pMappingDecoder import *
+from LEAP.Contrib.g2pMapping.g2pMappingGaussianMutation import *
+from LEAP.Contrib.g2pMapping.g2pMappingMagnitudeGaussianMutation import *
+from LEAP.Contrib.g2pMapping.g2pMappingVectorGaussianMutation import *
 
 
 
@@ -63,8 +72,8 @@ class g2pMappingProblem(LEAP.Problem):
         """
         fitness = 0
         for subProblem in self.subProblems:
-            #decoder = g2pDecoder(subProblem, phenome)
-            decoder = g2pDecoderCy(subProblem, phenome)
+            decoder = g2pDecoder(subProblem, phenome)
+            #decoder = g2pDecoderCy(subProblem, phenome)
             self.subEA.decoder = decoder
             bsf = self.subEA.run()
             fitness += bsf.getFitness() / len(self.subProblems)

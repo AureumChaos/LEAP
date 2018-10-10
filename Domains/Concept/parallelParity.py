@@ -21,14 +21,18 @@
 #
 ##############################################################################
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 import random
 import copy
 import math
 
 import LEAP
 #import scipy.stats
-from pittEncoder import *
-from ruleInterp import *
+#from pittDecoder import *
+#from ruleInterp import *
+import LEAP.Exec.Pitt
 
 
 def int2base(value, digits, strlen=None):
@@ -61,7 +65,7 @@ class ParallelParity(LEAP.Problem):
     of the string.
     """
     def __init__(self, numBits, numTests = 10, digits=[0,1]):
-        LEAP.Problem.__init__(self)
+        #LEAP.Problem.__init__(self)
         self.digits = digits
         self.numBits = numBits
         self.numInputs = numBits
@@ -89,8 +93,8 @@ class ParallelParity(LEAP.Problem):
         parity = 1 - value.count(1) % 2   # even parity
 
         # Initialize the rule interpreter
-        interp = RuleInterp(phenome, self.numInputs, self.numOutputs,
-                            self.initMemory)
+        interp = LEAP.Exec.Pitt.pyRuleInterp(phenome, self.numInputs,
+                                             self.numOutputs, self.initMemory)
         
 	# XXX Make it handle hex
         fitness = 0
@@ -145,18 +149,18 @@ def test():
     from LEAP import Individual
 
     problem = ParallelParity(3)
-    encoder = PittNominalEncoder(problem, 10, 10, [0,1])
+    decoder = LEAP.NominalDecoder(problem, 7, [0,1])
     genome = [[0,1, 0,1, 0,1, 0]]
 
-    ind = Individual(encoder, genome)
-    ind2 = Individual(encoder)
+    ind = Individual(decoder, genome)
+    #ind2 = Individual(decoder)
     fitness = ind.evaluate()
-    print "fitness =", fitness
+    print("fitness =", fitness)
 
     if fitness == 4:
-        print "Passed"
+        print("Passed")
     else:
-        print "FAILED"
+        print("FAILED")
 
 
 if __name__ == '__main__':

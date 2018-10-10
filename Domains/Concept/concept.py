@@ -22,11 +22,15 @@
 #
 ##############################################################################
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 import random
 import math
 
 import LEAP
-import readUCI
+#import LEAP.Domains.Concept.readUCI
+from readUCI import *
 
 
 def calcDecisionThresholds(values):
@@ -224,14 +228,14 @@ class ConceptLearning(LEAP.Problem):
         Returns the maximum number of examples available or possible.
         If there is no upper limit, None is returned.
         """
-        raise NotImplementedError
+        raise(NotImplementedError)
 
 
     def generateExamples(self, numExamples):
         """
         Returns a list of examples for use in either training or testing.
         """
-        raise NotImplementedError
+        raise(NotImplementedError)
 
 
 
@@ -271,8 +275,9 @@ class UCIConceptLearning(ConceptLearning):
     def __init__(self, UCIfilename, classIndex = -1, delimiter = ',',
                  matchFunc = exactMatch, normalizeFeatures = False):
         ConceptLearning.__init__(self, matchFunc)
-        self.UCIexamples, legalVals = readUCI.readUCI(UCIfilename,
-                                                      classIndex, delimiter)
+        #LEAP.Domains.Concept.readUCI(
+        self.UCIexamples, legalVals = readUCI(\
+                                           UCIfilename, classIndex, delimiter)
         self.features = legalVals[0]
         self.classes = legalVals[1]
 
@@ -355,12 +360,12 @@ def unit_test():
     parity.selectTestSetGroup(1)
     assert(len(parity.testSet) == 4)
     assert(len(parity.trainingSet) == 12)
-    print parity.testSet[0]
+    print(parity.testSet[0])
 
     parity.selectTestSetGroup(2)
     assert(len(parity.testSet) == 4)
     assert(len(parity.trainingSet) == 12)
-    print parity.testSet[0]
+    print(parity.testSet[0])
 
     answerRuleset = [[0,1, 0,1, 0,1, 0,1,  0],
                      [0,0, 0,0, 0,0, 1,1,  1],
@@ -374,25 +379,25 @@ def unit_test():
     answer = LEAP.Exec.Pitt.pyRuleInterp(answerRuleset, numDigits, 1)
 
     train = parity.evaluate(answer)
-    print "training set: ", train
+    print("training set: ", train)
     test = parity.classifyTests(answer)
-    print "testing set: ", test
+    print("testing set: ", test)
 
     assert(train == 1.0)
     assert(test == 1.0)
 
-    uci = UCIConceptLearning("/home/jbassett/uci/breast-cancer/wdbc.data",
+    uci = UCIConceptLearning("./wdbc.data",
                              classIndex=1, matchFunc=nearestIndexMatch,
                              normalizeFeatures=True)
-    print "classes =", uci.classes
-    print "num_features =", len(uci.features)
+    print("classes =", uci.classes)
+    print("num_features =", len(uci.features))
     feature_lens = [(i[0], i[-1]) for i in uci.features]
     bounds = [(math.floor(i[0]), math.ceil(i[-1])) for i in uci.features]
 
     for a,b in zip(feature_lens, bounds):
-        print b, a
+        print(b, a)
 
-    print "Passed"
+    print("Passed")
 
 
 if __name__ == '__main__':

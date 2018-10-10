@@ -21,7 +21,7 @@
 #
 ##############################################################################
 
-from executableObject import *
+from LEAP.Exec.executableObject import *
 
 #__all__ = []
 

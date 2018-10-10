@@ -3,12 +3,12 @@ A general purpose Library for Evolutionary Algorithms in Python.
 Written by Dr. Jeffrey K. Bassett
 Contributors: Dr. R. Paul Weigand
 
-Much of the library was design based on the general description of
+Much of the library design was inspired by the general description of
 Evolutionary Algorithms from Dr. Kenneth A. De Jong's book "Evolutionary
 Computation: A Unified Approach".  He was my Ph.D. advisor, so I am quite
 familiar with his approach.
 
-As of 9/29/2018:
+As of 10/6/2018:
 
 I wouldn't exactly call this stable just yet, but anyone is free to use it if
 they wish.  The current license is GPL v2, but I'm likely to change that to
@@ -21,10 +21,10 @@ the code now, I see that there are some pieces that I'm not completely happy
 with.  It's clear that I was learning Python at the same time that I wrote
 much of this.
 
-I just upgraded the core parts of the library to Python 3.  I believe that
-everything at the top level should work in Python 2 or Python 3.  I wouldn't
-trust anything in the sub-modules just yet though.
-
-I'm also not completely happy with the current organization.  I may be
-be making some significant changes in the near future.
+I've now upgraded the entire library to Python 3.  Everything at the top level
+seems to work fine in both Python 2 and 3.  I've tried to upgrade the
+sub-modules as well, but there are a few problems caused by changes in the way
+modules work in Python 3.  Unfortunately I haven't been able to find a simple
+fix for these.  I may need to reorganize the code in order to get it to work.
+From the looks of it, everything still works in Python 2 though.
 

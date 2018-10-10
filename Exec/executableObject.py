@@ -22,6 +22,9 @@
 ##############################################################################
 
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 
 #############################################################################
 #
@@ -58,6 +61,6 @@ class ExecutableObject:
         @return: Domain dependent output, such as a set of actions for a
                  robot.
         """
-        raise NotImplementedError
+        raise(NotImplementedError)
 
 

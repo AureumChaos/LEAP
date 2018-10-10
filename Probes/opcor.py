@@ -21,6 +21,9 @@
 #
 ##############################################################################
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 import sys
 import random
 import string
@@ -30,8 +33,9 @@ from price import *
 import LEAP
 
 from math import *
-from Numeric import *
+#from Numeric import *
 #from numarray import *
+from numpy import *
 #import scipy.stats
 
 
@@ -123,26 +127,26 @@ class OperatorCorrelationProbe(LEAP.WrapperOperator):
             #        correlations[i] = covs[i] / math.sqrt(varpre[i]*varpost[i])
 
             # print the results
-            print "Gen:", self.generation,
-            print "Tag:", self.tag,
+            print("Gen:", self.generation, end=' ')
+            print("Tag:", self.tag, end=' ')
             for i in range(len(self.wrappedOps)):
-                print "r"+str(i+1)+":", ratios[i],
+                print("r"+str(i+1)+":", ratios[i], end=' ')
 
             for i in range(len(self.wrappedOps)):
-                print "DeltaBar"+str(i+1)+":", deltabar[i],
+                print("DeltaBar"+str(i+1)+":", deltabar[i], end=' ')
 
             for i in range(len(self.wrappedOps)):
-                print "VarPre"+str(i+1)+":", varpre[i],
+                print("VarPre"+str(i+1)+":", varpre[i], end=' ')
 
             for i in range(len(self.wrappedOps)):
-                print "VarPost"+str(i+1)+":", varpost[i],
+                print("VarPost"+str(i+1)+":", varpost[i], end=' ')
 
             for i in range(len(self.wrappedOps)):
-                print "VarDelta"+str(i+1)+":", vardelta[i],
+                print("VarDelta"+str(i+1)+":", vardelta[i], end=' ')
 
             for i in range(len(self.wrappedOps)):
-                print "Cov"+str(i+1)+":", covs[i],
-            print
+                print("Cov"+str(i+1)+":", covs[i], end=' ')
+            print()
 
             # print the results
             if self.measureFile:
@@ -224,15 +228,15 @@ if __name__ == '__main__':
     # ...for binary genes
     #bitsPerReal = 16
     #genomeSize = bitsPerReal * numVars
-    #encoder = LEAP.BinaryRealEncoder(problem, [bitsPerReal] * numVars, bounds)
+    #decoder = LEAP.BinaryRealDecoder(problem, [bitsPerReal] * numVars, bounds)
 
     # ...for float genes
-    #encoder = LEAP.FloatEncoder(problem, bounds, bounds)
+    #decoder = LEAP.FloatDecoder(problem, bounds, bounds)
 
     # ...for adaptive real genes
     sigmaBounds = (0.0, bounds[0][1] - bounds[0][0])
     initSigmas = [(bounds[0][1] - bounds[0][0]) / sqrt(numVars)] * numVars
-    encoder = LEAP.AdaptiveRealEncoder(problem, bounds, bounds, initSigmas)
+    decoder = LEAP.AdaptiveRealDecoder(problem, bounds, bounds, initSigmas)
 
     measure = fitnessMeasure
     measureFile = open("unit_test.measure", "w")
@@ -250,8 +254,8 @@ if __name__ == '__main__':
     #pipeline = LEAP.NPointCrossover(pipeline, 0.8, 2)
     op1 = LEAP.NPointCrossover(None, 1.0, 2)
     op2 = LEAP.DummyOperator(None, 2)
-    pipeline = OpCorCalcOperator(pipeline, [op1, op2], [0.75, 0.25], measure,
-                                 tag="crossover")
+    pipeline = OperatorCorrelationProbe(pipeline, [op1, op2], [0.75, 0.25],
+                                        measure, tag="crossover")
     #pipeline = LEAP.UniformCrossover(pipeline, 0.8, 0.5)
     #pipeline = price1 = PriceMeasureOperator(pipeline, measure)
     #pipeline = LEAP.ProxyMutation(pipeline)
@@ -260,8 +264,8 @@ if __name__ == '__main__':
     #pipeline = LEAP.AdaptiveMutation(pipeline, sigmaBounds)
     #op1 = LEAP.GaussianMutation(pipeline, sigma = 1.0, pMutate = 1.0)
     op1 = LEAP.AdaptiveMutation(pipeline, sigmaBounds)
-    pipeline = OpCorCalcOperator(pipeline, [op1], [1.0], measure,
-                                 tag="mutation", measureFile=measureFile)
+    pipeline = OperatorCorrelationProbe(pipeline, [op1], [1.0], measure,
+                                        tag="mutation", measureFile=measureFile)
     #pipeline = LEAP.GaussianMutation(pipeline, sigma = 1.0,
     #                                 pMutate = 1.0)
     #pipeline = LEAP.FixupOperator(pipeline)
@@ -279,7 +283,7 @@ if __name__ == '__main__':
 #    initPipe = PriceInitOperator(initPipe)
 #    initPipe = PriceMeasureOperator(initPipe, measure)
 
-    ea = LEAP.GenerationalEA(encoder, pipeline, popSize)
+    ea = LEAP.GenerationalEA(decoder, pipeline, popSize)
     ea.run(maxGeneration)
 
 #    import profile
