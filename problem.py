@@ -42,6 +42,7 @@ import sys
 import string
 import random
 import math
+import numpy
 
 
 #############################################################################
@@ -189,7 +190,6 @@ def boxFunction(phenome):
     return(total)
 
 
-import numpy
 
 axisValleyMaximize = False
 axisValleyBounds = [(0,20)]*2

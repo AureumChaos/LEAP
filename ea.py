@@ -31,11 +31,10 @@ import string
 import copy
 import math
 
-#from individual import *
-#from selection import *
-#from halt import *
-import LEAP
-
+from LEAP.individual import Individual
+from LEAP.individual import fittest
+from LEAP.selection import DeterministicSelection
+from LEAP.halt import HaltAfterGeneration
 
 
 #############################################################################
@@ -51,9 +50,9 @@ def printPopulation(population, generation = None):
 
 
 
-#############################################################################
+##############################################################################
 #
-# ea
+# GenerationalEA
 #
 ##############################################################################
 class GenerationalEA:
@@ -67,11 +66,11 @@ class GenerationalEA:
     initPipeline - An optional operator pipeline which will only be applied
                    to the first generation.  None by default.
     indClass - Optional class which defines an individual.
-               LEAP.Individual is used by default.
+               LEAP.individual.Individual is used by default.
     """
     def __init__(self, decoder, pipeline, popSize, \
-                 initPipeline=LEAP.DeterministicSelection(), \
-                 indClass=LEAP.Individual,
+                 initPipeline=DeterministicSelection(), \
+                 indClass=Individual,
                  initPopsize=None, halt=None):
         self.decoder = decoder
         self.pipeline = pipeline
@@ -123,7 +122,7 @@ class GenerationalEA:
         assert(bool(maxGeneration == None) != bool(self.halt == None))
 
         if self.halt == None:
-            self.halt = LEAP.HaltAfterGeneration(maxGeneration)
+            self.halt = HaltAfterGeneration(maxGeneration)
 
         # Reset the EA, just in case it was already run before
         self.startup()
@@ -154,9 +153,9 @@ class GenerationalEA:
     def calcStats(self):
         # I use copy instead of clone so that the parent list is retained.
         #    Do I even use the parents list anymore?
-        #self.bestOfGen = copy.deepcopy(LEAP.fittest(self.population))
-        self.bestOfGen = LEAP.fittest(self.population).clone()
-        self.bestSoFar = LEAP.fittest(self.bestSoFar, self.bestOfGen)
+        #self.bestOfGen = copy.deepcopy(fittest(self.population))
+        self.bestOfGen = fittest(self.population).clone()
+        self.bestSoFar = fittest(self.bestSoFar, self.bestOfGen)
 
 
     def printStats(self):
@@ -170,76 +169,82 @@ class GenerationalEA:
 
 #############################################################################
 #
-# Main
+# Main (essentially a unit test)
 #
 #############################################################################
 if __name__ == '__main__':
+    from LEAP.problem import *
+    from LEAP.decoder import *
+    from LEAP.selection import *
+    from LEAP.operators import *
+    from LEAP.survival import *
+
     # Parameters
     popSize = 100 # 100
     maxGeneration = 200
 
     # Setup the problem
-    #function = LEAP.schwefelFunction
-    #bounds = LEAP.schwefelBounds
-    #maximize = LEAP.schwefelMaximize
+    #function = schwefelFunction
+    #bounds = schwefelBounds
+    #maximize = schwefelMaximize
     #numVars = len(bounds)
 
-#    function = LEAP.sphereFunction
-#    #bounds = LEAP.sphereBounds
+#    function = sphereFunction
+#    #bounds = sphereBounds
 #    #bounds = [(0.0,1.0)] * 6
-#    bounds = [LEAP.sphereBounds[0]] * 10
-#    maximize = LEAP.sphereMaximize
+#    bounds = [sphereBounds[0]] * 10
+#    maximize = sphereMaximize
 #    numVars = len(bounds)
 
     numVars = 10
-    function = LEAP.valleyFunctor([1.0] + [0.0] * (numVars-1))
-    bounds = [LEAP.valley2Bounds[0]] * numVars
-    maximize = LEAP.valleyMaximize
+    function = valleyFunctor([1.0] + [0.0] * (numVars-1))
+    bounds = [valley2Bounds[0]] * numVars
+    maximize = valleyMaximize
 
-    problem = LEAP.FunctionOptimization(function, maximize = maximize)
+    problem = FunctionOptimization(function, maximize = maximize)
 
     # ...for binary genes
 #    bitsPerReal = 16
 #    genomeSize = bitsPerReal * numVars
-#    decoder = LEAP.BinaryRealDecoder(problem, [bitsPerReal] * numVars, bounds)
+#    decoder = BinaryRealEncoding(problem, [bitsPerReal] * numVars, bounds)
 
     # ...for float genes
-    #decoder = LEAP.FloatDecoder(problem, bounds, bounds)
+    #decoder = FloatEncoding(problem, bounds, bounds)
 
     # ...for adaptive real genes
     sigmaBounds = (0.0, bounds[0][1] - bounds[0][0])
     initSigmas = [(bounds[0][1] - bounds[0][0]) / math.sqrt(numVars)] * numVars
-    decoder = LEAP.AdaptiveRealDecoder(problem, bounds, bounds, initSigmas)
+    decoder = AdaptiveRealEncoding(problem, bounds, bounds, initSigmas)
 
 
-    #pipe2 = LEAP.UniformSelection()
-    #pipe2 = LEAP.CloneOperator(pipe2)
+    #pipe2 = UniformSelection()
+    #pipe2 = CloneOperator(pipe2)
 
     # Setup the reproduction pipeline
-    #pipeline = LEAP.TournamentSelection(2)
-    #pipeline = LEAP.ProportionalSelection()
-    pipeline = LEAP.TruncationSelection(popSize//2)
-    #pipeline = LEAP.RankSelection()
-    #pipeline = LEAP.DeterministicSelection()
-    pipeline = LEAP.CloneOperator(pipeline)
-    #pipeline = LEAP.Shuffle2PointCrossover(pipeline, 0.8, 2)
-    #pipeline = LEAP.NPointCrossover(pipeline, 0.8, 2)
-    #pipeline = LEAP.NPointCrossover([pipeline, pipe2], 0.8, 2)
-    #pipeline = LEAP.UniformCrossover(pipeline, 0.8, 0.5)
-    #pipeline = LEAP.ProxyMutation(pipeline)
-    #pipeline = LEAP.BitFlipMutation(pipeline, 1.0/genomeSize)
-    #pipeline = LEAP.UniformMutation(pipeline, 1.0/genomeSize, alleles)
-    pipeline = LEAP.AdaptiveMutation(pipeline, sigmaBounds)
-    #pipeline = LEAP.GaussianMutation(pipeline, sigma = 0.04, pMutate = 1.0)
-    #pipeline = LEAP.FixupOperator(pipeline)
-    #pipeline = LEAP.ElitismSurvival(pipeline, 2)
-    #pipeline = LEAP.MuPlusLambdaSurvival(pipeline, popSize, popSize*2)
-    #pipeline = LEAP.MuCommaLambdaSurvival(pipeline, popSize, popSize*10)
-    #pipeline = LEAP.MuCommaLambdaSurvival(pipeline, popSize, popSize,
-    #                                      LEAP.RankSelection())
+    #pipeline = TournamentSelection(2)
+    #pipeline = ProportionalSelection()
+    pipeline = TruncationSelection(popSize//2)
+    #pipeline = RankSelection()
+    #pipeline = DeterministicSelection()
+    pipeline = CloneOperator(pipeline)
+    #pipeline = Shuffle2PointCrossover(pipeline, 0.8, 2)
+    #pipeline = NPointCrossover(pipeline, 0.8, 2)
+    #pipeline = NPointCrossover([pipeline, pipe2], 0.8, 2)
+    #pipeline = UniformCrossover(pipeline, 0.8, 0.5)
+    #pipeline = ProxyMutation(pipeline)
+    #pipeline = BitFlipMutation(pipeline, 1.0/genomeSize)
+    #pipeline = UniformMutation(pipeline, 1.0/genomeSize, alleles)
+    pipeline = AdaptiveMutation(pipeline, sigmaBounds)
+    #pipeline = GaussianMutation(pipeline, sigma = 0.04, pMutate = 1.0)
+    #pipeline = FixupOperator(pipeline)
+    #pipeline = ElitismSurvival(pipeline, 2)
+    #pipeline = MuPlusLambdaSurvival(pipeline, popSize, popSize*2)
+    #pipeline = MuCommaLambdaSurvival(pipeline, popSize, popSize*10)
+    #pipeline = MuCommaLambdaSurvival(pipeline, popSize, popSize,
+    #                                      RankSelection())
 
-    ea = LEAP.GenerationalEA(decoder, pipeline, popSize)
-    #ea = LEAP.GenerationalEA(decoder, pipeline, popSize, \
+    ea = GenerationalEA(decoder, pipeline, popSize)
+    #ea = GenerationalEA(decoder, pipeline, popSize, \
     #                         indClass=Price.PriceIndividual)
     ea.run(maxGeneration)
 

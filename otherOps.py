@@ -24,8 +24,9 @@
 # Python 2 & 3 compatibility
 from __future__ import print_function
 
-import LEAP
 import random
+
+from LEAP.operators import CrossoverOperator
 
 
 #############################################################################
@@ -33,7 +34,7 @@ import random
 # class Shuffle2PointCrossover
 #
 #############################################################################
-class Shuffle2PointCrossover(LEAP.CrossoverOperator):
+class Shuffle2PointCrossover(CrossoverOperator):
     """
     A 2 Point Crossover operator which shuffles gene locations.  In other
     words, the sections of the genomes which are swapped will always be the
@@ -50,7 +51,7 @@ class Shuffle2PointCrossover(LEAP.CrossoverOperator):
         @param numChildren: The number of children that will be produced
                             (1 or 2).  Default is 2.
         """
-        LEAP.CrossoverOperator.__init__(self, provider, pCross, numChildren)
+        CrossoverOperator.__init__(self, provider, pCross, numChildren)
 
 
     def pickCrossoverPoints(self, numPoints, genomeSize):

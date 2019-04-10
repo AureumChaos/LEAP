@@ -24,14 +24,14 @@
 Code for evolving genortype to phenotype mappings.
 """
 
-from LEAP.Contrib.g2pMapping.g2pDecoder import *
-#from LEAP.Contrib.g2pMapping.g2pDecoderCy import *
-from LEAP.Contrib.g2pMapping.g2pMappingDecoder import *
-from LEAP.Contrib.g2pMapping.g2pMappingProblem import *
-from LEAP.Contrib.g2pMapping.g2pMappingGaussianMutation import *
-from LEAP.Contrib.g2pMapping.g2pMappingMagnitudeGaussianMutation import *
-from LEAP.Contrib.g2pMapping.g2pMappingVectorGaussianMutation import *
-from LEAP.Contrib.g2pMapping.g2pMetaEA import *
+#from LEAP.Contrib.g2pMapping.g2pDecoder import *
+##from LEAP.Contrib.g2pMapping.g2pDecoderCy import *
+#from LEAP.Contrib.g2pMapping.g2pMappingDecoder import *
+#from LEAP.Contrib.g2pMapping.g2pMappingProblem import *
+#from LEAP.Contrib.g2pMapping.g2pMappingGaussianMutation import *
+#from LEAP.Contrib.g2pMapping.g2pMappingMagnitudeGaussianMutation import *
+#from LEAP.Contrib.g2pMapping.g2pMappingVectorGaussianMutation import *
+#from LEAP.Contrib.g2pMapping.g2pMetaEA import *
 
 #__all__ = []
 

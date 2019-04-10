@@ -34,10 +34,9 @@ file.
 from __future__ import print_function
 
 import random
-#from operators import *
-#from individual import *
 
-import LEAP
+from LEAP.exceptions import OperatorError
+from LEAP.operators import *
 
 
 #############################################################################
@@ -45,19 +44,19 @@ import LEAP
 # class VarUniformMutation
 #
 #############################################################################
-class VarUniformMutation(LEAP.UniformMutation):
+class VarUniformMutation(UniformMutation):
     """
     Mutate an integer gene by uniformly selecting a new allele from a range
     of possible values.  The mutation rate is adjusted based on the genome
     size.
     """
     def __init__(self, provider, eMutate, alleles, linear = False):
-        LEAP.UniformMutation.__init__(self, provider, 0.0, alleles, linear)
+        UniformMutation.__init__(self, provider, 0.0, alleles, linear)
         self.eMutate = eMutate   # expected number of mutation per genome
 
     def mutateIndividual(self, individual):
         self.pMutate = self.eMutate / size(individual.genome)
-        LEAP.UniformMutation.mutateIndividual(self, individual)
+        UniformMutation.mutateIndividual(self, individual)
 
 
 
@@ -85,18 +84,18 @@ class VarBitFlipMutation(VarUniformMutation):
 # class VarGaussianMutation
 #
 #############################################################################
-class VarGaussianMutation(LEAP.GaussianMutation):
+class VarGaussianMutation(GaussianMutation):
     """
     Mutate an float gene by adding a delta drawn from a gaussian distribution.
     The mutation rate is adjusted based on the genome size.
     """
     def __init__(self, provider, sigma, eMutate, linear = False):
-        LEAP.GaussianMutation.__init__(self, provider, sigma, 0.0, linear)
+        GaussianMutation.__init__(self, provider, sigma, 0.0, linear)
         self.eMutate = eMutate   # expected number of mutation per genome
 
     def mutateIndividual(self, individual):
         self.pMutate = self.eMutate / size(individual.genome)
-        LEAP.GaussianMutation.mutateIndividual(self, individual)
+        GaussianMutation.mutateIndividual(self, individual)
 
 
 
@@ -105,7 +104,7 @@ class VarGaussianMutation(LEAP.GaussianMutation):
 # class VarComponentGaussianMutation
 #
 #############################################################################
-class VarComponentGaussianMutation(LEAP.GaussianMutation):
+class VarComponentGaussianMutation(GaussianMutation):
     """
     This is for hierarchical type genomes, specifically rules system type
     genomes.  Each top level "component" (e.g. rule) is considered for
@@ -120,7 +119,7 @@ class VarComponentGaussianMutation(LEAP.GaussianMutation):
     """
     def __init__(self, provider, sigma, pMutateComponent = None,
                  eMutateComponent = None):
-        LEAP.GaussianMutation.__init__(self, provider, sigma, 1.0, linear=False)
+        GaussianMutation.__init__(self, provider, sigma, 1.0, linear=False)
         if pMutateComponent == None and eMutateComponent == None:
             raise ValueError(
                   "Neither pMutateComponent nor eMutateComponent is set")
@@ -174,12 +173,12 @@ class VarComponentGaussianMutation(LEAP.GaussianMutation):
 # class VarAddGeneMutation
 #
 #############################################################################
-class VarAddGeneMutation(LEAP.MutationOperator):
+class VarAddGeneMutation(MutationOperator):
     """
     Adds random genes to a genome.
     """
     def __init__(self, provider, eMutate, linear = False):
-        LEAP.MutationOperator.__init__(self, provider, 0.0, linear = False)
+        MutationOperator.__init__(self, provider, 0.0, linear = False)
         self.eMutate = eMutate   # expected number of mutation per genome
 
 
@@ -194,7 +193,7 @@ class VarAddGeneMutation(LEAP.MutationOperator):
             self.decoder = individual.decoder
 
             # Call superclass
-            LEAP.MutationOperator.mutateIndividual(self, individual)
+            MutationOperator.mutateIndividual(self, individual)
 
         # Add the genes now.  Use the decoder to make this more general.
         while self.numToAdd > 0:
@@ -214,12 +213,12 @@ class VarAddGeneMutation(LEAP.MutationOperator):
 # class VarDelGeneMutation
 #
 #############################################################################
-class VarDelGeneMutation(LEAP.MutationOperator):
+class VarDelGeneMutation(MutationOperator):
     """
     A gene deletion operator.
     """
     def __init__(self, provider, eMutate, linear = False):
-        LEAP.MutationOperator.__init__(self, provider, 0.0, linear = False)
+        MutationOperator.__init__(self, provider, 0.0, linear = False)
         self.eMutate = eMutate   # expected number of mutation per genome
 
 
@@ -230,7 +229,7 @@ class VarDelGeneMutation(LEAP.MutationOperator):
             self.pMutate = self.eMutate / len(individual.genome)
 
             # Call superclass
-            LEAP.MutationOperator.mutateIndividual(self, individual)
+            MutationOperator.mutateIndividual(self, individual)
 
         # Delete the genes now.  Never delete the last one.
         while self.numToDelete > 0 and len(individual.genome) > 1:
@@ -249,7 +248,7 @@ class VarDelGeneMutation(LEAP.MutationOperator):
 # class VarReplaceMutation
 #
 #############################################################################
-class VarReplaceMutation(LEAP.MutationOperator):
+class VarReplaceMutation(MutationOperator):
     """
     A mutation operator which replaces each affected gene with a randomly
     generated new gene.
@@ -265,13 +264,13 @@ class VarReplaceMutation(LEAP.MutationOperator):
         @param provider: The preceding operator in the pipeline.
         @param pMutate: Probability of mutating a gene.
         """
-        LEAP.MutationOperator.__init__(self, provider, pMutate, linear=True)
+        MutationOperator.__init__(self, provider, pMutate, linear=True)
 
 
     def mutateIndividual(self, individual):
         "Intercept the decoder"
         self.decoder = individual.decoder
-        LEAP.MutationOperator.mutateIndividual(self, individual)
+        MutationOperator.mutateIndividual(self, individual)
 
 
     def mutateGene(self, gene):
@@ -287,7 +286,7 @@ class VarReplaceMutation(LEAP.MutationOperator):
 # class VarFuchsMutation
 #
 #############################################################################
-class VarFuchsMutation(LEAP.GeneticOperator):
+class VarFuchsMutation(GeneticOperator):
     """
     The mutation operator used by Matthias Fuchs and Andreas Abecker in their
     paper "Optimized Nearest-Neighbor Classifiers Using Generated Instances",
@@ -317,7 +316,7 @@ class VarFuchsMutation(LEAP.GeneticOperator):
         @param Pcomp     Probability that a rule component is modified
         @param Padd      Probability that some rule are added
         """
-        LEAP.GeneticOperator.__init__(self, provider)
+        GeneticOperator.__init__(self, provider)
         # Check for errors
         if not 0.0 <= Pmut <= 1.0:
             raise ValueError("Pmut not in the range [0,1]")
@@ -372,7 +371,7 @@ class VarFuchsMutation(LEAP.GeneticOperator):
 # class VarNPointCrossover
 #
 #############################################################################
-class VarNPointCrossover(LEAP.NPointCrossover):
+class VarNPointCrossover(NPointCrossover):
     """
     Sections of both parents are recombined, but those sections may not
     necessarily be equal in size.  Perhaps the best example of this type of
@@ -416,7 +415,7 @@ class VarNPointCrossover(LEAP.NPointCrossover):
 # class VarNPointGeneOffsetCrossover
 #
 #############################################################################
-class VarNPointGeneOffsetCrossover(LEAP.NPointCrossover):
+class VarNPointGeneOffsetCrossover(NPointCrossover):
     """
     This crossover operator is exactly like the ones used in traditional
     Pitt approach systems (e.g. Smith's LS1 and Spears' GABIL).
@@ -446,7 +445,7 @@ class VarNPointGeneOffsetCrossover(LEAP.NPointCrossover):
         # Check for errors.
         if len(child1.genome) < self.numPoints + 1 or \
            len(child2.genome) < self.numPoints + 1: 
-            raise LEAP.OperatorError("Not enough available crossover locations.")
+            raise OperatorError("Not enough available crossover locations.")
             # This isn't quite true anymore.  This situation is a problem
             # though, since it means that the genome can't grow anymore.
 
@@ -489,14 +488,14 @@ class VarNPointGeneOffsetCrossover(LEAP.NPointCrossover):
 # class VarUniformCrossover
 #
 #############################################################################
-class VarUniformCrossover(LEAP.CrossoverOperator):
+class VarUniformCrossover(CrossoverOperator):
     """
     Genes are exchanged between individuals depending on a coin flip.
     """
     parentsNeeded = 2
 
     def __init__(self, provider, pCross, pSwap, numChildren=2):
-        LEAP.CrossoverOperator.__init__(self, provider, pCross, numChildren)
+        CrossoverOperator.__init__(self, provider, pCross, numChildren)
         self.pSwap = pSwap
 
 
@@ -531,7 +530,7 @@ class VarUniformCrossover(LEAP.CrossoverOperator):
 # class VarTransGeneCrossover
 #
 #############################################################################
-class VarTransGeneCrossover(LEAP.GeneticOperator):
+class VarTransGeneCrossover(GeneticOperator):
     """
     A single gene is transfered from one parent to another.
     """
@@ -564,7 +563,7 @@ class VarTransGeneCrossover(LEAP.GeneticOperator):
 # class VarSwapGenesCrossover
 #
 #############################################################################
-class VarSwapGenesCrossover(LEAP.GeneticOperator):
+class VarSwapGenesCrossover(GeneticOperator):
     """
     A small number of genes (number chosen randomly) are transferred from 
     parent1 to parent2.  Another set of genes (not necessarily the same

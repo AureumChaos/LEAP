@@ -148,10 +148,10 @@ def size(sequence):
 class Individual:
     "Base class for individuals"
 
-    def __init__(self, decoder, genome = None):
-        self.decoder = decoder
+    def __init__(self, encoding, genome = None):
+        self.encoding = encoding
         if genome == None:
-            self.genome = self.decoder.randomGenome()
+            self.genome = self.encoding.randomGenome()
         else:
             self.genome = genome
 
@@ -192,13 +192,13 @@ class Individual:
         if other == None:
             return 1
 
-        return self.decoder.cmpFitness(self.getFitness(), other.getFitness())
+        return self.encoding.cmpFitness(self.getFitness(), other.getFitness())
 
 
     def evaluate(self):
         "Calculate the fitness of the individual"
         if self.fitness == None:
-            self.rawFitness = self.decoder.evaluate(self.genome)
+            self.rawFitness = self.encoding.evaluate(self.genome)
             self.fitness = self.rawFitness
 #            self.prevFitness = self.fitness
         return self.fitness
@@ -292,18 +292,18 @@ class PenaltyParsimonyIndividual(Individual):
     simple penalty parsimony pressure (see Smith's 1980 dissertation or
     Koza's 1992 GP 1 book).
     """
-    def __init__(self, decoder, penalty = 1, minPenaltySize = 0, genome = None):
+    def __init__(self, encoding, penalty = 1, minPenaltySize = 0, genome = None):
         self.penalty = penalty
         self.minPenaltySize = minPenaltySize
-        Individual.__init__(self, decoder, genome)
+        Individual.__init__(self, encoding, genome)
     
     def evaluate(self):
-        self.rawFitness = self.decoder.evaluate(self.genome)
+        self.rawFitness = self.encoding.evaluate(self.genome)
 
         # Determine if we are minimizing or maximizing.
         # I am making the assumption that fitness is a number.  This may
         # be a bad idea.
-        sign = self.decoder.cmpFitness(1,0)
+        sign = self.encoding.cmpFitness(1,0)
 
         sizeDiff = size(self.genome) - self.minPenaltySize
         if sizeDiff > 0:
@@ -325,8 +325,8 @@ class LexParsimonyIndividual(PenaltyParsimonyIndividual):
     simple lexicographic parsimony pressure (see Sean Luke's 2002 GECCO
     paper).
     """
-    def __init__(self, decoder, penalty = 0, minPenaltySize = 0, genome = None):
-        PenaltyParsimonyIndividual.__init__(self, decoder, penalty,
+    def __init__(self, encoding, penalty = 0, minPenaltySize = 0, genome = None):
+        PenaltyParsimonyIndividual.__init__(self, encoding, penalty,
                                             minPenaltySize, genome)
     
     def cmp(self, other):
@@ -348,7 +348,7 @@ class LexParsimonyIndividual(PenaltyParsimonyIndividual):
         if other == None:
             return 1
 
-        result = self.decoder.cmpFitness(self.getFitness(), other.getFitness())
+        result = self.encoding.cmpFitness(self.getFitness(), other.getFitness())
         if result == 0:
             return -cmp(size(self.genome), size(other.genome))
         else:
@@ -361,14 +361,14 @@ class LexParsimonyIndividual(PenaltyParsimonyIndividual):
 #
 #############################################################################
 def unit_test():
+    from LEAP.problem import FunctionOptimization
+    from LEAP.problem import oneMaxFunction
+    from LEAP.decoder import BinaryEncoding
+
     passed = True
 
-    #import problem
-    #import decoder
-    import LEAP
-
-    onemaxProb = LEAP.FunctionOptimization(LEAP.oneMaxFunction)
-    onemax = LEAP.BinaryDecoder(onemaxProb, 4)
+    onemaxProb = FunctionOptimization(oneMaxFunction)
+    onemax = BinaryEncoding(onemaxProb, 4)
 
     print("Test Individual")
     ind0 = Individual(onemax, "0000")

@@ -31,8 +31,9 @@ import random
 import string
 import copy
 
-import LEAP
-#import scipy.stats
+#from LEAP.operators import PipelineOperator
+#from LEAP.selection import DeterministicSelection
+#from LEAP.survival import BaseMuLambdaSurvival
 
 from math import *
 from numpy import *
@@ -47,7 +48,7 @@ from numpy import *
 # InitMeasureProbe
 #
 #############################################################################
-#class InitMeasureProbe(LEAP.PipelineOperator):
+#class InitMeasureProbe(PipelineOperator):
 #    """
 #    Initialize individuals so that information can be stored in them later.
 #    """
@@ -65,7 +66,7 @@ from numpy import *
 # PerformMeasureProbe
 #
 #############################################################################
-#class PerformMeasureProbe(LEAP.PipelineOperator):
+#class PerformMeasureProbe(PipelineOperator):
 #    """
 #    Gather statistics for Price's equation and store them in the individuals.
 #    """
@@ -73,7 +74,7 @@ from numpy import *
 #    measureFunction = None
 #
 #    def __init__(self, provider, measureFunction):
-#        LEAP.PipelineOperator.__init__(self, provider)
+#        PipelineOperator.__init__(self, provider)
 #        self.measureFunction = measureFunction
 #
 #    def apply(self, children):
@@ -87,7 +88,7 @@ from numpy import *
 # PriceRankOperator
 #
 #############################################################################
-#class PriceRankOperator(LEAP.BaseMuLambdaSurvival):
+#class PriceRankOperator(BaseMuLambdaSurvival):
 #    """
 #    When using rankMeasure() as you measurement function, this should be
 #    placed directly before PriceCalcOperator in the pipeline.
@@ -95,8 +96,8 @@ from numpy import *
 #          My recollection was that it's not finished yet.
 #    """
 #    def __init__(self, provider, popSize):
-#        LEAP.BaseMuLambdaSurvival.__init__(self, provider, popSize, popSize,
-#                LEAP.DeterministicSelection())
+#        BaseMuLambdaSurvival.__init__(self, provider, popSize, popSize,
+#                DeterministicSelection())
 #
 #    def combinePopulations(self, parents, children):
 #        """
@@ -171,23 +172,24 @@ class ParameterMeasure(BaseMeasure):
     Measures the parameters (i.e. phenotype) for function optimzation type
     problems.
 
-    This function needs to have access to a decoder when performing
+    This function needs to have access to a encoding when performing
     measurements in order to know how many parameters there are.  All
-    individuals have a reference to a decoder, but when None is passed in to
+    individuals have a reference to a encoding, but when None is passed in to
     get the zero value, it has no such reference.  To solve this problem, I've
-    added an internal state variable called 'decoder' which can be used in
-    these situations.  But this means that phenotypeMeasure.decoder needs to
+    added an internal state variable called 'encoding' which can be used in
+    these situations.  But this means that phenotypeMeasure.encoding needs to
     be set before calling this function with a None.  There are two ways of
-    doing this.  1) Call this function with a real individual, and the decoder
-    will be saved, or 2) set phenotypeMeasure.decoder = <some decoder>.
+    doing this.  1) Call this function with a real individual, and the
+    encoding will be saved, or 2) set phenotypeMeasure.encoding = <some
+    encoding>.
     """
-    def __init__(self, decoder):
-        self.decoder = decoder
-        phenome = decoder.decodeGenome(decoder.randomGenome())
+    def __init__(self, encoding):
+        self.encoding = encoding
+        phenome = encoding.decodeGenome(encoding.randomGenome())
         BaseMeasure.__init__(self, zeros(len(phenome)))
 
     def measure(self, ind):
-        return array(self.decoder.decodeGenome(ind.genome))
+        return array(self.encoding.decodeGenome(ind.genome))
 
 
 
@@ -242,7 +244,7 @@ class ExObjSampleMeasure(BaseMeasure):
         BaseMeasure.__init__(self, zeros(len(self.samples)))
 
     def measure(self, ind):
-        exObj = ind.decoder.decodeGenome(ind.genome)
+        exObj = ind.encoding.decodeGenome(ind.genome)
         #return array([exObj.execute(sample) for sample in self.samples])
         return array([exObj.execute(sample)[0] for sample in self.samples])
 
@@ -254,13 +256,21 @@ class ExObjSampleMeasure(BaseMeasure):
 #
 #############################################################################
 def unit_test():
-    import LEAP.Domains.Concept
+    from LEAP.problem import sphereBounds
+    from LEAP.problem import sphereFunction
+    from LEAP.problem import sphereMaximize
+    from LEAP.problem import FunctionOptimization
+    from LEAP.decoder import FloatEncoding
+    from LEAP.individual import Individual
+    from LEAP.Domains.Concept.funcApprox import FunctionApproximation
+    from LEAP.Exec.Pitt.PittDecoder import PittRuleEncoding
+    from LEAP.Exec.Pitt.interpolatingRuleInterp import pyInterpolatingRuleInterp
 
     # Test FitnessMeasure
-    bounds = LEAP.sphereBounds
-    function = LEAP.sphereFunction
-    problem = LEAP.FunctionOptimization(function, LEAP.sphereMaximize)
-    decoder = LEAP.FloatDecoder(problem, bounds, bounds)
+    bounds = sphereBounds
+    function = sphereFunction
+    problem = FunctionOptimization(function, sphereMaximize)
+    encoding = FloatEncoding(problem, bounds, bounds)
 
     fitMeasure = FitnessMeasure()
     zero = fitMeasure.zero()
@@ -268,7 +278,7 @@ def unit_test():
     assert(zero == 0.0)
 
     genome = [1.0, 2.0, 3.0]
-    ind = LEAP.Individual(decoder, genome)
+    ind = Individual(encoding, genome)
     measure = fitMeasure(ind)
     print("fitMeasure.measure(ind) =", measure)
     assert(measure == function(genome))
@@ -276,7 +286,7 @@ def unit_test():
 
 
     # Test ParameterMeasure
-    paramMeasure = ParameterMeasure(decoder)
+    paramMeasure = ParameterMeasure(encoding)
     zero = paramMeasure.zero()
     print("paramMeasure.zero() =", zero)
     assert(len(zero) == len(bounds))
@@ -297,7 +307,7 @@ def unit_test():
     actBounds = [ (-1.0, 1.0) ] 
     allBounds = condBounds + actBounds
     targetFunc = lambda x:sin(x[0])
-    problem = LEAP.Domains.Concept.FunctionApproximation(targetFunc, condBounds)
+    problem = FunctionApproximation(targetFunc, condBounds)
     #numGroups = 2
     #numExamples = 20
     #problem.generateExampleGroups(numExamples, numGroups)
@@ -305,10 +315,10 @@ def unit_test():
 
     minRules = 2
     maxRules = 10
-    ruleDecoder = LEAP.FloatDecoder(None, allBounds, allBounds)
-    pittDecoder = LEAP.Exec.Pitt.PittRuleDecoder(problem, ruleDecoder, \
+    ruleEncoding = FloatEncoding(None, allBounds, allBounds)
+    pittEncoding = PittRuleEncoding(problem, ruleEncoding, \
                     minRules, maxRules, len(condBounds), 1, \
-                    ruleInterpClass = LEAP.Exec.Pitt.pyInterpolatingRuleInterp)
+                    ruleInterpClass = pyInterpolatingRuleInterp)
 
     numSamples = 10
     b = condBounds[0]
@@ -323,7 +333,7 @@ def unit_test():
     assert(all(zero == array([0.0] * len(samples))))
 
     genome = [ [1.0, 1.0, 1.0], [9.0, 9.0, 9.0] ]
-    ind = LEAP.Individual(pittDecoder, genome)
+    ind = Individual(pittEncoding, genome)
     answer = [1,1,2,3,4,5,6,7,8,9,9]
     measure = sampleMeasure.measure(ind)
     print("sampleMeasure.measure(ind) =", measure)

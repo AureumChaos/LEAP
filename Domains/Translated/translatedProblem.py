@@ -13,7 +13,7 @@ import random
 import math
 import numpy
 
-import LEAP
+from LEAP.problem import Problem
 
 
 
@@ -22,7 +22,7 @@ import LEAP
 # class TranslatedProblem
 #
 #############################################################################
-class TranslatedProblem(LEAP.Problem):
+class TranslatedProblem(Problem):
     """
     This class acts as a wrapper around another problem, and it assumes that
     the phenome is a list of real valued numbers, such as for a function
@@ -49,14 +49,19 @@ class TranslatedProblem(LEAP.Problem):
 #
 #############################################################################
 def unit_test():
+    from LEAP.problem import FunctionOptimization
+    from LEAP.problem import sphereFunction
+    from LEAP.problem import sphereMaximize
+    from LEAP.problem import sphereBounds
+
     passed = True
     epsilon = 0.001
 
-    sphereFunc = LEAP.problem.sphereFunction
-    maximize = LEAP.problem.sphereMaximize
-    bounds = LEAP.problem.sphereBounds
+    sphereFunc = sphereFunction
+    maximize = sphereMaximize
+    bounds = sphereBounds
     numVars = len(bounds)
-    sphereProb = LEAP.FunctionOptimization(sphereFunc, maximize)
+    sphereProb = FunctionOptimization(sphereFunc, maximize)
     
     transVec = [1.0] * numVars
     transProb = TranslatedProblem(sphereProb, transVec)

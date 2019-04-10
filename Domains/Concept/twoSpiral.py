@@ -26,9 +26,9 @@
 from __future__ import print_function
 
 import math
+import random
 
-import LEAP
-from concept import *
+from LEAP.Domains.Concept.concept import BinaryConceptLearning
 
 
 #############################################################################
@@ -55,7 +55,7 @@ class TwoSpiralProblem(BinaryConceptLearning):
         Returns a list of examples for use in either training or testing.
         """
         examples = []
-        for i in range( (numExamples+1) / 2 ):
+        for i in range( int((numExamples+1) / 2) ):
             angle = -i * math.pi / 16.0
             radius = i/16.0 + 0.5
             x = radius * math.sin(angle);

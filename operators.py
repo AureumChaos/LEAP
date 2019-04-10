@@ -29,9 +29,8 @@ import random
 import math
 from queue import Queue
 
-#from gene import *
-#from exceptions import *
-import LEAP
+from LEAP.gene import Gene
+from LEAP.gene import AdaptiveRealGene
 
 DEBUG=False
 
@@ -516,7 +515,7 @@ class RandomSearchOperator(GeneticOperator):
         @return: The same list of individuals, with their genomes randomized.
         """
         for i in individuals:
-            i.genome = i.decoder.randomGenome()
+            i.genome = i.encoding.randomGenome()
             i.previous.append([i])
         return individuals
 
@@ -538,7 +537,7 @@ class FixupOperator(GeneticOperator):
         @return: The same list of individuals, with their genomes fixed.
         """
         for i in individuals:
-            i.genome = i.decoder.fixupGenome(i.genome)
+            i.genome = i.encoding.fixupGenome(i.genome)
             # It would be nice if we could tell if the genome has changed.
         return individuals
 
@@ -772,7 +771,7 @@ class BoundedMutationOperator(MutationOperator):
             return True
 
         # It wouldn't make sense to use Genes with bounds, but just in case...
-        if isinstance(newVal, LEAP.Gene):
+        if isinstance(newVal, Gene):
             v = newVal.data
         else:
             v = newVal
@@ -824,8 +823,8 @@ class GaussianMutation(BoundedMutationOperator):
 
     @warning: This operator does nothing to enforce bounds on gene values.
               If this is important to you, you should either use this in
-              conjunction with the L{FixupOperator}, or use a decoder which
-              enforces the bounds, like L{BoundedRealDecoder}.
+              conjunction with the L{FixupOperator}, or use a encoding which
+              enforces the bounds, like L{BoundedRealEndoding}.
 
     """
     def __init__(self, provider, sigma, pMutate = 1.0, linear = True, \
@@ -852,7 +851,7 @@ class GaussianMutation(BoundedMutationOperator):
         @type gene: float or L{Gene}
         @return: A modified or new version of C{gene}.
         """
-        if isinstance(gene, LEAP.Gene):
+        if isinstance(gene, Gene):
             gene.data += random.gauss(0.0, self.sigma)
         else:
             gene += random.gauss(0.0, self.sigma)
@@ -877,8 +876,8 @@ class ExponentialMutation(BoundedMutationOperator):
 
     @warning: This operator does nothing to enforce bounds on gene values.
               If this is important to you, you should either use this in
-              conjunction with the L{FixupOperator}, or use a decoder which
-              enforces the bounds, like L{BoundedRealDecoder}.
+              conjunction with the L{FixupOperator}, or use a encoding which
+              enforces the bounds, like L{BoundedRealEndoding}.
 
     """
     def __init__(self, provider, minExp, maxExp, epsilon = 1.0, pMutate = 1.0,
@@ -912,7 +911,7 @@ class ExponentialMutation(BoundedMutationOperator):
         sign = random.choice([1.0, -1.0])
         m = sign * self.epsilon * 2**random.uniform(self.minExp, self.maxExp) 
 
-        if isinstance(gene, LEAP.Gene):
+        if isinstance(gene, Gene):
             gene.data += m
         else:
             gene += m
@@ -959,7 +958,7 @@ class CreepMutation(BoundedMutationOperator):
         if (random.random() < 0.5):
             thisDelta = -self.delta
 
-        if isinstance(gene, LEAP.Gene):
+        if isinstance(gene, Gene):
             gene.data += thisDelta
         else:
             gene += thisDelta
@@ -1081,7 +1080,7 @@ class AdaptiveMutation(MutationOperator):
         @type gene: L{AdaptiveRealGene}
         @return: A modified or new version of C{gene}.
         """
-        assert(isinstance(gene, LEAP.AdaptiveRealGene))
+        assert(isinstance(gene, AdaptiveRealGene))
 
         gene.sigma *= math.exp(self.tauPrimeTerm + self.tau * random.gauss(0,1))
         gene.sigma = min(max(gene.sigma, self.sigmaBounds[0]),
@@ -1299,9 +1298,8 @@ class UniformCrossover(CrossoverOperator):
 # unit_test
 #
 #############################################################################
-#from selection import *
-#from survival import *
 def unit_test():
+    from LEAP.individual import Individual
 
 #    class MyIndividual:
 #        def __init__(self, genome):
@@ -1326,7 +1324,7 @@ def unit_test():
 
     print("CloneOperator")
     clone = CloneOperator(None)
-    parent = LEAP.Individual(None, list(range(length)))
+    parent = Individual(None, list(range(length)))
     child = clone.apply([parent])[0]
     print(parent.genome)
     print(child.genome)
@@ -1338,7 +1336,7 @@ def unit_test():
     alleles = ['a', 'b', 'c']
     unifMut = UniformMutation(None, 1.0, alleles)
     genome = [random.choice(alleles) for i in list(range(length))]
-    parent = LEAP.Individual(None, genome)
+    parent = Individual(None, genome)
     child = clone.apply([parent])[0]
     child = unifMut.apply([child])[0]
     print(parent.genome)
@@ -1351,7 +1349,7 @@ def unit_test():
     alleles = ['0', '1']
     bitflip = BitFlipMutation(None, 1.0)
     genome = "".join([random.choice(alleles) for i in list(range(length))])
-    parent = LEAP.Individual(None, genome)
+    parent = Individual(None, genome)
     child = clone.apply([parent])[0]
     child = bitflip.apply([child])[0]
     print(parent.genome)
@@ -1363,7 +1361,7 @@ def unit_test():
     print("GaussianMutation")
     numGenes = 3
     gauss = GaussianMutation(None, 1.0)
-    parent = LEAP.Individual(None, [0.0]*numGenes)
+    parent = Individual(None, [0.0]*numGenes)
     child = clone.apply([parent])[0]
     child = gauss.apply([child])[0]
     print(parent.genome)
@@ -1376,7 +1374,7 @@ def unit_test():
     lower = 0.0
     upper = 0.5
     gauss = GaussianMutation(None, 1.0, bounds=[(lower, upper)]*numGenes)
-    parent = LEAP.Individual(None, [0.0]*numGenes)
+    parent = Individual(None, [0.0]*numGenes)
     child = clone.apply([parent])[0]
     child = gauss.apply([child])[0]
     print(parent.genome)
@@ -1397,8 +1395,8 @@ def unit_test():
     length = 2
     print("NPointCrossover")
     p2xover = NPointCrossover(None, 1.0, numPoints=2, allowXoverAt0=True)
-    mom = LEAP.Individual(None, uppercase[0:length])
-    dad = LEAP.Individual(None, lowercase[0:length])
+    mom = Individual(None, uppercase[0:length])
+    dad = Individual(None, lowercase[0:length])
     sis, bro = clone.apply([mom, dad])
     sis, bro = p2xover.apply([sis,bro])
     print(mom.genome + "  " + dad.genome)
@@ -1408,8 +1406,8 @@ def unit_test():
 
     length = 10
     p2xover = NPointCrossover(None, 1.0, numPoints=2, allowXoverAt0=False)
-    mom = LEAP.Individual(None, uppercase[0:length])
-    dad = LEAP.Individual(None, lowercase[0:length])
+    mom = Individual(None, uppercase[0:length])
+    dad = Individual(None, lowercase[0:length])
     sis, bro = clone.apply([mom, dad])
     sis, bro = p2xover.apply([sis,bro])
     print(mom.genome + "  " + dad.genome)
@@ -1421,8 +1419,8 @@ def unit_test():
     print("UniformCrossover")
     length = 10
     unifXover = UniformCrossover(None, pCross=1.0, pSwap=0.5)
-    mom = LEAP.Individual(None, uppercase[0:length])
-    dad = LEAP.Individual(None, lowercase[0:length])
+    mom = Individual(None, uppercase[0:length])
+    dad = Individual(None, lowercase[0:length])
     sis, bro = clone.apply([mom, dad])
     sis, bro = unifXover.apply([sis,bro])
     print(mom.genome + "  " + dad.genome)

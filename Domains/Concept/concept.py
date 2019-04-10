@@ -28,9 +28,9 @@ from __future__ import print_function
 import random
 import math
 
-import LEAP
-#import LEAP.Domains.Concept.readUCI
-from readUCI import *
+from LEAP.decoder import int2bin
+from LEAP.problem import Problem
+from LEAP.Domains.Concept.readUCI import readUCI
 
 
 def calcDecisionThresholds(values):
@@ -128,7 +128,7 @@ def nearestIndexMatch(output, answer, classes):
 # ConceptLearning
 #
 #############################################################################
-class ConceptLearning(LEAP.Problem):
+class ConceptLearning(Problem):
     """
     Concept Learning domain.
     """
@@ -275,9 +275,8 @@ class UCIConceptLearning(ConceptLearning):
     def __init__(self, UCIfilename, classIndex = -1, delimiter = ',',
                  matchFunc = exactMatch, normalizeFeatures = False):
         ConceptLearning.__init__(self, matchFunc)
-        #LEAP.Domains.Concept.readUCI(
-        self.UCIexamples, legalVals = readUCI(\
-                                           UCIfilename, classIndex, delimiter)
+        self.UCIexamples, legalVals = readUCI(UCIfilename, classIndex, \
+                                              delimiter)
         self.features = legalVals[0]
         self.classes = legalVals[1]
 
@@ -335,7 +334,7 @@ class OddParityConceptLearning(ConceptLearning):
         """
         examples = []
         for i in range(numExamples):
-            bin = LEAP.int2bin(i, self.numDigits)
+            bin = int2bin(i, self.numDigits)
             features = [int(c) for c in bin]
             examples.append([features, [features.count(1)%2]])
         return examples
@@ -347,8 +346,8 @@ class OddParityConceptLearning(ConceptLearning):
 # unit_test
 #
 #############################################################################
-import LEAP.Exec.Pitt
 def unit_test():
+    from LEAP.Exec.Pitt.ruleInterp import pyRuleInterp
 
     numDigits = 4
     parity = OddParityConceptLearning(numDigits)
@@ -376,7 +375,7 @@ def unit_test():
                      [1,1, 0,0, 1,1, 1,1,  1],
                      [1,1, 1,1, 0,0, 1,1,  1],
                      [1,1, 1,1, 1,1, 0,0,  1]]
-    answer = LEAP.Exec.Pitt.pyRuleInterp(answerRuleset, numDigits, 1)
+    answer = pyRuleInterp(answerRuleset, numDigits, 1)
 
     train = parity.evaluate(answer)
     print("training set: ", train)

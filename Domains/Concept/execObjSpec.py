@@ -26,9 +26,9 @@
 from __future__ import print_function
 
 import math
+import random
 
-import LEAP
-from concept import *
+from LEAP.Domains.Concept.concept import ConceptLearning
 
 
 #############################################################################
@@ -82,10 +82,10 @@ class ExecutableObjectSpecifiedConcept(ConceptLearning):
 #
 #############################################################################
 def unit_test():
-    import LEAP.Exec.Pitt
+    from LEAP.Exec.Pitt.ruleInterp import pyRuleInterp
     rules = [[0.4,1.0, 0.6,1.0, 0],
              [0.0,0.6, 0.0,0.4, 1]]
-    interp = LEAP.Exec.Pitt.pyRuleInterp(rules, 2, 1)
+    interp = pyRuleInterp(rules, 2, 1)
 
     execCon = ExecutableObjectSpecifiedConcept(interp, [(0.0, 1.0)] * 2)
     execCon.generateExampleGroups(200, 3)

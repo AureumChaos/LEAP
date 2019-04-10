@@ -30,7 +30,8 @@ import copy
 import random
 import math
 
-import LEAP
+from LEAP.operators import MutationOperator
+from LEAP.operators import GaussianMutation
 
 
 
@@ -39,7 +40,7 @@ import LEAP
 # g2pMappingGaussianMutation
 #
 #############################################################################
-class g2pMappingGaussianMutation(LEAP.MutationOperator):
+class g2pMappingGaussianMutation(MutationOperator):
     """
     Given that each gene in a mapping is a vector (magitude + set of
     components), this operator picks a set of genes, and then performs
@@ -57,8 +58,8 @@ class g2pMappingGaussianMutation(LEAP.MutationOperator):
         """
         # XXX Should the magnitude have a separate sigma?
         # XXX For that matter, should each dimension have a separate sigma?
-        LEAP.MutationOperator.__init__(self, provider, pMutate, True)
-        self.gaussianOp = LEAP.GaussianMutation(provider = None, \
+        MutationOperator.__init__(self, provider, pMutate, True)
+        self.gaussianOp = GaussianMutation(provider = None, \
               sigma = sigma, pMutate = 1.0, linear = True, bounds = bounds)
 
     def mutateGene(self, gene):
@@ -87,21 +88,21 @@ def unit_test():
     """
     Test mutation operator
     """
-    #from g2pDecoder import g2pDecoder
-    #from g2pMappingDecoder import g2pMappingDecoder
-    from LEAP.Contrib.g2pMapping.g2pDecoder import g2pDecoder
-    from LEAP.Contrib.g2pMapping.g2pMappingDecoder import g2pMappingDecoder
+    from LEAP.problem import FunctionOptimization
+    from LEAP.individual import Individual
+    from LEAP.Contrib.g2pMapping.g2pDecoder import g2pEncoding
+    from LEAP.Contrib.g2pMapping.g2pMappingDecoder import g2pMappingEncoding
 
     numDimensions = 2
     initRanges = [(-5, 2)] + [(0.5, 1.0)] * numDimensions
     bounds = None
     numVectors = 10
         
-    problem = LEAP.FunctionOptimization(myFunction, maximize = False)
-    decoder = g2pMappingDecoder(problem, numVectors, initRanges, bounds)
+    problem = FunctionOptimization(myFunction, maximize = False)
+    decoder = g2pMappingEncoding(problem, numVectors, initRanges, bounds)
     genome = decoder.randomGenome()
     oldGenome = [i[:] for i in genome]
-    ind = LEAP.Individual(decoder, genome)
+    ind = Individual(decoder, genome)
     
     assert(len(genome) == numVectors)
     assert(len(genome[0]) == numDimensions + 1)

@@ -28,7 +28,13 @@ import sys
 import random
 import string
 
-import LEAP
+from LEAP.operators import PipelineOperator
+from LEAP.operators import CloneOperator
+from LEAP.individual import Individual
+from LEAP.individual import fittest
+from LEAP.selection import DeterministicSelection
+from LEAP.survival import BaseMuLambdaSurvival
+from LEAP.ea import GenerationalEA
 #import scipy.stats
 
 from math import *
@@ -110,7 +116,7 @@ def mystr(x):
 # class RandomSearchOperator
 #
 #############################################################################
-class RandomSearchOperator(LEAP.CloneOperator):
+class RandomSearchOperator(CloneOperator):
     """
     Generates a completely random child.
     """
@@ -125,7 +131,7 @@ class RandomSearchOperator(LEAP.CloneOperator):
         @return: A list of the resulting individuals.
         """
         for ind in individuals:
-            ind.genome = ind.decoder.randomGenome()
+            ind.genome = ind.encoding.randomGenome()
 
         return individuals
 
@@ -168,7 +174,7 @@ def repPrev(previous):
 # class PriceIndividual
 #
 #############################################################################
-class PriceIndividual(LEAP.Individual):
+class PriceIndividual(Individual):
     """
     Keep some statistics that are related to Price's equation
     """
@@ -188,14 +194,14 @@ class PriceIndividual(LEAP.Individual):
         return rep
 
     def clone(self):
-        #clone = LEAP.Individual.clone(self)
+        #clone = Individual.clone(self)
         if isinstance(self.genome, str):
-            clone = PriceIndividual(self.decoder, self.genome)
+            clone = PriceIndividual(self.encoding, self.genome)
         elif isinstance(self.genome[0], float) \
              or isinstance(self.genome[0], int):
-            clone = PriceIndividual(self.decoder, self.genome[:])
+            clone = PriceIndividual(self.encoding, self.genome[:])
         else:  # Gene class
-            clone = PriceIndividual(self.decoder,
+            clone = PriceIndividual(self.encoding,
                                     [copy.copy(i) for i in self.genome])
         clone.rawFitness = self.rawFitness
         clone.fitness = self.fitness
@@ -209,7 +215,7 @@ class PriceIndividual(LEAP.Individual):
 # class LexPriceIndividual
 #
 #############################################################################
-class LexPriceIndividual(LEAP.Individual):
+class LexPriceIndividual(Individual):
 
     def cmp(self, other):
         """
@@ -223,7 +229,7 @@ class LexPriceIndividual(LEAP.Individual):
         if self == None or other == None:
             return cmp(self, other)
 
-        result = self.decoder.cmpFitness(self.getFitness(), other.getFitness())
+        result = self.encoding.cmpFitness(self.getFitness(), other.getFitness())
         if result == 0:
             return -cmp(size(self.genome), size(other.genome))
         else:
@@ -237,7 +243,7 @@ class LexPriceIndividual(LEAP.Individual):
 # PriceInitOperator
 #
 #############################################################################
-class PriceInitOperator(LEAP.PipelineOperator):
+class PriceInitOperator(PipelineOperator):
     """
     Initialize individuals so that information can be stored in them later.
     """
@@ -255,7 +261,7 @@ class PriceInitOperator(LEAP.PipelineOperator):
 # PriceMeasureOperator
 #
 #############################################################################
-class PriceMeasureOperator(LEAP.PipelineOperator):
+class PriceMeasureOperator(PipelineOperator):
     """
     Gather statistics for Price's equation and store them in the individuals.
     """
@@ -263,7 +269,7 @@ class PriceMeasureOperator(LEAP.PipelineOperator):
     measureFunction = None
 
     def __init__(self, provider, measureFunction):
-        LEAP.PipelineOperator.__init__(self, provider)
+        PipelineOperator.__init__(self, provider)
         self.measureFunction = measureFunction
 
     def apply(self, children):
@@ -277,7 +283,7 @@ class PriceMeasureOperator(LEAP.PipelineOperator):
 # CollectPopulationOperator
 #
 #############################################################################
-class CollectPopulationOperator(LEAP.PipelineOperator):
+class CollectPopulationOperator(PipelineOperator):
     """
     Gather up a population as it comes down the pipeline.
     Useful after a selection operator.
@@ -285,11 +291,11 @@ class CollectPopulationOperator(LEAP.PipelineOperator):
     parentsNeeded = 1
 
     def __init__(self, provider):
-        LEAP.PipelineOperator.__init__(self, provider)
+        PipelineOperator.__init__(self, provider)
         self.collectedPop = []
 
     def reinitialize(self, population):
-        LEAP.PipelineOperator.reinitialize(self, population)
+        PipelineOperator.reinitialize(self, population)
         self.collectedPop = []
 
     def apply(self, children):
@@ -313,7 +319,7 @@ class AverageMeasureOperator(CollectPopulationOperator):
     parentsNeeded = 1
 
     def __init__(self, provider, tag):
-        LEAP.PipelineOperator.__init__(self, provider)
+        PipelineOperator.__init__(self, provider)
         if tag:
             self.tag = tag
         else:
@@ -325,7 +331,7 @@ class AverageMeasureOperator(CollectPopulationOperator):
         AverageMeasureOperator.prevqBar = 0.0
 
     def reinitialize(self, population):
-        LEAP.PipelineOperator.reinitialize(self, population)
+        PipelineOperator.reinitialize(self, population)
 
         if len(self.samples) > 0:
             self.qBar = E(self.samples)
@@ -429,7 +435,7 @@ class VarianceCalcOperator(CollectPopulationOperator):
 # PriceRankOperator
 #
 #############################################################################
-class PriceRankOperator(LEAP.BaseMuLambdaSurvival):
+class PriceRankOperator(BaseMuLambdaSurvival):
     """
     When using rankMeasure() as you measurement function, this should be
     placed directly before PriceCalcOperator in the pipeline.
@@ -437,8 +443,8 @@ class PriceRankOperator(LEAP.BaseMuLambdaSurvival):
           My recollection was that it's not finished yet.
     """
     def __init__(self, provider, popSize):
-        LEAP.BaseMuLambdaSurvival.__init__(self, provider, popSize, popSize,
-                LEAP.DeterministicSelection())
+        BaseMuLambdaSurvival.__init__(self, provider, popSize, popSize,
+                DeterministicSelection())
 
     def combinePopulations(self, parents, children):
         """
@@ -477,7 +483,7 @@ def locationMeasure(ind = None):
     numVars = 30  # This is a hack!  I shouldn't have to define this here!
     if ind == None:
         return zeros(numVars)   # define a zero measurement
-    return array(ind.decoder.decodeGenome(ind.genome))
+    return array(ind.encoding.decodeGenome(ind.genome))
 
 
 def rankMeasure(ind = None):
@@ -707,7 +713,7 @@ def calcPriceFunc(P1, P2, zero, genStep=1):
     # XXX I don't like the fact that I'm printing information from here.
     #     I would prefer to print the results from within
     #     PriceEA.printStats().
-    print("best:", LEAP.fittest(P1).fitness, end='')
+    print("best:", fittest(P1).fitness, end='')
     print("qPrimeBar:", mystr(qPrimeBar), end='')
     print("DeltaQmeasure:", mystr(DeltaQmeasure), end='')
     print("DeltaQcalc:", mystr(DeltaQcalc), end='')
@@ -877,7 +883,7 @@ def calcPriceFunc2(P1, P2, zero, genStep=1):
     # XXX I don't like the fact that I'm printing information from here.
     #     I would prefer to print the results from within
     #     PriceEA.printStats().
-    print("best:", LEAP.fittest(P1).fitness, end='')
+    print("best:", fittest(P1).fitness, end='')
     print("qPrimeBar:", mystr(qPrimeBar), end='')
     print("DeltaQmeasure:", mystr(DeltaQmeasure), end='')
     print("DeltaQcalc:", mystr(DeltaQcalc), end='')
@@ -1017,7 +1023,7 @@ def calcVarianceFunc(P1, P2, zero, opStep=1):
 # PriceEA
 #
 ##############################################################################
-class PriceEA(LEAP.GenerationalEA):
+class PriceEA(GenerationalEA):
     """
     A generational EA which calculates the coefficients of Price's equation.
 
@@ -1027,9 +1033,9 @@ class PriceEA(LEAP.GenerationalEA):
         initPipeline = PriceInitOperator(initPipeline)
         initPipeline = PriceMeasureOperator(initPipeline, <measureFunc>)
     """
-    def __init__(self, decoder, pipeline, popSize, zero, initPipeline, \
+    def __init__(self, encoding, pipeline, popSize, zero, initPipeline, \
                  indClass=PriceIndividual, initPopsize=None):
-        LEAP.GenerationalEA.__init__(self, decoder, pipeline, popSize, \
+        GenerationalEA.__init__(self, encoding, pipeline, popSize, \
                                      initPipeline = initPipeline, \
                                      indClass = indClass,
                                      initPopsize = initPopsize)
@@ -1039,13 +1045,13 @@ class PriceEA(LEAP.GenerationalEA):
 
     def step(self):
         self.prevPop = self.population
-        LEAP.GenerationalEA.step(self)
+        GenerationalEA.step(self)
 
 
     def printStats(self):
         #if self.generation > 0:
         #    printPopulation(self.prevPop, self.generation-1)
-        LEAP.GenerationalEA.printStats(self)
+        GenerationalEA.printStats(self)
 
 
 
@@ -1056,6 +1062,15 @@ class PriceEA(LEAP.GenerationalEA):
 #############################################################################
 
 if __name__ == '__main__':
+    from LEAP.problem import schwefelFunction
+    from LEAP.problem import schwefelBounds
+    from LEAP.problem import schwefelMaximize
+    from LEAP.problem import FunctionOptimization
+    from LEAP.decoder import *
+    from LEAP.selection import *
+    from LEAP.operators import *
+    from LEAP.survival import *
+
     # Some parameters
     #popSize = 500
     #maxGeneration = 200
@@ -1063,64 +1078,64 @@ if __name__ == '__main__':
     maxGeneration = 10
 
     # Setup the problem
-    function = LEAP.schwefelFunction
-    bounds = LEAP.schwefelBounds
-    maximize = LEAP.schwefelMaximize
+    function = schwefelFunction
+    bounds = schwefelBounds
+    maximize = schwefelMaximize
     numVars = len(bounds)
 
-    problem = LEAP.FunctionOptimization(function, maximize = maximize)
+    problem = FunctionOptimization(function, maximize = maximize)
 
     # ...for binary genes
     #bitsPerReal = 16
     #genomeSize = bitsPerReal * numVars
-    #decoder = LEAP.BinaryRealDecoder(problem, [bitsPerReal] * numVars, bounds)
+    #encoding = BinaryRealEncoding(problem, [bitsPerReal] * numVars, bounds)
 
     # ...for float genes
-    #decoder = LEAP.FloatDecoder(problem, bounds, bounds)
+    #encoding = FloatEncoding(problem, bounds, bounds)
 
     # ...for adaptive real genes
     sigmaBounds = (0.0, bounds[0][1] - bounds[0][0])
     initSigmas = [(bounds[0][1] - bounds[0][0]) / sqrt(numVars)] * numVars
-    decoder = LEAP.AdaptiveRealDecoder(problem, bounds, bounds, initSigmas)
+    encoding = AdaptiveRealEncoding(problem, bounds, bounds, initSigmas)
 
     measure = fitnessMeasure
     #measure = rankMeasure
 
     # Setup the reproduction pipeline
-    pipeline = LEAP.TournamentSelection(2)
-    #pipeline = LEAP.ProportionalSelection()
-    #pipeline = LEAP.RankSelection()
-    #pipeline = LEAP.DeterministicSelection()
+    pipeline = TournamentSelection(2)
+    #pipeline = ProportionalSelection()
+    #pipeline = RankSelection()
+    #pipeline = DeterministicSelection()
     pipeline = PriceCalcOperator(pipeline, zero=measure(), tag="SurvivalSel")
-    pipeline = LEAP.CloneOperator(pipeline)
+    pipeline = CloneOperator(pipeline)
     pipeline = PriceInitOperator(pipeline)
-    #pipeline = LEAP.Shuffle2PointCrossover(pipeline, 0.8, 2)
-    pipeline = LEAP.NPointCrossover(pipeline, 0.8, 2)
-    #pipeline = LEAP.UniformCrossover(pipeline, 0.8, 0.5)
+    #pipeline = Shuffle2PointCrossover(pipeline, 0.8, 2)
+    pipeline = NPointCrossover(pipeline, 0.8, 2)
+    #pipeline = UniformCrossover(pipeline, 0.8, 0.5)
     #pipeline = price1 = PriceMeasureOperator(pipeline, measure)
-    #pipeline = LEAP.ProxyMutation(pipeline)
-    #pipeline = LEAP.BitFlipMutation(pipeline, 1.0/genomeSize)
-    #pipeline = LEAP.UniformMutation(pipeline, 1.0/genomeSize, alleles)
-    pipeline = LEAP.AdaptiveMutation(pipeline, sigmaBounds)
-    #pipeline = LEAP.GaussianMutation(pipeline, sigma = 1.0,
+    #pipeline = ProxyMutation(pipeline)
+    #pipeline = BitFlipMutation(pipeline, 1.0/genomeSize)
+    #pipeline = UniformMutation(pipeline, 1.0/genomeSize, alleles)
+    pipeline = AdaptiveMutation(pipeline, sigmaBounds)
+    #pipeline = GaussianMutation(pipeline, sigma = 1.0,
     #                                 pMutate = 1.0)
-    #pipeline = LEAP.FixupOperator(pipeline)
+    #pipeline = FixupOperator(pipeline)
     pipeline = price2 = PriceMeasureOperator(pipeline, measure)
-    #pipeline = LEAP.ElitismSurvival(pipeline, 2)
+    #pipeline = ElitismSurvival(pipeline, 2)
     #pipeline = PriceRankOperator(pipeline, popSize)
     #pipeline = PriceCalcOperator(pipeline, zero=measure(),
     #                             tag="ParentSel")
     pipeline = PriceCalcOperator(pipeline, zero=measure(), tag="ParentSel")
     #pipeline = VarianceCalcOperator(pipeline, zero=measure()) 
-    #pipeline = LEAP.MuCommaLambdaSurvival(pipeline, popSize, popSize*10)
+    #pipeline = MuCommaLambdaSurvival(pipeline, popSize, popSize*10)
     
 
-    initPipe = LEAP.DeterministicSelection()
+    initPipe = DeterministicSelection()
     initPipe = PriceInitOperator(initPipe)
     initPipe = PriceMeasureOperator(initPipe, measure)
 
     print("popSize =", popSize)
-    ea = PriceEA(decoder, pipeline, popSize, measure(), initPipe)
+    ea = PriceEA(encoding, pipeline, popSize, measure(), initPipe)
     ea.run(maxGeneration)
 
 #    import profile

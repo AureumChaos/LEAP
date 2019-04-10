@@ -21,17 +21,17 @@
 #
 ##############################################################################
 
-from LEAP.gene import *
-from LEAP.individual import *
-from LEAP.problem import *
-from LEAP.decoder import *
-from LEAP.operators import *
-from LEAP.variableOps import *
-from LEAP.otherOps import *
-from LEAP.selection import *
-from LEAP.survival import *
-from LEAP.halt import *
-from LEAP.ea import *
+#from LEAP.gene import *
+#from LEAP.individual import *
+#from LEAP.problem import *
+#from LEAP.decoder import *
+#from LEAP.operators import *
+#from LEAP.variableOps import *
+#from LEAP.otherOps import *
+#from LEAP.selection import *
+#from LEAP.survival import *
+#from LEAP.halt import *
+#from LEAP.ea import *
 
 #__all__ = []
 

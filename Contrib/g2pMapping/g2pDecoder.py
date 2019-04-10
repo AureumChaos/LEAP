@@ -31,25 +31,25 @@ import random
 import math
 import numpy
 
-import LEAP
+from LEAP.decoder import BinaryEncoding
 
 
 
 #############################################################################
 #
-# g2pDecoder
+# g2pEncoding
 #
 #############################################################################
 
-class g2pDecoder(LEAP.BinaryDecoder):
+class g2pEncoding(BinaryEncoding):
     """
     This class defines a binary to real-valued genetic encoding using a
     genotype to phenotype mapping.  This allows the mapping to be evolved in a
     meta-EA (or perhaps co-evolved).  Each mapping is then evaluated in a
-    sub-EA that uses this decoder.
+    sub-EA that uses this encoding.
     """
     def __init__(self, problem, mapping):
-        LEAP.BinaryDecoder.__init__(self, problem, len(mapping))
+        BinaryEncoding.__init__(self, problem, len(mapping))
         self.Nvec = len(mapping)
         self.Nelem = len(mapping[0]) - 1
         assert(self.Nvec > 0)
@@ -78,7 +78,7 @@ class g2pDecoder(LEAP.BinaryDecoder):
 #            if genome[i] == '1':
 #                phenome += self.vectors[i]
 #            
-#        #print("g2pDecoder.decodeGenome")
+#        #print("g2pEncoding.decodeGenome")
 #        return phenome.tolist()
 
 
@@ -106,6 +106,8 @@ def unit_test():
     """
     Test the rule interpreter.
     """
+    from LEAP.problem import FunctionOptimization
+
     mapping = [[3.0, 1.0, 0.0],
                [2.0, 1.0, 0.0],
                [1.0, 1.0, 0.0],
@@ -115,22 +117,22 @@ def unit_test():
                [1.0, 0.0, 1.0],
                [0.0, 0.0, 1.0]]
 
-    problem = LEAP.FunctionOptimization(myFunction, maximize = False)
+    problem = FunctionOptimization(myFunction, maximize = False)
 
-    decoder = g2pDecoder(problem, mapping)
-    genome = decoder.randomGenome()
+    encoding = g2pEncoding(problem, mapping)
+    genome = encoding.randomGenome()
 
     assert(len(genome) == 8)
     passed = True
 
-    # Test the decoder
+    # Test the encoding
     genome = '10000101'
-    phenome = decoder.decodeGenome(genome)
+    phenome = encoding.decodeGenome(genome)
     print("phenome =", phenome)
     passed = passed and (phenome == [8.0, 5.0])
 
     genome = '00000001'
-    phenome = decoder.decodeGenome(genome)
+    phenome = encoding.decodeGenome(genome)
     print("phenome =", phenome)
     passed = passed and (phenome == [0.0, 1.0])
 

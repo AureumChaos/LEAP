@@ -6,6 +6,7 @@ from __future__ import print_function
 import string
 import sys
 import re
+import functools
 
 
 int_re = re.compile("^\s*(\+|-)?[0-9]+\s*$");
@@ -14,7 +15,7 @@ def isInt(str):
     Returns True if the string can be converted to an integer using the
     int() function.
     """
-    if str == None:
+    if str == "":
         return False
 
     return bool(int_re.match(str))
@@ -28,7 +29,7 @@ def isFloat(str):
     float() function.  Note that if isInt(str) is True, then so is
     isFloat(str).
     """
-    if str == None:
+    if str == "":
         return False
 
     return bool(float_re.match(str))
@@ -36,11 +37,11 @@ def isFloat(str):
 
 def missingToNone(str):
     """
-    If the string represents a missing value (i.e. '?') then None is returned.
+    If the string represents a missing value (i.e. '?') then "" is returned.
     Otherwise the original str is returned.
     """
     if str == '?':
-        return None
+        return ""
     return str
 
 
@@ -53,22 +54,22 @@ def transpose(matrix):
 
 def Int(str):
     """
-    A version of the int() function that ignores None values instead of
+    A version of the int() function that ignores "" values instead of
     throwing an exception.
     """
-    if str == None:
-        return None
+    if str == "":
+        return ""
     else:
         return int(str)
 
 
 def Float(str):
     """
-    A version of the float() function that ignores None values instead of
+    A version of the float() function that ignores "" values instead of
     throwing an exception.
     """
-    if str == None:
-        return None
+    if str == "":
+        return ""
     else:
         return float(str)
 
@@ -97,28 +98,28 @@ def readUCI(dataFilename, classIndex = -1, delimiter = ','):
     repository's datafiles.
     """
     dataFile = open(dataFilename, 'r')
-    all_f = string.strip(dataFile.read())
-    rows = string.split(all_f, '\n')
+    all_f = str.strip(dataFile.read())
+    rows = str.split(all_f, '\n')
 
     # Massage the row data:
     #   - split features
     #   - strip whitespace
-    #   - change missing values ('?') into None
-    rows = [string.split(row, delimiter) for row in rows]
-    rows = [[missingToNone(string.strip(feature)) for feature in row]
+    #   - change missing values ('?') into ""
+    rows = [str.split(row, delimiter) for row in rows]
+    rows = [[missingToNone(str.strip(feature)) for feature in row]
             for row in rows]
 
     # Translate columns of strings into ints or floats if appropriate
     columns = transpose(rows)
     for c in range(len(columns)):
         ints = [isInt(i) or i == None for i in columns[c]]
-        all_ints = reduce(lambda x,y:x and y, ints)
+        all_ints = functools.reduce(lambda x,y:x and y, ints)
 
         if all_ints:
             columns[c] = [Int(x) for x in columns[c]]
         else:
             floats = [isFloat(i) or i == None for i in columns[c]]
-            all_floats = reduce(lambda x,y:x and y, floats)
+            all_floats = functools.reduce(lambda x,y:x and y, floats)
             if all_floats:
                 columns[c] = [Float(x) for x in columns[c]]
 
@@ -170,7 +171,7 @@ def unit_test():
     print("types == [str, int, float]   (" + str(t) + ")")
     passed = passed and t
 
-    t = reduce(lambda x,y:x and y, [e[0][1] == e[0][2] for e in examples])
+    t = functools.reduce(lambda x,y:x and y, [e[0][1] == e[0][2] for e in examples])
     print("ints == floats               (" + str(t) + ")")
     passed = passed and t
 

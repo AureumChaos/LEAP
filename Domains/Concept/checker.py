@@ -27,7 +27,8 @@ from __future__ import print_function
 
 import math
 
-import LEAP
+from LEAP.individual import Individual
+from LEAP.decoder import FloatEncoding
 from concept import *
 
 
@@ -88,16 +89,16 @@ class CheckerBoardProblem(BinaryConceptLearning):
 #
 #############################################################################
 def unit_test():
+    from LEAP.Exec.Pitt.PittDecoder import PittNearestNeighborEncoding
+
     checker = CheckerBoardProblem((0.0,0.0),(1.0,1.0),0.2)
     checker.generateExampleGroups(200, 3)
     checker.selectTestSetGroup(0)
 
-    import LEAP.Exec.Pitt
     bounds = [(0.0, 0.1)]*3
-    ruleDecoder = LEAP.FloatDecoder(None, bounds, bounds)
+    ruleEncoding = FloatEncoding(None, bounds, bounds)
 
-    decoder = LEAP.Exec.Pitt.PittNearestNeighborDecoder(checker, ruleDecoder,
-                                                        10, 10, 2, 1)
+    encoding = PittNearestNeighborEncoding(checker, ruleEncoding, 10, 10, 2, 1)
 
     perfectGenome = \
     [[0.1, 0.9, 1],[0.3, 0.9, 0],[0.5, 0.9, 1],[0.7, 0.9, 0],[0.9, 0.9, 1],\
@@ -105,10 +106,10 @@ def unit_test():
      [0.1, 0.5, 1],[0.3, 0.5, 0],[0.5, 0.5, 1],[0.7, 0.5, 0],[0.9, 0.5, 1],\
      [0.1, 0.3, 0],[0.3, 0.3, 1],[0.5, 0.3, 0],[0.7, 0.3, 1],[0.9, 0.3, 0],\
      [0.1, 0.1, 1],[0.3, 0.1, 0],[0.5, 0.1, 1],[0.7, 0.1, 0],[0.9, 0.1, 1]]
-    perfectIndividual = LEAP.Individual(decoder, perfectGenome)
+    perfectIndividual = Individual(encoding, perfectGenome)
 
     wrongGenome = [[r[0], r[1], int(not r[2])] for r in perfectGenome]
-    wrongIndividual = LEAP.Individual(decoder, wrongGenome)
+    wrongIndividual = Individual(encoding, wrongGenome)
 
     perfectFitness = perfectIndividual.evaluate()
     print("perfectFitness =", perfectFitness)

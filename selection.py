@@ -32,9 +32,9 @@ import copy    # for Clone
 import random
 import functools
 
-#from individual import *
-#from operators import *
-import LEAP
+from LEAP.operators import Operator
+from LEAP.individual import cmpInd
+from LEAP.individual import fittest
 
 
 #############################################################################
@@ -42,7 +42,7 @@ import LEAP
 # class SelectionOperator
 #
 #############################################################################
-class SelectionOperator(LEAP.Operator):
+class SelectionOperator(Operator):
     """
     Base class for selection operators.  A selection operator stands at the
     front of the pipeline, and attaches to a parent population.
@@ -50,7 +50,7 @@ class SelectionOperator(LEAP.Operator):
     parentPopulation = []
 
     def __init__(self, parentPopulation = []):
-        LEAP.Operator.__init__(self)
+        Operator.__init__(self)
         if parentPopulation != []:
             self.reinitialize(parentPopulation)
 
@@ -58,7 +58,7 @@ class SelectionOperator(LEAP.Operator):
         self.parentPopulation = parentPopulation
         for i in range(len(parentPopulation)):
             parentPopulation[i].popIndex = i
-        LEAP.Operator.reinitialize(self, parentPopulation)
+        Operator.reinitialize(self, parentPopulation)
         
     def applyAndCache(self):
         """
@@ -219,7 +219,7 @@ class RankSelection(RouletteWheelSelection):
         # copied though.  No new individuals are created.
         #print("Calling sort")
         sortedPop = parentPopulation[:]
-        sortedPop.sort(key=functools.cmp_to_key(LEAP.cmpInd))
+        sortedPop.sort(key=functools.cmp_to_key(cmpInd))
 
         m = float(len(parentPopulation))
         epsilon = 1 / m**2      # Same as tournament selection
@@ -230,7 +230,7 @@ class RankSelection(RouletteWheelSelection):
             # I got this equation from Ken's book
             sortedPop[i].rank = (2/m - epsilon) - (2/m - 2.0 * epsilon) * \
                                 ((m-i-1) / (m-1))
-            if LEAP.cmpInd(sortedPop[i], sortedPop[i-1]) == 1:  # fitness improved
+            if cmpInd(sortedPop[i], sortedPop[i-1]) == 1:  # fitness improved
                 avgRank = sum([x.rank for x in sortedPop[firstInstance:i]]) / \
                           (i - firstInstance)
                 for j in range(firstInstance, i):
@@ -266,11 +266,11 @@ class UniformSelection(SelectionOperator):
 class TournamentSelection(SelectionOperator):
     "Picks the best individual from a pool of n individuals"
     tournament_size = 2
-    compareFunc = LEAP.cmpInd
+    compareFunc = cmpInd
     name = "TournamentSelection"
 
     def __init__(self, tournament_size = 2, parentPopulation = [],
-                 compareFunc = LEAP.cmpInd):
+                 compareFunc = cmpInd):
         SelectionOperator.__init__(self, parentPopulation)
         self.tournament_size = tournament_size
         self.compareFunc = compareFunc
@@ -279,7 +279,7 @@ class TournamentSelection(SelectionOperator):
         tournament = []
         for i in range(self.tournament_size):
             tournament.append(random.choice(parents))
-        winner = LEAP.fittest(tournament)
+        winner = fittest(tournament)
         #print([ind.getFitness() for ind in tournament], "-->",)
         #print(winner.getFitness())
         return [winner]
@@ -348,7 +348,7 @@ class TruncationSelection(DeterministicSelection):
 
     def reinitialize(self, parentPopulation):
         truncatedParentPop = parentPopulation[:]  # just copy the pointers
-        truncatedParentPop.sort(key=functools.cmp_to_key(LEAP.cmpInd))
+        truncatedParentPop.sort(key=functools.cmp_to_key(cmpInd))
         truncatedParentPop = truncatedParentPop[-self.numToKeep:]
         #UniformSelection.reinitialize(self, trunctatedParentPop)
         DeterministicSelection.reinitialize(self, truncatedParentPop)
@@ -368,18 +368,22 @@ def rampLandscape(phenome):
 
 
 def unit_test():
+    from LEAP.problem import FunctionOptimization
+    from LEAP.decoder import FloatEncoding
+    from LEAP.individual import Individual
+
     t_passed = True
     p_passed = True
     r_passed = True
     bounds = [(0,100)]
-    problem = LEAP.FunctionOptimization(rampLandscape)
-    decoder = LEAP.FloatDecoder(problem, bounds, bounds)
+    problem = FunctionOptimization(rampLandscape)
+    decoder = FloatEncoding(problem, bounds, bounds)
     popsize = 10
     population = []
     for i in range(1, popsize*2, 2):
 #    m = 4.0
 #    for i in [1/m**2, 1/m, 1/m, 2/m - 1/m**2]:
-        ind = LEAP.Individual(decoder, [float(i)])
+        ind = Individual(decoder, [float(i)])
         ind.evaluate()
         population.append(ind)
 

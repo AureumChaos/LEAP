@@ -28,8 +28,8 @@ from __future__ import print_function
 import random
 import math
 
-import LEAP
-import readUCI
+from LEAP.problem import Problem
+from LEAP.Domains.Concept.readUCI import readUCI
 
 
 #############################################################################
@@ -37,7 +37,7 @@ import readUCI
 # BaseFunctionApproximation
 #
 #############################################################################
-class BaseFunctionApproximation(LEAP.Problem):
+class BaseFunctionApproximation(Problem):
     """
     For this problem, the EA must learn an approximation of a function.
     Fitness is measured as least mean squared error.
@@ -248,8 +248,8 @@ class FunctionApproximation(BaseFunctionApproximation):
 # unit_test
 #
 #############################################################################
-import LEAP.Exec.Pitt
 def unit_test():
+    from LEAP.Exec.Pitt.interpolatingRuleInterp import pyInterpolatingRuleInterp
 
     targetFunc = lambda x: math.sin(x[0])
     #targetFunc = lambda x: x[0]**2
@@ -313,7 +313,7 @@ def unit_test():
         badRuleset.append(condition + action)
 
     #print("badRuleset =", badRuleset)
-    interp = LEAP.Exec.Pitt.pyInterpolatingRuleInterp(badRuleset, 1, 1)
+    interp = pyInterpolatingRuleInterp(badRuleset, 1, 1)
     train = fa.evaluate(interp)
     print("training eval: ", train)
     test = fa.classifyTests(interp)
@@ -333,7 +333,7 @@ def unit_test():
         goodRuleset.append(condition + action)
 
     #print("goodRuleset =", badRuleset)
-    interp = LEAP.Exec.Pitt.pyInterpolatingRuleInterp(goodRuleset, 1, 1)
+    interp = pyInterpolatingRuleInterp(goodRuleset, 1, 1)
     train = fa.evaluate(interp)
     print("training eval: ", train)
     test = fa.classifyTests(interp)
@@ -345,7 +345,7 @@ def unit_test():
     print("shuffled goodRuleset")
     #print("goodRuleset =", goodRuleset)
     random.shuffle(goodRuleset)
-    interp = LEAP.Exec.Pitt.pyInterpolatingRuleInterp(goodRuleset, 1, 1)
+    interp = pyInterpolatingRuleInterp(goodRuleset, 1, 1)
     train2 = fa.evaluate(interp)
     print("training eval: ", train2)
     test2 = fa.classifyTests(interp)
@@ -366,7 +366,7 @@ def unit_test():
     points.sort()
     ruleset = [[p[0], p[0], p[1]] for p in points]
     print("ruleset =", ruleset)
-    targetInterp = LEAP.Exec.Pitt.pyInterpolatingRuleInterp(ruleset, 1, 1)
+    targetInterp = pyInterpolatingRuleInterp(ruleset, 1, 1)
     targetFunc = lambda x: targetInterp.execute(x)[0]
 
     allbounds = condbounds + actionbounds
@@ -377,7 +377,7 @@ def unit_test():
     fa.generateExampleGroups(numExamples, numGroups)
     fa.selectTestSetGroup(0)
     
-    interp = LEAP.Exec.Pitt.pyInterpolatingRuleInterp(ruleset, 1, 1)
+    interp = pyInterpolatingRuleInterp(ruleset, 1, 1)
     selfEval = fa.evaluate(interp)
     print("selfEval =", selfEval)
 

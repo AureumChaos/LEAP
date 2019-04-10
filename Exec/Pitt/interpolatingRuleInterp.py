@@ -32,14 +32,7 @@ import random
 import math
 import numpy
 
-import LEAP
-
-# XXX ModuleNotFoundError: No module named 'ruleInterp'
-#     The way I originally implemented my modules was broken.  With the
-#     upgrade to Python 3, I'm getting a chicken-and-egg problem, so I can't
-#     import some things (like this) without making major changes to the
-#     structure of the code.  It still seems to work in Python 2.
-from ruleInterp import *
+from LEAP.Exec.Pitt.ruleInterp import RuleInterp
 
 
 #############################################################################

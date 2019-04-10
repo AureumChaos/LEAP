@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-# decoder.py
+# encoding.py
 ##############################################################################
 #
 #   LEAP - Library for Evolutionary Algorithms in Python
@@ -30,10 +30,8 @@ import random
 import math
 import functools
 
-#from LEAP.gene import *
-#from LEAP.individual import *
-#from LEAP.problem import *
-import LEAP
+from LEAP.gene import BoundedRealGene
+from LEAP.gene import AdaptiveRealGene
 
 
 #############################################################################
@@ -67,10 +65,10 @@ def bin2int(binStr):
 
 #############################################################################
 #
-# class Decoder
+# class Encoding
 #
 #############################################################################
-class Decoder:
+class Encoding:
     """
     Defines how a genome is decoded into a phonome.
     It has some additional methods to do things like generate random genomes,
@@ -78,7 +76,7 @@ class Decoder:
     phenome.
     """
     def __init__(self, problem):
-        # XXX I'm not sure I like the idea of having the decoder know about
+        # XXX I'm not sure I like the idea of having the encoding know about
         #     the problem anymore.  I'm thinking it may make more sense to
         #     separate these.
         self.problem = problem
@@ -119,10 +117,10 @@ class Decoder:
 
 #############################################################################
 #
-# class FloatDecoder
+# class FloatEncoding
 #
 #############################################################################
-class FloatDecoder(Decoder):
+class FloatEncoding(Encoding):
     """
     Defines the genome as a list of floats.  The initRanges parameter
     is a list of tuples containing a lower and upper bound for each gene
@@ -131,7 +129,7 @@ class FloatDecoder(Decoder):
     fixupGenome() is called.  The fixupGenome() function is called by the
     FixupOperator().
 
-    I recommend using BoundedRealDecoder instead.
+    I recommend using BoundedRealEncoding instead.
 
     NOTE: If either a lower or upper bound (or both) is set to None in the
     bounds parameter (not the initRanges parameter), that bound is essentially
@@ -144,7 +142,7 @@ class FloatDecoder(Decoder):
             raise ValueError("initRanges and bounds are different lengths.")
 
         # instance variables
-        Decoder.__init__(self, problem)
+        Encoding.__init__(self, problem)
         self.genomeLength = len(initRanges)
         self.initRanges = initRanges
         self.bounds = bounds
@@ -174,10 +172,10 @@ class FloatDecoder(Decoder):
 
 #############################################################################
 #
-# class BoundedRealDecoder
+# class BoundedRealEncoding
 #
 #############################################################################
-class BoundedRealDecoder(FloatDecoder):
+class BoundedRealEncoding(FloatEncoding):
     """
     Defines the genome as a list of BoundedRealGenes.  The initRanges
     parameter is a list of tuples containing a lower and upper bound for each
@@ -185,11 +183,11 @@ class BoundedRealDecoder(FloatDecoder):
     initRanges, but defines the bounds that each gene will be "clipped" to.
     Clipping is handled automatically by BoundedRealGene.
 
-    As with FloatDecoder, None values are allowed as lower and upper bounds,
+    As with FloatEncoding, None values are allowed as lower and upper bounds,
     thus eliminating that bound.
     """
     def __init__(self, problem, initRanges, bounds):
-        FloatDecoder.__init__(self, problem, initRanges, bounds)
+        FloatEncoding.__init__(self, problem, initRanges, bounds)
 
     def decodeGenome(self, genome):
         "Decodes the genome into a phenome and returns it."
@@ -199,8 +197,8 @@ class BoundedRealDecoder(FloatDecoder):
 
     def randomGenome(self):
         "Generates a randomized genome for this encoding"
-        initVals = FloatDecoder.randomGenome(self)
-        genome = [LEAP.BoundedRealGene(initVals[i], self.bounds[i])
+        initVals = FloatEncoding.randomGenome(self)
+        genome = [BoundedRealGene(initVals[i], self.bounds[i])
                   for i in range(self.genomeLength)]
         return genome
 
@@ -211,10 +209,10 @@ class BoundedRealDecoder(FloatDecoder):
 
 #############################################################################
 #
-# class AdaptiveRealDecoder
+# class AdaptiveRealEncoding
 #
 #############################################################################
-class AdaptiveRealDecoder(BoundedRealDecoder):
+class AdaptiveRealEncoding(BoundedRealEncoding):
     """
     Defines the genome as a list of AdaptiveRealGenes.  Each of these genes
     have a sigma (standard deviation) associated with it that is used by the
@@ -227,11 +225,11 @@ class AdaptiveRealDecoder(BoundedRealDecoder):
     The initSigmas parameter contains a list of initial sigma values for each
     gene.
 
-    As with FloatDecoder and BoundedRealDecoder, None values are allowed as
+    As with FloatEncoding and BoundedRealEncoding, None values are allowed as
     lower and upper bounds, thus eliminating that bound.
     """
     def __init__(self, problem, initRanges, bounds, initSigmas=None):
-        BoundedRealDecoder.__init__(self, problem, initRanges, bounds)
+        BoundedRealEncoding.__init__(self, problem, initRanges, bounds)
 
         if initSigmas == None:
             # I took this calculation from Mitch Potter's code.  I don't
@@ -247,8 +245,8 @@ class AdaptiveRealDecoder(BoundedRealDecoder):
 
     def randomGenome(self):
         "Generates a randomized genome for this encoding"
-        initVals = FloatDecoder.randomGenome(self)
-        genome = [LEAP.AdaptiveRealGene(initVals[i], self.bounds[i],
+        initVals = FloatEncoding.randomGenome(self)
+        genome = [AdaptiveRealGene(initVals[i], self.bounds[i],
                                    self.initSigmas[i])
                   for i in range(self.genomeLength)]
         return genome
@@ -256,15 +254,15 @@ class AdaptiveRealDecoder(BoundedRealDecoder):
 
 #############################################################################
 #
-# class NominalDecoder
+# class NominalEncoding
 #
 #############################################################################
-class NominalDecoder(Decoder):
+class NominalEncoding(Encoding):
     """
     Defines the genome as a list of discrete values (alleles).
     """
     def __init__(self, problem, genomeLength, alleles):
-        Decoder.__init__(self, problem)
+        Encoding.__init__(self, problem)
         # instance variables
         self.genomeLength = genomeLength
         self.alleles = alleles
@@ -278,10 +276,10 @@ class NominalDecoder(Decoder):
 
 #############################################################################
 #
-# class BinaryDecoder
+# class BinaryEncoding
 #
 #############################################################################
-class BinaryDecoder(Decoder):
+class BinaryEncoding(Encoding):
     """
     Defines the genome as a string (not list) of ones and zeros.
     
@@ -294,7 +292,7 @@ class BinaryDecoder(Decoder):
     alleles = ['0', '1']
 
     def __init__(self, problem, genomeLength):
-        Decoder.__init__(self, problem)
+        Encoding.__init__(self, problem)
 
         # instance variables
         self.genomeLength = genomeLength
@@ -309,10 +307,10 @@ class BinaryDecoder(Decoder):
 
 #############################################################################
 #
-# class BinaryRealDecoder
+# class BinaryRealEncoding
 #
 #############################################################################
-class BinaryRealDecoder(BinaryDecoder):
+class BinaryRealEncoding(BinaryEncoding):
     """
     Defines the genome as a string (not list) of ones and zeros.
     Each section of the genome encodes a real valued number.
@@ -322,7 +320,7 @@ class BinaryRealDecoder(BinaryDecoder):
             raise ValueError("bitsPerReals must be a list.")
         if len(bitsPerReals) != len(bounds):
             raise ValueError("bitsPerReals and bounds are different lengths.")
-        BinaryDecoder.__init__(self, problem, sum(bitsPerReals))
+        BinaryEncoding.__init__(self, problem, sum(bitsPerReals))
 
         # instance variables
         self.bitsPerReals = bitsPerReals   # a list, # of bits per each real
@@ -354,10 +352,10 @@ class BinaryRealDecoder(BinaryDecoder):
 
 #############################################################################
 #
-# class GrayRealDecoder
+# class GrayRealEncoding
 #
 #############################################################################
-class GrayRealDecoder(BinaryRealDecoder):
+class GrayRealEncoding(BinaryRealEncoding):
     """
     A reflective Gray code is used for the encoding of binary numbers.
     """
@@ -374,12 +372,12 @@ class GrayRealDecoder(BinaryRealDecoder):
 
 #############################################################################
 #
-# class IntegerDecoder
+# class IntegerEncoding
 #
 #############################################################################
-class IntegerDecoder(FloatDecoder):
+class IntegerEncoding(FloatEncoding):
     def __init__(self, problem, initRanges, bounds = None):
-        FloatDecoder.__init__(self, problem, initRanges, bounds)
+        FloatEncoding.__init__(self, problem, initRanges, bounds)
 
     def randomGenome(self):
         "Generates a randomized genome for this encoding"
@@ -389,24 +387,24 @@ class IntegerDecoder(FloatDecoder):
 
 #############################################################################
 #
-# class ScramblerDecoder
+# class ScramblerEncoding
 #
 #############################################################################
-class ScramblerDecoder(Decoder):
+class ScramblerEncoding(Encoding):
     """
-    This decoder is intended to be a wrapper around another (slave) decoder.
+    This encoding is intended to be a wrapper around another (slave) encoding.
     It will scramble the genome in order to alter the effects of the genetic
     operators (especially NPointCrossover).
 
-    The idea is that this decoder will scramble and unscramble the genome
-    without the slave decoder ever noticing.
+    The idea is that this encoding will scramble and unscramble the genome
+    without the slave encoding ever noticing.
 
     NOTE: This implementation is pretty inefficient.  It should really be
           using some sort of bidirectional map, maybe using 2 dictionaries.
     """
-    def __init__(self, slaveDecoder):
-        Decoder.__init__(self, slaveDecoder.problem)
-        self.slaveDecoder = slaveDecoder
+    def __init__(self, slaveEncoding):
+        Encoding.__init__(self, slaveEncoding.problem)
+        self.slaveEncoding = slaveEncoding
         self.map = []  # Create this later when we know the genome length
 
     def createMap(self, length):
@@ -444,32 +442,32 @@ class ScramblerDecoder(Decoder):
         return unscrambled
 
     def decodeGenome(self, genome):
-        return self.slaveDecoder.decodeGenome(self.unscrambleGenome(genome))
+        return self.slaveEncoding.decodeGenome(self.unscrambleGenome(genome))
 
     def encodeGenome(self, phenome):
-        return self.scrambleGenome(self.slaveDecoder.encodeGenome(phenome))
+        return self.scrambleGenome(self.slaveEncoding.encodeGenome(phenome))
 
     def randomGenome(self):
-        return self.scrambleGenome(self.slaveDecoder.randomGenome())
+        return self.scrambleGenome(self.slaveEncoding.randomGenome())
 
     def fixupGenome(self, genome):
         unscrambled = self.unscrambleGenome(genome)
-        unscrambled = self.slaveDecoder.fixupGenome(unscrambled)
+        unscrambled = self.slaveEncoding.fixupGenome(unscrambled)
         return self.scrambleGenome(unscrambled)
 
 
 #############################################################################
 #
-# class PerturbingDecoder
+# class PerturbingEncoding
 #
 #############################################################################
-class PerturbingDecoder(ScramblerDecoder):
+class PerturbingEncoding(ScramblerEncoding):
     """
-    This is basically the same as the ScramblerDecoder, except that one can
+    This is basically the same as the ScramblerEncoding, except that one can
     control how scrambled the genome gets.
     """
-    def __init__(self, slaveDecoder, pSwap = 0.5, iterations = 1):
-        ScramblerDecoder.__init__(self, slaveDecoder)
+    def __init__(self, slaveEncoding, pSwap = 0.5, iterations = 1):
+        ScramblerEncoding.__init__(self, slaveEncoding)
         self.pSwap = pSwap
         self.iterations = iterations
 
@@ -491,17 +489,20 @@ def landscape(phenome):
     return sum(phenome)
 
 def unit_test():
+    from LEAP.problem import FunctionOptimization
+    from LEAP.problem import Problem
+
     passed = True
 
-    realValuedProb = LEAP.FunctionOptimization(landscape)
-    dummyProb = LEAP.Problem()
+    realValuedProb = FunctionOptimization(landscape)
+    dummyProb = Problem()
 
     length = 64
     measure = 0.0
     for i in range(100):
-        bin = BinaryDecoder(realValuedProb, length)
-        #scram = PerturbingDecoder(bin, pSwap = 0.2, iterations = 32)
-        scram = ScramblerDecoder(bin)
+        bin = BinaryEncoding(realValuedProb, length)
+        #scram = PerturbingEncoding(bin, pSwap = 0.2, iterations = 32)
+        scram = ScramblerEncoding(bin)
         genome = scram.randomGenome()
         measure += scram.measureMap()
     measure /= 100
@@ -509,15 +510,15 @@ def unit_test():
 
     #return
 
-    # Test FloatDecoder
+    # Test FloatEncoding
     bounds = [(0.0, 1.0)] * 3
-    fe = FloatDecoder(realValuedProb, bounds, bounds)
+    fe = FloatEncoding(realValuedProb, bounds, bounds)
     genome = fe.randomGenome()
     inbounds = [bounds[i][0] <= genome[i] <= bounds[i][1]
                 for i in range(len(genome))]
     valid = functools.reduce(lambda x,y:x and y, inbounds)
 
-    print("FloatDecoder.randomGenome() =", genome)
+    print("FloatEncoding.randomGenome() =", genome)
     print("valid =", valid, "== True")
     passed = passed and valid
 
@@ -527,27 +528,27 @@ def unit_test():
     print("fixedGenome =", fixedGenome, " == [0.0, 1.0, 0.5]")
     passed = passed and fixedGenome == [0.0, 1.0, 0.5]
 
-    # Test BoundedRealDecoder
-    bre = BoundedRealDecoder(realValuedProb, bounds, bounds)
+    # Test BoundedRealEncoding
+    bre = BoundedRealEncoding(realValuedProb, bounds, bounds)
     genome = bre.randomGenome()
     for i in range(len(genome)):
         genome[i].data = brokenGenome[i]
     print("genome =", genome, " == [0.0, 1.0, 0.5]")
     passed = passed and bre.decodeGenome(genome) == [0.0, 1.0, 0.5]
 
-    # Test NominalDecoder
+    # Test NominalEncoding
     alleles = ['A', 'G', 'C', 'T']
-    ne = NominalDecoder(dummyProb, 10, alleles)
+    ne = NominalEncoding(dummyProb, 10, alleles)
     genome = ne.randomGenome()
     valid = functools.reduce(lambda x,y:x and y, [g in alleles for g in genome])
     print("genome =", genome)
     print("valid =", valid, "== True")
     passed = passed and valid
 
-    # Test BinaryRealDecoder
-    bre = BinaryRealDecoder(realValuedProb, [10]*3, bounds)
+    # Test BinaryRealEncoding
+    bre = BinaryRealEncoding(realValuedProb, [10]*3, bounds)
     genome = bre.randomGenome()
-    print("BinaryRealDecoder.randomGenome() =", genome)
+    print("BinaryRealEncoding.randomGenome() =", genome)
     phenome = bre.decodeGenome(genome)
     print("phenome =", phenome)
 
@@ -558,7 +559,7 @@ def unit_test():
     passed = passed and valid
 
 
-    gray = GrayRealDecoder(None, [16], [(0,1)])
+    gray = GrayRealEncoding(None, [16], [(0,1)])
     codes = ['000',
              '001',
              '011',

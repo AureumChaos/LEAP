@@ -30,13 +30,10 @@ import string
 import copy
 
 from price import *
-import LEAP
+from LEAP.operators import WrapperOperator
 
 from math import *
-#from Numeric import *
-#from numarray import *
 from numpy import *
-#import scipy.stats
 
 
 #############################################################################
@@ -44,7 +41,7 @@ from numpy import *
 # OperatorCorrelationProbe
 #
 #############################################################################
-class OperatorCorrelationProbe(LEAP.WrapperOperator):
+class OperatorCorrelationProbe(WrapperOperator):
     """
     Measures the "parent-offspring" correlation of a single operator.
     In this context parents are the individuals coming down the
@@ -52,7 +49,7 @@ class OperatorCorrelationProbe(LEAP.WrapperOperator):
     """
     def __init__(self, provider, wrappedOps, opProbs, measureFunc,
                  tag="opcor", measureFile = None):
-        LEAP.WrapperOperator.__init__(self, provider, wrappedOps, opProbs)
+        WrapperOperator.__init__(self, provider, wrappedOps, opProbs)
 
         self.measureFile = measureFile
         self.firstCall = True
@@ -77,7 +74,7 @@ class OperatorCorrelationProbe(LEAP.WrapperOperator):
 
 
     def reinitialize(self, population):
-        LEAP.WrapperOperator.reinitialize(self, population)
+        WrapperOperator.reinitialize(self, population)
 
         # On the first call to reinitilize, not data is available
         if self.preMeasures != [[]] * len(self.wrappedOps):
@@ -185,7 +182,7 @@ class OperatorCorrelationProbe(LEAP.WrapperOperator):
         preLengths = [len(i.genome) for i in individuals]
 
         # Perform op
-        individuals = LEAP.WrapperOperator.apply(self, individuals)
+        individuals = WrapperOperator.apply(self, individuals)
 
         # Measure after op
         postMeasures = [self.measureFunc(i) for i in individuals]
@@ -211,6 +208,16 @@ class OperatorCorrelationProbe(LEAP.WrapperOperator):
 #############################################################################
 
 if __name__ == '__main__':
+    from LEAP.problem import schwefelFunction
+    from LEAP.problem import schwefelBounds
+    from LEAP.problem import schwefelMaximize
+    from LEAP.problem import FunctionOptimization
+    from LEAP.decoder import *
+    from LEAP.selection import *
+    from LEAP.operators import *
+    from LEAP.survival import *
+    from LEAP.ea import *
+
     # Some parameters
     #popSize = 500
     #maxGeneration = 200
@@ -218,72 +225,72 @@ if __name__ == '__main__':
     maxGeneration = 10
 
     # Setup the problem
-    function = LEAP.schwefelFunction
-    bounds = LEAP.schwefelBounds
-    maximize = LEAP.schwefelMaximize
+    function = schwefelFunction
+    bounds = schwefelBounds
+    maximize = schwefelMaximize
     numVars = len(bounds)
 
-    problem = LEAP.FunctionOptimization(function, maximize = maximize)
+    problem = FunctionOptimization(function, maximize = maximize)
 
     # ...for binary genes
     #bitsPerReal = 16
     #genomeSize = bitsPerReal * numVars
-    #decoder = LEAP.BinaryRealDecoder(problem, [bitsPerReal] * numVars, bounds)
+    #encoding = BinaryRealEncoding(problem, [bitsPerReal] * numVars, bounds)
 
     # ...for float genes
-    #decoder = LEAP.FloatDecoder(problem, bounds, bounds)
+    #encoding = FloatEncoding(problem, bounds, bounds)
 
     # ...for adaptive real genes
     sigmaBounds = (0.0, bounds[0][1] - bounds[0][0])
     initSigmas = [(bounds[0][1] - bounds[0][0]) / sqrt(numVars)] * numVars
-    decoder = LEAP.AdaptiveRealDecoder(problem, bounds, bounds, initSigmas)
+    encoding = AdaptiveRealEncoding(problem, bounds, bounds, initSigmas)
 
     measure = fitnessMeasure
     measureFile = open("unit_test.measure", "w")
     #measure = rankMeasure
 
     # Setup the reproduction pipeline
-    pipeline = LEAP.TournamentSelection(2)
-    #pipeline = LEAP.ProportionalSelection()
-    #pipeline = LEAP.RankSelection()
-    #pipeline = LEAP.DeterministicSelection()
+    pipeline = TournamentSelection(2)
+    #pipeline = ProportionalSelection()
+    #pipeline = RankSelection()
+    #pipeline = DeterministicSelection()
 #    pipeline = PriceCalcOperator(pipeline, zero=measure(), tag="SurvivalSel")
-    pipeline = LEAP.CloneOperator(pipeline)
+    pipeline = CloneOperator(pipeline)
 #    pipeline = PriceInitOperator(pipeline)
-    #pipeline = LEAP.Shuffle2PointCrossover(pipeline, 0.8, 2)
-    #pipeline = LEAP.NPointCrossover(pipeline, 0.8, 2)
-    op1 = LEAP.NPointCrossover(None, 1.0, 2)
-    op2 = LEAP.DummyOperator(None, 2)
+    #pipeline = Shuffle2PointCrossover(pipeline, 0.8, 2)
+    #pipeline = NPointCrossover(pipeline, 0.8, 2)
+    op1 = NPointCrossover(None, 1.0, 2)
+    op2 = DummyOperator(None, 2)
     pipeline = OperatorCorrelationProbe(pipeline, [op1, op2], [0.75, 0.25],
                                         measure, tag="crossover")
-    #pipeline = LEAP.UniformCrossover(pipeline, 0.8, 0.5)
+    #pipeline = UniformCrossover(pipeline, 0.8, 0.5)
     #pipeline = price1 = PriceMeasureOperator(pipeline, measure)
-    #pipeline = LEAP.ProxyMutation(pipeline)
-    #pipeline = LEAP.BitFlipMutation(pipeline, 1.0/genomeSize)
-    #pipeline = LEAP.UniformMutation(pipeline, 1.0/genomeSize, alleles)
-    #pipeline = LEAP.AdaptiveMutation(pipeline, sigmaBounds)
-    #op1 = LEAP.GaussianMutation(pipeline, sigma = 1.0, pMutate = 1.0)
-    op1 = LEAP.AdaptiveMutation(pipeline, sigmaBounds)
+    #pipeline = ProxyMutation(pipeline)
+    #pipeline = BitFlipMutation(pipeline, 1.0/genomeSize)
+    #pipeline = UniformMutation(pipeline, 1.0/genomeSize, alleles)
+    #pipeline = AdaptiveMutation(pipeline, sigmaBounds)
+    #op1 = GaussianMutation(pipeline, sigma = 1.0, pMutate = 1.0)
+    op1 = AdaptiveMutation(pipeline, sigmaBounds)
     pipeline = OperatorCorrelationProbe(pipeline, [op1], [1.0], measure,
                                         tag="mutation", measureFile=measureFile)
-    #pipeline = LEAP.GaussianMutation(pipeline, sigma = 1.0,
+    #pipeline = GaussianMutation(pipeline, sigma = 1.0,
     #                                 pMutate = 1.0)
-    #pipeline = LEAP.FixupOperator(pipeline)
+    #pipeline = FixupOperator(pipeline)
 #    pipeline = price2 = PriceMeasureOperator(pipeline, measure)
-    #pipeline = LEAP.ElitismSurvival(pipeline, 2)
+    #pipeline = ElitismSurvival(pipeline, 2)
     #pipeline = PriceRankOperator(pipeline, popSize)
     #pipeline = PriceCalcOperator(pipeline, zero=measure(),
     #                             tag="ParentSel")
 #    pipeline = PriceCalcOperator(pipeline, zero=measure(), tag="ParentSel")
     #pipeline = VarianceCalcOperator(pipeline, zero=measure()) 
-    #pipeline = LEAP.MuCommaLambdaSurvival(pipeline, popSize, popSize*10)
+    #pipeline = MuCommaLambdaSurvival(pipeline, popSize, popSize*10)
     
 
-#    initPipe = LEAP.DeterministicSelection()
+#    initPipe = DeterministicSelection()
 #    initPipe = PriceInitOperator(initPipe)
 #    initPipe = PriceMeasureOperator(initPipe, measure)
 
-    ea = LEAP.GenerationalEA(decoder, pipeline, popSize)
+    ea = GenerationalEA(encoding, pipeline, popSize)
     ea.run(maxGeneration)
 
 #    import profile

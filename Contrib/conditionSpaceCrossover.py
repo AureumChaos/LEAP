@@ -35,11 +35,7 @@ from __future__ import print_function
 from math import *
 import random
 
-# This worked in Python 2
-#from LEAP.operators import *
-#from LEAP.individual import *
-#from LEAP.encoder import int2bin
-import LEAP
+from LEAP.operators import CrossoverOperator
 
 
 
@@ -48,7 +44,7 @@ import LEAP
 # class ConditionSpaceCrossover
 #
 #############################################################################
-class ConditionSpaceCrossover(LEAP.CrossoverOperator):
+class ConditionSpaceCrossover(CrossoverOperator):
     """
     This is an experimental crossover operator for Pitt approach rule systems
     that use nearest-neighbor generalization.  This crossover operator does
@@ -92,7 +88,7 @@ class ConditionSpaceCrossover(LEAP.CrossoverOperator):
         @param numChildren: The number of children that will be produced
                             (1 or 2).  Default is 2.
         """
-        LEAP.CrossoverOperator.__init__(self, provider, pCross, numChildren)
+        CrossoverOperator.__init__(self, provider, pCross, numChildren)
 
         # XXX We could, and perhaps should, check conditionBounds for errors.
         self.conditionBounds = conditionBounds

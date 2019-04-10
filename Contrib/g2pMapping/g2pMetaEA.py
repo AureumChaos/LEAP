@@ -30,7 +30,10 @@ import string
 import copy
 import math
 
-import LEAP
+from LEAP.individual import Individual
+from LEAP.selection import DeterministicSelection
+from LEAP.ea import GenerationalEA
+
 
 
 
@@ -52,12 +55,12 @@ def printPopulation(population, generation = None):
 # ea
 #
 ##############################################################################
-class g2pMetaEA(LEAP.GenerationalEA):
+class g2pMetaEA(GenerationalEA):
     def __init__(self, decoder, pipeline, popSize, validationProblem, \
-                 initPipeline=LEAP.DeterministicSelection(), \
-                 indClass=LEAP.Individual, \
+                 initPipeline=DeterministicSelection(), \
+                 indClass=Individual, \
                  initPopsize=None, halt=None, validationFrequency=20):
-        LEAP.GenerationalEA.__init__(self, decoder, pipeline, popSize, \
+        GenerationalEA.__init__(self, decoder, pipeline, popSize, \
                  initPipeline=initPipeline, indClass=indClass, \
                  initPopsize=initPopsize, halt=halt)
         self.validationProblem = validationProblem
@@ -90,11 +93,11 @@ class g2pMetaEA(LEAP.GenerationalEA):
         self.validationBOG = (None, [])  # Best of all validations for a generation
         self.validationBSF = (None, [])
         self.bogValidation = None  # Validation of usual best-of-generation
-        LEAP.GenerationalEA.startup(self)
+        GenerationalEA.startup(self)
 
 
     def calcStats(self):
-        LEAP.GenerationalEA.calcStats(self)
+        GenerationalEA.calcStats(self)
 
         if self.generation % self.validationFrequency == 0:
             tempValid = self.validate()
@@ -110,7 +113,7 @@ class g2pMetaEA(LEAP.GenerationalEA):
 
 
     def printStats(self):
-        LEAP.GenerationalEA.printStats(self)
+        GenerationalEA.printStats(self)
         print("Gen:", self.generation, " Ind: BOGV  Val:", self.bogValidation)
         if self.generation % self.validationFrequency == 0:
             print("Gen:", self.generation, " Ind: VBOG ", self.validationBOG[1], \
@@ -125,8 +128,23 @@ class g2pMetaEA(LEAP.GenerationalEA):
 #
 #############################################################################
 if __name__ == '__main__':
-    import LEAP.Contrib.g2pMapping as g2p
-    import LEAP.Domains.Translated as tp
+    from LEAP.problem import valleyFunctor
+    from LEAP.problem import valleyMaximize
+    from LEAP.problem import valleyBounds
+    from LEAP.problem import FunctionOptimization
+    from LEAP.selection import *
+    from LEAP.operators import *
+    from LEAP.survival import *
+    from LEAP.halt import HaltWhenNoChange
+    from LEAP.halt import HaltAfterGeneration
+
+    from LEAP.Domains.Translated.translatedProblem import TranslatedProblem
+
+    from LEAP.Contrib.g2pMapping.g2pMappingProblem import g2pMappingProblem
+    from LEAP.Contrib.g2pMapping.g2pMappingDecoder import g2pMappingEncoding
+    from LEAP.Contrib.g2pMapping.g2pMappingGaussianMutation import g2pMappingGaussianMutation
+    from LEAP.Contrib.g2pMapping.g2pMappingMagnitudeGaussianMutation import g2pMappingMagnitudeGaussianMutation
+    from LEAP.Contrib.g2pMapping.g2pMappingVectorGaussianMutation import g2pMappingVectorGaussianMutation
 
     numDimensions = 2
     numVectorsPerDimension = 10
@@ -138,43 +156,43 @@ if __name__ == '__main__':
     numTrainingExamples = 5
     numValidationExamples = 5
     subGensWithoutImprovement = 40
-    subHalt = LEAP.HaltWhenNoChange(subGensWithoutImprovement)
-    #subHalt = LEAP.HaltAfterGeneration(40)
+    subHalt = HaltWhenNoChange(subGensWithoutImprovement)
+    #subHalt = HaltAfterGeneration(40)
 
     # subProblem
     valleyDirection = [1.0] * (numDimensions)
-    valleyFunc = LEAP.valleyFunctor(valleyDirection)
-    #bounds = [LEAP.valley2Bounds[0]] * numDimensions
-    valleyMax = LEAP.valleyMaximize
-    subProblem = LEAP.FunctionOptimization(valleyFunc, maximize = valleyMax)
+    valleyFunc = valleyFunctor(valleyDirection)
+    #bounds = [valley2Bounds[0]] * numDimensions
+    valleyMax = valleyMaximize
+    subProblem = FunctionOptimization(valleyFunc, maximize = valleyMax)
 
     # training set
     # Translate within [-15, 15] along each dimension.
     trainingExamples = []
     for i in range(numTrainingExamples):
         trans = [random.uniform(-15, 15) for i in range(numDimensions)]
-        trainingExample = tp.TranslatedProblem(subProblem, trans)
+        trainingExample = TranslatedProblem(subProblem, trans)
         trainingExamples += [trainingExample]
 
     # validation set
     validationExamples = []
     for i in range(numValidationExamples):
         trans = [random.uniform(-15, 15) for i in range(numDimensions)]
-        validationExample = tp.TranslatedProblem(subProblem, trans)
+        validationExample = TranslatedProblem(subProblem, trans)
         validationExamples += [validationExample]
 
     # subPipeline
-    subPipeline = LEAP.TournamentSelection(2)
-    subPipeline = LEAP.CloneOperator(subPipeline)
-    subPipeline = LEAP.NPointCrossover(subPipeline, 1.0, 2)
-    #subPipeline = LEAP.UniformCrossover(subPipeline, 1.0, 0.5)
-    subPipeline = LEAP.BitFlipMutation(subPipeline, subPmutate)
+    subPipeline = TournamentSelection(2)
+    subPipeline = CloneOperator(subPipeline)
+    subPipeline = NPointCrossover(subPipeline, 1.0, 2)
+    #subPipeline = UniformCrossover(subPipeline, 1.0, 0.5)
+    subPipeline = BitFlipMutation(subPipeline, subPmutate)
 
 
-    subDecoder = None  # Will be set by the metaEA
-    subEA = LEAP.GenerationalEA(subDecoder, subPipeline, subPopSize,\
+    subEncoding = None  # Will be set by the metaEA
+    subEA = GenerationalEA(subEncoding, subPipeline, subPopSize,\
                                 halt=subHalt)
-    #subEA = LEAP.GenerationalEA(subDecoder, subPipeline, subPopSize, \
+    #subEA = GenerationalEA(subEncoding, subPipeline, subPopSize, \
     #                             indClass=Price.PriceIndividual)
 
     # ----- MetaEA -----
@@ -188,47 +206,47 @@ if __name__ == '__main__':
     validationFrequency = 20
 
     # metaProblem
-    metaProblem = g2p.g2pMappingProblem(trainingExamples, subEA)
-    validationProblem = g2p.g2pMappingProblem(validationExamples, subEA)
+    metaProblem = g2pMappingProblem(trainingExamples, subEA)
+    validationProblem = g2pMappingProblem(validationExamples, subEA)
 
-    # metaDecoder
+    # metaEncoding
     initRanges = [magInitRange] + [vectorInitRange] * numDimensions
     #bounds = initRanges   # I'm not sure if these really work
     bounds = None
-    metaDecoder = g2p.g2pMappingDecoder(metaProblem, numVectors,
+    metaEncoding = g2pMappingEncoding(metaProblem, numVectors,
                                         initRanges, bounds)
 
     # metaPipeline
     # Parent Selection (necessary)
-    metaPipeline = LEAP.TournamentSelection(2)
-    #metaPipeline = LEAP.ProportionalSelection()
-    #metaPipeline = LEAP.TruncationSelection(popSize/2)
-    #metaPipeline = LEAP.RankSelection()
-    #metaPipeline = LEAP.DeterministicSelection()
+    metaPipeline = TournamentSelection(2)
+    #metaPipeline = ProportionalSelection()
+    #metaPipeline = TruncationSelection(popSize/2)
+    #metaPipeline = RankSelection()
+    #metaPipeline = DeterministicSelection()
 
     # Clone (necessary)
-    metaPipeline = LEAP.CloneOperator(metaPipeline)
+    metaPipeline = CloneOperator(metaPipeline)
 
     # Crossover (not strictly necessary)
-    metaPipeline = LEAP.NPointCrossover(metaPipeline, 1.0, 2)
-    #metaPipeline = LEAP.UniformCrossover(metaPipeline, 1.0, 0.5)
+    metaPipeline = NPointCrossover(metaPipeline, 1.0, 2)
+    #metaPipeline = UniformCrossover(metaPipeline, 1.0, 0.5)
 
     # Mutation (not strictly necessary, but you'll almost certainly want it)
-    metaPipeline = g2p.g2pMappingGaussianMutation(metaPipeline, vectorSigma,
+    metaPipeline = g2pMappingGaussianMutation(metaPipeline, vectorSigma,
                                                   metaPmutate, bounds)
-    #metaPipeline = g2p.g2pMappingMagnitudeGaussianMutation(metaPipeline,
+    #metaPipeline = g2pMappingMagnitudeGaussianMutation(metaPipeline,
     #                                      magSigma, metaPmutate, bounds)
-    #metaPipeline = g2p.g2pMappingVectorGaussianMutation(metaPipeline,
+    #metaPipeline = g2pMappingVectorGaussianMutation(metaPipeline,
     #                                      vectorSigma, metaPmutate,
     #                                      bounds)
 
     # Survival selection (not necessary)
     # If you do use this, you probably want DeterministicSelection above.
-    #metaPipeline = LEAP.ElitismSurvival(metaPipeline, 2)
-    #metaPipeline = LEAP.MuPlusLambdaSurvival(metaPipeline, popSize, popSize*2)
-    #metaPipeline = LEAP.MuCommaLambdaSurvival(metaPipeline, popSize, popSize*10)
+    #metaPipeline = ElitismSurvival(metaPipeline, 2)
+    #metaPipeline = MuPlusLambdaSurvival(metaPipeline, popSize, popSize*2)
+    #metaPipeline = MuCommaLambdaSurvival(metaPipeline, popSize, popSize*10)
 
-    metaEA = g2p.g2pMetaEA(metaDecoder, metaPipeline, metaPopSize, \
+    metaEA = g2pMetaEA(metaEncoding, metaPipeline, metaPopSize, \
                            validationProblem=validationProblem, \
                            validationFrequency=validationFrequency)
 

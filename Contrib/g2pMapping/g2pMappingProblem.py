@@ -30,23 +30,16 @@ import copy
 import random
 import math
 
-import LEAP
 
-##import pyximport; pyximport.install()
-#from g2pDecoder import *
-##from g2pDecoderCy import *
-#from g2pMappingDecoder import *
-#from g2pMappingGaussianMutation import *
-#from g2pMappingMagnitudeGaussianMutation import *
-#from g2pMappingVectorGaussianMutation import *
+from LEAP.problem import Problem
 
 #import pyximport; pyximport.install()
-from LEAP.Contrib.g2pMapping.g2pDecoder import *
 #from g2pDecoderCy import *
-from LEAP.Contrib.g2pMapping.g2pMappingDecoder import *
-from LEAP.Contrib.g2pMapping.g2pMappingGaussianMutation import *
-from LEAP.Contrib.g2pMapping.g2pMappingMagnitudeGaussianMutation import *
-from LEAP.Contrib.g2pMapping.g2pMappingVectorGaussianMutation import *
+from LEAP.Contrib.g2pMapping.g2pDecoder import g2pEncoding
+from LEAP.Contrib.g2pMapping.g2pMappingDecoder import g2pMappingEncoding
+from LEAP.Contrib.g2pMapping.g2pMappingGaussianMutation import g2pMappingGaussianMutation
+from LEAP.Contrib.g2pMapping.g2pMappingMagnitudeGaussianMutation import g2pMappingMagnitudeGaussianMutation
+from LEAP.Contrib.g2pMapping.g2pMappingVectorGaussianMutation import g2pMappingVectorGaussianMutation
 
 
 
@@ -55,7 +48,7 @@ from LEAP.Contrib.g2pMapping.g2pMappingVectorGaussianMutation import *
 # g2pMappingProblem
 #
 #############################################################################
-class g2pMappingProblem(LEAP.Problem):
+class g2pMappingProblem(Problem):
     """
     This problem defines a fitness function that is evaluated by running a
     sub-EA on a problem given a certain genotype to phenotype mapping.
@@ -72,8 +65,8 @@ class g2pMappingProblem(LEAP.Problem):
         """
         fitness = 0
         for subProblem in self.subProblems:
-            decoder = g2pDecoder(subProblem, phenome)
-            #decoder = g2pDecoderCy(subProblem, phenome)
+            decoder = g2pEncoding(subProblem, phenome)
+            #decoder = g2pEncodingCy(subProblem, phenome)
             self.subEA.decoder = decoder
             bsf = self.subEA.run()
             fitness += bsf.getFitness() / len(self.subProblems)
@@ -113,27 +106,35 @@ def myFunction(phenome):
                     
 
 def unit_test():
+    from LEAP.problem import FunctionOptimization
+    from LEAP.selection import TournamentSelection
+    from LEAP.operators import CloneOperator
+    from LEAP.operators import UniformCrossover
+    from LEAP.operators import BitFlipMutation
+    from LEAP.halt import HaltWhenNoChange
+    from LEAP.ea import GenerationalEA
+
     """
     Test mutation operator
     """
     # Define the subEA
     numDimensions = 2
-    subProblem = LEAP.FunctionOptimization(myFunction, maximize = False)
+    subProblem = FunctionOptimization(myFunction, maximize = False)
     subProblems = [subProblem]
 
-    subDecoder = None   # Will be set by metaEA
+    subEncoding = None   # Will be set by metaEA
 
     genomeSize = 8 * numDimensions  # Same for both sub and meta
 
-    subPipeline = LEAP.TournamentSelection(2)
-    subPipeline = LEAP.CloneOperator(subPipeline)
-    subPipeline = LEAP.UniformCrossover(subPipeline, pCross = 0.8, pSwap = 0.5)
-    subPipeline = LEAP.BitFlipMutation(subPipeline, 1.0 / genomeSize)
+    subPipeline = TournamentSelection(2)
+    subPipeline = CloneOperator(subPipeline)
+    subPipeline = UniformCrossover(subPipeline, pCross = 0.8, pSwap = 0.5)
+    subPipeline = BitFlipMutation(subPipeline, 1.0 / genomeSize)
 
     subPopSize = 50
-    subHalt = LEAP.HaltWhenNoChange(10)
+    subHalt = HaltWhenNoChange(10)
 
-    subEA = LEAP.GenerationalEA(subDecoder, subPipeline, subPopSize, \
+    subEA = GenerationalEA(subEncoding, subPipeline, subPopSize, \
                                 halt=subHalt)
 
 
@@ -141,11 +142,11 @@ def unit_test():
     metaProblem = g2pMappingProblem(subProblems, subEA)
 
     metaInitRanges = [(-5, 2)] + [(0.5, 1.0)] * numDimensions
-    metaDecoder = g2pMappingDecoder(metaProblem, genomeSize, metaInitRanges)
+    metaEncoding = g2pMappingEncoding(metaProblem, genomeSize, metaInitRanges)
 
-    metaPipeline = LEAP.TournamentSelection(2)
-    metaPipeline = LEAP.CloneOperator(metaPipeline)
-    metaPipeline = LEAP.UniformCrossover(metaPipeline, pCross = 0.8, pSwap = 0.5)
+    metaPipeline = TournamentSelection(2)
+    metaPipeline = CloneOperator(metaPipeline)
+    metaPipeline = UniformCrossover(metaPipeline, pCross = 0.8, pSwap = 0.5)
     metaPipeline = g2pMappingGaussianMutation(metaPipeline, sigma=0.1, \
                                               pMutate=1.0/genomeSize)
     #metaPipeline = g2pMappingMagnitudeGaussianMutation(metaPipeline, sigma=0.1,\
@@ -154,10 +155,10 @@ def unit_test():
     #                                          pMutate=1.0/genomeSize)
 
     metaPopSize = 50
-    #metaHalt = LEAP.HaltAfterGeneration(50)
-    metaHalt = LEAP.HaltWhenNoChange(10)
+    #metaHalt = HaltAfterGeneration(50)
+    metaHalt = HaltWhenNoChange(10)
 
-    metaEA = LEAP.GenerationalEA(metaDecoder, metaPipeline, metaPopSize, \
+    metaEA = GenerationalEA(metaEncoding, metaPipeline, metaPopSize, \
                                  halt=metaHalt)
 
     # Run the metaEA

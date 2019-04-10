@@ -8,7 +8,11 @@ import random
 import string
 import copy
 
-import LEAP
+from LEAP.problem import FunctionOptimization
+from LEAP.problem import HIFFfunction
+from LEAP.decoder import BinaryEncoding
+from LEAP.decoder import ScramblerEncoding
+from LEAP.decoder import PerturbingEncoding
 #import scipy.stats
 
 from math import *
@@ -85,21 +89,21 @@ def HIFFscrambleMeasure(map, block = None):
 #############################################################################
 def findScrambles(desiredMeasure, numGenomes = 1):
     length = 64
-    HIFFproblem = LEAP.FunctionOptimization(LEAP.HIFFfunction)
-    binDecoder = LEAP.BinaryDecoder(HIFFproblem, length)
+    HIFFproblem = FunctionOptimization(HIFFfunction)
+    binEncoding = BinaryEncoding(HIFFproblem, length)
 
     measure = -1
     numFound = 0
     while numFound < numGenomes:
-        scrambledDecoder = LEAP.ScramblerDecoder(binDecoder)
-        #scrambledDecoder = LEAP.PerturbingDecoder(binDecoder, 0.2, 32) # 1600
-        #scrambledDecoder = LEAP.PerturbingDecoder(binDecoder, 0.2, 8) # 800
-        #scrambledDecoder = LEAP.PerturbingDecoder(binDecoder, 0.2, 5) # 400
-        #scrambledDecoder = LEAP.PerturbingDecoder(binDecoder, 0.2, 3) # 200
-        #scrambledDecoder = LEAP.PerturbingDecoder(binDecoder, 0.2, 2) # 100
+        scrambledEncoding = ScramblerEncoding(binEncoding)
+        #scrambledEncoding = PerturbingEncoding(binEncoding, 0.2, 32) # 1600
+        #scrambledEncoding = PerturbingEncoding(binEncoding, 0.2, 8) # 800
+        #scrambledEncoding = PerturbingEncoding(binEncoding, 0.2, 5) # 400
+        #scrambledEncoding = PerturbingEncoding(binEncoding, 0.2, 3) # 200
+        #scrambledEncoding = PerturbingEncoding(binEncoding, 0.2, 2) # 100
 
-        genome = scrambledDecoder.randomGenome()
-        map = scrambledDecoder.map
+        genome = scrambledEncoding.randomGenome()
+        map = scrambledEncoding.map
         measure = HIFFscrambleMeasure(map)
         #if measure > desiredMeasure:
         #    print(measure, end='')

@@ -31,27 +31,31 @@ import copy
 import random
 import math
 
-import LEAP
-import LEAP.Exec.Pitt
+from LEAP.problem import Problem
+from LEAP.decoder import Encoding
+from LEAP.decoder import FloatEncoding
+from LEAP.Exec.Pitt.ruleInterp import RuleInterp
+from LEAP.Exec.Pitt.ruleInterp import pyRuleInterp
+#from LEAP.Exec.Pitt.ruleInterp import cRuleInterp
 
 # Define the default rule interpreter version
 def getDefaultRuleInterp():
     #return cRuleInterp
-    return LEAP.Exec.Pitt.pyRuleInterp
+    return pyRuleInterp
 
 def getDefaultPriorityMetric():
-    return LEAP.Exec.Pitt.RuleInterp.PERIMETER
+    return RuleInterp.PERIMETER
     
 
 
 #############################################################################
 #
-# PittDecoder
+# PittEncoding
 #
 #############################################################################
-class PittDecoder(LEAP.Decoder):
+class PittEncoding(Encoding):
     """
-    A base class decoder for Pitt approach style rule sets.
+    A base class encoding for Pitt approach style rule sets.
     The randomGenome() should be defined by sub-classes.
 
     The PERIMETER priority metric is used as the default for conflict
@@ -64,7 +68,7 @@ class PittDecoder(LEAP.Decoder):
                  initMem = [], \
                  priorityMetric = None, \
                  ruleInterpClass = None):
-        LEAP.Decoder.__init__(self, problem)
+        Encoding.__init__(self, problem)
 
         self.minRules = minRules
         self.maxRules = maxRules
@@ -105,25 +109,25 @@ class PittDecoder(LEAP.Decoder):
 
 #############################################################################
 #
-# PittRuleDecoder
+# PittRuleEncoding
 #
 #############################################################################
-class PittRuleDecoder(PittDecoder):
+class PittRuleEncoding(PittEncoding):
     """
-    Uses another decoder for decoding rules and generating random rules.
+    Uses another encoding for decoding rules and generating random rules.
     """
-    def __init__(self, problem, ruleDecoder, minRules, maxRules, \
+    def __init__(self, problem, ruleEncoding, minRules, maxRules, \
                  numInputs, numOutputs, initMem=[], \
                  priorityMetric = None, \
                  ruleInterpClass = None):
-        PittDecoder.__init__(self, problem, minRules, maxRules, numInputs,
+        PittEncoding.__init__(self, problem, minRules, maxRules, numInputs,
                              numOutputs, initMem, priorityMetric,
                              ruleInterpClass)
-        self.ruleDecoder = ruleDecoder
+        self.ruleEncoding = ruleEncoding
 
 
     def decodeGenome(self, genome):
-        floatGenome = [self.ruleDecoder.decodeGenome(rule) for rule in genome]
+        floatGenome = [self.ruleEncoding.decodeGenome(rule) for rule in genome]
         return self.ruleInterpClass(floatGenome, self.numInputs, \
                                     self.numOutputs, self.initMem, \
                                     self.priorityMetric)
@@ -132,39 +136,39 @@ class PittRuleDecoder(PittDecoder):
     def randomGenome(self):
         numRules = random.randrange(self.maxRules - self.minRules + 1) \
                    + self.minRules
-        genome = [self.ruleDecoder.randomGenome() for i in range(numRules)]
+        genome = [self.ruleEncoding.randomGenome() for i in range(numRules)]
         return genome
 
 
     def fixupGenome(self, genome):
-        genome = [self.ruleDecoder.fixupGenome(rule) for rule in genome]
+        genome = [self.ruleEncoding.fixupGenome(rule) for rule in genome]
         return genome
 
 
 
 #############################################################################
 #
-# PittFixedDecoder
+# PittFixedEncoding
 #
 #############################################################################
-class PittFixedDecoder(PittDecoder):
+class PittFixedEncoding(PittEncoding):
     """
-    Uses another decoder to create a fixed lenth string for the genome.
+    Uses another encoding to create a fixed lenth string for the genome.
     When decoding the genome, the fixed length string is transformed into
     a list of rules so that a rule interpreter can be created.
     """
-    def __init__(self, problem, fixedDecoder, ruleSize, \
+    def __init__(self, problem, fixedEncoding, ruleSize, \
                  numInputs, numOutputs, initMem=[], \
                  priorityMetric = None, \
                  ruleInterpClass = None):
-        PittDecoder.__init__(self, problem, 0, 0, numInputs, numOutputs, \
+        PittEncoding.__init__(self, problem, 0, 0, numInputs, numOutputs, \
                              initMem, priorityMetric, ruleInterpClass)
-        self.fixedDecoder = fixedDecoder
+        self.fixedEncoding = fixedEncoding
         self.ruleSize = ruleSize
 
 
     def decodeGenome(self, genome):
-        g2 = self.fixedDecoder.decodeGenome(genome)
+        g2 = self.fixedEncoding.decodeGenome(genome)
         ruleGenome = [g2[i:i+self.ruleSize] \
                       for i in range(0,len(g2),self.ruleSize)]
         return self.ruleInterpClass(ruleGenome, self.numInputs, \
@@ -173,20 +177,20 @@ class PittFixedDecoder(PittDecoder):
 
 
     def randomGenome(self):
-        return self.fixedDecoder.randomGenome()
+        return self.fixedEncoding.randomGenome()
 
 
     def fixupGenome(self, genome):
-        return self.fixedDecoder.fixupGenome()
+        return self.fixedEncoding.fixupGenome()
 
 
 
 #############################################################################
 #
-# PittNearestNeighborDecoder
+# PittNearestNeighborEncoding
 #
 #############################################################################
-class PittNearestNeighborDecoder(PittRuleDecoder):
+class PittNearestNeighborEncoding(PittRuleEncoding):
     """
     Uses a single point instead of a hyper-rectangle to represent a rule.  The
     standard rule interpreter should work fine as long as both corners are the
@@ -207,7 +211,7 @@ class PittNearestNeighborDecoder(PittRuleDecoder):
 
     def decodeGenome(self, genome):
         floatGenome = \
-                  [self.pointRule2boxRule(self.ruleDecoder.decodeGenome(rule)) 
+                  [self.pointRule2boxRule(self.ruleEncoding.decodeGenome(rule)) 
                    for rule in genome]
         return self.ruleInterpClass(floatGenome, self.numInputs, \
                                     self.numOutputs, self.initMem, \
@@ -220,7 +224,7 @@ class PittNearestNeighborDecoder(PittRuleDecoder):
 # unit_test
 #
 #############################################################################
-class MyProblem(LEAP.Problem):
+class MyProblem(Problem):
     """
     Essentially a classification problem.  There are two inputs, each ranging
     from 0.0 to 1.0.  Any input in the lower left half of the space will have
@@ -252,25 +256,25 @@ def unit_test():
     """
     initRanges = [(0.0, 1.0)] * 3
     bounds = None
-    ruleDecoder = LEAP.FloatDecoder(None, initRanges, bounds)
+    ruleEncoding = FloatEncoding(None, initRanges, bounds)
 
-    decoder = PittRuleDecoder(None, ruleDecoder, 10, 10, 1, 1)
-    genome = decoder.randomGenome()
+    encoding = PittRuleEncoding(None, ruleEncoding, 10, 10, 1, 1)
+    genome = encoding.randomGenome()
 
     assert(len(genome) == 10)
     assert(len(genome[0]) == 3)
 
-    # Test nearest-neighbor pitt decoder
+    # Test nearest-neighbor pitt encoding
     numInputs = 2
     numOutputs = 1
     bounds = [(0.0, 1.0)] * (numInputs + numOutputs)
     initRanges = bounds
-    ruleDecoder = LEAP.FloatDecoder(None, initRanges, bounds)
+    ruleEncoding = FloatEncoding(None, initRanges, bounds)
 
-    decoder = PittNearestNeighborDecoder(MyProblem, ruleDecoder, 2, 2,
+    encoding = PittNearestNeighborEncoding(MyProblem, ruleEncoding, 2, 2,
                                          numInputs, numOutputs)
     genome = [[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]]
-    phenome = decoder.decodeGenome(genome)
+    phenome = encoding.decodeGenome(genome)
 
     myProblem = MyProblem()
     fitness = myProblem.evaluate(phenome);

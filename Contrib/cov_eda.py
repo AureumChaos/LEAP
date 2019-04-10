@@ -34,7 +34,8 @@ from __future__ import print_function
 import random
 import numpy
 
-import LEAP
+from LEAP.operators import GeneticOperator
+from LEAP.individual import Individual
 
 
 #############################################################################
@@ -42,7 +43,7 @@ import LEAP
 # class CovarianceMatrixEDA
 #
 #############################################################################
-class CovarianceMatrixEDA(LEAP.GeneticOperator):
+class CovarianceMatrixEDA(GeneticOperator):
     """
     This most closely resembles work by Yuan.
     Individuals are assumed to be a fixed linear genome of real values.
@@ -55,9 +56,9 @@ class CovarianceMatrixEDA(LEAP.GeneticOperator):
     """
 
     def __init__(self, provider, numParents, exploreFactor = 1.0,
-                 indClass = LEAP.Individual, extraPullInterval = None,
+                 indClass = Individual, extraPullInterval = None,
                  perturb = 0.0):
-        LEAP.GeneticOperator.__init__(self, provider)
+        GeneticOperator.__init__(self, provider)
         self.parentsNeeded = numParents
         self.exploreFactor = exploreFactor
         self.indClass = indClass
@@ -73,7 +74,7 @@ class CovarianceMatrixEDA(LEAP.GeneticOperator):
 
 
     def reinitialize(self, population):
-        LEAP.GeneticOperator.reinitialize(self, population)
+        GeneticOperator.reinitialize(self, population)
         self.covMat = None
         self.centroid = None
         self.numPulls = 0

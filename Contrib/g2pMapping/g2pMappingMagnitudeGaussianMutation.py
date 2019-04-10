@@ -30,11 +30,8 @@ import copy
 import random
 import math
 
-import LEAP
-#from g2pMappingDecoder import *
-#from g2pMappingGaussianMutation import *
 from LEAP.Contrib.g2pMapping.g2pMappingDecoder import *
-from LEAP.Contrib.g2pMapping.g2pMappingGaussianMutation import *
+from LEAP.Contrib.g2pMapping.g2pMappingGaussianMutation import g2pMappingGaussianMutation
 
 
 
@@ -88,16 +85,19 @@ def unit_test():
     """
     Test mutation operator
     """
+    from LEAP.problem import FunctionOptimization
+    from LEAP.individual import Individual
+
     numDimensions = 2
     initRanges = [(-5, 2)] + [(0.5, 1.0)] * numDimensions
     bounds = None
     numVectors = 10
         
-    problem = LEAP.FunctionOptimization(myFunction, maximize = False)
-    decoder = g2pMappingDecoder(problem, numVectors, initRanges, bounds)
-    genome = decoder.randomGenome()
+    problem = FunctionOptimization(myFunction, maximize = False)
+    encoding = g2pMappingEncoding(problem, numVectors, initRanges, bounds)
+    genome = encoding.randomGenome()
     oldGenome = [i[:] for i in genome]
-    ind = LEAP.Individual(decoder, genome)
+    ind = Individual(encoding, genome)
     
     assert(len(genome) == numVectors)
     assert(len(genome[0]) == numDimensions + 1)

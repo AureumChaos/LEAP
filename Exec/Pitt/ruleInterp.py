@@ -25,15 +25,14 @@
 from __future__ import print_function
 
 import sys
-#sys.path.insert(0,'..')
 import string
 import copy
 import random
 import math
 
-import LEAP
-import LEAP.Exec
-#import LEAP.Exec.ExecutableObject
+from LEAP.Exec.executableObject import ExecutableObject
+
+# TODO: Do the C stuff in Cython now.
 #import cRuleFuncs
 
 
@@ -48,7 +47,7 @@ import LEAP.Exec
 #    [ [ c1 c1'  c2 c2' ... cn cn'  a1 a2 a3 ] [ rule2 ] ... [ ruleN ] ]
 #
 #############################################################################
-class RuleInterp(LEAP.Exec.ExecutableObject):
+class RuleInterp(ExecutableObject):
     """
     Rule interpreter for Pitt approach style rule learning.  
     Rules take the form: input_pairs, memory_pairs, output, memory
@@ -225,7 +224,7 @@ class pyRuleInterp(RuleInterp):
         # the two spirals problem, using adaptive real genes.  This is very
         # problem specific, and really shouldn't be here.  It might be more
         # appropriate to use a mixed genome with the ProxyMutation.  There
-        # are still some issues there too thought.  I need to figure out how
+        # are still some issues there too though.  I need to figure out how
         # to properly address this problem.
         if output[0] >= 0.5:
             output = [1]

@@ -21,11 +21,16 @@
 #
 ##############################################################################
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 import random
 import copy
 
-import LEAP
-from ca import *
+from LEAP.Domains.CA.ca import CellularAutomata
+from LEAP.problem import Problem
+from LEAP.individual import Individual
+from LEAP.individual import cmp
 
 
 #############################################################################
@@ -33,18 +38,13 @@ from ca import *
 # MajorityClassification
 #
 #############################################################################
-class MajorityClassification(LEAP.Problem):
+class MajorityClassification(Problem):
     """
     Cellular automata majority classification problem.
     If there are more 1's than 0's in the initial string, the CA should
     result in a string containing all 1's.  More 0's should result in all
     0's.
     """
-    radius = None
-    genomeLength = None
-    stateSize = None
-    maxSteps = None
-
     def __init__(self, radius = 1, stateSize = 79, maxSteps = 100):
         self.radius = radius
         neighborhood = radius * 2 + 1
@@ -79,11 +79,11 @@ class MajorityClassification(LEAP.Problem):
 #        fitness = fitness / 2
         return fitness
 
-    def evaluate(self, individual):
+    def evaluate(self, phenome):
         # convert the genome into a string
         rules = ''
-        for gene in individual.genome:
-            rules += str(gene)
+        for phene in phenome:
+            rules += str(phene)
 
         # build the CA
         ca = CellularAutomata(rules)
@@ -116,7 +116,8 @@ class MajorityClassification(LEAP.Problem):
                -1 if fitness1 is worse than fitness2
         Better than means '>' if maximizing or '<' if minimizing.
         """
-        return -cmp(fitness1.fitness, fitness2.fitness)   # Minimize
+        #return -cmp(fitness1.fitness, fitness2.fitness)   # Minimize
+        return -cmp(fitness1, fitness2)   # Minimize
 
     def randomGenome(self):
         genome = []

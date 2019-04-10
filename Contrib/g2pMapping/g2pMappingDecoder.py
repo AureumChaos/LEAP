@@ -25,26 +25,26 @@
 from __future__ import print_function
 
 import sys
-#sys.path.insert(0,'..')
 import string
 import copy
 import random
 import math
 
-import LEAP
+from LEAP.decoder import Encoding
+from LEAP.decoder import FloatEncoding
 
 
 
 #############################################################################
 #
-# g2pMappingDecoder
+# g2pMappingEncoding
 #
 #############################################################################
-class g2pMappingDecoder(LEAP.Decoder):
+class g2pMappingEncoding(Encoding):
     """
     This class defines the genetic encoding for a genotype to phenotype map.
     The phenotype it generates is a mapping, that can then be used to create a
-    g2pDecoder and then convert a bit string into a real value.
+    g2pEncoding and then convert a bit string into a real value.
     
     The idea is that this mapping will be evolved in a meta-EA.  To evaluate a
     mapping (a meta-EA individual), a sub-EA will be launched and will try to
@@ -56,15 +56,15 @@ class g2pMappingDecoder(LEAP.Decoder):
     is the first).  The magnitude is an exponent, as in 2**mag.
     """
     def __init__(self, problem, numVectors, initRanges, bounds=None):
-        LEAP.Decoder.__init__(self, problem)
+        Encoding.__init__(self, problem)
 
         self.numDimensions = len(initRanges) - 1
         self.numVectors = numVectors
-        self.vectorDecoder = LEAP.FloatDecoder(problem, initRanges, bounds)
+        self.vectorEncoding = FloatEncoding(problem, initRanges, bounds)
 
     def decodeGenome(self, genome):
         # The phenotype is a decoder that uses this mapping
-        #return g2pDecoder(self.problem, genome)
+        #return g2pEncoding(self.problem, genome)
 
         return genome
 
@@ -72,7 +72,7 @@ class g2pMappingDecoder(LEAP.Decoder):
     def randomGenome(self):
         newGenome = []
         for i in range(self.numVectors):
-            newGene = self.vectorDecoder.randomGenome()
+            newGene = self.vectorEncoding.randomGenome()
             newGenome.append(newGene)
 
         return newGenome
@@ -93,8 +93,9 @@ def unit_test():
     """
     Test the mapping decoder.
     """
-    #from g2pDecoder import g2pDecoder
-    from LEAP.Contrib.g2pMapping.g2pDecoder import g2pDecoder 
+    #from g2pEncoding import g2pEncoding
+    from LEAP.Contrib.g2pMapping.g2pDecoder import g2pEncoding 
+    from LEAP.problem import FunctionOptimization
 
     numDimensions = 2
     initRanges = [(-5, 2)] + [(0.5, 1.0)] * numDimensions
@@ -102,7 +103,7 @@ def unit_test():
     numVectors = 20
 
     problem = None
-    decoder = g2pMappingDecoder(problem, numVectors, initRanges, bounds)
+    decoder = g2pMappingEncoding(problem, numVectors, initRanges, bounds)
     genome = decoder.randomGenome()
 
     assert(len(genome) == numVectors)
@@ -116,10 +117,10 @@ def unit_test():
               [2.0, 0.0, 1.0],
               [1.0, 0.0, 1.0],
               [0.0, 0.0, 1.0]]
-    subProblem = LEAP.FunctionOptimization(myFunction, maximize = False)
-    subDecoder = g2pDecoder(subProblem, decoder.decodeGenome(genome))
+    subProblem = FunctionOptimization(myFunction, maximize = False)
+    subEncoding = g2pEncoding(subProblem, decoder.decodeGenome(genome))
     subGenome = '10000101'
-    subPhenome = subDecoder.decodeGenome(subGenome)
+    subPhenome = subEncoding.decodeGenome(subGenome)
     print("subPhenome =", subPhenome)
     assert(subPhenome == [8.0, 5.0])
 

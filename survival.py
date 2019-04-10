@@ -31,10 +31,9 @@ import string
 import copy    # for Clone
 import random
 
-#from individual import *
-#from operators import *
-#from selection import *
-import LEAP
+from LEAP.operators import PipelineOperator
+from LEAP.operators import CloneOperator
+from LEAP.selection import TruncationSelection
 
 
 #############################################################################
@@ -45,17 +44,17 @@ import LEAP
 # to a genetic operator.
 #
 #############################################################################
-class SurvivalOperator(LEAP.PipelineOperator):
+class SurvivalOperator(PipelineOperator):
     "Base class for survival selection operators"
 
     def reinitialize(self, population):
         self.originalPopulation = population
-        LEAP.PipelineOperator.reinitialize(self, population)
+        PipelineOperator.reinitialize(self, population)
         
     def isAnythingCached(self, after = None):
         sys.stderr.write("Warning: Calls to isAnythingCached() on a " +
                          "SurvivalOperator may not be useful.\n")
-        return LEAP.PipelineOperator.isAnythingCached(self, after)
+        return PipelineOperator.isAnythingCached(self, after)
         
 
 #############################################################################
@@ -70,7 +69,7 @@ class ElitismSurvival(SurvivalOperator):
     def __init__(self, provider, numElite = 1):
         SurvivalOperator.__init__(self, provider)
         self.numElite = numElite
-        self.cloner = LEAP.CloneOperator(None)
+        self.cloner = CloneOperator(None)
 
     def reinitialize(self, population):
         # Currently I am sorting the population.  This can be very expensive.
@@ -98,7 +97,7 @@ class BaseMuLambdaSurvival(SurvivalOperator):
         self.parentsNeeded = Lambda
         self.selectionOp = selectionOp
         if selectionOp == None:
-            self.selectionOp = LEAP.TruncationSelection(mu)
+            self.selectionOp = TruncationSelection(mu)
 
     def combinePopulations(self, parents, children):
         raise NotImplementedError  # Subclasses should redefine this
@@ -145,7 +144,7 @@ class MuPlusLambdaSurvival(BaseMuLambdaSurvival):
     cloner = None
 
     def __init__(self, provider, mu, Lambda):
-        self.cloner = LEAP.CloneOperator(None)
+        self.cloner = CloneOperator(None)
         BaseMuLambdaSurvival.__init__(self, provider, mu, Lambda)
 
     def combinePopulations(self, parents, children):

@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-# rotatedDecoder.py
+# rotatedEncoding.py
 #
 # When I started, this seemed really clever.  Now it's become really
 # complicated.  It may be worthwhile to reconsider the design.
@@ -14,6 +14,9 @@ import math
 import functools
 
 import LEAP
+from LEAP.decoder import int2bin
+from LEAP.decoder import FloatEncoding
+from LEAP.gene import AdaptiveRealGene
 
 # Once upon a time I used to use the Numeric library for matrix operations,
 # but I had a lot of trouble getting it to work for some reason, so I hand
@@ -163,16 +166,16 @@ def multipleRotationsMatrix(n, angle = None):
 
 ##############################################################################
 #
-# class RotatedFloatDecoder
+# class RotatedFloatEncoding
 #
 #############################################################################
-class RotatedFloatDecoder(LEAP.FloatDecoder):
+class RotatedFloatEncoding(FloatEncoding):
     """
     The genome (a list of floats) is stored in a different rotational basis.
     """
     def __init__(self, problem, initRanges, bounds = None,
                  rotationMatrix = None, angle = None):
-        LEAP.FloatDecoder.__init__(self, problem, initRanges, bounds)
+        FloatEncoding.__init__(self, problem, initRanges, bounds)
         if rotationMatrix is None:
             self.rotationMatrix = multipleRotationsMatrix(self.genomeLength, \
                                                           angle)
@@ -210,24 +213,24 @@ class RotatedFloatDecoder(LEAP.FloatDecoder):
     def fixupGenome(self, genome):
         "Fixes errors in the genome.  Used by the FixupOperator."
         phenome = self.decodeGenome(genome)
-        phenome = LEAP.FloatDecoder.fixupGenome(self, phenome)  # clip
+        phenome = FloatEncoding.fixupGenome(self, phenome)  # clip
         genome = self.encodeGenome(phenome)
         return genome
 
 
 #############################################################################
 #
-# class RotatedAdaptiveRealDecoder
+# class RotatedAdaptiveRealEncoding
 #
 #############################################################################
-class RotatedAdaptiveRealDecoder(RotatedFloatDecoder):
+class RotatedAdaptiveRealEncoding(RotatedFloatEncoding):
     """
     The genome (a list of AdaptiveRealGenes) is stored in a different
     rotational basis.
     """
     def __init__(self, problem, initRanges, bounds, initSigmas,
                  rotationMatrix = None, angle = None):
-        RotatedFloatDecoder.__init__(self, problem, initRanges, bounds,\
+        RotatedFloatEncoding.__init__(self, problem, initRanges, bounds,\
                                     rotationMatrix = rotationMatrix, \
                                     angle = angle)
         if len(initSigmas) != self.genomeLength:
@@ -242,23 +245,23 @@ class RotatedAdaptiveRealDecoder(RotatedFloatDecoder):
         "Decodes the genome into a phenome and returns it."
         # extract data from the BoundedRealGene class
         genome = [gene.data for gene in genome]
-        phenome = RotatedFloatDecoder.decodeGenome(self, genome)
+        phenome = RotatedFloatEncoding.decodeGenome(self, genome)
         return phenome
 
     def randomGenome(self):
         "Generates a randomized genome for this encoding"
-        initVals = RotatedFloatDecoder.randomGenome(self)
-#        genome = [LEAP.AdaptiveRealGene(initVals[i], (None, None),
+        initVals = RotatedFloatEncoding.randomGenome(self)
+#        genome = [AdaptiveRealGene(initVals[i], (None, None),
 #                                        self.initSigmas[i])
 #                  for i in range(self.genomeLength)]
-        genome = [LEAP.AdaptiveRealGene(initVals[i], self.bounds[i],
+        genome = [AdaptiveRealGene(initVals[i], self.bounds[i],
                                         self.initSigmas[i])
                   for i in range(self.genomeLength)]
         return genome
 
     def fixupGenome(self, genome):
         "Fixes errors in the genome.  Used by the FixupOperator."
-        floatGenome = RotatedFloatDecoder.fixupGenome(self, genome) # clip
+        floatGenome = RotatedFloatEncoding.fixupGenome(self, genome) # clip
         for i in range(len(genome)):
             genome[i].data = floatGenome[i]
         return genome
@@ -266,15 +269,15 @@ class RotatedAdaptiveRealDecoder(RotatedFloatDecoder):
 
 #############################################################################
 #
-# class RotatedBinaryFloatDecoder
+# class RotatedBinaryFloatEncoding
 #
 #############################################################################
-class RotatedBinaryFloatDecoder(RotatedFloatDecoder):
+class RotatedBinaryFloatEncoding(RotatedFloatEncoding):
     """
     Defines the genome as a string (not list) of ones and zeros.
     Each section of the genome encodes a real valued number.
 
-    I probably should have named this class RotatedBinaryRealDecoder to be
+    I probably should have named this class RotatedBinaryRealEncoding to be
     consistent with the other decoders defined in LEAP.
     """
     def __init__(self, problem, bitsPerReals, bounds, rotationMatrix = None,
@@ -283,7 +286,7 @@ class RotatedBinaryFloatDecoder(RotatedFloatDecoder):
             raise(ValueError, "bitsPerReals must be a list.")
         if len(bitsPerReals) != len(bounds):
             raise(ValueError, "bitsPerReals and bounds are different lengths.")
-        RotatedFloatDecoder.__init__(self, problem, bounds, bounds, \
+        RotatedFloatEncoding.__init__(self, problem, bounds, bounds, \
                                      rotationMatrix = rotationMatrix, \
                                      angle = angle)
 
@@ -294,10 +297,10 @@ class RotatedBinaryFloatDecoder(RotatedFloatDecoder):
 
         # calculated the bounds after rotation
         lowerBounds = [b[0] for b in self.bounds]
-        lowerBounds = RotatedFloatDecoder.encodeGenome(self, lowerBounds)
+        lowerBounds = RotatedFloatEncoding.encodeGenome(self, lowerBounds)
 
         upperBounds = [b[1] for b in self.bounds]
-        upperBounds = RotatedFloatDecoder.encodeGenome(self, upperBounds)
+        upperBounds = RotatedFloatEncoding.encodeGenome(self, upperBounds)
 
         self.rotatedBounds = [(min(lowerBounds[i], upperBounds[i]), \
                                max(lowerBounds[i], upperBounds[i])) \
@@ -320,17 +323,17 @@ class RotatedBinaryFloatDecoder(RotatedFloatDecoder):
             ival = int(genome[self.realPos[i] : self.realPos[i+1]], 2)
             rval = float(ival) / self.maxIntVal[i] * (bnd[1] - bnd[0]) + bnd[0]
             phenome.append(rval)
-        return RotatedFloatDecoder.decodeGenome(self, phenome) # unrotate
+        return RotatedFloatEncoding.decodeGenome(self, phenome) # unrotate
 
 
     def encodeGenome(self, phenome):
-        floatPhenome = RotatedFloatDecoder.encodeGenome(self, phenome) # rotate
+        floatPhenome = RotatedFloatEncoding.encodeGenome(self, phenome) # rotate
         genome = ""
         for i in range(len(self.bitsPerReals)):
             bnd = self.rotatedBounds[i]
             normval = (floatPhenome[i] - bnd[0]) / (bnd[1] - bnd[0])
             ival = int(normval * self.maxIntVal[i])  # May want to round here
-            genome += LEAP.int2bin(ival, self.bitsPerReals[i])
+            genome += int2bin(ival, self.bitsPerReals[i])
         return genome
 
 
@@ -343,20 +346,23 @@ def landscape(phenome):
     return sum(phenome)
 
 def unit_test():
+    from LEAP.problem import Problem
+    from LEAP.problem import FunctionOptimization
+
     passed = True
     epsilon = 0.001
 
-    realValuedProb = LEAP.FunctionOptimization(landscape)
-    dummyProb = LEAP.Problem()
+    realValuedProb = FunctionOptimization(landscape)
+    dummyProb = Problem()
     bounds = [(0.0, 1.0)] * 5
     #rotMatrix = rotationMatrix(0, 1, 3, math.pi)
     rotMatrix = multipleRotationsMatrix(len(bounds))
     #rotMatrix = None  # Pick one randomly
     print("rotMatrix =", rotMatrix)
 
-    # Test RotatedFloatDecoder
-    print("Test RotatedFloatDecoder")
-    rfe = RotatedFloatDecoder(realValuedProb, bounds, bounds, rotMatrix)
+    # Test RotatedFloatEncoding
+    print("Test RotatedFloatEncoding")
+    rfe = RotatedFloatEncoding(realValuedProb, bounds, bounds, rotMatrix)
     phenome = [0.5] * len(bounds)
     #print("phenome =", phenome)
     genome = rfe.encodeGenome(phenome)
@@ -385,8 +391,8 @@ def unit_test():
                   for i in range(len(phenome))]
     valid = functools.reduce(lambda x,y:x and y, isInBounds)
 
-    #print("RotatedFloatDecoder.randomGenome() =", genome)
-    #print("RotatedFloatDecoder.decodeGenome() =", phenome)
+    #print("RotatedFloatEncoding.randomGenome() =", genome)
+    #print("RotatedFloatEncoding.decodeGenome() =", phenome)
     print("valid =", valid, "== True")
     passed = passed and valid
 
@@ -396,12 +402,12 @@ def unit_test():
     #print("fixedGenome =", fixedGenome, " == [0.0, 1.0, 0.5]")
     #passed = passed and fixedGenome == [0.0, 1.0, 0.5]
 
-    # Test RotatedAdaptiveRealDecoder
+    # Test RotatedAdaptiveRealEncoding
     print()
-    print("Test RotatedAdaptiveRealDecoder")
+    print("Test RotatedAdaptiveRealEncoding")
     initSigmas = [bounds[i][1] - bounds[i][0] for i in range(len(bounds))]
     nobounds = [(None, None)] * len(bounds)
-    rare = RotatedAdaptiveRealDecoder(realValuedProb, bounds, nobounds, 
+    rare = RotatedAdaptiveRealEncoding(realValuedProb, bounds, nobounds, 
                                       initSigmas, rotationMatrix = rotMatrix)
     phenome = [0.5] * len(bounds)
     #print("phenome =", phenome)
@@ -435,12 +441,12 @@ def unit_test():
     print("error =", error, "<", epsilon, "(" + str(error < epsilon) + ")")
     passed = passed and error < epsilon
 
-    # Test RotatedBinaryFloatDecoder
+    # Test RotatedBinaryFloatEncoding
     print()
-    print("Test RotatedBinaryFloatDecoder")
+    print("Test RotatedBinaryFloatEncoding")
     bitsPerReals = [16] * len(bounds)
     initSigmas = [bounds[i][1] - bounds[i][0] for i in range(len(bounds))]
-    rbfe = RotatedBinaryFloatDecoder(realValuedProb, bitsPerReals, bounds, 
+    rbfe = RotatedBinaryFloatEncoding(realValuedProb, bitsPerReals, bounds, 
                                      rotationMatrix = rotMatrix)
     phenome = [0.5] * len(bounds)
     genome = rbfe.encodeGenome(phenome)

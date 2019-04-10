@@ -29,9 +29,7 @@ import random
 import math
 from queue import Queue
 
-#from problem import *
-#from decoder import *
-import LEAP
+from LEAP.individual import fittest
 
 #############################################################################
 #
@@ -110,8 +108,8 @@ class HaltWhenNoChange(HaltingCriteria):
         """
         This will be called at the end of each generation.
         """
-        bestOfGen = copy.copy(LEAP.fittest(population))
-        if LEAP.fittest(self.bestSoFar, bestOfGen) == self.bestSoFar:
+        bestOfGen = copy.copy(fittest(population))
+        if fittest(self.bestSoFar, bestOfGen) == self.bestSoFar:
             self.lastChange += 1
         else:
             self.bestSoFar = bestOfGen
@@ -130,6 +128,9 @@ def testFunction(phenome):
     return(phenome[0])
 
 def unit_test():
+    from LEAP.individual import Individual
+    from LEAP.problem import FunctionOptimization
+    from LEAP.decoder import Encoding
 
     print("HaltAfterGeneration")
     pop = []
@@ -146,11 +147,11 @@ def unit_test():
     print()
     print("HaltWhenNoChange")
 
-    testProblem = LEAP.FunctionOptimization(testFunction)
-    testDecoder = LEAP.Decoder(testProblem)
+    testProblem = FunctionOptimization(testFunction)
+    testEncoding = Encoding(testProblem)
     halt = HaltWhenNoChange(10)
     for i in range(10):
-        pop = [LEAP.Individual(testDecoder, [i])]
+        pop = [Individual(testEncoding, [i])]
         assert(halt.shouldHaltNow(pop) == False)
 
     for i in range(9):

@@ -21,12 +21,15 @@
 #
 ##############################################################################
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 import sys
 import string
 import copy
 import random
 import math
-import weave
+#import weave
 
 # If Python already has a function for this, I can't find it.
 def bin2int(bstr):
@@ -53,8 +56,8 @@ class CellularAutomata:
 
     def __init__(self, rules):
         self.rules = rules
-        self.radius = int( math.log(len(rules)) / math.log(2) ) / 2
-        # print self.radius
+        self.radius = int(int( math.log(len(rules)) / math.log(2) ) / 2)
+        #print("self.radius:", self.radius)
 
     def getNeighborhood(self, state, loc):
         "Return the bits in 'state' which are in the neighboorhood of 'loc'"
@@ -72,7 +75,7 @@ class CellularAutomata:
             newState = ''
             for i in range(len(state)):
                 neighbors = self.getNeighborhood(state, i)
-                #print neighbors, bin2int(neighbors)
+                #print(neighbors, bin2int(neighbors))
                 newState += str(self.rules[bin2int(neighbors)])
             state = newState
         return newState
@@ -141,12 +144,16 @@ class CellularAutomata:
             return_val = state;
         """
 
-        state = weave.inline(code, params, support_code = support_code);
+        #state = weave.inline(code, params, support_code = support_code);
+        print("The C version isn't working right now.")
+        exit(1)
+
         return state
 
     def run(self, state, numSteps):
         "Run the CA for 'numSteps' steps given 'state' as the initial state"
-        return self.cRun(state, numSteps)
+        #return self.cRun(state, numSteps)
+        return self.pyRun(state, numSteps)
 
 
 #############################################################################
@@ -175,29 +182,29 @@ def test():
     # initState = '001011011010011110100010110101001010101001110101011'
     initState = ''
     for i in range(stateSize):
-	if random.random() < 0.7:
+        if random.random() < 0.7:
             initState += '1'
-	else:
-	    initState += '0'
+        else:
+            initState += '0'
 
     state = initState
     state2 = initState
-    print state
+    print(state)
     for i in range(maxSteps):
         state = myca.pyRun(state, 1)
-        state2 = myca.cRun(state2, 1)
-        if state <> state2:
-            print Error
-        print state
+        #state2 = myca.cRun(state2, 1)
+        #if state <> state2:
+        #    print(Error)
+        print(state)
 
 #    newState = myca.cRun(state, maxSteps)
 #    newState = myca.pyRun(state, maxSteps)
-#    print newState
+#    print(newState)
 
     if state == '111111111111111111111111111111111111111111111111111':
-        print "Passed"
+        print("Passed")
     else:
-        print "FAILED"
+        print("FAILED")
 
 
 if __name__ == '__main__':

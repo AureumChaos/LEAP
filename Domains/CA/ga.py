@@ -21,14 +21,25 @@
 #
 ##############################################################################
 
+# Python 2 & 3 compatibility
+from __future__ import print_function
+
 import random
 import copy
 
-import LEAP
-import scipy.stats
+#import scipy.stats
+
 #from ca import *  # The python version
 #from CA import *  # The C version
-from MajorityClassification import *
+
+from LEAP.problem import *
+from LEAP.decoder import *
+from LEAP.individual import *
+from LEAP.selection import *
+from LEAP.operators import *
+from LEAP.survival import *
+
+from LEAP.Domains.CA.MajorityClassification import MajorityClassification
 
 
 #############################################################################
@@ -39,9 +50,9 @@ from MajorityClassification import *
 def printPop(population):
     i = 0
     for ind in population:
-        print i, ":",
-        print ind.genome, " ",
-        print ind.fitness
+        print(i, ":", end='')
+        print(ind.genome, " ", end='')
+        print(ind.fitness)
         i += 1
 
 
@@ -58,58 +69,68 @@ def ga():
     radius = 3
     genomeLength = 2 ** (radius * 2 + 1)
     alleles = range(30)
-    maxGeneration = 200
+    maxGeneration = 20
     population = []
     children = []
     bestSoFar = None
 
     # Setup the reproduction pipeline
-    pipeline = select = LEAP.TournamentSelection(2)
-#    pipeline = select = LEAP.ProportionalSelection()
-#    pipeline = select = LEAP.RankSelection()
-    pipeline = clone = LEAP.Clone(pipeline)
-#    pipeline = crossover = LEAP.NPointCrossover(0.8, 2, pipeline)
-#    pipeline = crossover = LEAP.UniformCrossover(0.5, pipeline)
-    pipeline = mutate = LEAP.BitFlipMutation(1.0/genomeLength, pipeline)
-#    pipeline = mutate = LEAP.UniformMutation(1.0/60.0, alleles, pipeline)
-#    pipeline = survive = LEAP.ElitismSurvival(2, pipeline)
-    pipeline = survive = LEAP.MuPlusLambdaSurvival(popSize, pipeline)
+    pipeline = select = TournamentSelection(2)
+#    pipeline = select = ProportionalSelection()
+#    pipeline = select = RankSelection()
+    pipeline = clone = CloneOperator(pipeline)
+#    pipeline = crossover = NPointCrossover(pipeline, 0.8, 2)
+#    pipeline = crossover = UniformCrossover(pipeline, 0.5)
+    pipeline = mutate = BitFlipMutation(pipeline, 1.0/genomeLength)
+#    pipeline = mutate = UniformMutation(pipeline, 1.0/60.0, alleles)
+#    pipeline = survive = ElitismSurvival(pipeline, 2)
+    pipeline = survive = MuPlusLambdaSurvival(pipeline, popSize, popSize)
 
     # Setup the problem
     problem = MajorityClassification(radius, stateSize = 51, maxSteps=100)
+    encoding = BinaryEncoding(problem, genomeLength)
 
     # Create initial population
     bestOfGen = None
     for i in range(popSize):
-        ind = LEAP.Individual(problem)
+        ind = Individual(encoding)
+        #print(ind.genome)
+        print(".", end="")
+        sys.stdout.flush()
         ind.evaluate()
-        if LEAP.cmpInd(ind,bestOfGen) == 1:
+        if bestOfGen is None:
             bestOfGen = ind
+        else:
+            if cmpInd(ind,bestOfGen) == 1:
+                bestOfGen = ind
         population.append(ind)
     #print "population initialized"
     bestSoFar = bestOfGen
+    print()
 
     genome_str = ''
     for g in bestOfGen.genome:
         genome_str += str(g)
-    print 0, ":", genome_str, bestOfGen.fitness
+    print(0, ":", genome_str, bestOfGen.fitness)
         
     #print "numEvaluations =", numEvaluations
     #numEvaluations = 0
 
     # Evolution
     for gen in range(1, maxGeneration + 1):
-        # print "Generation:", gen
+        # print("Generation:", gen)
         # printPop(population)
 
         bestOfGen = None
         children = []
-        pipeline.newGeneration(population)
+        pipeline.reinitialize(population)
         for i in range(popSize):
+            print(".", end="")
+            sys.stdout.flush()
             child = pipeline.pull()
             if child.fitness == None:
                 child.evaluate()
-            if LEAP.cmpInd(child,bestOfGen) == 1:
+            if cmpInd(child,bestOfGen) == 1:
                 bestOfGen = child
             children.append(child)
 
@@ -121,18 +142,19 @@ def ga():
 #        children = mutate.apply(children)
 #        for child in children:
 #            child.evaluate()
-#            if LEAP.cmpInd(child,bestSoFar) == 1:
+#            if cmpInd(child,bestSoFar) == 1:
 #                bestSoFar = child
 
         genome_str = ''
         for g in bestOfGen.genome:
             genome_str += str(g)
-        print gen, ":", genome_str, bestOfGen.fitness
+        print()
+        print(gen, ":", genome_str, bestOfGen.fitness)
 
-        if LEAP.cmpInd(bestOfGen,bestSoFar) == 1:
+        if cmpInd(bestOfGen,bestSoFar) == 1:
             bestSoFar = bestOfGen
         
-        # print "numEvaluations =", numEvaluations
+        # print("numEvaluations =", numEvaluations)
         # numEvaluations = 0
 
         population = children
@@ -142,7 +164,7 @@ def ga():
     genome_str = ''
     for g in bestSoFar.genome:
         genome_str += str(g)
-    print "best :", genome_str, bestSoFar.fitness
+    print("best :", genome_str, bestSoFar.fitness)
 
 
 #############################################################################
