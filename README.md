@@ -24,8 +24,8 @@ with.  It's clear that I was learning Python at the same time that I wrote
 much of this.
 
 I've now upgraded the entire library to Python 3, and almost all of it works.
-I haven't touched Paul Wiegand's code in the Coevolution directory though, so
-I doubt that it even works at all.
+It still works in Python 2 as well.  I haven't touched Paul Wiegand's code in
+the Coevolution directory though, so I doubt that it even works at all.
 
 Just to get a flavor for how the library works, I offer this simple GA:
 
