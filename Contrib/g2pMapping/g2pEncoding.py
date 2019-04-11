@@ -31,7 +31,7 @@ import random
 import math
 import numpy
 
-from LEAP.decoder import BinaryEncoding
+from LEAP.encoding import BinaryEncoding
 
 
 

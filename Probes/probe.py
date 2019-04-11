@@ -1436,9 +1436,9 @@ if __name__ == '__main__':
     from LEAP.problem import sphereMaximize
     from LEAP.problem import sphereFunction
     from LEAP.problem import FunctionOptimization
-    from LEAP.decoder import BinaryRealEncoding
-    from LEAP.decoder import FloatEncoding
-    from LEAP.decoder import AdaptiveRealEncoding
+    from LEAP.encoding import BinaryRealEncoding
+    from LEAP.encoding import FloatEncoding
+    from LEAP.encoding import AdaptiveRealEncoding
     from LEAP.selection import *
     from LEAP.operators import *
     from LEAP.otherOps import *

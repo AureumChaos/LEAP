@@ -86,7 +86,7 @@ def unit_test():
     """
     from LEAP.problem import FunctionOptimization
     from LEAP.individual import Individual
-    from LEAP.Contrib.g2pMapping.g2pMappingDecoder import g2pMappingEncoding
+    from LEAP.Contrib.g2pMapping.g2pMappingEncoding import g2pMappingEncoding
 
     numDimensions = 2
     initRanges = [(-5, 2)] + [(0.5, 1.0)] * numDimensions

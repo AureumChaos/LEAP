@@ -65,7 +65,7 @@ class CovarianceMatrixEDA(GeneticOperator):
         self.extraPullInterval = extraPullInterval
         self.covMat = None
         self.centroid = None
-        self.decoder = None
+        self.encoding = None
         self.numPulls = 0
         self.perturb = perturb  # The calculated covariance matrix can
                                 # sometimes be illegal (non-positive
@@ -93,7 +93,7 @@ class CovarianceMatrixEDA(GeneticOperator):
             pMatrix = numpy.transpose(numpy.array(pGenomes))
             self.centroid = pMatrix.mean(1)
             self.covMat = numpy.cov(pMatrix) * self.exploreFactor
-            self.decoder = parents[0].decoder
+            self.encoding = parents[0].encoding
 
         # Occasionally pull another parent to fool the pre/post probes
         if self.numPulls > self.extraPullInterval and \
@@ -108,7 +108,7 @@ class CovarianceMatrixEDA(GeneticOperator):
         self.numPulls +=1
         #print(self.numPulls,end="")
 
-        ind = self.indClass(self.decoder, genome=list(g))
+        ind = self.indClass(self.encoding, genome=list(g))
         return(ind)
 
 

@@ -30,8 +30,8 @@ import copy
 import random
 import math
 
-from LEAP.decoder import Encoding
-from LEAP.decoder import FloatEncoding
+from LEAP.encoding import Encoding
+from LEAP.encoding import FloatEncoding
 
 
 
@@ -63,7 +63,7 @@ class g2pMappingEncoding(Encoding):
         self.vectorEncoding = FloatEncoding(problem, initRanges, bounds)
 
     def decodeGenome(self, genome):
-        # The phenotype is a decoder that uses this mapping
+        # The phenotype is a encoding that uses this mapping
         #return g2pEncoding(self.problem, genome)
 
         return genome
@@ -91,10 +91,10 @@ def myFunction(phenome):
 
 def unit_test():
     """
-    Test the mapping decoder.
+    Test the mapping encoding.
     """
     #from g2pEncoding import g2pEncoding
-    from LEAP.Contrib.g2pMapping.g2pDecoder import g2pEncoding 
+    from LEAP.Contrib.g2pMapping.g2pEncoding import g2pEncoding 
     from LEAP.problem import FunctionOptimization
 
     numDimensions = 2
@@ -103,8 +103,8 @@ def unit_test():
     numVectors = 20
 
     problem = None
-    decoder = g2pMappingEncoding(problem, numVectors, initRanges, bounds)
-    genome = decoder.randomGenome()
+    encoding = g2pMappingEncoding(problem, numVectors, initRanges, bounds)
+    genome = encoding.randomGenome()
 
     assert(len(genome) == numVectors)
     assert(len(genome[0]) == numDimensions + 1)
@@ -118,7 +118,7 @@ def unit_test():
               [1.0, 0.0, 1.0],
               [0.0, 0.0, 1.0]]
     subProblem = FunctionOptimization(myFunction, maximize = False)
-    subEncoding = g2pEncoding(subProblem, decoder.decodeGenome(genome))
+    subEncoding = g2pEncoding(subProblem, encoding.decodeGenome(genome))
     subGenome = '10000101'
     subPhenome = subEncoding.decodeGenome(subGenome)
     print("subPhenome =", subPhenome)

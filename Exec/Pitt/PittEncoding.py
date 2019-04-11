@@ -32,8 +32,8 @@ import random
 import math
 
 from LEAP.problem import Problem
-from LEAP.decoder import Encoding
-from LEAP.decoder import FloatEncoding
+from LEAP.encoding import Encoding
+from LEAP.encoding import FloatEncoding
 from LEAP.Exec.Pitt.ruleInterp import RuleInterp
 from LEAP.Exec.Pitt.ruleInterp import pyRuleInterp
 #from LEAP.Exec.Pitt.ruleInterp import cRuleInterp

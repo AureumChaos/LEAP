@@ -34,9 +34,9 @@ import math
 from LEAP.problem import Problem
 
 #import pyximport; pyximport.install()
-#from g2pDecoderCy import *
-from LEAP.Contrib.g2pMapping.g2pDecoder import g2pEncoding
-from LEAP.Contrib.g2pMapping.g2pMappingDecoder import g2pMappingEncoding
+#from g2pEncodingCy import *
+from LEAP.Contrib.g2pMapping.g2pEncoding import g2pEncoding
+from LEAP.Contrib.g2pMapping.g2pMappingEncoding import g2pMappingEncoding
 from LEAP.Contrib.g2pMapping.g2pMappingGaussianMutation import g2pMappingGaussianMutation
 from LEAP.Contrib.g2pMapping.g2pMappingMagnitudeGaussianMutation import g2pMappingMagnitudeGaussianMutation
 from LEAP.Contrib.g2pMapping.g2pMappingVectorGaussianMutation import g2pMappingVectorGaussianMutation
@@ -61,13 +61,13 @@ class g2pMappingProblem(Problem):
     def evaluate(self, phenome):
         """
         Evaluates (calculates the fitness of) a genotype to phenotype
-        mapping that is given in the form of an decoder.
+        mapping that is given in the form of an encoding.
         """
         fitness = 0
         for subProblem in self.subProblems:
-            decoder = g2pEncoding(subProblem, phenome)
-            #decoder = g2pEncodingCy(subProblem, phenome)
-            self.subEA.decoder = decoder
+            encoding = g2pEncoding(subProblem, phenome)
+            #encoding = g2pEncodingCy(subProblem, phenome)
+            self.subEA.encoding = encoding
             bsf = self.subEA.run()
             fitness += bsf.getFitness() / len(self.subProblems)
 

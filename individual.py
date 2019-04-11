@@ -363,7 +363,7 @@ class LexParsimonyIndividual(PenaltyParsimonyIndividual):
 def unit_test():
     from LEAP.problem import FunctionOptimization
     from LEAP.problem import oneMaxFunction
-    from LEAP.decoder import BinaryEncoding
+    from LEAP.encoding import BinaryEncoding
 
     passed = True
 

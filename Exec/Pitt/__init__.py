@@ -21,7 +21,7 @@
 #
 ##############################################################################
 
-#from LEAP.Exec.Pitt.PittDecoder import *
+#from LEAP.Exec.Pitt.PittEncoding import *
 #from LEAP.Exec.Pitt.ruleInterp import *
 #from LEAP.Exec.Pitt.interpolatingRuleInterp import *
 

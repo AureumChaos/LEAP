@@ -212,7 +212,7 @@ if __name__ == '__main__':
     from LEAP.problem import schwefelBounds
     from LEAP.problem import schwefelMaximize
     from LEAP.problem import FunctionOptimization
-    from LEAP.decoder import *
+    from LEAP.encoding import *
     from LEAP.selection import *
     from LEAP.operators import *
     from LEAP.survival import *

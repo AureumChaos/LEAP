@@ -260,10 +260,10 @@ def unit_test():
     from LEAP.problem import sphereFunction
     from LEAP.problem import sphereMaximize
     from LEAP.problem import FunctionOptimization
-    from LEAP.decoder import FloatEncoding
+    from LEAP.encoding import FloatEncoding
     from LEAP.individual import Individual
     from LEAP.Domains.Concept.funcApprox import FunctionApproximation
-    from LEAP.Exec.Pitt.PittDecoder import PittRuleEncoding
+    from LEAP.Exec.Pitt.PittEncoding import PittRuleEncoding
     from LEAP.Exec.Pitt.interpolatingRuleInterp import pyInterpolatingRuleInterp
 
     # Test FitnessMeasure

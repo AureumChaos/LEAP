@@ -28,7 +28,7 @@ from __future__ import print_function
 import random
 import math
 
-from LEAP.decoder import int2bin
+from LEAP.encoding import int2bin
 from LEAP.problem import Problem
 from LEAP.Domains.Concept.readUCI import readUCI
 

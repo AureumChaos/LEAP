@@ -30,7 +30,7 @@ import copy
 import random
 import math
 
-from LEAP.Contrib.g2pMapping.g2pMappingDecoder import *
+from LEAP.Contrib.g2pMapping.g2pMappingEncoding import *
 from LEAP.Contrib.g2pMapping.g2pMappingGaussianMutation import g2pMappingGaussianMutation
 
 

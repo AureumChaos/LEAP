@@ -78,8 +78,8 @@ def ga():
     # Setup the problem
     #problem = ParallelParity(numBits)
     problem = SerialParity(numBits)
-    #decoder = PittOrdinalDecoder(problem, minRules, maxRules, digits)
-    decoder = PittBinaryDecoder(problem, minRules, maxRules, digits)
+    #encoding = PittOrdinalEncoding(problem, minRules, maxRules, digits)
+    encoding = PittBinaryEncoding(problem, minRules, maxRules, digits)
 
     # EA parameters
     alleles = digits
@@ -106,12 +106,12 @@ def ga():
 #    pipeline = survive = LEAP.MuPlusLambdaSurvival(popSize, pipeline)
 
 
-    ea = LEAP.GenerationalEA(decoder, pipeline, popSize, \
+    ea = LEAP.GenerationalEA(encoding, pipeline, popSize, \
             indClass=LEAP.LexParsimonyIndividual)
     ea.run(maxGeneration)
 
     best = ea.bestOfGen
-    print "test =", decoder.testGeneralization(best.genome)
+    print "test =", encoding.testGeneralization(best.genome)
 
 
 #############################################################################

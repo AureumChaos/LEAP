@@ -59,7 +59,7 @@ class GenerationalEA:
     """
     A generational Evolutionary Algorithm.
 
-    decoder - The class which can encode/decode the genome.  Also contains a
+    encoding - The class which can encode/decode the genome.  Also contains a
               reference to the problem.
     pipeline - The operator pipeline (e.g. selection, crossover, mutation)
     popSize - Size of the population
@@ -68,11 +68,11 @@ class GenerationalEA:
     indClass - Optional class which defines an individual.
                LEAP.individual.Individual is used by default.
     """
-    def __init__(self, decoder, pipeline, popSize, \
+    def __init__(self, encoding, pipeline, popSize, \
                  initPipeline=DeterministicSelection(), \
                  indClass=Individual,
                  initPopsize=None, halt=None):
-        self.decoder = decoder
+        self.encoding = encoding
         self.pipeline = pipeline
         self.popSize = popSize
         self.initPipeline = initPipeline
@@ -101,7 +101,7 @@ class GenerationalEA:
         # Create initial population
         randomPopulation = []
         for i in range(self.initPopsize):
-            ind = self.indClass(self.decoder)
+            ind = self.indClass(self.encoding)
             ind.evaluate()
             randomPopulation.append(ind)
 
@@ -134,7 +134,7 @@ class GenerationalEA:
             self.printStats()
 
         #print(mystr(self.bestSoFar.genome))
-        #print(self.decoder.decodeGenome(self.bestSoFar.genome))
+        #print(self.encoding.decodeGenome(self.bestSoFar.genome))
         return self.bestSoFar
 
 
@@ -174,7 +174,7 @@ class GenerationalEA:
 #############################################################################
 if __name__ == '__main__':
     from LEAP.problem import *
-    from LEAP.decoder import *
+    from LEAP.encoding import *
     from LEAP.selection import *
     from LEAP.operators import *
     from LEAP.survival import *
@@ -206,15 +206,15 @@ if __name__ == '__main__':
     # ...for binary genes
 #    bitsPerReal = 16
 #    genomeSize = bitsPerReal * numVars
-#    decoder = BinaryRealEncoding(problem, [bitsPerReal] * numVars, bounds)
+#    encoding = BinaryRealEncoding(problem, [bitsPerReal] * numVars, bounds)
 
     # ...for float genes
-    #decoder = FloatEncoding(problem, bounds, bounds)
+    #encoding = FloatEncoding(problem, bounds, bounds)
 
     # ...for adaptive real genes
     sigmaBounds = (0.0, bounds[0][1] - bounds[0][0])
     initSigmas = [(bounds[0][1] - bounds[0][0]) / math.sqrt(numVars)] * numVars
-    decoder = AdaptiveRealEncoding(problem, bounds, bounds, initSigmas)
+    encoding = AdaptiveRealEncoding(problem, bounds, bounds, initSigmas)
 
 
     #pipe2 = UniformSelection()
@@ -243,8 +243,8 @@ if __name__ == '__main__':
     #pipeline = MuCommaLambdaSurvival(pipeline, popSize, popSize,
     #                                      RankSelection())
 
-    ea = GenerationalEA(decoder, pipeline, popSize)
-    #ea = GenerationalEA(decoder, pipeline, popSize, \
+    ea = GenerationalEA(encoding, pipeline, popSize)
+    #ea = GenerationalEA(encoding, pipeline, popSize, \
     #                         indClass=Price.PriceIndividual)
     ea.run(maxGeneration)
 

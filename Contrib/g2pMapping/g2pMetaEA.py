@@ -56,11 +56,11 @@ def printPopulation(population, generation = None):
 #
 ##############################################################################
 class g2pMetaEA(GenerationalEA):
-    def __init__(self, decoder, pipeline, popSize, validationProblem, \
+    def __init__(self, encoding, pipeline, popSize, validationProblem, \
                  initPipeline=DeterministicSelection(), \
                  indClass=Individual, \
                  initPopsize=None, halt=None, validationFrequency=20):
-        GenerationalEA.__init__(self, decoder, pipeline, popSize, \
+        GenerationalEA.__init__(self, encoding, pipeline, popSize, \
                  initPipeline=initPipeline, indClass=indClass, \
                  initPopsize=initPopsize, halt=halt)
         self.validationProblem = validationProblem
@@ -80,9 +80,9 @@ class g2pMetaEA(GenerationalEA):
         for i in range(len(self.population)):
             ind = self.population[i]
             # Evaluating the individual won't work, so I'll do this
-            val = self.validationProblem.evaluate(self.decoder.decodeGenome(ind.genome))
+            val = self.validationProblem.evaluate(self.encoding.decodeGenome(ind.genome))
 
-            if bestVal == None or self.decoder.cmpFitness(bestVal, val) == -1:
+            if bestVal == None or self.encoding.cmpFitness(bestVal, val) == -1:
                 bestVal = val
                 bestIndex = i
 
@@ -109,7 +109,7 @@ class g2pMetaEA(GenerationalEA):
 
         # Run validation on the bestOfGen individual
         self.bogValidation = self.validationProblem.evaluate(
-                               self.decoder.decodeGenome(self.bestOfGen.genome))
+                               self.encoding.decodeGenome(self.bestOfGen.genome))
 
 
     def printStats(self):
@@ -141,7 +141,7 @@ if __name__ == '__main__':
     from LEAP.Domains.Translated.translatedProblem import TranslatedProblem
 
     from LEAP.Contrib.g2pMapping.g2pMappingProblem import g2pMappingProblem
-    from LEAP.Contrib.g2pMapping.g2pMappingDecoder import g2pMappingEncoding
+    from LEAP.Contrib.g2pMapping.g2pMappingEncoding import g2pMappingEncoding
     from LEAP.Contrib.g2pMapping.g2pMappingGaussianMutation import g2pMappingGaussianMutation
     from LEAP.Contrib.g2pMapping.g2pMappingMagnitudeGaussianMutation import g2pMappingMagnitudeGaussianMutation
     from LEAP.Contrib.g2pMapping.g2pMappingVectorGaussianMutation import g2pMappingVectorGaussianMutation

@@ -359,9 +359,6 @@ class TruncationSelection(DeterministicSelection):
 # unit_test
 #
 #############################################################################
-#from problem import *
-#from decoder import *
-
 def rampLandscape(phenome):
     return(phenome[0])
     #return(phenome[0]**2)
@@ -369,7 +366,7 @@ def rampLandscape(phenome):
 
 def unit_test():
     from LEAP.problem import FunctionOptimization
-    from LEAP.decoder import FloatEncoding
+    from LEAP.encoding import FloatEncoding
     from LEAP.individual import Individual
 
     t_passed = True
@@ -377,13 +374,13 @@ def unit_test():
     r_passed = True
     bounds = [(0,100)]
     problem = FunctionOptimization(rampLandscape)
-    decoder = FloatEncoding(problem, bounds, bounds)
+    encoding = FloatEncoding(problem, bounds, bounds)
     popsize = 10
     population = []
     for i in range(1, popsize*2, 2):
 #    m = 4.0
 #    for i in [1/m**2, 1/m, 1/m, 2/m - 1/m**2]:
-        ind = Individual(decoder, [float(i)])
+        ind = Individual(encoding, [float(i)])
         ind.evaluate()
         population.append(ind)
 

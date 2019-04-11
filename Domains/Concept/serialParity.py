@@ -28,10 +28,8 @@ import random
 import copy
 import math
 
-import LEAP
-#import scipy.stats
-from pittEncoder import *
-from ruleInterp import *
+from LEAP.encoding import int2bin
+from LEAP.problem import Problem
 
 
 def int2base(value, digits, strlen=None):
@@ -57,23 +55,25 @@ def int2base(value, digits, strlen=None):
 #
 # SerialParity
 #
+# This code is very old, and I don't even know how it works anymore.
+# It should probably be removed.
+#
 #############################################################################
-class SerialParity(LEAP.Problem):
+class SerialParity(Problem):
     """
     Given a binary string of size n, the rule-set should determine the parity
     of the string.
     """
     def __init__(self, numBits, numTests = 10, digits=[0,1]):
-        LEAP.Problem.__init__(self)
         self.numBits = numBits
         self.digits = digits
         self.numInputs = 1
         self.numOutputs = 1
         self.initMemory = [0]
         self.numMemory = len(self.initMemory)
-        self.numConditions = self.numInputs + self.numMemory      # 2 + 1 = 3
+        self.numConditions = self.numInputs + self.numMemory      # 1 + 1 = 2
         self.numActions = self.numOutputs + self.numMemory        # 1 + 1 = 2
-        self.ruleLength = self.numConditions + self.numActions    # 3 + 2 = 5
+        self.ruleLength = self.numConditions + self.numActions    # 2 + 2 = 4
 
         self.numTests = 2 ** self.numBits # numTests
         self.testvals = []
@@ -84,7 +84,7 @@ class SerialParity(LEAP.Problem):
         self.testvals = []
         for i in range(self.numTests):
             #self.testvals.append(random.randrange(2**15))
-            teststr = LEAP.int2bin(i, self.numBits)
+            teststr = int2bin(i, self.numBits)
             self.testvals.append([int(c) for c in teststr])
     
 
@@ -120,7 +120,7 @@ class SerialParity(LEAP.Problem):
         successes = 0
         for i in range(numTests):
             testnum = random.randrange(2**15)
-            teststr = LEAP.int2bin(testnum, self.numBits)
+            teststr = int2bin(testnum, self.numBits)
             testinput = [int(c) for c in teststr]
             successes += self.episode(phenome, testinput)
 
@@ -143,14 +143,18 @@ class SerialParity(LEAP.Problem):
 #
 #############################################################################
 def test():
-    from LEAP import Individual
+    from LEAP.individual import Individual
+    from LEAP.encoding import BinaryEncoding
+    from LEAP.Exec.Pitt.PittEncoding import PittRuleEncoding
 
     problem = SerialParity(3)
-    encoder = PittOrdinalEncoder(problem, 10, 10, [0,1])
-    genome = [[0,1, 0,1, 0, 0]]
+    #encoder = PittOrdinalEncoder(problem, 10, 10, [0,1])
+    ruleEncoding = BinaryEncoding(None, 4)
+    encoding = PittRuleEncoding(None, ruleEncoding, 1, 1, 2, 2)
+    genome = [[1, 1, 0, 0]]
 
-    ind = Individual(encoder, genome)
-    ind2 = Individual(encoder)
+    ind = Individual(encoding, genome)
+    ind2 = Individual(encoding)
     fitness = ind.evaluate()
     print("fitness =", fitness)
 

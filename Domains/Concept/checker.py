@@ -28,7 +28,7 @@ from __future__ import print_function
 import math
 
 from LEAP.individual import Individual
-from LEAP.decoder import FloatEncoding
+from LEAP.encoding import FloatEncoding
 from concept import *
 
 
@@ -89,7 +89,7 @@ class CheckerBoardProblem(BinaryConceptLearning):
 #
 #############################################################################
 def unit_test():
-    from LEAP.Exec.Pitt.PittDecoder import PittNearestNeighborEncoding
+    from LEAP.Exec.Pitt.PittEncoding import PittNearestNeighborEncoding
 
     checker = CheckerBoardProblem((0.0,0.0),(1.0,1.0),0.2)
     checker.generateExampleGroups(200, 3)

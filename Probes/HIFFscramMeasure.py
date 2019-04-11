@@ -10,9 +10,9 @@ import copy
 
 from LEAP.problem import FunctionOptimization
 from LEAP.problem import HIFFfunction
-from LEAP.decoder import BinaryEncoding
-from LEAP.decoder import ScramblerEncoding
-from LEAP.decoder import PerturbingEncoding
+from LEAP.encoding import BinaryEncoding
+from LEAP.encoding import ScramblerEncoding
+from LEAP.encoding import PerturbingEncoding
 #import scipy.stats
 
 from math import *

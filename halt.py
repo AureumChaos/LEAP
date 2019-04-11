@@ -130,7 +130,7 @@ def testFunction(phenome):
 def unit_test():
     from LEAP.individual import Individual
     from LEAP.problem import FunctionOptimization
-    from LEAP.decoder import Encoding
+    from LEAP.encoding import Encoding
 
     print("HaltAfterGeneration")
     pop = []

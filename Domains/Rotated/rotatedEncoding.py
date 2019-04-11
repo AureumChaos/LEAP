@@ -14,8 +14,8 @@ import math
 import functools
 
 import LEAP
-from LEAP.decoder import int2bin
-from LEAP.decoder import FloatEncoding
+from LEAP.encoding import int2bin
+from LEAP.encoding import FloatEncoding
 from LEAP.gene import AdaptiveRealGene
 
 # Once upon a time I used to use the Numeric library for matrix operations,
@@ -278,7 +278,7 @@ class RotatedBinaryFloatEncoding(RotatedFloatEncoding):
     Each section of the genome encodes a real valued number.
 
     I probably should have named this class RotatedBinaryRealEncoding to be
-    consistent with the other decoders defined in LEAP.
+    consistent with the other encodins defined in LEAP.
     """
     def __init__(self, problem, bitsPerReals, bounds, rotationMatrix = None,
                  angle = None):

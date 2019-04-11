@@ -90,8 +90,8 @@ def unit_test():
     """
     from LEAP.problem import FunctionOptimization
     from LEAP.individual import Individual
-    from LEAP.Contrib.g2pMapping.g2pDecoder import g2pEncoding
-    from LEAP.Contrib.g2pMapping.g2pMappingDecoder import g2pMappingEncoding
+    from LEAP.Contrib.g2pMapping.g2pEncoding import g2pEncoding
+    from LEAP.Contrib.g2pMapping.g2pMappingEncoding import g2pMappingEncoding
 
     numDimensions = 2
     initRanges = [(-5, 2)] + [(0.5, 1.0)] * numDimensions
@@ -99,10 +99,10 @@ def unit_test():
     numVectors = 10
         
     problem = FunctionOptimization(myFunction, maximize = False)
-    decoder = g2pMappingEncoding(problem, numVectors, initRanges, bounds)
-    genome = decoder.randomGenome()
+    encoding = g2pMappingEncoding(problem, numVectors, initRanges, bounds)
+    genome = encoding.randomGenome()
     oldGenome = [i[:] for i in genome]
-    ind = Individual(decoder, genome)
+    ind = Individual(encoding, genome)
     
     assert(len(genome) == numVectors)
     assert(len(genome[0]) == numDimensions + 1)

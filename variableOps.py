@@ -189,15 +189,15 @@ class VarAddGeneMutation(MutationOperator):
             self.numToAdd = 0
             self.pMutate = self.eMutate / len(individual.genome)
 
-            # Intercept decoder
-            self.decoder = individual.decoder
+            # Intercept encoding
+            self.encoding = individual.encoding
 
             # Call superclass
             MutationOperator.mutateIndividual(self, individual)
 
-        # Add the genes now.  Use the decoder to make this more general.
+        # Add the genes now.  Use the encoding to make this more general.
         while self.numToAdd > 0:
-            tempGenome = self.decoder.randomGenome()
+            tempGenome = self.encoding.randomGenome()
             individual.genome += tempGenome[:self.numToAdd]
             self.numToAdd -= len(tempGenome)
 
@@ -254,7 +254,7 @@ class VarReplaceMutation(MutationOperator):
     generated new gene.
 
     Note: This operator was specifically designed to be used with Pitt
-          approach representations, and it uses the decoder to generator the
+          approach representations, and it uses the encoding to generator the
           new genes.
     """
     parentsNeeded = 1
@@ -268,15 +268,15 @@ class VarReplaceMutation(MutationOperator):
 
 
     def mutateIndividual(self, individual):
-        "Intercept the decoder"
-        self.decoder = individual.decoder
+        "Intercept the encoding"
+        self.encoding = individual.encoding
         MutationOperator.mutateIndividual(self, individual)
 
 
     def mutateGene(self, gene):
         "Generate a completely new gene"
         # Just generate a random genome and take one of its genes.
-        tempGenome = self.decoder.randomGenome()
+        tempGenome = self.encoding.randomGenome()
         return tempGenome[0]
 
 
@@ -345,12 +345,12 @@ class VarFuchsMutation(GeneticOperator):
                     del(genome[random.randrange(len(genome))])
 
                 # Modify/mutate rules
-                tempGenome = individual.decoder.randomGenome()
+                tempGenome = individual.encoding.randomGenome()
                 for rule in genome:
                     if random.random() < self.Prnd:
                         tempRule = tempGenome.pop()
                         if tempGenome == []:
-                            tempGenome = individual.decoder.randomGenome()
+                            tempGenome = individual.encoding.randomGenome()
                         for i in range(len(rule)):
                             if random.random() < self.Pcomp:
                                 rule[i] = tempRule[i]

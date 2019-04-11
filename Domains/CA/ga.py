@@ -33,7 +33,7 @@ import copy
 #from CA import *  # The C version
 
 from LEAP.problem import *
-from LEAP.decoder import *
+from LEAP.encoding import *
 from LEAP.individual import *
 from LEAP.selection import *
 from LEAP.operators import *
