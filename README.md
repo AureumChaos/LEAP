@@ -29,6 +29,7 @@ I doubt that it even works at all.
 
 Just to get a flavor for how the library works, I offer this simple GA:
 
+```
 from LEAP.problem import FunctionOptimization
 from LEAP.encoding import BinaryRealEncoding
 from LEAP.selection import ProportionalSelection
@@ -61,3 +62,4 @@ maxGeneration = 200
 
 ea = GenerationalEA(encoding, pipeline, popSize)
 ea.run(maxGeneration)
+```
