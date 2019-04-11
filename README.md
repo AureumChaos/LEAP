@@ -46,6 +46,9 @@ problem = FunctionOptimization(sphereFunction, maximize=False)
 numVars = 10
 bounds = [(-5.12, 5.12)] * numVars
 
+# The encoding converts a genome (in this case, a string of bits) into
+# a phenome.  A phenome is essentially a form that is appropriate for the
+# problem.  In this case, the phenome is a list of floats.
 bitsPerReal = 16
 genomeSize = numVars * bitsPerReal
 encoding = BinaryRealEncoding(problem, [bitsPerReal] * numVars, bounds)
