@@ -37,6 +37,7 @@ from LEAP.operators import CloneOperator, NPointCrossover, BitFlipMutation
 from LEAP.survival import ElitismSurvival
 from LEAP.ea import GenerationalEA
 
+# The function we want to optimimize
 def sphereFunction(phenome):
     return sum([x**2 for x in phenome])
 
@@ -46,7 +47,7 @@ numVars = 10
 bounds = [(-5.12, 5.12)] * numVars
 
 bitsPerReal = 16
-genomeSize=numVars * bitsPerReal
+genomeSize = numVars * bitsPerReal
 encoding = BinaryRealEncoding(problem, [bitsPerReal] * numVars, bounds)
 
 # Setup the reproduction pipeline
@@ -56,7 +57,7 @@ pipeline = NPointCrossover(pipeline, 0.8, 1)  # pCross=0.8, 1 crossover point
 pipeline = BitFlipMutation(pipeline, 2.0/genomeSize)  # pMut=2.0/genomeSize
 pipeline = ElitismSurvival(pipeline, 2)
 
-# Parameters
+# More EA Parameters
 popSize = 100
 maxGeneration = 200
 
