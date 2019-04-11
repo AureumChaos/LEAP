@@ -1,9 +1,9 @@
 # LEAP
-A general purpose Library for Evolutionary Algorithms in Python.
-Written by Dr. Jeffrey K. Bassett
+### A general purpose *L*ibrary for *E*volutionary *A*lgorithms in *P*ython.<br/>
+Written by Dr. Jeffrey K. Bassett<br/>
 Contributors: Dr. R. Paul Weigand
 
-Much of the library design was inspired by the general description of
+Much of the library design follows the general description of
 Evolutionary Algorithms from Dr. Kenneth A. De Jong's book "Evolutionary
 Computation: A Unified Approach".  He was my Ph.D. advisor, so I am quite
 familiar with his approach.
