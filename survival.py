@@ -30,10 +30,12 @@ import sys
 import string
 import copy    # for Clone
 import random
+import functools
 
 from LEAP.operators import PipelineOperator
 from LEAP.operators import CloneOperator
 from LEAP.selection import TruncationSelection
+from LEAP.individual import cmpInd
 
 
 #############################################################################
