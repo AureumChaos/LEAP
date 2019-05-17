@@ -1,6 +1,0 @@
-#!/bin/bash
-
-# This is no longer necessary if I use pyximport
-
-python setup.py build_ext --inplace
-#python setup.py build_ext
