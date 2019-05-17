@@ -13,7 +13,7 @@ import random
 from toolz.itertoolz import pluck
 from abc import ABCMeta, abstractmethod
 
-import smallLEAP.reproduction
+from . import reproduction
 
 
 def binary_to_str(b):
