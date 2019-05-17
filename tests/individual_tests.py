@@ -5,8 +5,8 @@
 import sys, os
 
 # Apparently stupid relative imports don't work, so have this hack
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+# sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+# sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
 from unittest import TestCase, main
 
