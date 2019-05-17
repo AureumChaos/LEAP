@@ -4,26 +4,25 @@
 """
 import sys, os
 
-# Apparently stupid relative imports don't work, so have this hack
-# sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-# sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+# so that adjacent leap dir is visible
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from unittest import TestCase, main
 
-import individual
-import problem
-import reproduction
-import encoding
+import leap.individual
+import leap.problem
+import leap.reproduction
+import leap.encoding
 
 class IndividualTestCases(TestCase):
 
     NUM_GENES = 4
 
     def setUp(self):
-        self.problem = problem.MaxOnes()
-        self.encoding = encoding.SimpleBinaryEncoding(IndividualTestCases.NUM_GENES)
+        self.problem = leap.problem.MaxOnes()
+        self.encoding = leap.encoding.SimpleBinaryEncoding(IndividualTestCases.NUM_GENES)
 
-        self.individual = individual.Individual(problem=self.problem,
+        self.individual = leap.individual.Individual(problem=self.problem,
                                                 encoding=self.encoding)
 
 
@@ -46,7 +45,7 @@ class IndividualTestCases(TestCase):
         # individual of all zeros.
         clone = self.individual.clone() # protect parent by cloning it
 
-        new_individual = reproduction.binary_flip_mutation(clone, 1.0)
+        new_individual = leap.reproduction.binary_flip_mutation(clone, 1.0)
         self.assertEqual(new_individual.encoding.sequence,[0,0,0,0] )
 
         # Now the mutation better have left the original untouched.

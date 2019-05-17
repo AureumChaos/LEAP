@@ -6,9 +6,9 @@
 """
 
 from abc import ABCMeta, abstractmethod
-from smallLEAP.reproduction import create_binary_sequence
 
-from smallLEAP.individual import Individual
+from . import reproduction
+from . import individual
 
 
 def evaluate(population):

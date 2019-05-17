@@ -8,7 +8,7 @@ from toolz import curry
 from functools import wraps
 from copy import deepcopy
 
-from smallLEAP.individual import Individual
+from . import individual
 
 
 def create_binary_sequence(length=5):
