@@ -21,7 +21,7 @@
 
 project = u'LEAP'
 copyright = u'2019, Dr. Jeffrey K. Bassett, Dr. Mark A. Coletti, Eric "Siggy" Scott, Dr. R. Paul Weigand'
-author = u'Dr. Jeffrey K. Bassett, Dr. Mark A. Coletti, Eric "Siggy" Scott, Dr. R. Paul Weigand'
+author = u'Dr. Jeffrey K. Bassett, Dr. Mark A. Coletti, Eric "Siggy" Scott, and Dr. R. Paul Weigand'
 
 # The short X.Y version
 version = u''
