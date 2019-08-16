@@ -1,0 +1,163 @@
+NAME: Two Spirals
+
+SUMMARY: The task is to learn to discriminate between two sets of training
+points which lie on two distinct spirals in the x-y plane.  These spirals
+coil three times around the origin and around one another.  This appears to
+be a very difficult task for back-propagation networks and their relatives.
+Problems like this one, whose inputs are points on the 2-D plane, are
+interesting because we can display the 2-D "receptive field" of any unit in
+the network.
+
+SOURCE: Posted to "connectionists" mailing list by Alexis Wieland of MITRE
+Corporation.
+
+MAINTAINER: Scott E. Fahlman, CMU
+
+PROBLEM DESCRIPTION: The following fragment of C code, supplied by Wieland,
+generates the two sets of points, each with 97 members (three complete
+revolutions at 32 points per revolution, plus endpoints).  Each point is
+represented by two floating-point numbers, the X and Y coordinates, plus an
+output value of 0.0 for one set, 1.0 for the other set.  (Some algorithms
+may require different output values, such as +1.0 and -1.0 or 0.2 and 0.8.)
+		
+    main()
+    {
+      int i;
+      double x, y, angle, radius;
+
+      /* write spiral of data */
+      for (i=0; i<=96; i++) {
+	angle = i * M_PI / 16.0;
+	radius = 6.5 * (104 - i) / 104.0;
+	x = radius * sin(angle);
+	y = radius * cos(angle);
+	printf("((%8.5f  %8.5f)   (%3.1f))\n",  x,  y, 1.0);
+	printf("((%8.5f  %8.5f)   (%3.1f))\n", -x, -y, 0.0);
+      }
+    }
+		
+
+METHODOLOGY:
+
+The task is to train on the 194 I/O pairs until the learning system can
+produce the correct output for all of the inputs.  The time required for
+learning is then recorded.  For back-propagation systems, the time is
+typically recorded in "epochs".  Each epoch includes one training
+presentation for each of the 194 points in the training set.  (See the
+GLOSSARY file.)
+
+The choice of output values for the two sets is up to the experimenter.
+For uniformity in reporting results, we suggest that the 40-20-40 cirterion
+be used: an output is considered to be a logical zero if it is in the lower
+40% of the output range, a one if it is in the upper 40%, and indeterminate
+(and therefore incorrect) if it is in the middle 20% of the range.
+
+This task can obviously be solved quickly by methods that essentially do
+table-lookup, recording the desired result for each point; on the other
+hand, the problem appears hard for back-propagation networks and is
+impossible for a linear separator.  The interesting question is how
+learning time varies with the algorithm chosen and the total number of
+weights (or equivalent) in the network.
+
+VARIATIONS: 
+
+It is possible to vary the density of points along the spiral by
+incrementing the angle by a smaller amount, while still making three
+complete revolutions in each set.  Lang and Witbrock [1] report some
+results using the 4X version of the problem, with 770 points in all.
+
+RESULTS:
+
+Lang and Witbrock [1] report results obtained on this problem using a
+2-5-5-5-1 back-propagation network with short-cut connections: each unit is
+connected to every unit in all earlier layers, not just to units in the
+previous layer.  Counting the unit thresholds, there are a total of 138
+trainable weights in the network.
+
+Three trials were run using standard back-propagation on this network, with
+a uniform distribution of random initial weights in the range -0.1 to +0.1.
+Learning rate was initially 0.001 and momentum was initially 0.5; these
+values were "gradually" increased over 1000 epochs to final values of 0.002
+and 0.95.  The learning times on the three runs were 18,900 epochs, 22,300
+epochs, and 19,000 epochs.  (Average = 20,000 epochs.)
+
+Using the same network and starting values, but with a nonlinear "cross
+entropy" error function, learning times were 16,200 epochs, 8600 epochs,
+and 7600 epochs, respectively.  (Average = 11,000 epochs.)
+
+With the same network and starting values, but using Fahlman's quickprop
+algorithm and hyperbolic arctangent error [2], the times were 4500 epochs,
+12,300 epochs, and 6800 epochs.  (Average = 7900 epochs) For this test,
+epsilon was 0.002, mu was 1.5, and the weight weight decay factor was
+0.001.
+
+Stephen A. Frostrom of SAIC reports the following unpublished result,
+obtained by Dennis Walker of SAIC: Standard back-propagation network,
+2-20-10-1 with no short-cut connections (281 weights in all).  Learning
+rate 0.1, momentum 0.7, unit activation running from -0.5 to 0.5, error was
+set to 0.0 if the output was within 0.15 of target.  The task was learned
+(to within 0.3 tolerance) in 13,900 epochs.  With a tighter 2-16-8-1
+network, the task was learned, but it required 300,000 epochs.
+
+Fahlman and Lebiere [3] report that the Cascade-Correlation algorithm is
+able to solve this problem in 1700 epochs (average over 100 trials, all
+successful).  This algorithm builds up a network as it learns.  In these
+100 trials, the networks constructed ranged from 12 to 19 hidden units,
+with and average of 15.2 and a median of 15.  Thus, the networks are
+roughly the same size as the 15-hidden-unit network investigated by Lang
+and Witbrock.
+
+The figure of 1700 epochs for Cascade-Correlation is somewhat misleading,
+since the Cascade-Correlation epochs require less computation than backprop
+or quickprop epochs.  Fahlman proposes that instead of counting epochs of
+very different kinds, we measure these algorithms in terms of connection
+crossings: the number of times a value or error is multiplied by a weight
+and added to an accumulated value.  By this measure, Cascade-Correlation
+requires about 19 million crossings, while the 8000 quickprop epochs of
+Lang and Witbrock require about 438 million -- larger by a factor of 23.
+
+Russell Leighton of MITRE reports (unpublished) that with a 2=5=5=5=1
+network and more or less standard backprop, he got times of 2680, 4252, and
+5097 epochs on three successive runs -- an average of about 4000 epochs.
+However, he noted a very large variance in other test runs on this problem,
+with a few runs getting stuck with one or two points misclassified.  He
+used sigmoid units with range -0.5 to +0.5, learning rate of 0.01, momentum
+of 0.95, hyperbolic arctan error, and added uniform noise in the range of
+[0.0, 0.05) to the sigmoid-prime calculation to prevent stuck units.
+Weights were not updated if the absolute value of the output error was less
+than 0.001.  Weights were updated after every epoch and the trial was
+deemed successful if the output was within 0.4 of the target value for all
+patterns.
+
+Lang and Witbrock [1] report that the variation with 4X density was learned
+in 64,000 epochs using the same standard back-propagation setup that they
+used for the single density case.
+
+Fahlman (unpublished) reports the following results on eight trials (all
+successful) of the 4X problem using the Cascade-Correlation algorithm:
+The average time required was 2262 epochs.  The nets constructed ranged
+from 13 to 18 hidden units, with an average of 15.5 and a median of 15.
+The training parameters used were the same as for the 1X version of this
+same problem.
+
+REFERENCES: 
+
+1. Kevin J. Lang and Michael J, Witbrock, "Learning to Tell Two Spirals
+Apart", in Proceedings of the 1988 Connectionist Models Summer School,
+Morgan Kaufmann, 1988.
+
+2. Scott E. Fahlman, "Faster-Learning Variations on Back-Propagation: An
+Empirical Study", in Proceedings of the 1988 Connectionist Models Summer
+School, Morgan Kaufmann, 1988.
+
+3. Scott E. Fahlman and Christian Lebiere, "The Cascade-Correlation
+Learning Architecture", in Touretzky (ed.) Advances in Neural Information
+Processing Systems 2, Morgan-Kaufmann, 1990.  A slightly more detailed
+version of the paper is available as CMU tech report CMU-CS-90-100.
+
+COMMENTS:
+
+Code for both the Quickprop and Cascade-Correlation algorithms is available
+in the code directory accompanying the benchmark collection.  Quickprop is
+available in C and Common Lisp; Cascade-Correlation is in Common Lisp only
+at present.
