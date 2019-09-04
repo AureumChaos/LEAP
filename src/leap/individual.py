@@ -63,7 +63,7 @@ class Individual:
         >>>
         """
         new_genome = deepcopy(self.genome)
-        cloned = type(self)(new_genome, self.problem, self.decoder)
+        cloned = type(self)(new_genome, self.decoder, self.problem)
         cloned.fitness = None
         return cloned
 
@@ -71,7 +71,7 @@ class Individual:
         """
         :return: the decoded value for this individual
         """
-        return self.decoder.decode(self.genome)
+        return self.decoder.decode(genome=self.genome)
 
     def evaluate(self):
         self.fitness = self.problem.evaluate(self.decode())

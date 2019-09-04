@@ -21,14 +21,13 @@ class MaxOnes(ScalarProblem):
         """
         super().__init__(maximize)
 
-    def evaluate(self, individual):
+    def evaluate(self, phenome):
         """
         >>> p = MaxOnes()
         >>> ind = Individual([0, 0, 1, 1, 0, 1, 0, 1, 1],
         ...                  decoder=decode.IdentityDecoder(),
         ...                  problem=p)
-        >>> p.evaluate(ind)
+        >>> p.evaluate(ind.decode())
         5
         """
-        binary_sequence = individual.decode()
-        return binary_sequence.count(1)
+        return phenome.count(1)
