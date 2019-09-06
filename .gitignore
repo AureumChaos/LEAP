@@ -10,6 +10,7 @@ docker-nom/build/
 .\#*
 venv/
 src/LEAP.egg-info/
+docs/build/
 
 #Subversion
 .svn

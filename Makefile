@@ -1,8 +1,32 @@
+help:
+	@echo \#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
+	@echo \# LEAP Makefile
+	@echo \#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
+	@echo \#
+	@echo \# First build a virtual environment:
+	@echo \#
+	@echo \#	make venv
+	@echo \#
+	@echo \# Then activate it:
+	@echo \#
+	@echo \#	source venv/bin/activate
+	@echo \#
+	@echo \# Then setup the environment:
+	@echo \#
+	@echo \#	make setup
+	@echo \#
+	@echo \# And run tests and build docs:
+	@echo \#
+	@echo \#	make test
+	@echo \#	make doc
+	@echo \#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
+
+
 venv:
 	python3 -m venv ./venv
 	@echo
 	@echo Built virtual environment in ./venv
-	@echo Run \'source venv/bin/activae\' to activate it!
+	@echo Run \'source venv/bin/activate\' to activate it!
 
 .PHONY: setup test doc
 
