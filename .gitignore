@@ -6,6 +6,10 @@
 *.pyc
 __pycache__
 docker-nom/build/
+\#*\#
+.\#*
+venv/
+src/LEAP.egg-info/
 
 #Subversion
 .svn
