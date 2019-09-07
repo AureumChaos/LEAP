@@ -91,12 +91,10 @@ class Individual:
         :param other: to which to compare
         :return: if this Individual is less fit than another
         """
-        return self.problem.same_as(self, other)
+        return self.problem.equivalent(self.fitness, other.fitness)
 
     def __lt__(self, other):
         """
-
-
         Because `Individual`s know about their `Problem`, the know how to compare themselves
         to one another.  One individual is better than another if and only if it is greater than the other:
 
@@ -129,7 +127,8 @@ class Individual:
         :return: if this Individual has the same fitness as another even if
                  they have different genomes
         """
-        return self.problem.worse_than(self, other)
+        return self.problem.worse_than(self.fitness, other.fitness)
 
     def __repr__(self):
+        # TODO Is this the right behavior for __repr__() vs. __str__()?
         return self.genome.__repr__()

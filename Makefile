@@ -5,21 +5,23 @@ help:
 	@echo \#
 	@echo \# First build a virtual environment:
 	@echo \#
-	@echo \#	make venv
+	@echo \#\	make venv
 	@echo \#
 	@echo \# Then activate it:
 	@echo \#
-	@echo \#	source venv/bin/activate
+	@echo \#\	source venv/bin/activate
 	@echo \#
 	@echo \# Then setup the environment:
 	@echo \#
-	@echo \#	make setup
+	@echo \#\	make setup
 	@echo \#
 	@echo \# And run tests and build docs:
 	@echo \#
-	@echo \#	make test
-	@echo \#	make doc
+	@echo \#\	make test
+	@echo \#\	make doc
+	@echo \#
 	@echo \#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
+	@echo
 
 
 venv:
@@ -31,6 +33,8 @@ venv:
 .PHONY: setup test doc
 
 doc:
+        # The apidoc call is long because we need to tell it to
+        # use the venv's version of sphinx-build
 	sphinx-apidoc -o docs/source/ src/ SPHINXBUILD='python $(shell which sphinx-build)'
 	cd docs && make html
 
@@ -40,5 +44,3 @@ setup:
 
 test:
 	py.test --doctest-modules
-
-

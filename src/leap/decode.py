@@ -1,5 +1,7 @@
 from toolz.itertoolz import pluck
 
+# TODO Add ABC.  Helps with docs, and adding new methods if we want to change it later.
+
 
 ##############################
 # Class IdentityDecoder
@@ -49,7 +51,7 @@ class BinaryToIntDecoder:
 
     def decode(self, genome):
         """
-        Converts a Boolean genome to an integer-vector phenome by interpretting each segment of the genome as
+        Converts a Boolean genome to an integer-vector phenome by interpreting each segment of the genome as
         low-endian binary number.
 
         :param genome: a list of 0s and 1s representing a Boolean genome
@@ -109,7 +111,7 @@ class BinaryToRealDecoder:
         :param segments: is a sequence of tuples of the form (number of bits, minimum, maximum) values
         :return: a function for real-value phenome decoding of a sequence of binary digits
 
-        For example, if we construc the decoder
+        For example, if we construct the decoder
 
         >>> d = BinaryToRealDecoder((4, -5.12, 5.12),(4, -5.12, 5.12))
 

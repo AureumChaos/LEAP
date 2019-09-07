@@ -12,34 +12,34 @@ class Problem(ABC):
 
          1. Fitness evaluation (the `evaluate()` method)
 
-         2. Fitness comparision (the `worse_than()` and `same_as()` methods
+         2. Fitness comparision (the `worse_than()` and `equivalent()` methods
     """
 
     def __init__(self):
         super().__init__()
 
     @abstractmethod
-    def evaluate(self, individual):
+    def evaluate(self, phenome):
         """
         Decode and evaluate the given individual based on its genome.
 
-        Practicitioners *must* over-ride this member function.
+        Practitioners *must* over-ride this member function.
 
         Note that by default the individual comparison operators assume a
         maximization problem; if this is a minimization problem, then just
         negate the value when returning the fitness.
 
-        :param individual:
+        :param phenome:
         :return: fitness
         """
         raise NotImplementedError
 
     @abstractmethod
-    def worse_than(self, first, second):
+    def worse_than(self, first_fitness, second_fitness):
         raise NotImplementedError
 
     @abstractmethod
-    def same_as(self, first, second):
+    def equivalent(self, first_fitness, second_fitness):
         raise NotImplementedError
 
 
@@ -47,24 +47,27 @@ class Problem(ABC):
 # Class ScalarProblem
 ##############################
 class ScalarProblem(Problem):
-    def __init__(self, maximize=True):
+    def __init__(self, maximize):
         self.maximize = maximize
 
-    def worse_than(self, first, second):
+    def worse_than(self, first_fitness, second_fitness):
         """
             Used in Individual.__lt__().
 
-            By default returnss first.fitness < second.fitness.  Please
+            By default returns first.fitness < second.fitness.  Please
             over-ride if this does not hold for your problem.
 
             :return: true if the first individual is less fit than the second
         """
-        if self.maximize:
-            return first.fitness < second.fitness
-        else:
-            return first.fitness > second.fitness
 
-    def same_as(self, first, second):
+        # TODO If we accidentally pass an Individual in as first_ or second_fitness,
+        # TODO then this can result in an infinite loop.  Add some error handling for this.
+        if self.maximize:
+            return first_fitness < second_fitness
+        else:
+            return first_fitness > second_fitness
+
+    def equivalent(self, first_fitness, second_fitness):
         """
             Used in Individual.__eq__().
 
@@ -73,7 +76,7 @@ class ScalarProblem(Problem):
 
             :return: true if the first individual is equal to the second
         """
-        return first.fitness == second.fitness
+        return first_fitness == second_fitness
 
 
 ##############################
@@ -84,6 +87,5 @@ class FunctionProblem(Problem):
     def __init__(self, fitness_function):
         self.fitness_function = fitness_function
 
-    def evaluate(self, individual):
-        phenome = individual.decode()
+    def evaluate(self, phenome):
         return self.fitness_function(phenome)

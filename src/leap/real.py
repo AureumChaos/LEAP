@@ -43,17 +43,45 @@ def initialize_vectors(decoder, problem, bounds):
 ##############################
 class Spheroid(ScalarProblem):
     """ Classic spheroid problem
+
     """
+
+    """ Standard bounds for a sphere functions solution."""
+    bounds = [(-5.12, 5.12)]*10
+
+    # TODO See if we get an error if we try to add a constructor that doesn't set maximize
+
     def __init__(self, maximize=True):
         super().__init__(maximize)
 
-    def evaluate(self, individual):
+    def evaluate(self, phenome):
         """
+        Computes the spheroid function from a real-valued list phenome:
 
-        :param individual: to be evaluated
-        :return: sum(individual.genome**2)
+        >>> phenome = [0.5, 0.8, 1.5]
+        >>> Spheroid().evaluate(phenome)
+        3.14
+
+        :param phenome: to be evaluated
+        :return: sum(phenome**2)
         """
-        return sum([x**2 for x in individual.decode()])
+        return sum([x**2 for x in phenome])
+
+    def worse_than(self, first_fitness, second_fitness):
+        """
+        We maximize by default:
+
+        >>> from leap import decode
+        >>> s = Spheroid()
+        >>> s.worse_than(100, 10)
+        False
+
+        >>> from leap import decode
+        >>> s = Spheroid(maximize=False)
+        >>> s.worse_than(100, 10)
+        True
+        """
+        return super().worse_than(first_fitness, second_fitness)
 
 
 ##############################
