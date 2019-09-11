@@ -1,10 +1,11 @@
 import toolz
 
+from leap import core
 from leap import operate as op
-from leap import real, decode
+from leap import real
 
 
-def generational(evals, mu, lambda_, initialize, evaluate, pipeline):
+def generational(evals, mu, lambda_, individual_cls, decoder, problem, evaluate, initialize, pipeline):
     """
 
     :param evals:
@@ -14,22 +15,30 @@ def generational(evals, mu, lambda_, initialize, evaluate, pipeline):
     :param pipeline:
     :return:
 
+    >>> from leap import core, real
     >>> from leap import operate as op
-    >>> from leap import real, decode
     >>> mu = 5
     >>> l = 5
-    >>> ea = generational(evals=1000, mu=mu, lambda_=5,
-    ...                   initialize=real.initialize_vectors(
-    ...                        decode.IdentityDecoder(),
-    ...                        problem = real.CosineFamilyProblem(alpha=0.6,
-    ...                                                           global_optima_counts=[5]*l,
-    ...                                                           local_optima_counts=[5]*l),
-    ...                        bounds=[[0, 1.0]]*l),
-    ...                   evaluate=op.evaluate,
+    >>> ea = generational(evals=1000, mu=mu, lambda_=mu,
+    ...                   individual_cls=core.Individual,  # Use the standard Individual as the prototype for the population
+    ...                   decoder=core.IdentityDecoder(),  # Genotype and phenotype are the same for this task
+    ...                   problem=real.Spheroid(maximize=False),  # Solve a Spheroid minimization problem
+    ...                   evaluate=op.evaluate,  # Evaluate fitness with the basic evaluation operator
+    ...
+    ...                   # Initialized genomes are random real-valued vectors
+    ...                   initialize=real.initialize_vectors_uniform(
+    ...                       # Initialize each element between 0 and 1
+    ...                       bounds=[[0, 1.0]] * l
+    ...                   ),
+    ...
+    ...                   # The operator pipeline
     ...                   pipeline=[
-    ...                        op.tournament(n=mu),
-    ...                        op.cloning,
-    ...                        op.mutate_gaussian(prob=0.1, std=0.05)
+    ...                       # Select mu parents via tournament selection
+    ...                       op.tournament(n=mu),
+    ...                       # Clone them to create offspring
+    ...                       op.cloning,
+    ...                       # Apply Gaussian mutation to each gene with a certain probability
+    ...                       op.mutate_gaussian(prob=0.1, std=0.05)
     ...                   ])
     >>> ea # doctest:+ELLIPSIS
     <generator ...>
@@ -37,12 +46,12 @@ def generational(evals, mu, lambda_, initialize, evaluate, pipeline):
     The algorithm evaluates lazily when you query the generator:
 
     >>> print(*list(ea), sep='\\n') # doctest:+ELLIPSIS
-    (15, [...])
-    (20, [...])
+    (15, Individual(...))
+    (20, Individual(...))
     ...
-    (1000, [...])
+    (1000, Individual(...))
     """
-    population = initialize(mu + lambda_)
+    population = individual_cls.create_population(mu + lambda_, initialize, decoder, problem)
     population = evaluate(population)
 
     i = mu + lambda_
@@ -57,18 +66,16 @@ if __name__ == '__main__':
     mu = 5  # Parent population size
     l = 10  # Length of the genome
     ea = generational(evals=1000, mu=mu, lambda_=mu,
+                      individual_cls=core.Individual,  # Use the standard Individual as the prototype for the population
+                      decoder=core.IdentityDecoder,  # Genotype and phenotype are the same for this task
+                      problem=real.Spheroid(maximize=False),  # Solve a Spheroid minimization problem
+                      evaluate=op.evaluate,  # Evaluate fitness with the basic evaluation operator
 
-                      # Initialize individuals are random real-valued vectors
-                      initialize=real.initialize_vectors(
-                          # Genotype and phenotype are the same for this task
-                          decode.IdentityDecoder(),
-                          # Tell individuals that they are solutions to a Spheroid minimization problem
-                          problem=real.Spheroid(maximize=False),
-                          # Initialize every between 0 and 1
-                          bounds=[[0, 1.0]] * l),
-
-                      # Evaluate fitness with the basic evaluation operator
-                      evaluate=op.evaluate,
+                      # Initialized genomes are random real-valued vectors
+                      initialize=real.initialize_vectors_uniform(
+                          # Initialize each element between 0 and 1
+                          bounds=[[0, 1.0]] * l
+                      ),
 
                       # The operator pipeline
                       pipeline=[

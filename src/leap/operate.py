@@ -1,7 +1,7 @@
 import numpy as np
 from toolz import curry
 
-from leap.individual import Individual
+from leap.core import Individual
 
 
 def evaluate(population):
@@ -27,19 +27,20 @@ def cloning(population):
 @curry
 def mutate_bitflip(population, prob):
     """
+    >>> from leap.util import print_list
     >>> population = [Individual(genome=[1, 0, 1, 1, 0])]
     >>> always = mutate_bitflip(prob=1.0)
-    >>> list(always(population))
+    >>> print_list(always(population))
     [[0, 1, 0, 0, 1]]
 
     Individuals are modified in place:
 
-    >>> population
+    >>> print_list(population)
     [[0, 1, 0, 0, 1]]
 
     >>> population = [Individual(genome=[1, 0, 1, 1, 0])]
     >>> never = mutate_bitflip(prob=0.0)
-    >>> list(never(population))
+    >>> print_list(never(population))
     [[1, 0, 1, 1, 0]]
     """
     def flip(x):
@@ -86,7 +87,8 @@ def truncation(population, mu):
 
     The three highest-fitness individuals are are the indices 1, 5, and 6:
 
-    >>> list(truncation(population, 3))
+    >>> from leap.util import print_list
+    >>> print_list(truncation(population, 3))
     [[1], [5], [6]]
     """
     inds = list(sorted(list(population), key=lambda x: x.fitness, reverse=True))
@@ -124,13 +126,13 @@ def tournament(population, n, num_competitors=2):
 
 def best(population):
     """
-    >>> from leap import decode, binary
-    >>> pop = [Individual([1, 0, 1, 1, 0], decode.IdentityDecoder(), binary.MaxOnes()), \
-               Individual([0, 0, 1, 0, 0], decode.IdentityDecoder(), binary.MaxOnes()), \
-               Individual([0, 1, 1, 1, 1], decode.IdentityDecoder(), binary.MaxOnes()), \
-               Individual([1, 0, 0, 0, 1], decode.IdentityDecoder(), binary.MaxOnes())]
+    >>> from leap import core, binary
+    >>> pop = [Individual([1, 0, 1, 1, 0], core.IdentityDecoder(), binary.MaxOnes()), \
+               Individual([0, 0, 1, 0, 0], core.IdentityDecoder(), binary.MaxOnes()), \
+               Individual([0, 1, 1, 1, 1], core.IdentityDecoder(), binary.MaxOnes()), \
+               Individual([1, 0, 0, 0, 1], core.IdentityDecoder(), binary.MaxOnes())]
     >>> pop = evaluate(pop)
-    >>> best(pop)
+    >>> print(best(pop))
     [0, 1, 1, 1, 1]
     """
     assert(len(population) > 0)
@@ -140,21 +142,22 @@ def best(population):
 @curry
 def cloning(population, offspring_per_ind=1):
     """
+    >>> from leap.util import print_list
     >>> pop = [Individual([1, 2]),
     ...        Individual([3, 4]),
     ...        Individual([5, 6])]
     >>> new_pop = list(cloning(pop))
-    >>> new_pop
+    >>> print_list(new_pop)
     [[1, 2], [3, 4], [5, 6]]
 
     If we edit individuals in the original, new_pop shouldn't change:
 
     >>> pop[0].genome[1] = 7
     >>> pop[2].genome[0] = 0
-    >>> pop
+    >>> print_list(pop)
     [[1, 7], [3, 4], [0, 6]]
 
-    >>> new_pop
+    >>> print_list(new_pop)
     [[1, 2], [3, 4], [5, 6]]
 
     If we set `offspring_per_ind`, we can create bigger populations:
@@ -163,7 +166,7 @@ def cloning(population, offspring_per_ind=1):
     ...        Individual([3, 4]),
     ...        Individual([5, 6])]
     >>> new_pop = list(cloning(pop, offspring_per_ind=3))
-    >>> new_pop
+    >>> print_list(new_pop)
     [[1, 2], [1, 2], [1, 2], [3, 4], [3, 4], [3, 4], [5, 6], [5, 6], [5, 6]]
     """
     assert(population is not None)

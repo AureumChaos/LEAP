@@ -3,13 +3,12 @@ import random
 import numpy as np
 
 from leap.problem import ScalarProblem
-from leap.individual import Individual
 
 
 ##############################
 # Closure real-genome initializer
 ##############################
-def initialize_vectors(decoder, problem, bounds):
+def initialize_vectors_uniform(bounds):
     """
 
     :param decoder:
@@ -17,9 +16,9 @@ def initialize_vectors(decoder, problem, bounds):
     :param bounds:
     :return:
 
-    >>> from leap import decode, real
+    >>> from leap import core, real
     >>> bounds = [(0, 1), (0, 1), (-1, 100)]
-    >>> init = initialize_vectors(decode.IdentityDecoder(), real.Spheroid(), bounds)
+    >>> init = initialize_vectors_uniform(bounds)
     >>> for x in init(5):
     ...     print(x) # +doctest: ELLIPSIS
     [...]
@@ -33,7 +32,7 @@ def initialize_vectors(decoder, problem, bounds):
             yield random.uniform(min, max)
 
     def f(pop_size):
-        return [Individual(list(generate_genome()), decoder, problem) for _ in range(pop_size)]
+        return [list(generate_genome()) for _ in range(pop_size)]
 
     return f
 
@@ -71,12 +70,10 @@ class Spheroid(ScalarProblem):
         """
         We maximize by default:
 
-        >>> from leap import decode
         >>> s = Spheroid()
         >>> s.worse_than(100, 10)
         False
 
-        >>> from leap import decode
         >>> s = Spheroid(maximize=False)
         >>> s.worse_than(100, 10)
         True

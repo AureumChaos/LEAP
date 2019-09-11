@@ -1,6 +1,5 @@
 from leap.problem import ScalarProblem
-from leap.individual import Individual
-import leap.decode as decode
+from leap import core
 
 
 ##############################
@@ -24,9 +23,9 @@ class MaxOnes(ScalarProblem):
     def evaluate(self, phenome):
         """
         >>> p = MaxOnes()
-        >>> ind = Individual([0, 0, 1, 1, 0, 1, 0, 1, 1],
-        ...                  decoder=decode.IdentityDecoder(),
-        ...                  problem=p)
+        >>> ind = core.Individual([0, 0, 1, 1, 0, 1, 0, 1, 1],
+        ...                       decoder=core.IdentityDecoder(),
+        ...                       problem=p)
         >>> p.evaluate(ind.decode())
         5
         """
