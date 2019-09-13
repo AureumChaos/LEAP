@@ -200,10 +200,12 @@ def tournament(population, context, n, num_competitors=2):
     :param int n: The number of individuals to select
     :param int num_competitors: The number of individuals that compete in each tournament
     :return: A generator that produces `n` individuals
-    >>> pop = [Individual(genome=[1, 0, 1, 1, 0]), \
-               Individual(genome=[0, 0, 1, 0, 0]), \
-               Individual(genome=[0, 1, 1, 1, 1]), \
-               Individual(genome=[1, 0, 0, 0, 1])]
+
+    >>> from leap import core, real
+    >>> pop = [Individual([1, 0, 1, 1, 0], core.IdentityDecoder(), real.Spheroid()), \
+               Individual([0, 0, 1, 0, 0], core.IdentityDecoder(), real.Spheroid()), \
+               Individual([0, 1, 1, 1, 1], core.IdentityDecoder(), real.Spheroid()), \
+               Individual([1, 0, 0, 0, 1], core.IdentityDecoder(), real.Spheroid())]
     >>> for (ind, f) in zip(pop, [3, 1, 4, 2]):
     ...     ind.fitness = f
     >>> tournament(pop, None, 3) # doctest:+ELLIPSIS
@@ -212,7 +214,7 @@ def tournament(population, context, n, num_competitors=2):
     result = []
     for i in range(n):
         competitors = np.random.choice(population, num_competitors)
-        result.append(max(competitors, key=lambda x: x.fitness))
+        result.append(max(competitors))
     return result
 
 
