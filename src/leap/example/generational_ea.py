@@ -1,3 +1,5 @@
+import click
+
 from leap import core
 from leap import operate as op
 from leap import real
@@ -29,7 +31,8 @@ def generational(evals, pop_size, individual_cls, decoder, problem, evaluate, in
     The intent behind this kind of EA interface is to allow the complete configuration of a generational evolutionary
     algorithm to be defined in a clean and readable way.  If you define most of the components in-line when passing
     them to the named arguments, then the complete configuration of an algorithmic experiment forms one concise code
-    block:
+    block.  Here's what a basic (mu, lambda)-style EA looks like (that is, an EA that throws away the parents at each
+    generation in favor of their offspring):
 
     >>> from leap import core, real
     >>> from leap import operate as op
@@ -44,7 +47,7 @@ def generational(evals, pop_size, individual_cls, decoder, problem, evaluate, in
     ...                   # Initialized genomes are random real-valued vectors
     ...                   initialize=real.initialize_vectors_uniform(
     ...                       # Initialize each element between 0 and 1
-    ...                       bounds=[[0, 1.0]] * l
+    ...                       bounds=[[-5.12, 5.12]] * l
     ...                   ),
     ...
     ...                   # The operator pipeline
@@ -89,32 +92,48 @@ def generational(evals, pop_size, individual_cls, decoder, problem, evaluate, in
         yield (i, op.best(population))  # Yield the best individual for each generation
 
 
-if __name__ == '__main__':
-    mu = 5  # Parent population size
-    l = 10  # Length of the genome
-    ea = generational(evals=1000, pop_size=mu,
+@click.group()
+def cli():
+    """Entry point for the click command-line application."""
+    pass
+
+
+@cli.command()
+@click.option('--evals', default=100, help='Fitness evaluations to run for')
+@click.option('--pop_size', default=5, help='Population size')
+@click.option('--l', default=10, help='Length of the genome')
+@click.option('--mutate-prob', default=0.1, help='Per-gene Gaussian mutation rate')
+@click.option('--mutate-std', default=0.05, help='Standard deviation of Gaussian mutation')
+def mu_comma_lambda(evals, pop_size, l, mutate_prob, mutate_std):
+    """This program applies a simple generational EA with tournament selection and Gaussian mutation to the `Spheroid`
+    function.  Several parameters can be configured as CLI options."""
+    ea = generational(evals=evals, pop_size=pop_size,
                       individual_cls=core.Individual,  # Use the standard Individual as the prototype for the population
-                      decoder=core.IdentityDecoder,  # Genotype and phenotype are the same for this task
+                      decoder=core.IdentityDecoder(),  # Genotype and phenotype are the same for this task
                       problem=real.Spheroid(maximize=False),  # Solve a Spheroid minimization problem
                       evaluate=op.evaluate,  # Evaluate fitness with the basic evaluation operator
 
                       # Initialized genomes are random real-valued vectors
                       initialize=real.initialize_vectors_uniform(
                           # Initialize each element between 0 and 1
-                          bounds=[[0, 1.0]] * l
+                          bounds=[[-5.12, 5.12]] * l
                       ),
 
                       # The operator pipeline
                       pipeline=[
                           # Select mu parents via tournament selection
-                          op.tournament(n=mu),
+                          op.tournament(n=pop_size),
                           # Clone them to create offspring
                           op.cloning,
                           # Apply Gaussian mutation to each gene with a certain probability
-                          op.mutate_gaussian(prob=0.1, std=0.05)
+                          op.mutate_gaussian(prob=mutate_prob, std=mutate_std)
                       ])
 
     print('generation, best_of_gen_fitness')
     for (i, ind) in ea:
-        print('i, {0}'.format(ind.fitness))
+        print('{0}, {1}'.format(i, ind.fitness))
 
+
+if __name__ == '__main__':
+    # Just call our click CLI interface
+    cli()
