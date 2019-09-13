@@ -1,8 +1,7 @@
 import click
 
-from leap import core
+from leap import core, real, probe
 from leap import operate as op
-from leap import real
 
 
 def simple_ea(evals, pop_size, individual_cls, decoder, problem, evaluate, initialize, pipeline):
@@ -79,17 +78,18 @@ def simple_ea(evals, pop_size, individual_cls, decoder, problem, evaluate, initi
     # Initialize a population of pop_size individuals of the same type as individual_cls
     population = individual_cls.create_population(pop_size, initialize, decoder, problem)
     # Evaluate the population's fitness once before we start the main loop
-    population = evaluate(population)
+    population, _ = evaluate(population)
 
-    i = pop_size # Eval counter
-    yield (i, op.best(population))  # Yield the best individual in the initial population
+    i = pop_size  # Eval counter
+    best = lambda pop: probe.best_of_gen(pop)[0]
+    yield (i, best(population))  # Yield the best individual in the initial population
     while i < evals:
         # Run the population through the operator pipeline
         # We aren't using any context data, so we pass in None
-        population = op.do_pipeline(population, None, *pipeline)
-        population = evaluate(population)  # Evaluate the fitness of the offspring population
+        population, _ = op.do_pipeline(population, None, *pipeline)
+        population, _ = evaluate(population)  # Evaluate the fitness of the offspring population
         i += len(population)  # Increment the eval counter by the size of the population
-        yield (i, op.best(population))  # Yield the best individual for each generation
+        yield (i, best(population))  # Yield the best individual for each generation
 
 
 @click.group()
@@ -144,7 +144,10 @@ def mu_comma_lambda(evals, pop_size, l, mutate_prob, mutate_std):
 def mu_plus_lambda(evals, mu, lambda_, l, mutate_prob, mutate_std):
     """Apply a (μ + λ)-style generational EA with truncation selection and Gaussian
     mutation to the `Spheroid` function."""
+    # Setup a (μ + λ) concatenation operator
     mu_plus_lambda_cat = op.MuPlusLambdaConcatenation()
+    # Setup a probe to collect the BSF fitness
+    bsf_probe = probe.memory_probe(probe=probe.BestSoFar(just_fitness=True))
     ea = simple_ea(evals=evals, pop_size=mu + lambda_,
                    individual_cls=core.Individual,  # Use the standard Individual as the prototype for the population.
                    decoder=core.IdentityDecoder(),  # Genotype and phenotype are the same for this task.
@@ -159,6 +162,8 @@ def mu_plus_lambda(evals, mu, lambda_, l, mutate_prob, mutate_std):
 
                    # The operator pipeline
                    pipeline=[
+                       # Collect the BSF fitness at the start of each generation
+                       bsf_probe,
                        # Choose the best μ individuals to serve as parents
                        op.truncation(mu=mu),
                        # Save the parents for later.

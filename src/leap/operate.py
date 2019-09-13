@@ -12,8 +12,8 @@ from leap.core import Individual
 def do_pipeline(population, context, *pipeline):
     """"""
     for op in pipeline:
-        population = op(population, context)
-    return population
+        population, context = op(population, context)
+    return population, context
 
 
 ##############################
@@ -61,7 +61,7 @@ def evaluate(population, context=None):
     for individual in population:
         individual.evaluate()
 
-    return population
+    return population, context
 
 
 ##############################
@@ -74,7 +74,7 @@ def cloning(population, context=None, offspring_per_ind=1):
     >>> pop = [Individual([1, 2]),
     ...        Individual([3, 4]),
     ...        Individual([5, 6])]
-    >>> new_pop = cloning(pop)
+    >>> new_pop, _ = cloning(pop)
     >>> print_list(new_pop)
     [[1, 2], [3, 4], [5, 6]]
 
@@ -93,7 +93,7 @@ def cloning(population, context=None, offspring_per_ind=1):
     >>> pop = [Individual([1, 2]),
     ...        Individual([3, 4]),
     ...        Individual([5, 6])]
-    >>> new_pop = cloning(pop, offspring_per_ind=3)
+    >>> new_pop, _ = cloning(pop, offspring_per_ind=3)
     >>> print_list(new_pop)
     [[1, 2], [1, 2], [1, 2], [3, 4], [3, 4], [3, 4], [5, 6], [5, 6], [5, 6]]
     """
@@ -106,7 +106,7 @@ def cloning(population, context=None, offspring_per_ind=1):
             result.append(ind.clone())
 
     assert(len(result) == offspring_per_ind*len(population))
-    return result
+    return result, context
 
 
 ##############################
@@ -118,7 +118,8 @@ def mutate_bitflip(population, context, prob):
     >>> from leap.util import print_list
     >>> population = [Individual(genome=[1, 0, 1, 1, 0])]
     >>> always = mutate_bitflip(prob=1.0)
-    >>> print_list(always(population, None))
+    >>> pop, _ = always(population, None)
+    >>> print_list(pop)
     [[0, 1, 0, 0, 1]]
 
     Individuals are modified in place:
@@ -128,7 +129,8 @@ def mutate_bitflip(population, context, prob):
 
     >>> population = [Individual(genome=[1, 0, 1, 1, 0])]
     >>> never = mutate_bitflip(prob=0.0)
-    >>> print_list(never(population, None))
+    >>> pop, _ = never(population, None)
+    >>> print_list(pop)
     [[1, 0, 1, 1, 0]]
     """
     def flip(x):
@@ -142,7 +144,7 @@ def mutate_bitflip(population, context, prob):
         ind.genome = [flip(x) for x in ind.genome]
         ind.fitness = None
         result.append(ind)
-    return result
+    return result, context
 
 
 ##############################
@@ -161,7 +163,7 @@ def mutate_gaussian(population, context, prob, std):
         ind.genome = [add_gauss(x) for x in ind.genome]
         ind.fitness = None
         result.append(ind)
-    return result
+    return result, context
 
 
 ##############################
@@ -174,19 +176,21 @@ def truncation(population, context, mu):
 
     For example, say we have a population of 10 individuals with the following fitnesses:
 
+    >>> from leap import core, real
     >>> fitnesses = [0.12473057, 0.74763715, 0.6497458 , 0.36178902, 0.41318757, 0.69130493, 0.67464942, 0.14895497, 0.15406642, 0.31307095]
-    >>> population = [Individual([i]) for i in range(10)]
+    >>> population = [Individual([i], core.IdentityDecoder(), real.Spheroid()) for i in range(10)]
     >>> for (ind, f) in zip(population, fitnesses):
     ...     ind.fitness = f
 
     The three highest-fitness individuals are are the indices 1, 5, and 6:
 
     >>> from leap.util import print_list
-    >>> print_list(truncation(population, None, 3))
+    >>> pop, _ = truncation(population, None, 3)
+    >>> print_list(pop)
     [[1], [5], [6]]
     """
     inds = list(sorted(list(population), reverse=True))
-    return inds[0:mu]
+    return inds[0:mu], context
 
 
 ##############################
@@ -208,37 +212,15 @@ def tournament(population, context, n, num_competitors=2):
                Individual([1, 0, 0, 0, 1], core.IdentityDecoder(), real.Spheroid())]
     >>> for (ind, f) in zip(pop, [3, 1, 4, 2]):
     ...     ind.fitness = f
-    >>> tournament(pop, None, 3) # doctest:+ELLIPSIS
+    >>> pop, _ = tournament(pop, None, 3)
+    >>> pop  # doctest:+ELLIPSIS
     [..., ..., ...]
     """
     result = []
     for i in range(n):
         competitors = np.random.choice(population, num_competitors)
         result.append(max(competitors))
-    return result
-
-
-##############################
-# best  method
-##############################
-def best(population, context=None):
-    """
-    Syntactic sugar to select the best individual in a population.
-
-    :param population: a list of individuals
-    :param context: optional `dict` of auxiliary state (ignored)
-
-    >>> from leap import core, binary
-    >>> pop = [Individual([1, 0, 1, 1, 0], core.IdentityDecoder(), binary.MaxOnes()), \
-               Individual([0, 0, 1, 0, 0], core.IdentityDecoder(), binary.MaxOnes()), \
-               Individual([0, 1, 1, 1, 1], core.IdentityDecoder(), binary.MaxOnes()), \
-               Individual([1, 0, 0, 0, 1], core.IdentityDecoder(), binary.MaxOnes())]
-    >>> pop = evaluate(pop)
-    >>> print(best(pop))
-    [0, 1, 1, 1, 1]
-    """
-    assert(len(population) > 0)
-    return max(population)
+    return result, context
 
 
 ##############################
@@ -250,7 +232,7 @@ class MuPlusLambdaConcatenation(Operator):
 
     def capture_parents(self, population, context=None):
         self.parents = population
-        return population
+        return population, context
 
     def __call__(self, population, context=None):
-        return self.parents + population
+        return self.parents + population, context
