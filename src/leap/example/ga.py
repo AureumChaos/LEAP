@@ -1,5 +1,3 @@
-import toolz
-
 from leap import core
 from leap import operate as op
 from leap import real
@@ -51,15 +49,20 @@ def generational(evals, mu, lambda_, individual_cls, decoder, problem, evaluate,
     ...
     (1000, Individual(...))
     """
+
+    # Initialize a population of mu + lambda_ individuals of the same type as individual_cls
     population = individual_cls.create_population(mu + lambda_, initialize, decoder, problem)
+    # Evaluate the population's fitness once before we start the main loop
     population = evaluate(population)
 
-    i = mu + lambda_
+    i = mu + lambda_ # Eval counter
     while i < evals:
-        population = toolz.pipe(population, *pipeline)
-        population = evaluate(population)
-        i += len(population)
-        yield (i, op.best(population))
+        # Run the population through the operator pipeline
+        # We aren't using any context data, so we pass in None
+        population = op.do_pipeline(population, None, *pipeline)
+        population = evaluate(population)  # Evaluate the fitness of the offspring population
+        i += len(population)  # Increment the eval counter by the size of the population
+        yield (i, op.best(population))  # Yield the best individual for each generation
 
 
 if __name__ == '__main__':
