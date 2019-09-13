@@ -185,7 +185,7 @@ def truncation(population, context, mu):
     >>> print_list(truncation(population, None, 3))
     [[1], [5], [6]]
     """
-    inds = list(sorted(list(population), key=lambda x: x.fitness, reverse=True))
+    inds = list(sorted(list(population), reverse=True))
     return inds[0:mu]
 
 
@@ -239,3 +239,18 @@ def best(population, context=None):
     """
     assert(len(population) > 0)
     return max(population)
+
+
+##############################
+# Class MuPlusLambda
+##############################
+class MuPlusLambdaConcatenation(Operator):
+    def __init__(self):
+        self.parents = None
+
+    def capture_parents(self, population, context=None):
+        self.parents = population
+        return population
+
+    def __call__(self, population, context=None):
+        return self.parents + population
