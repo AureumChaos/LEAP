@@ -35,7 +35,7 @@ venv:
 doc:
         # The apidoc call is long because we need to tell it to
         # use the venv's version of sphinx-build
-	sphinx-apidoc -o docs/source/ src/ SPHINXBUILD='python $(shell which sphinx-build)'
+	sphinx-apidoc -f -o docs/source/ src/ SPHINXBUILD='python $(shell which sphinx-build)'
 	cd docs && make html
 
 setup:

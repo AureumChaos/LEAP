@@ -4,10 +4,10 @@ leap.example package
 Submodules
 ----------
 
-leap.example.ga module
-----------------------
+leap.example.simple\_ea module
+------------------------------
 
-.. automodule:: leap.example.ga
+.. automodule:: leap.example.simple_ea
    :members:
    :undoc-members:
    :show-inheritance:

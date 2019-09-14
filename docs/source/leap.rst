@@ -27,10 +27,26 @@ leap.core module
    :undoc-members:
    :show-inheritance:
 
+leap.data module
+----------------
+
+.. automodule:: leap.data
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 leap.operate module
 -------------------
 
 .. automodule:: leap.operate
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+leap.probe module
+-----------------
+
+.. automodule:: leap.probe
    :members:
    :undoc-members:
    :show-inheritance:

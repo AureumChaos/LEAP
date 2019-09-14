@@ -2,4 +2,5 @@ numpy
 pytest
 toolz
 sphinx
+sphinx_rtd_theme
 click
