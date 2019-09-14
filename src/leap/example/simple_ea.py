@@ -4,7 +4,7 @@ from leap import core, real, probe
 from leap import operate as op
 
 
-def simple_ea(evals, pop_size, individual_cls, decoder, problem, evaluate, initialize, pipeline):
+def simple_ea(evals, pop_size, individual_cls, decoder, problem, evaluate, initialize, pipeline, step_notify_list=[]):
     """
     An example implementation of a basic evolutionary algorithm.
 
@@ -81,9 +81,12 @@ def simple_ea(evals, pop_size, individual_cls, decoder, problem, evaluate, initi
     population, _ = evaluate(population)
 
     i = pop_size  # Eval counter
-    best = lambda pop: probe.best_of_gen(pop)[0]
+    best = lambda pop: probe.best_of_gen(pop)
     yield (i, best(population))  # Yield the best individual in the initial population
     while i < evals:
+        # Run step notification hooks (if any)
+        for f in step_notify_list:
+            f(i)
         # Run the population through the operator pipeline
         # We aren't using any context data, so we pass in None
         population, _ = op.do_pipeline(population, None, *pipeline)
