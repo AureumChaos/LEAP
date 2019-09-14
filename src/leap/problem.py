@@ -84,7 +84,8 @@ class ScalarProblem(Problem):
 ##############################
 class FunctionProblem(Problem):
 
-    def __init__(self, fitness_function):
+    def __init__(self, fitness_function, maximize):
+        super().__init__(maximize)
         self.fitness_function = fitness_function
 
     def evaluate(self, phenome):

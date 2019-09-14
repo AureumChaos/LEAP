@@ -205,11 +205,8 @@ def tournament(population, context, n, num_competitors=2):
     :param int num_competitors: The number of individuals that compete in each tournament
     :return: A generator that produces `n` individuals
 
-    >>> from leap import core, real
-    >>> pop = [Individual([1, 0, 1, 1, 0], core.IdentityDecoder(), real.Spheroid()), \
-               Individual([0, 0, 1, 0, 0], core.IdentityDecoder(), real.Spheroid()), \
-               Individual([0, 1, 1, 1, 1], core.IdentityDecoder(), real.Spheroid()), \
-               Individual([1, 0, 0, 0, 1], core.IdentityDecoder(), real.Spheroid())]
+    >>> from leap import core, real, data
+    >>> pop = data.test_population
     >>> for (ind, f) in zip(pop, [3, 1, 4, 2]):
     ...     ind.fitness = f
     >>> pop, _ = tournament(pop, None, 3)

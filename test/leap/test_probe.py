@@ -1,23 +1,20 @@
 import io
 
 from leap.probe import *
-from leap import core, binary
+from leap import core, binary, data
 from leap import operate as op
 
 
 ##############################
 # Tests for CSVProbe
 ##############################
-def test_CSVProbe_1():
+def test_CSVAttributesProbe_1():
     """When recording the attribute 'my_value' and leaving other arguments at their default,
     running CSVProbe on a population of individuals with just the attribute 'my_value' should
     produce the correct CSV-formatted output."""
     # Set up a population
     # TODO simplify this with a test fixture
-    pop = [Individual([1, 0, 1, 1, 0], core.IdentityDecoder(), binary.MaxOnes()),
-           Individual([0, 0, 1, 0, 0], core.IdentityDecoder(), binary.MaxOnes()),
-           Individual([0, 1, 1, 1, 1], core.IdentityDecoder(), binary.MaxOnes()),
-           Individual([1, 0, 0, 0, 1], core.IdentityDecoder(), binary.MaxOnes())]
+    pop = data.test_population
     pop, _ = op.evaluate(pop)  # Evaluate its fitness
 
     # Assign distinct alues to an attribute on each individual
@@ -28,7 +25,7 @@ def test_CSVProbe_1():
 
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
-    probe = CSVProbe(stream, ['my_value'])
+    probe = CSVAttributesProbe(stream, ['my_value'])
     probe.set_step(10)
 
     # Execute
@@ -45,16 +42,13 @@ def test_CSVProbe_1():
     assert(result == expected)
 
 
-def test_CSVProbe_2():
+def test_CSVAttributesProbe_2():
     """When recording the attribute 'my_value' and leaving other arguments at their default,
     running CSVProbe on a population of individuals with several attributes should
     produce CSV-formatted output that only records 'my_value'."""
     # Set up a population
     # TODO simplify this with a test fixture
-    pop = [Individual([1, 0, 1, 1, 0], core.IdentityDecoder(), binary.MaxOnes()),
-           Individual([0, 0, 1, 0, 0], core.IdentityDecoder(), binary.MaxOnes()),
-           Individual([0, 1, 1, 1, 1], core.IdentityDecoder(), binary.MaxOnes()),
-           Individual([1, 0, 0, 0, 1], core.IdentityDecoder(), binary.MaxOnes())]
+    pop = data.test_population
     pop, _ = op.evaluate(pop)  # Evaluate its fitness
 
     # Assign distinct alues to an attribute on each individual
@@ -67,7 +61,7 @@ def test_CSVProbe_2():
 
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
-    probe = CSVProbe(stream, ['foo', 'bar'])
+    probe = CSVAttributesProbe(stream, ['foo', 'bar'])
     probe.set_step(10)
 
     # Execute
@@ -84,14 +78,11 @@ def test_CSVProbe_2():
     assert(result == expected)
 
 
-def test_CSVProbe_3():
+def test_CSVAttributesProbe_3():
     """Changing the order of the attributes list changes the order of the columns."""
     # Set up a population
     # TODO simplify this with a test fixture
-    pop = [Individual([1, 0, 1, 1, 0], core.IdentityDecoder(), binary.MaxOnes()),
-           Individual([0, 0, 1, 0, 0], core.IdentityDecoder(), binary.MaxOnes()),
-           Individual([0, 1, 1, 1, 1], core.IdentityDecoder(), binary.MaxOnes()),
-           Individual([1, 0, 0, 0, 1], core.IdentityDecoder(), binary.MaxOnes())]
+    pop = data.test_population
     pop, _ = op.evaluate(pop)  # Evaluate its fitness
 
     # Assign distinct alues to an attribute on each individual
@@ -104,7 +95,7 @@ def test_CSVProbe_3():
 
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
-    probe = CSVProbe(stream, ['bar', 'foo'])  # Passing params in reverse order from the other test above
+    probe = CSVAttributesProbe(stream, ['bar', 'foo'])  # Passing params in reverse order from the other test above
     probe.set_step(10)
 
     # Execute
@@ -121,14 +112,11 @@ def test_CSVProbe_3():
     assert(result == expected)
 
 
-def test_CSVProbe_4():
+def test_CSVAttributesProbe_4():
     """Proving an attribute that contains list data should work flawlessly.."""
     # Set up a population
     # TODO simplify this with a test fixture
-    pop = [Individual([1, 0, 1, 1, 0], core.IdentityDecoder(), binary.MaxOnes()),
-           Individual([0, 0, 1, 0, 0], core.IdentityDecoder(), binary.MaxOnes()),
-           Individual([0, 1, 1, 1, 1], core.IdentityDecoder(), binary.MaxOnes()),
-           Individual([1, 0, 0, 0, 1], core.IdentityDecoder(), binary.MaxOnes())]
+    pop = data.test_population
     pop, _ = op.evaluate(pop)  # Evaluate its fitness
 
     # Assign distinct alues to an attribute on each individual
@@ -141,7 +129,7 @@ def test_CSVProbe_4():
 
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
-    probe = CSVProbe(stream, ['bar', 'baz'])  # Passing params in reverse order from the other test above
+    probe = CSVAttributesProbe(stream, ['bar', 'baz'])  # Passing params in reverse order from the other test above
     probe.set_step(10)
 
     # Execute
