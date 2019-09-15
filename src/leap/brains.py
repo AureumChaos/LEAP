@@ -114,13 +114,14 @@ class BrainProblem(real.ScalarProblem):
             run_rewards = []
             for t in range(self.steps):
                 self.environment.render()
-                action = brain.output(observation)  # Only look at the first output
+                action = brain.output(observation)
                 observation, reward, done, info = self.environment.step(action)
                 run_observations.append(observation)
                 run_rewards.append(reward)
                 if self.stop_on_done and done:
                     break
             observations.append(run_observations)
+            rewards.append(run_rewards)
         self.environment.close()
         return self.behavior_fitness(observations, rewards)
 
@@ -129,7 +130,8 @@ class BrainProblem(real.ScalarProblem):
 # reward_fitness function
 ##############################
 def reward_fitness(observations, rewards):
-    return sum(rewards)
+    sums = [sum(run) for run in rewards]
+    return np.mean(sums)
 
 
 ##############################
