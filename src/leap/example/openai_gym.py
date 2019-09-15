@@ -106,5 +106,31 @@ def evolve_pitt(runs, steps, env, evals, pop_size, num_rules, mutate_prob, mutat
         list(ea)
 
 
+@cli.command()
+@click.option('--runs', default=1, help='Number of independent times to run the environment per fitness eval.')
+@click.option('--steps', default=500, help='Max number of steps to run the environment for each run.')
+@click.option('--env', default='CartPole-v0', help='The OpenAI Gym environment to run.')
+@click.argument('rules')
+def run_pitt(runs, steps, env, rules):
+    """
+    Used a fixed Pitt-style ruleset to control an agent in the given environment.
+
+    Takes ruleset to use as the controller as the RULES argument, in the form of a string, ex.
+     \"c1, c1\',  c2, c2\', ... cn, cn\',  a1, ... am, m1, ... mr\"
+     """
+    # Convert rules string into a list of floats
+    rules = list(map(float, rules.split(',')))
+    environment = gym.make(env)
+    decoder = brains.PittRulesDecoder(
+                           input_space=environment.observation_space,
+                           output_space=environment.action_space,
+                           priority_metric=brains.PittRulesBrain.PriorityMetric.RULE_ORDER,
+                           num_memory_registers=0
+                       )
+    brain = decoder.decode(rules)
+    problem = brains.BrainProblem(runs, steps, environment, brains.survival_fitness)
+    print(problem.evaluate(brain))
+
+
 if __name__ == '__main__':
     cli()
