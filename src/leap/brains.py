@@ -111,7 +111,7 @@ class BrainProblem(real.ScalarProblem):
             run_rewards = []
             for t in range(self.steps):
                 self.environment.render()
-                action = brain.output(observation)[0]  # Only look at the first output
+                action = brain.output(observation)  # Only look at the first output
                 observation, reward, done, info = self.environment.step(action)
                 run_observations.append(observation)
                 run_rewards.append(reward)
@@ -256,24 +256,33 @@ class PittRulesBrain(Brain):
         It outputs `0` for inputs that are covered by only the first rule:
 
         >>> brain.output([0.1, 0.1])
-        [0]
+        0
 
         >>> brain.output([0.5, 0.3])
-        [0]
+        0
 
         It outputs `1` for inputs that are covered by only the second rule:
 
         >>> brain.output([0.9, 0.9])
-        [1]
+        1
 
         >>> brain.output([0.5, 0.6])
-        [1]
+        1
 
         If a point is covered by both rules, the first rule fires (because we set `priority_metric` to `RULE_ORDER`),
         and it outputs `0`:
 
         >>> brain.output([0.5, 0.5])
-        [0]
+        0
+
+        Note that if the system has more than one output, a list is returned:
+
+        >>> ruleset = [[0.0,0.6, 0.0,0.5, 0, 1],
+        ...            [0.4,1.0, 0.3,1.0, 1, 0]]
+        >>> brain = PittRulesBrain(input_space, output_space, ruleset,
+        ...                        priority_metric=PittRulesBrain.PriorityMetric.RULE_ORDER)
+        >>> brain.output([0.1, 0.1])
+        [0, 1]
 
         """
         # Compute the match set
@@ -290,7 +299,12 @@ class PittRulesBrain(Brain):
         # TODO Implement other common conflict-resolutions strategies: like picking the output with the most rules
         # TODO advocating for it (i.e. vote).
         winner = np.random.choice(match_list)
-        return np.round(self.__fire(winner)).astype(int).tolist()
+        output = np.round(self.__fire(winner)).astype(int).tolist()
+        assert(len(output) == self.num_outputs)
+        if self.num_outputs > 1:
+            return output  # Return a list of outputs if there are more than one
+        else:
+            return output[0]  # Return just the raw output if there is only one
 
 
 ##############################
@@ -313,6 +327,6 @@ class PittRulesDecoder(core.Decoder):
         assert(len(genome) > 0)
         rule_length = self.num_inputs*2 + self.num_outputs + self.num_memory_registers
         assert(len(genome) % rule_length == 0)
-        rules = np.reshape(genome, (rule_length, -1))
+        rules = np.reshape(genome, (-1, rule_length))
         return PittRulesBrain(self.input_space, self.output_space, rules, self.priority_metric)
 

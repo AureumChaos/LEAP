@@ -151,16 +151,19 @@ def mutate_bitflip(population, context, prob):
 # mutate_gaussian operator
 ##############################
 @curry
-def mutate_gaussian(population, context, prob, std):
+def mutate_gaussian(population, context, prob, std, hard_bounds=(-np.inf, np.inf)):
     def add_gauss(x):
         if np.random.uniform() < prob:
             return x + np.random.normal()*std
         else:
             return x
 
+    def clip(x):
+        return max(hard_bounds[0], min(hard_bounds[1], x))
+
     result = []
     for ind in population:
-        ind.genome = [add_gauss(x) for x in ind.genome]
+        ind.genome = [clip(add_gauss(x)) for x in ind.genome]
         ind.fitness = None
         result.append(ind)
     return result, context

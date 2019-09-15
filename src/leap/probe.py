@@ -58,25 +58,44 @@ class CSVFitnessStatsProbe(op.Operator):
 ##############################
 class CSVAttributesProbe(op.Operator):
     """
-    An operator that records the specified attributes for all the individuals in `population` in CSV-format to the
-    specified stream.
+    An operator that records the specified attributes for all the individuals (or just the best individual) in
+    `population` in CSV-format to the specified stream.
 
     :param population: list of individuals to take measurements from
     :param context: an optional context
     :param attributes: list of attribute names to record, as found in individuals' `attributes` field
     :return: `(population, context)`, unmodified (this allows you to place probes directly in an operator pipeline)
 
-    Here's an example that writes CSV output to a `StringIO` file object.  You can also use standard streams like files
-    or `sys.stdout`:
+    Individuals contain some build-in attributes (namely fitness, genome), and also a `dict` of additional custom
+    attributes called, well, `attributes`.  This class allows you to log all of the above.
+
+    Most often, you will want to record only the best individual in the population at each step, and you'll just want
+    to know its fitness and genome.  You can do this with this class's boolean flags.  For example, here's how you'd
+    record the best individual's fitness and genome to a `StringIO` file object:
 
     >>> import io
     >>> from leap.data import test_population
     >>> stream = io.StringIO()
-    >>> probe = CSVAttributesProbe(stream, ['foo', 'bar'])
+    >>> probe = CSVAttributesProbe(stream, best_only=True, do_fitness=True, do_genome=True)
     >>> probe.set_step(100)
     >>> probe(test_population, context=None)
     (..., None)
 
+    >>> print(stream.getvalue())
+    step, fitness, genome
+    100, 4, [0, 1, 1, 1, 1]
+    <BLANKLINE>
+
+    You could just as easily use standard streams like `sys.stdout` for the `stream` parameter.
+
+    Another common use of this task is to record custom attributes that are stored on individuals in certain kinds of
+    experiments.  Here's how you would record the values of `ind.attributes['foo']` and `ind.attributes['bar']` for
+    every individual in the population:
+
+    >>> stream = io.StringIO()
+    >>> probe = CSVAttributesProbe(stream, attributes=['foo', 'bar'])
+    >>> probe.set_step(100)
+    >>> r = probe(test_population, context=None)
     >>> print(stream.getvalue())
     step, foo, bar
     100, GREEN, Colorless
@@ -86,17 +105,26 @@ class CSVAttributesProbe(op.Operator):
     <BLANKLINE>
     """
 
-    def __init__(self, stream, attributes, header=True, do_fitness=True, do_genome=False):
+    def __init__(self, stream, attributes=[], header=True, best_only=False, do_fitness=False, do_genome=False):
         assert(stream is not None)
         assert(hasattr(stream, 'write'))
-        assert(len(attributes) > 0)
+        assert(len(attributes) >= 0)
         self.stream = stream
         self.attributes = attributes
         self.step = None
+        self.best_only = best_only
         self.do_fitness = do_fitness
         self.do_genome = do_genome
+
         if header:
-            stream.write('step, ' + ', '.join(attributes) + '\n')
+            stream.write('step')
+            if len(attributes) > 0:
+                stream.write(', ' + ', '.join(attributes))
+            if do_fitness:
+                stream.write(', fitness')
+            if do_genome:
+                stream.write(', genome')
+            stream.write('\n')
 
     def set_step(self, step):
         """Have your algorithm call this method every time the generation or step changes, so that the probe knows what
@@ -109,12 +137,22 @@ class CSVAttributesProbe(op.Operator):
         # TODO Replace this custom code with calls to a CSV package?
         # TODO would be nice if we defaulted to checking a context variable if set_step() is never called
         assert(population is not None)
-        for ind in population:
+
+        individuals = [best_of_gen(population)] if self.best_only else population
+
+        for ind in individuals:
             self.stream.write(str(self.step))
+
             for attr in self.attributes:
                 if attr not in ind.attributes:
                     raise ValueError('Attribute "{0}" not found in individual "{1}".'.format(attr, ind.__repr__()))
                 self.stream.write(', ' + str(ind.attributes[attr]))
+
+            if self.do_fitness:
+                self.stream.write(', ' + str(ind.fitness))
+            if self.do_genome:
+                self.stream.write(', ' + str(ind.genome))
+
             self.stream.write('\n')
         return population, context
 
