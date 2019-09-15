@@ -71,6 +71,9 @@ class KeyboardBrain(Brain):
     def __init__(self, input_space, output_space,
                  keymap=lambda x: int(x - ord('0')) if x in range(ord('0'), ord('9')) else 0):
         assert(output_space is not None)
+        if np.prod(output_space.shape) > 1:
+            raise ValueError("This environment requires a 'brain' with {0} ".format(np.prod(output_space.shape)) +
+                             "outputs, but {0} can only produce 1 output at a time.".format(KeyboardBrain.__name__))
         assert(keymap is not None)
         self.output_space = output_space
         self.keymap = keymap
