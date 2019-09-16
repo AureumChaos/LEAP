@@ -284,6 +284,7 @@ class PittRulesBrain(Brain):
 
         >>> ruleset = [[0.0,0.6, 0.0,0.5, 0, 1],
         ...            [0.4,1.0, 0.3,1.0, 1, 0]]
+        >>> output_space = spaces.MultiBinary(2)  # A space with two binary outputs
         >>> brain = PittRulesBrain(input_space, output_space, ruleset,
         ...                        priority_metric=PittRulesBrain.PriorityMetric.RULE_ORDER)
         >>> brain.output([0.1, 0.1])
