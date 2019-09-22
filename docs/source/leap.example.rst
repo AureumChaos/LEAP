@@ -4,6 +4,14 @@ leap.example package
 Submodules
 ----------
 
+leap.example.openai\_gym module
+-------------------------------
+
+.. automodule:: leap.example.openai_gym
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 leap.example.simple\_ea module
 ------------------------------
 

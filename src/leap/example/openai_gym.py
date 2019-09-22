@@ -63,7 +63,7 @@ def random(runs, steps, env):
 @click.option('--mutate-std', default=0.05, help='Standard deviation of Gaussian mutation')
 @click.option('--output', default='./genomes.csv', help='File to record best-of-gen genomes & fitness to.')
 def evolve_pitt(runs, steps, env, evals, pop_size, num_rules, mutate_prob, mutate_std, output):
-    """Evolve a controller using a Pitt-style LCS."""
+    """Evolve a controller using a Pitt-style rule system."""
 
     environment = gym.make(env)
     num_inputs = int(np.prod(environment.observation_space.shape))
@@ -80,7 +80,7 @@ def evolve_pitt(runs, steps, env, evals, pop_size, num_rules, mutate_prob, mutat
                            priority_metric=brains.PittRulesBrain.PriorityMetric.RULE_ORDER,
                            num_memory_registers=0
                        ),
-                       problem=brains.BrainProblem(runs, steps, environment, brains.survival_fitness),
+                       problem=brains.BrainProblem(runs, steps, environment, brains.reward_fitness),
                        evaluate=op.evaluate,  # Evaluate fitness with the basic evaluation operator.
 
                        # Initialized genomes are random real-valued vectors.

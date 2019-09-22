@@ -19,6 +19,14 @@ leap.binary module
    :undoc-members:
    :show-inheritance:
 
+leap.brains module
+------------------
+
+.. automodule:: leap.brains
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 leap.core module
 ----------------
 

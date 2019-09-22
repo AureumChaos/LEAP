@@ -199,7 +199,7 @@ def best_of_gen(population):
 ##############################
 # BestSoFar probe
 ##############################
-class BestSoFar(op.Operator):
+class BestSoFarProbe(op.Operator):
     def __init__(self, just_fitness=False):
         self.bsf = None
         self.just_fitness = just_fitness
