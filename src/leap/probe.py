@@ -1,5 +1,6 @@
 import sys
 
+from matplotlib import pyplot as plt
 import numpy as np
 from toolz import curry
 
@@ -174,6 +175,48 @@ class MemoryProbe(op.Operator):
 
     def clear(self):
         self.data = []
+
+
+##############################
+# Class PlotProbe
+##############################
+class PlotProbe:
+    def __init__(self, ax=None, f=lambda x: best_of_gen(x).fitness, xlim=(0, 100), ylim=(0, 1), ):
+        if not ax:
+            ax = plt.gca()
+        ax.plot([], [])
+        ax.set_ylim(ylim)
+        ax.set_xlim(xlim)
+        self.ax = ax
+        self.left, self.right = xlim
+        self.bottom, self.top = ylim
+        self.f = f
+        self.step = -1
+        self.x = np.array([])
+        self.y = np.array([])
+
+    def set_step(self, i):
+        self.step = i
+
+    def __call__(self, population, context):
+        self.x = np.append(self.x, self.step)
+        self.y = np.append(self.y, self.f(population))
+        line = self.ax.lines[0]
+        line.set_xdata(self.x)
+        line.set_ydata(self.y)
+        self.__rescale_ax()
+        self.ax.figure.canvas.draw()
+        return population, context
+
+    def __rescale_ax(self):
+        if np.min(self.x) < self.left:
+            self.ax.set_xlim(left=np.min(self.x))
+        if np.max(self.x) > self.right:
+            self.ax.set_xlim(right=np.max(self.x))
+        if np.min(self.y) < self.bottom:
+            self.ax.set_ylim(bottom=np.min(self.y))
+        if np.max(self.y) > self.top:
+            self.ax.set_ylim(top=np.max(self.y))
 
 
 ##############################
