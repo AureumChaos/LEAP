@@ -1,6 +1,7 @@
 import sys
 
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from toolz import curry
 
@@ -181,9 +182,9 @@ class MemoryProbe(op.Operator):
 # Class PlotProbe
 ##############################
 class PlotProbe:
-    def __init__(self, ax=None, f=lambda x: best_of_gen(x).fitness, xlim=(0, 100), ylim=(0, 1), ):
-        if not ax:
-            ax = plt.gca()
+    def __init__(self, ax=None, f=lambda x: best_of_gen(x).fitness, xlim=(0, 100), ylim=(0, 1), modulo=1):
+        if ax is None:
+            ax = plt.subplot(111)
         ax.plot([], [])
         ax.set_ylim(ylim)
         ax.set_xlim(xlim)
@@ -194,19 +195,73 @@ class PlotProbe:
         self.step = -1
         self.x = np.array([])
         self.y = np.array([])
+        self.modulo = modulo
 
     def set_step(self, i):
         self.step = i
 
     def __call__(self, population, context):
-        self.x = np.append(self.x, self.step)
-        self.y = np.append(self.y, self.f(population))
-        line = self.ax.lines[0]
-        line.set_xdata(self.x)
-        line.set_ydata(self.y)
-        self.__rescale_ax()
-        self.ax.figure.canvas.draw()
+        if self.step % self.modulo == 0:
+            self.x = np.append(self.x, self.step)
+            self.y = np.append(self.y, self.f(population))
+            line = self.ax.lines[0]
+            line.set_xdata(self.x)
+            line.set_ydata(self.y)
+            self.__rescale_ax()
+            self.ax.figure.canvas.draw()
         return population, context
+
+    def __rescale_ax(self):
+        if np.min(self.x) < self.left:
+            self.ax.set_xlim(left=np.min(self.x))
+        if np.max(self.x) > self.right:
+            self.ax.set_xlim(right=np.max(self.x))
+        if np.min(self.y) < self.bottom:
+            self.ax.set_ylim(bottom=np.min(self.y))
+        if np.max(self.y) > self.top:
+            self.ax.set_ylim(top=np.max(self.y))
+
+
+##############################
+# Class PopTrajectoryProbe
+##############################
+class PlotTrajectoryProbe:
+    def __init__(self, ax=None, xlim=(-5.12, 5.12), ylim=(-5.12, 5.12), contours=None, granularity=0.1, modulo=1):
+        if ax is None:
+            ax = plt.subplot(111)
+
+        self.sc = ax.scatter([], [])
+        if contours:
+            @np.vectorize
+            def v_fun(x, y):
+                return contours.evaluate([x, y])
+
+            x = np.arange(xlim[0], xlim[1], granularity)
+            y = np.arange(ylim[0], ylim[1], granularity)
+            xx, yy = np.meshgrid(x, y)
+            ax.contour(xx, yy, v_fun(xx, yy))
+
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        self.ax = ax
+        self.left, self.right = xlim
+        self.bottom, self.top = ylim
+        self.x = np.array([])
+        self.y = np.array([])
+        self.step = -1
+        self.modulo = modulo
+
+    def __call__(self, population, context):
+        if self.step % self.modulo == 0:
+            self.x = np.array([ind.decode()[0] for ind in population])
+            self.y = np.array([ind.decode()[1] for ind in population])
+            self.sc.set_offsets(np.c_[self.x, self.y])
+            self.__rescale_ax()
+            self.ax.figure.canvas.draw()
+        return population, context
+
+    def set_step(self, i):
+        self.step = i
 
     def __rescale_ax(self):
         if np.min(self.x) < self.left:

@@ -1,8 +1,9 @@
-numpy
-pytest
-toolz
-sphinx
-sphinx_rtd_theme
+atari_py
 click
 gym
-atari_py
+matplotlib
+numpy
+pytest
+sphinx
+sphinx_rtd_theme
+toolz
