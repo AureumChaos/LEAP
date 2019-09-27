@@ -1,6 +1,6 @@
 # LEAP
 
-[![Build Status](https://travis-ci.org/AureumChaos/LEAP.svg?branch=master)]
+![Build Status](https://travis-ci.org/AureumChaos/LEAP.svg?branch=master)
 
 A general purpose Library for Evolutionary Algorithms in Python.
 
