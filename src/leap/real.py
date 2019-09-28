@@ -154,6 +154,43 @@ class CosineFamilyProblem(ScalarProblem):
 # Function plot_2d_problem
 ##############################
 def plot_2d_problem(problem, xlim, ylim, ax=None, granularity=0.1):
+    """
+    Convenience function for plotting a :class:`~leap.problem.Problem` that accepts 2-D real-valued phenomes and produces a 1-D scalar fitness output.
+
+    :param ~leap.problem.Problem fun: The :class:`~leap.problem.Problem` to plot.
+    :param xlim: Bounds of the horizontal axes.
+    :type xlim: (float, float)
+    :param ylim: Bounds of the vertical axis.
+    :type ylim: (float, float)
+    :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will be created).
+    :param float granularity: Spacing of the grid to sample points along.
+
+
+    The difference between this and :meth:`plot_2d_function` is that it takes a :class:`~leap.problem.Problem` object (instead of a raw function).
+
+    If no axes are specified, a new figure is created for the plot:
+
+    .. plot::
+       :include-source:
+   
+       from leap import real
+       problem = real.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
+       real.plot_2d_problem(problem, xlim=(0, 1), ylim=(0, 1), granularity=0.025);
+
+    You can also specify axes explicitly (ex. by using `ax=plt.gca()`.  You  must configure your axes to use `projection='3d'`:
+
+    .. plot::
+       :include-source:
+
+       from matplotlib import pyplot as plt
+       from leap import real
+       fig = plt.figure(figsize=(12, 4))
+       plt.subplot(121, projection='3d')
+       real.plot_2d_problem(real.Spheroid(), ax=plt.gca(), xlim=(-5.12, 5.12), ylim=(-5.12, 5.12))
+       plt.subplot(122, projection='3d')
+       real.plot_2d_problem(real.Rastrigin(), ax=plt.gca(), xlim=(-5.12, 5.12), ylim=(-5.12, 5.12))
+       
+    """
     def call(phenome):
         return problem.evaluate(phenome)
     return plot_2d_function(call, xlim, ylim, ax, granularity)
@@ -164,8 +201,32 @@ def plot_2d_problem(problem, xlim, ylim, ax=None, granularity=0.1):
 ##############################
 def plot_2d_function(fun, xlim, ylim, ax=None, granularity=0.1):
     """
-    >>> plot_2d_problem(Spheroid(), xlim=(-5.12, 5.12), ylim=(-5.12, 5.12)) # +doctest: ELLIPSIS
-    <...>
+    Convenience method for plotting a function that accepts 2-D real-valued imputs and produces a 1-D scalar output.
+
+    :param function fun: The function to plot.
+    :param xlim: Bounds of the horizontal axes.
+    :type xlim: (float, float)
+    :param ylim: Bounds of the vertical axis.
+    :type ylim: (float, float)
+    :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will be created).
+    :param float granularity: Spacing of the grid to sample points along.
+
+    The difference between this and :meth:`plot_2d_problem` is that it takes a raw function (instead of a :class:`~leap.problem.Problem` object).
+
+    .. plot::
+       :include-source:
+
+       import numpy as np
+       from scipy import linalg
+
+       from leap import real
+
+       def sinc_hd(phenome):
+           r = linalg.norm(phenome)
+           return np.sin(r)/r
+
+       real.plot_2d_function(sinc_hd, xlim=(-10, 10), ylim=(-10, 10), granularity=0.2)
+
 
     """
     assert(len(xlim) == 2)
