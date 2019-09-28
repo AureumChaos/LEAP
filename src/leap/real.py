@@ -43,12 +43,23 @@ def initialize_vectors_uniform(bounds):
 # Class Spheroid
 ##############################
 class Spheroid(ScalarProblem):
-    """ Classic spheroid problem
+    """ Classic parabolid function, known as the "sphere" or "spheroid" problem, because its equal-fitness contours form (hyper)spheres in n > 2.
+
+    .. math::
+    
+       f(\\vec{x}) = \sum_{i}^n x_i^2
+
+    .. plot::
+       :include-source:
+   
+       from leap import real
+       bounds = real.Spheroid.bounds  # Contains traditional bounds
+       real.plot_2d_problem(real.Spheroid(), xlim=bounds, ylim=bounds, granularity=0.025)
 
     """
 
     """ Standard bounds for a sphere functions solution."""
-    bounds = [(-5.12, 5.12)]*10
+    bounds = (-5.12, 5.12)
 
     # TODO See if we get an error if we try to add a constructor that doesn't set maximize
 
@@ -84,15 +95,26 @@ class Spheroid(ScalarProblem):
 
 
 ##############################
-# Class Spheroid
+# Class Rastrigin
 ##############################
 class Rastrigin(ScalarProblem):
-    """ Classic Rastrigin problem
+    """ The classic Rastrigin problem.  The Rastrigin provides a real-valued fitness landscape with a quadratic global structure (like the :class:`~leap.real.Spheroid`), plus a sinusoidal local structure with many local optima.
+
+    .. math::
+    
+       f(\\vec{x}) = An + \sum_{i=1}^n x_i^2 - A\cos(2\pi x_i)
+
+    .. plot::
+       :include-source:
+   
+       from leap import real
+       bounds = real.Rastrigin.bounds  # Contains traditional bounds
+       real.plot_2d_problem(real.Rastrigin(), xlim=bounds, ylim=bounds, granularity=0.025)
 
     """
 
     """ Standard bounds."""
-    bounds = [(-5.12, 5.12)]*10
+    bounds = (-5.12, 5.12)
 
     # TODO See if we get an error if we try to add a constructor that doesn't set maximize
 
@@ -109,7 +131,6 @@ class Rastrigin(ScalarProblem):
         3.872969...
 
         :param phenome: to be evaluated
-        :return: sum(phenome**2)
         """
         return self.a*len(phenome) + sum([x**2 + self.a*np.cos(2*np.pi*x) for x in phenome])
 
@@ -166,7 +187,7 @@ def plot_2d_problem(problem, xlim, ylim, ax=None, granularity=0.1):
     :param float granularity: Spacing of the grid to sample points along.
 
 
-    The difference between this and :meth:`plot_2d_function` is that it takes a :class:`~leap.problem.Problem` object (instead of a raw function).
+    The difference between this and :meth:`plot_2d_function` is that this takes a :class:`~leap.problem.Problem` object (instead of a raw function).
 
     If no axes are specified, a new figure is created for the plot:
 
@@ -211,7 +232,7 @@ def plot_2d_function(fun, xlim, ylim, ax=None, granularity=0.1):
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will be created).
     :param float granularity: Spacing of the grid to sample points along.
 
-    The difference between this and :meth:`plot_2d_problem` is that it takes a raw function (instead of a :class:`~leap.problem.Problem` object).
+    The difference between this and :meth:`plot_2d_problem` is that this takes a raw function (instead of a :class:`~leap.problem.Problem` object).
 
     .. plot::
        :include-source:
