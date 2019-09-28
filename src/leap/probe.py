@@ -182,7 +182,64 @@ class MemoryProbe(op.Operator):
 # Class PlotProbe
 ##############################
 class PlotProbe:
+    """
+    Measure and plot a population's fitness trajectory (or some other scalar value).
+
+    :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will be created).
+    :param function f: a function that takes a population and returns a `float` value to plot on the y-axis (the default
+        function plots the best-of-generation individual's fitness).
+    :param xlim: Bounds of the horizontal axis.
+    :type xlim: (float, float)
+    :param ylim: Bounds of the vertical axis.
+    :type ylim: (float, float)
+    :param int modulo: take and plot a measurement every `modulo` steps (default 1).
+
+    Attach this probe to matplotlib :class:`Axes` and then insert it into an EA's operator pipeline.
+
+    .. plot::
+       :include-source:
+   
+        import matplotlib.pyplot as plt
+        from leap.probe import PlotProbe
+        plt.figure()  # Setup a figure to plot to
+        plot_probe = PlotProbe(ylim=(0, 70), ax=plt.gca())
+
+        # Create an algorithm that contains the probe in the operator pipeline
+        from leap.example.simple_ea import simple_ea
+        from leap import core, real, operate as op
+
+        l = 10
+        mutate_prob = 1/l
+        pop_size = 5
+        ea = simple_ea(evals=1000, pop_size=pop_size,
+                       individual_cls=core.Individual,
+                       decoder=core.IdentityDecoder(),
+                       problem=real.Spheroid(maximize=False),
+                       evaluate=op.evaluate,
+
+                       initialize=real.initialize_vectors_uniform(
+                           bounds=[[-5.12, 5.12]] * l
+                       ),
+
+                       step_notify_list=[plot_probe.set_step], # STEP NOTIFICATION: sets plot_probe's x-coordinate
+
+                       pipeline=[
+                           # PIPELINE: sets plot_probe's y-coordinate
+                           plot_probe,
+                           op.tournament(n=pop_size),
+                           op.cloning,
+                           op.mutate_gaussian(prob=mutate_prob, std=1.0)
+                       ])
+        list(ea);
+
+
+    To get a live-updated plot that words like a real-time video of the EA's progress, use this probe in conjunction
+    with the `%matplotlib notebook` magic for Jupyter Notebook (as opposed to `%matplotlib inline`, which only
+    allows static plots).
+
+    """
     def __init__(self, ax=None, f=lambda x: best_of_gen(x).fitness, xlim=(0, 100), ylim=(0, 1), modulo=1):
+
         if ax is None:
             ax = plt.subplot(111)
         ax.plot([], [])
@@ -198,6 +255,7 @@ class PlotProbe:
         self.modulo = modulo
 
     def set_step(self, i):
+        """Your algorithm will need to call this method at every step to update the x-axis."""
         self.step = i
 
     def __call__(self, population, context):
@@ -226,6 +284,61 @@ class PlotProbe:
 # Class PopTrajectoryProbe
 ##############################
 class PlotTrajectoryProbe:
+    """
+    Measure and plot a scatterplot of the populations' location in a 2-D phenotype space.
+
+    :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will be created).
+    :param ~leap.problem.Problem contours: a problem defining a 2-D fitness function (this will be used to draw fitness
+        contours in the background of the scatterplot).
+    :param xlim: Bounds of the horizontal axis.
+    :type xlim: (float, float)
+    :param ylim: Bounds of the vertical axis.
+    :type ylim: (float, float)
+    :param float granularity: Spacing of the grid to sample points along while drawing the fitness contours.
+    :param int modulo: take and plot a measurement every `modulo` steps (default 1).
+
+    Attach this probe to matplotlib :class:`Axes` and then insert it into an EA's operator pipeline to get a live
+    fitness plot that updates every `modulo` steps.
+
+    .. plot::
+       :include-source:
+
+        import matplotlib.pyplot as plt
+        from leap.probe import PlotTrajectoryProbe
+        from leap.example.simple_ea import simple_ea
+        from leap import core, real, operate as op
+
+        # The fitness landscape
+        problem = real.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
+
+        # If no axis is provided, a new figure will be created for the probe to write to
+        trajectory_probe = PlotTrajectoryProbe(contours=problem, xlim=(0, 1), ylim=(0, 1), granularity=0.025)
+
+        # Create an algorithm that contains the probe in the operator pipeline
+
+        l = 10
+        mutate_prob = 1/l
+        pop_size = 10
+        ea = simple_ea(evals=50, pop_size=pop_size,
+                       individual_cls=core.Individual,
+                       decoder=core.IdentityDecoder(),
+                       problem=real.Spheroid(maximize=False),
+                       evaluate=op.evaluate,
+
+                       initialize=real.initialize_vectors_uniform(
+                           bounds=[[0.4, 0.6]] * l
+                       ),
+
+                       pipeline=[
+                           trajectory_probe,  # Insert the probe into the pipeline like so
+                           op.tournament(n=pop_size),
+                           op.cloning,
+                           op.mutate_gaussian(prob=mutate_prob, std=0.1, hard_bounds=(0, 1))
+                       ])
+        list(ea);
+
+
+    """
     def __init__(self, ax=None, xlim=(-5.12, 5.12), ylim=(-5.12, 5.12), contours=None, granularity=0.1, modulo=1):
         if ax is None:
             ax = plt.subplot(111)
@@ -261,6 +374,8 @@ class PlotTrajectoryProbe:
         return population, context
 
     def set_step(self, i):
+        """If you're using a value of `modulo` other than 1, your algorithm will need to call this method at every step
+        to update the step counter."""
         self.step = i
 
     def __rescale_ax(self):
