@@ -5,6 +5,7 @@ matplotlib
 nbformat
 numpy
 pytest
+pytest-cov
 sphinx
 sphinx_rtd_theme
 toolz

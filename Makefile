@@ -43,4 +43,4 @@ setup:
 	python setup.py develop
 
 test:
-	py.test --doctest-modules
+	py.test --doctest-modules --cov=src/ --cov-report=html
