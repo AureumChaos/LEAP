@@ -20,6 +20,11 @@ help:
 	@echo \#\	make test
 	@echo \#\	make doc
 	@echo \#
+	@echo \# Or just run the fast (or slow) test suite:
+	@echo \#
+	@echo \#\	make test-fast
+	@echo \#\	make test-slow
+	@echo \#
 	@echo \#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
 	@echo
 
@@ -43,4 +48,10 @@ setup:
 	python setup.py develop
 
 test:
-	py.test --doctest-modules --cov=src/ --cov-report=html
+	py.test  # Default options are configured in pytest.ini
+
+test-fast:
+	py.test -m "not system"
+
+test-slow:
+	py.test -m system

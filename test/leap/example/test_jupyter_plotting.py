@@ -1,8 +1,8 @@
-import nbformat
-
-from traitlets.config import Config
 from nbconvert import NotebookExporter
 from nbconvert.preprocessors import ExecutePreprocessor
+import nbformat
+import pytest
+from traitlets.config import Config
 
 
 def run_notebook(path, timeout=120):
@@ -34,6 +34,7 @@ def run_notebook(path, timeout=120):
     return nb, errors
 
 
+@pytest.mark.system  # This is a slow test, so we mark it for the system suite
 def test_notebook():
     """The jupyter_plotting.ipynb example notebook should run from beginning to end with no errors."""
     nb, errors = run_notebook('src/leap/example/jupyter_plotting.ipynb')
