@@ -1,0 +1,15 @@
+# Tell Travis-CI what language the project is in
+language: python
+
+# Versions of Python to test with
+python:
+ - "3.6"
+ - "3.7"
+
+# Install dependencies into Travis-CI's virtualenv
+install:
+ - pip install -r requirements.txt
+
+# The command to run our test suite
+script:
+ - make test
