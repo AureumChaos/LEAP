@@ -1,3 +1,6 @@
+"""Module for fundamental evolutionary operators.  You'll find many traditional selection and reproduction strategies
+here."""
+
 import abc
 
 import numpy as np
@@ -203,7 +206,7 @@ def truncation(population, context, mu):
 def tournament(population, context, n, num_competitors=2):
     """
     Select `n` individuals form a population via tournament selection.
-    :param list population: A list of :py:class:`Individual`s
+    :param list population: A list of individuals
     :param int n: The number of individuals to select
     :param int num_competitors: The number of individuals that compete in each tournament
     :return: A generator that produces `n` individuals

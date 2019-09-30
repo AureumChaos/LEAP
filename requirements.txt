@@ -6,6 +6,7 @@ nbformat
 numpy
 pytest
 pytest-cov
+python-coveralls
 sphinx
 sphinx_rtd_theme
 toolz

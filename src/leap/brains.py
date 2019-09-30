@@ -1,3 +1,10 @@
+"""This module provides machinery for representing and evolving executable objects (i.e. \"brains\") of various kinds.
+
+A LEAP \"brain\" is a kind of phenotype, and it is constructed when we use a :class:`~leap.core.Decoder` to convert a
+genotypic representation of the brain into an executable phenotype.
+
+"""
+
 import abc
 from enum import Enum
 import time

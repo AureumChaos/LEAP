@@ -1,3 +1,5 @@
+"""A module for synthetic data that we use in test and examples."""
+
 from leap import core, binary
 from leap import operate as op
 

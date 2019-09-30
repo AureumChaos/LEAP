@@ -1,3 +1,5 @@
+"""Functions and objects for working with real-valued optimization problems."""
+
 import random
 
 from matplotlib import pyplot as plt
