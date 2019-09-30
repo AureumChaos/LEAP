@@ -35,7 +35,7 @@ venv:
 	@echo Built virtual environment in ./venv
 	@echo Run \'source venv/bin/activate\' to activate it!
 
-.PHONY: setup test doc
+.PHONY: setup test doc clean
 
 doc:
         # The apidoc call is long because we need to tell it to
@@ -55,3 +55,6 @@ test-fast:
 
 test-slow:
 	py.test -m system
+
+clean:
+	cd docs && make clean
