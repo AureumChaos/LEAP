@@ -11,6 +11,9 @@ docker-nom/build/
 venv/
 src/LEAP.egg-info/
 docs/build/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
 
 #Subversion
 .svn
