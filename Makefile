@@ -20,6 +20,11 @@ help:
 	@echo \#\	make test
 	@echo \#\	make doc
 	@echo \#
+	@echo \# Or just run the fast (or slow) test suite:
+	@echo \#
+	@echo \#\	make test-fast
+	@echo \#\	make test-slow
+	@echo \#
 	@echo \#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
 	@echo
 
@@ -30,7 +35,7 @@ venv:
 	@echo Built virtual environment in ./venv
 	@echo Run \'source venv/bin/activate\' to activate it!
 
-.PHONY: setup test doc
+.PHONY: setup test doc clean
 
 doc:
         # The apidoc call is long because we need to tell it to
@@ -40,7 +45,17 @@ doc:
 
 setup:
 	pip install -r requirements.txt
+	python -m ipykernel install --user --name="LEAP_venv"
 	python setup.py develop
 
 test:
-	py.test --doctest-modules
+	py.test  # Default options are configured in pytest.ini
+
+test-fast:
+	py.test -m "not system"
+
+test-slow:
+	py.test -m system
+
+clean:
+	cd docs && make clean
