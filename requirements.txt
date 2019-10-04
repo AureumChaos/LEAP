@@ -1,7 +1,9 @@
 atari_py
 click
 gym
+jupyter
 matplotlib
+nbconvert
 nbformat
 numpy
 pytest
