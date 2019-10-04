@@ -18,6 +18,7 @@ def run_notebook(path, timeout=120):
     c = Config()
     c.NotebookExporter.preprocessors = ['nbconvert.preprocessors.ExecutePreprocessor']
     c.ExecutePreprocessor.timeout = timeout
+    c.ExecutePreprocessor.kernel_name = 'LEAP_venv'  # We assume a kernel named "LEAP_venv" that lives in our venv
     exp = NotebookExporter(config=c)
 
     # Load the notebook

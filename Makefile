@@ -45,6 +45,7 @@ doc:
 
 setup:
 	pip install -r requirements.txt
+	python -m ipykernel install --user --name="LEAP_venv"
 	python setup.py develop
 
 test:
