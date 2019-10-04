@@ -13,4 +13,9 @@ install:
 
 # The command to run our test suite
 script:
+ - make setup
  - make test
+
+# For coveralls.io
+after_success:
+ - coveralls
