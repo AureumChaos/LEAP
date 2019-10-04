@@ -15,3 +15,7 @@ install:
 script:
  - make setup
  - make test
+
+# For coveralls.io
+after_success:
+ - coveralls
