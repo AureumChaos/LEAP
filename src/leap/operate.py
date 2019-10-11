@@ -1,7 +1,12 @@
-"""Module for fundamental evolutionary operators.  You'll find many traditional selection and reproduction strategies
-here."""
+""" Module for fundamental evolutionary operators.  You'll find many
+traditional selection and reproduction strategies here.
+
+"""
 
 import abc
+import itertools
+import random
+
 
 import numpy as np
 from toolz import curry
