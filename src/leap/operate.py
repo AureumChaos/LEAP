@@ -45,12 +45,13 @@ class Operator(abc.ABC):
     """
 
     @abc.abstractmethod
-    def __call__(self, population, context):
+    def __call__(self, population, *args, **kwargs):
         """
         The basic interface for a pipeline operator in LEAP.
 
+        :param *args: optional variable sequence of arguments
+        :param **kwargs: optional dictionary of arguments
         :param population: a list of individuals to be operated upon
-        :param context: a `dict` of auxiliary state that some operators read from and/or write to
         """
         pass
 
@@ -238,9 +239,9 @@ class MuPlusLambdaConcatenation(Operator):
     def __init__(self):
         self.parents = None
 
-    def capture_parents(self, population, context=None):
+    def capture_parents(self, population, *args, **kwargs):
         self.parents = population
-        return population, context
+        return population, *args, **kwargs
 
-    def __call__(self, population, context=None):
-        return self.parents + population, context
+    def __call__(self, population, *args, **kwargs):
+        return self.parents + population, *args, **kwargs
