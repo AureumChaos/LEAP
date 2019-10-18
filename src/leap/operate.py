@@ -18,7 +18,14 @@ from leap.core import Individual
 # do_pipeline method
 ##############################
 def do_pipeline(population, context, *pipeline):
-    """"""
+    """
+    FIXME commented out because this isn't used anywhere; will uncomment and
+    modify should that change.  MAC.  10/18/19
+    :param population:
+    :param context:
+    :param pipeline:
+    :return:
+    """
     for op in pipeline:
         population, context = op(population, context)
     return population, context
@@ -241,7 +248,7 @@ class MuPlusLambdaConcatenation(Operator):
 
     def capture_parents(self, population, *args, **kwargs):
         self.parents = population
-        return population, *args, **kwargs
+        return population, args, kwargs
 
     def __call__(self, population, *args, **kwargs):
-        return self.parents + population, *args, **kwargs
+        return self.parents + population, args, kwargs

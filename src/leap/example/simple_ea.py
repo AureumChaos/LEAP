@@ -1,3 +1,16 @@
+#!/usr/bin/env python3
+"""
+sage: simple_ea.py [OPTIONS] COMMAND [ARGS]...
+
+  Entry point for the click command-line application.
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  mu-comma-lambda  Apply a (μ, λ)-style generational EA with tournament...
+  mu-plus-lambda   Apply a (μ + λ)-style generational EA with truncation...
+"""
 import click
 
 from leap import core, real, probe
