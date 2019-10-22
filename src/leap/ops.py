@@ -71,6 +71,8 @@ class Operator(abc.ABC):
 ##############################
 def evaluate(next_individual):
     """ Evaluate and returns the next individual in the pipeline
+
+
     >>> import core, binary
 
     We need an Individual with a simple encoding and a corresponding problem
@@ -110,14 +112,20 @@ def evaluate(next_individual):
 def clone(next_individual):
     """ clones and returns the next individual in the pipeline
 
-    >>> original = iter([Individual([1,2])])
-    >>> cloned = clone(original)
-    >>> assert (original == cloned)
+    >>> import core, binary
+
+    Create a common decoder and problem for individuals.
+
+    >>> original = Individual([1,1])
+
+    >>> cloned_generator = clone(iter([original]))
+
     :param next_individual: iterator for next individual to be cloned
     :return: copy of next_individual
     """
     while True:
-        yield next(next_individual).clone()
+        individual = next(next_individual)
+        yield individual.clone()
 
 
 #
