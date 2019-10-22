@@ -5,7 +5,6 @@ import unittest
 
 import sys, os
 
-# Apparently stupid relative imports don't work, so have this hack
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../src'))
 
 from leap import core
