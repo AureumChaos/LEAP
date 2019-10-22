@@ -72,32 +72,13 @@ class Operator(abc.ABC):
 def evaluate(next_individual):
     """ Evaluate and returns the next individual in the pipeline
 
-
     >>> import core, binary
 
-    We need an Individual with a simple encoding and a corresponding problem
-    so that we have something with which to evaluate.
+    We need to specify the decoder and problem so that evaluation is possible.
 
-    >>> pop = [core.Individual([1,1], decoder=core.IdentityDecoder(), problem=binary.MaxOnes())]
+    >>> ind = core.Individual([1,1], decoder=core.IdentityDecoder(), problem=binary.MaxOnes())
 
-    The one individual hasn't been evaluated yet, so its fitness should be None
-
-    >>> assert(pop[0].fitness == None)
-
-    Since we're using generators, let's create a new sequence with the hopefully
-    now evaluated individual.
-
-    >>> new_pop = [i for i in evaluate(iter(pop))]
-
-    Which should now have a fitness.
-
-    >>> assert(new_pop[0].fitness != None)
-
-    And so to show that there's no copying, we can similarly refer to the same
-    individual in the original sequence to show that, yes, it really did get
-    evaluated.
-
-    >>> assert(pop[0].fitness != None)
+    >>> evaluated_ind = evaluate(iter([ind]))
 
     :param next_individual: iterator pointing to next individual to be evaluated
     :return: the evaluated individual
@@ -108,7 +89,9 @@ def evaluate(next_individual):
         yield individual
 
 
-@curry
+##############################
+# clone operator
+##############################
 def clone(next_individual):
     """ clones and returns the next individual in the pipeline
 
