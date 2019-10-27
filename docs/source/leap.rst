@@ -6,6 +6,7 @@ Subpackages
 
 .. toctree::
 
+   leap.contrib
    leap.example
 
 Submodules
