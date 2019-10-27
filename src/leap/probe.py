@@ -342,8 +342,6 @@ class PlotTrajectoryProbe:
     def __init__(self, ax=None, xlim=(-5.12, 5.12), ylim=(-5.12, 5.12), contours=None, granularity=0.1, modulo=1):
         if ax is None:
             ax = plt.subplot(111)
-
-        self.sc = ax.scatter([], [])
         if contours:
             @np.vectorize
             def v_fun(x, y):
@@ -353,6 +351,8 @@ class PlotTrajectoryProbe:
             y = np.arange(ylim[0], ylim[1], granularity)
             xx, yy = np.meshgrid(x, y)
             ax.contour(xx, yy, v_fun(xx, yy))
+
+        self.sc = ax.scatter([], [])
 
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)

@@ -53,7 +53,7 @@ class Spheroid(ScalarProblem):
 
     .. plot::
        :include-source:
-   
+
        from leap import real
        bounds = real.Spheroid.bounds  # Contains traditional bounds
        real.plot_2d_problem(real.Spheroid(), xlim=bounds, ylim=bounds, granularity=0.025)
@@ -332,7 +332,7 @@ class ShekelProblem(ScalarProblem):
 
     .. math::
 
-       f(\\mathbf{x}) = \\frac{1}{\\frac{1}{K} + \\sum_{j=1}^{25} \\frac{1}{f_j(\mathbf{x})}}
+       f(\\mathbf{x}) = \\frac{1}{\\frac{1}{K} + \\sum_{j=1}^{25} \\frac{1}{f_j(\\mathbf{x})}}
 
 
     where
@@ -347,8 +347,8 @@ class ShekelProblem(ScalarProblem):
     .. math::
 
        \\left[a_{ij}\\right] = \\left[ \\begin{array}{lllllllllll}
-                                        -32 & -16 & 0 & 16 & 32 & -32 & -16 & \cdots & 0 & 16 & 32 \\\\
-                                        -32 & -32 & -32 & -32 & -32 & -16 & -16 & \cdots & 32 & 32 & 32
+                                        -32 & -16 & 0 & 16 & 32 & -32 & -16 & \\cdots & 0 & 16 & 32 \\\\
+                                        -32 & -32 & -32 & -32 & -32 & -16 & -16 & \\cdots & 32 & 32 & 32
                                        \\end{array} \\right].
 
     :param int k: the value of :math:`K` in the fitness function.
@@ -470,9 +470,225 @@ class CosineFamilyProblem(ScalarProblem):
 
 
 ##############################
+# Class TranslatedProblem
+##############################
+class TranslatedProblem(ScalarProblem):
+    """
+    Takes an existing fitness function and translates it by applying a fixed offset vector.
+
+    For example,
+
+    .. plot::
+       :include-source:
+
+       from leap import real
+
+       original_problem = real.Spheroid()
+       offset = [-1.0, -2.5]
+       translated_problem = real.TranslatedProblem(original_problem, offset)
+
+       fig = plt.figure(figsize=(12, 8))
+
+       plt.subplot(221, projection='3d')
+       bounds = real.Spheroid.bounds  # Contains traditional bounds
+       real.plot_2d_problem(original_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+
+       plt.subplot(222, projection='3d')
+       real.plot_2d_problem(translated_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+
+       plt.subplot(223)
+       real.plot_2d_problem(original_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+
+       plt.subplot(224)
+       real.plot_2d_problem(translated_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+    """
+    def __init__(self, problem, offset, maximize=True):
+        super().__init__(maximize=maximize)
+        assert(problem is not None)
+        self.problem = problem
+        self.offset = np.array(offset)
+        if hasattr(problem, 'bounds'):
+            self.bounds = problem.bounds
+
+    @classmethod
+    def random(cls, problem, offset_bounds, dimensions, maximize=True):
+        """ Apply a random real-valued translation to a fitness function, sampled uniformly between min_offset and
+        max_offset in every dimension.
+
+        .. plot::
+           :include-source:
+
+           from leap import real
+
+           original_problem = real.Rastrigin()
+           bounds = real.Rastrigin.bounds  # Contains traditional bounds
+           translated_problem = real.TranslatedProblem.random(original_problem, bounds, 2)
+
+           real.plot_2d_problem(translated_problem, kind='contour', xlim=bounds, ylim=bounds)
+        """
+        min_offset, max_offset = offset_bounds
+        offset = np.random.uniform(min_offset, max_offset, dimensions)
+        return cls(problem, offset, maximize=maximize)
+
+    def evaluate(self, phenome):
+        """
+        Evaluate the fitness of a point after translating the fitness function.
+
+        Translation can be used in higher than two dimensions:
+
+        >>> offset = [-1.0, -1.0, 1.0, 1.0, -5.0]
+        >>> t_sphere = TranslatedProblem(Spheroid(), offset)
+        >>> genome = [0.5, 2.0, 3.0, 8.5, -0.6]
+        >>> t_sphere.evaluate(genome)
+        90.86
+        """
+        assert (len(phenome) == len(self.offset)), \
+            f"Tried to evalute a {len(phenome)}-D genome in a {len(self.offset)}-D fitness function."
+        # Substract the offset so that we are moving the origin *to* the offset.
+        # This way we can think of it as offsetting the fitness function, rather than the input points.
+        new_phenome = np.array(phenome) - self.offset
+        return self.problem.evaluate(new_phenome)
+
+
+################################
+# Class MatrixTransformedProblem
+################################
+class MatrixTransformedProblem(ScalarProblem):
+    """ Apply a linear transformation to a fitness function.
+
+    :param matrix: an nxn matrix, where n is the genome length.
+    :returns: a function that first applies -matrix to the input, then applies fun to the transformed input.
+
+    For example, here we manually construct a 2x2 rotation matrix and apply it to the :class:`~leap.real.Rosenbrock`
+    function:
+
+    .. plot::
+       :include-source:
+
+       from leap import real
+
+       original_problem = real.Rosenbrock()
+       theta = np.pi/2
+       matrix = [[np.cos(theta), -np.sin(theta)],\
+                 [np.sin(theta), np.cos(theta)]]
+
+       transformed_problem = real.MatrixTransformedProblem(original_problem, matrix)
+
+       fig = plt.figure(figsize=(12, 8))
+
+       plt.subplot(221, projection='3d')
+       bounds = real.Rosenbrock.bounds  # Contains traditional bounds
+       real.plot_2d_problem(original_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+
+       plt.subplot(222, projection='3d')
+       real.plot_2d_problem(transformed_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+
+       plt.subplot(223)
+       real.plot_2d_problem(original_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+
+       plt.subplot(224)
+       real.plot_2d_problem(transformed_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+
+    """
+    def __init__(self, problem, matrix, maximize=True):
+        super().__init__(maximize=maximize)
+        assert(problem is not None)
+        assert(len(matrix) == len(matrix[0]))
+        self.matrix = np.array(matrix)
+        self.problem = problem
+        if hasattr(problem, 'bounds'):
+            self.bounds = problem.bounds
+
+    @classmethod
+    def random_orthonormal(cls, problem, dimensions, maximize=True):
+        """Create a :class:`~leap.real.MatrixTransformedProblem` that performs a random rotation and/or inversion of the
+        function.
+
+        We accomplish this by generating a random orthonormal basis for R^n and plugging the resulting matrix into
+        :class:`~leap.real.MatrixTransformedProblem`.
+
+        This algorithm follows directly from the definition of orthonormality.  It is described in Hansen and
+        Ostermeier's original CMA-ES paper: "Completely derandomized self-adaptation in evolution strategies."
+        Evolutionary computation 9.2 (2001): 159-195.
+
+        :param problem: the original :class:`~leap.real.ScalarProblem` to apply the transform to.
+        :param dimensions: the number of elements each vector should have.
+
+        .. plot::
+           :include-source:
+
+           from leap import real
+
+           original_problem = real.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 3], local_optima_counts=[2, 3])
+
+           transformed_problem = real.MatrixTransformedProblem.random_orthonormal(original_problem, 2)
+
+           fig = plt.figure(figsize=(12, 8))
+
+           plt.subplot(221, projection='3d')
+           bounds = original_problem.bounds
+           real.plot_2d_problem(original_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+
+           plt.subplot(222, projection='3d')
+           real.plot_2d_problem(transformed_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+
+           plt.subplot(223)
+           real.plot_2d_problem(original_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+
+           plt.subplot(224)
+           real.plot_2d_problem(transformed_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+        """
+        matrix = np.random.normal(size=[dimensions, dimensions])
+        for i, row in enumerate(matrix):
+            previous_rows = matrix[0:i, :]
+            matrix[i, :] = row - sum([np.dot(row, prev) * prev for prev in previous_rows])
+            matrix[i, :] = row / np.linalg.norm(row)
+
+        # Any vector in the resulting matrix will be of unit length
+        assert(round(np.linalg.norm(matrix[0], 5)) == 1.0)
+        # Any pair of vectors will be linearly independent
+        assert(abs(round(np.dot(matrix[0], matrix[1]), 5)) == 0.0)
+
+        return cls(problem, matrix, maximize)
+
+    def evaluate(self, phenome):
+        """
+        Evaluated the fitness of a point on the transformed fitness landscape.
+
+        For example, consider a sphere function whose global optimum is situated at (0, 1):
+
+        >>> from leap import real
+        >>> s = real.TranslatedProblem(real.Spheroid(), offset=[0, 1])
+        >>> round(s.evaluate([0, 1]), 5)
+        0
+
+        Now let's take a rotation matrix that transforms the space by pi/2 radians:
+
+        >>> import numpy as np
+        >>> theta = np.pi/2
+        >>> matrix = [[np.cos(theta), -np.sin(theta)],\
+                      [np.sin(theta), np.cos(theta)]]
+        >>> r = MatrixTransformedProblem(s, matrix)
+
+        The rotation has moved the new global optimum to (1, 0)
+
+        >>> round(r.evaluate([1, 0]), 5)
+        0.0
+
+        The point (0, 1) lies at a distance of sqrt(2) from the new optimum, and has a fitness of 2:
+
+        >>> round(r.evaluate([0, 1]), 5)
+        2.0
+        """
+        assert(len(phenome) == len(self.matrix)), f"Tried to evalute a {len(phenome)}-D genome in a {len(self.matrix)}-D fitness function."
+        new_point = np.matmul(self.matrix, phenome)
+        return self.problem.evaluate(new_point)
+
+
+##############################
 # Function plot_2d_problem
 ##############################
-def plot_2d_problem(problem, xlim, ylim, ax=None, granularity=0.1):
+def plot_2d_problem(problem, xlim, ylim, kind='surface', ax=None, granularity=0.1):
     """
     Convenience function for plotting a :class:`~leap.problem.Problem` that accepts 2-D real-valued phenomes and produces a 1-D scalar fitness output.
 
@@ -481,6 +697,8 @@ def plot_2d_problem(problem, xlim, ylim, ax=None, granularity=0.1):
     :type xlim: (float, float)
     :param ylim: Bounds of the vertical axis.
     :type ylim: (float, float)
+    :param kind: The kind of plot to create: 'surface' or 'contour'
+    :type kind: str
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will be created).
     :param float granularity: Spacing of the grid to sample points along.
 
@@ -496,23 +714,34 @@ def plot_2d_problem(problem, xlim, ylim, ax=None, granularity=0.1):
        problem = real.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
        real.plot_2d_problem(problem, xlim=(0, 1), ylim=(0, 1), granularity=0.025);
 
-    You can also specify axes explicitly (ex. by using `ax=plt.gca()`.  You  must configure your axes to use `projection='3d'`:
+    You can also specify axes explicitly (ex. by using `ax=plt.gca()`.  When plotting surfaces, you  must configure your
+    axes to use `projection='3d'`.  Contour plots don't need 3D axes:
 
     .. plot::
        :include-source:
 
        from matplotlib import pyplot as plt
        from leap import real
+
        fig = plt.figure(figsize=(12, 4))
+       bounds=real.Rastrigin.bounds  # Contains default bounds
+
        plt.subplot(121, projection='3d')
-       real.plot_2d_problem(real.Spheroid(), ax=plt.gca(), xlim=(-5.12, 5.12), ylim=(-5.12, 5.12))
-       plt.subplot(122, projection='3d')
-       real.plot_2d_problem(real.Rastrigin(), ax=plt.gca(), xlim=(-5.12, 5.12), ylim=(-5.12, 5.12))
+       real.plot_2d_problem(real.Rastrigin(), ax=plt.gca(), xlim=bounds, ylim=bounds)
+
+       plt.subplot(122)
+       real.plot_2d_problem(real.Rastrigin(), ax=plt.gca(), kind='contour', xlim=bounds, ylim=bounds)
        
     """
     def call(phenome):
         return problem.evaluate(phenome)
-    return plot_2d_function(call, xlim, ylim, ax, granularity)
+
+    if kind == 'surface':
+        return plot_2d_function(call, xlim, ylim, ax, granularity)
+    elif kind == 'contour':
+        return plot_2d_contour(call, xlim, ylim, ax, granularity)
+    else:
+        raise ValueError(f'Unrecognized plot kind: "{kind}".')
 
 
 ##############################
@@ -564,3 +793,56 @@ def plot_2d_function(fun, xlim, ylim, ax=None, granularity=0.1):
     xx, yy = np.meshgrid(x, y)
 
     return ax.plot_surface(xx, yy, v_fun(xx, yy))
+
+
+##############################
+# Function plot_2d_contour
+##############################
+def plot_2d_contour(fun, xlim, ylim, ax=None, granularity=0.1):
+    """
+    Convenience method for plotting contours for a function that accepts 2-D real-valued inputs and produces a 1-D
+    scalar output.
+
+    :param function fun: The function to plot.
+    :param xlim: Bounds of the horizontal axes.
+    :type xlim: (float, float)
+    :param ylim: Bounds of the vertical axis.
+    :type ylim: (float, float)
+    :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will be created).
+    :param float granularity: Spacing of the grid to sample points along.
+
+    The difference between this and :meth:`plot_2d_problem` is that this takes a raw function (instead of a
+    :class:`~leap.problem.Problem` object).
+
+    .. plot::
+       :include-source:
+
+       import numpy as np
+       from scipy import linalg
+
+       from leap import real
+
+       def sinc_hd(phenome):
+           r = linalg.norm(phenome)
+           return np.sin(r)/r
+
+       real.plot_2d_contour(sinc_hd, xlim=(-10, 10), ylim=(-10, 10), granularity=0.2)
+
+
+    """
+    assert(len(xlim) == 2)
+    assert(len(ylim) == 2)
+
+    if ax is None:
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+
+    @np.vectorize
+    def v_fun(x, y):
+        return fun([x, y])
+
+    x = np.arange(xlim[0], xlim[1], granularity)
+    y = np.arange(ylim[0], ylim[1], granularity)
+    xx, yy = np.meshgrid(x, y)
+
+    return ax.contour(xx, yy, v_fun(xx, yy))

@@ -3,24 +3,21 @@ help:
 	@echo \# LEAP Makefile
 	@echo \#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
 	@echo \#
-	@echo \# First build a virtual environment:
+	@echo \# Optionally set up a virtual environment first:
 	@echo \#
 	@echo \#\	make venv
-	@echo \#
-	@echo \# Then activate it:
-	@echo \#
 	@echo \#\	source venv/bin/activate
 	@echo \#
-	@echo \# Then setup the environment:
+	@echo \# Then install the LEAP package to your environment:
 	@echo \#
 	@echo \#\	make setup
 	@echo \#
-	@echo \# And run tests and build docs:
+	@echo \# Run tests, and build docs:
 	@echo \#
 	@echo \#\	make test
 	@echo \#\	make doc
 	@echo \#
-	@echo \# Or just run the fast (or slow) test suite:
+	@echo \# If you want, you can just run the fast \(or slow\) test suite:
 	@echo \#
 	@echo \#\	make test-fast
 	@echo \#\	make test-slow
