@@ -12,25 +12,29 @@ class Repertoire(abc.ABC):
         pass
 
 
-class PopulationSeedingRepertoire(Repertoire):
-    def __init__(self):
-        self.repertoire = []
-
-    def build_repertoire(self, problems, initialize, algorithm):
+class PopulationSeedingRepertoire:
+    def __init__(self, problems, initialize, algorithm, problem_kwargs):
         assert(problems is not None)
         assert(len(problems) >= 0)
         assert(algorithm is not None)
-        results = [algorithm(p, initialize) for p in problems]
-        results = list(zip(results))  # Execute the algorithm concurrently on all the source tasks
+        self.repertoire = []
+        self.problems = problems
+        self.initialize = initialize
+        self.algorithm = algorithm
+        self.problem_kwargs = problem_kwargs
+
+    def build_repertoire(self):
+        results = [self.algorithm(p, self.initialize, **self.problem_kwargs[i]) for i, p in enumerate(self.problems)]
+        results = list(zip(*results))  # Execute the algorithm concurrently on all the source tasks
         results = zip(*results)  # Unzip them into individual BSF trajectories
-        assert(len(results) == len(problems))
+        #assert(len(results) == len(self.problems))
         for r in results:
             last_step, last_ind = r[-1]
             self.repertoire.append(last_ind.genome)
 
-    def apply(self, problem, initialize, algorithm):
-        repertoire_init = initialize_seeded(initialize, self.repertoire)
-        return algorithm(problem, repertoire_init)
+    def apply(self, problem, **kwargs):
+        repertoire_init = initialize_seeded(self.initialize, self.repertoire)
+        return self.algorithm(problem, repertoire_init, **kwargs)
 
 
 def initialize_seeded(initialize, seed_pop):
