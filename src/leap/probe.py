@@ -5,7 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from toolz import curry
 
-from leap import operate as op
+from leap import ops as op
 
 
 ##############################
@@ -198,7 +198,7 @@ class PlotProbe:
 
     .. plot::
        :include-source:
-   
+
         import matplotlib.pyplot as plt
         from leap.probe import PlotProbe
         plt.figure()  # Setup a figure to plot to

@@ -69,7 +69,7 @@ class Operator(abc.ABC):
 ##############################
 # evaluate operator
 ##############################
-def evaluate(next_individual):
+def evaluate(next_individual, *args, **kwargs):
     """ Evaluate and returns the next individual in the pipeline
 
     >>> import core, binary
@@ -86,13 +86,13 @@ def evaluate(next_individual):
     while True:
         individual = next(next_individual)
         individual.evaluate()
-        yield individual
+        yield individual, args, kwargs
 
 
 ##############################
 # clone operator
 ##############################
-def clone(next_individual):
+def clone(next_individual, *args, **kwargs):
     """ clones and returns the next individual in the pipeline
 
     >>> import core, binary
@@ -108,7 +108,7 @@ def clone(next_individual):
     """
     while True:
         individual = next(next_individual)
-        yield individual.clone()
+        yield individual.clone(), args, kwargs
 
 
 #
