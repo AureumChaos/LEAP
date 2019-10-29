@@ -109,7 +109,7 @@ def clone(next_individual, *args, **kwargs):
     :return: copy of next_individual
     """
     while True:
-        individual = next(next_individual)
+        individual, args, kwargs = next(next_individual)
         yield individual.clone(), args, kwargs
 
 
@@ -138,7 +138,7 @@ def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
         else:
             return gene
 
-    individual = next(next_individual)
+    individual, args, kwargs = next(next_individual)
 
     # Given the average expected number of mutations, calculate the probability
     # for flipping each bit.
@@ -241,12 +241,12 @@ def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
 #         return self.parents + population, args, kwargs
 
 
-def naive_cyclic_selection_generator(population):
+def naive_cyclic_selection_generator(population, *args, **kwargs):
     """ Deterministically returns individuals, and repeats the same sequence
     when exhausted.
 
     This is "naive" because it doesn't shuffle the population between complete
-    tours.
+    tours to minimize bias.
 
     TODO implement non-naive version that shuffles population before first
     iteration and after every complete loop to minimize sample bias.
@@ -261,9 +261,39 @@ def naive_cyclic_selection_generator(population):
     >>> cyclic_selector = ops.naive_cyclic_selection_generator(pop)
 
     :param population: from which to select
-    :return:
+    :return: the next selected individual
     """
     iter = itertools.cycle(population)
 
     while True:
-        yield next(iter)
+        yield next(iter), args, kwargs
+
+
+@curry
+def pool(next_individual, size, *args, **kwargs):
+    """ 'Sink' for creating `size` individuals from preceding pipeline source.
+
+    Allows for "pooling" individuals to be processed by next pipeline
+    operator.  Typically used to collect offspring from preceding set of
+    selection and birth operators, but could also be used to, say, "pool"
+    individuals to be passed to an EDA as a training set.
+
+    >>> import core, ops
+
+    >>> pop = []
+
+    >>> pop.append(core.Individual([0, 0]))
+    >>> pop.append(core.Individual([0, 1]))
+
+    >>> cyclic_selector = ops.naive_cyclic_selection_generator(pop)
+
+    >>> pool = ops.pool(cyclic_selector, 3)
+
+    print(pool)
+    [Individual([0, 0], None, None), Individual([0, 1], None, None), Individual([0, 0], None, None)]
+
+    :param next_individual: generator for getting the next offspring
+    :param size: how many kids we want
+    :return: population of `size` offspring
+    """
+    return [next(next_individual) for _ in range(size)], args, kwargs
