@@ -22,7 +22,7 @@ class TestClone(unittest.TestCase):
 
         original = core.Individual([1, 1], decoder=decoder, problem=problem)
 
-        cloned = next(ops.clone(iter([original])))
+        cloned, args, kwargs = next(ops.clone(iter([original])))
 
         self.assertEqual(original, cloned)
 
