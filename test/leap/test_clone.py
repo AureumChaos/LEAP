@@ -8,7 +8,7 @@ import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../src'))
 
 from leap import core
-from leap import binary
+from leap import binary_problems
 from leap import ops
 
 
@@ -18,7 +18,7 @@ class TestClone(unittest.TestCase):
         # We need an encoder and problem to ensure those float across during
         # clones.
         decoder = core.IdentityDecoder()
-        problem = binary.MaxOnes()
+        problem = binary_problems.MaxOnes()
 
         original = core.Individual([1, 1], decoder=decoder, problem=problem)
 
