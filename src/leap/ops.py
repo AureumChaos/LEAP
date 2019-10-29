@@ -113,47 +113,9 @@ def clone(next_individual, *args, **kwargs):
         yield individual.clone(), args, kwargs
 
 
-#
-#
-#
 # ##############################
 # # mutate_bitflip operator
 # ##############################
-# @curry
-# def mutate_bitflip(population, context, prob):
-#     """
-#     >>> from leap.util import print_list
-#     >>> population = [Individual(genome=[1, 0, 1, 1, 0])]
-#     >>> always = mutate_bitflip(prob=1.0)
-#     >>> pop, _ = always(population, None)
-#     >>> print_list(pop)
-#     [[0, 1, 0, 0, 1]]
-#
-#     Individuals are modified in place:
-#
-#     >>> print_list(population)
-#     [[0, 1, 0, 0, 1]]
-#
-#     >>> population = [Individual(genome=[1, 0, 1, 1, 0])]
-#     >>> never = mutate_bitflip(prob=0.0)
-#     >>> pop, _ = never(population, None)
-#     >>> print_list(pop)
-#     [[1, 0, 1, 1, 0]]
-#     """
-#     def flip(x):
-#         if np.random.uniform() < prob:
-#             return 0 if x == 1 else 1
-#         else:
-#             return x
-#
-#     result = []
-#     for ind in population:
-#         ind.genome = [flip(x) for x in ind.genome]
-#         ind.fitness = None
-#         result.append(ind)
-#     return result, context
-
-
 @curry
 def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
     """ mutate and return an individual with a binary representation
@@ -277,3 +239,31 @@ def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
 #
 #     def __call__(self, population, *args, **kwargs):
 #         return self.parents + population, args, kwargs
+
+
+def naive_cyclic_selection_generator(population):
+    """ Deterministically returns individuals, and repeats the same sequence
+    when exhausted.
+
+    This is "naive" because it doesn't shuffle the population between complete
+    tours.
+
+    TODO implement non-naive version that shuffles population before first
+    iteration and after every complete loop to minimize sample bias.
+
+    >>> import core, ops
+
+    >>> pop = []
+
+    >>> pop.append(core.Individual([0, 0]))
+    >>> pop.append(core.Individual([0, 1]))
+
+    >>> cyclic_selector = ops.naive_cyclic_selection_generator(pop)
+
+    :param population: from which to select
+    :return:
+    """
+    iter = itertools.cycle(population)
+
+    while True:
+        yield next(iter)
