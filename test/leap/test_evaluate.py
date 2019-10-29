@@ -27,9 +27,14 @@ class TestEvaluate(unittest.TestCase):
         self.assertIsNone(pop[0].fitness)
 
         # Since we 're using generators, let's create a new sequence with
-        # the hopefully now evaluated individual.
+        # the hopefully now evaluated individual.  Note that evaluate() returns
+        # the evaluated individual *and* the optional args and kwargs.  Since
+        # we're doing a test, we strip out the args and kwargs to get at just
+        # the individual.
+        # TODO add a test to ensure that the args and kwargs get properly
+        # propagated.
 
-        new_pop = [i for i in ops.evaluate(iter(pop))]
+        new_pop = [i for i, args, kwargs in ops.evaluate(iter(pop))]
 
         # Which should now have a fitness.
 
