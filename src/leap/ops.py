@@ -69,14 +69,15 @@ class Operator(abc.ABC):
 ##############################
 # evaluate operator
 ##############################
+@curry
 def evaluate(next_individual, *args, **kwargs):
     """ Evaluate and returns the next individual in the pipeline
 
-    >>> import core, binary
+    >>> import core, binary_problems
 
     We need to specify the decoder and problem so that evaluation is possible.
 
-    >>> ind = core.Individual([1,1], decoder=core.IdentityDecoder(), problem=binary.MaxOnes())
+    >>> ind = core.Individual([1,1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())
 
     >>> evaluated_ind = evaluate(iter([ind]))
 
@@ -92,10 +93,11 @@ def evaluate(next_individual, *args, **kwargs):
 ##############################
 # clone operator
 ##############################
+@curry
 def clone(next_individual, *args, **kwargs):
     """ clones and returns the next individual in the pipeline
 
-    >>> import core, binary
+    >>> import core
 
     Create a common decoder and problem for individuals.
 
@@ -112,49 +114,6 @@ def clone(next_individual, *args, **kwargs):
 
 
 #
-# ##############################
-# # cloning operator
-# ##############################
-# @curry
-# def cloning(population, context=None, offspring_per_ind=1):
-#     """
-#     >>> from leap.util import print_list
-#     >>> pop = [Individual([1, 2]),
-#     ...        Individual([3, 4]),
-#     ...        Individual([5, 6])]
-#     >>> new_pop, _ = cloning(pop)
-#     >>> print_list(new_pop)
-#     [[1, 2], [3, 4], [5, 6]]
-#
-#     If we edit individuals in the original, new_pop shouldn't change:
-#
-#     >>> pop[0].genome[1] = 7
-#     >>> pop[2].genome[0] = 0
-#     >>> print_list(pop)
-#     [[1, 7], [3, 4], [0, 6]]
-#
-#     >>> print_list(new_pop)
-#     [[1, 2], [3, 4], [5, 6]]
-#
-#     If we set `offspring_per_ind`, we can create bigger populations:
-#
-#     >>> pop = [Individual([1, 2]),
-#     ...        Individual([3, 4]),
-#     ...        Individual([5, 6])]
-#     >>> new_pop, _ = cloning(pop, offspring_per_ind=3)
-#     >>> print_list(new_pop)
-#     [[1, 2], [1, 2], [1, 2], [3, 4], [3, 4], [3, 4], [5, 6], [5, 6], [5, 6]]
-#     """
-#     assert(population is not None)
-#     assert(offspring_per_ind > 0)
-#
-#     result = []
-#     for ind in population:
-#         for i in range(offspring_per_ind):
-#             result.append(ind.clone())
-#
-#     assert(len(result) == offspring_per_ind*len(population))
-#     return result, context
 #
 #
 # ##############################
@@ -193,8 +152,42 @@ def clone(next_individual, *args, **kwargs):
 #         ind.fitness = None
 #         result.append(ind)
 #     return result, context
-#
-#
+
+
+@curry
+def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
+    """ mutate and return an individual with a binary representation
+
+    >>> import core, binary_problems
+
+    >>> original = Individual([1,1])
+
+    >>> mutated_generator = mutate_bitflip(iter([original]))
+
+    :param individual: to be mutated
+    :param expected: the *expected* number of mutations, on average
+    :param args: optional args
+    :param kwargs: optional keyword args
+    :return: mutated individual
+    """
+    def flip(gene):
+        if random.random() < probability:
+            return (gene + 1) % 2
+        else:
+            return gene
+
+    individual = next(next_individual)
+
+    # Given the average expected number of mutations, calculate the probability
+    # for flipping each bit.
+    probability = 1.0 / len(individual.genome) * expected
+
+    while True:
+        individual.genome = [flip(gene) for gene in individual.genome]
+
+        yield individual, args, kwargs
+
+
 # ##############################
 # # mutate_gaussian operator
 # ##############################
