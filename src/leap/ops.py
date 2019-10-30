@@ -52,11 +52,10 @@ class Operator(abc.ABC):
     """
 
     @abc.abstractmethod
-    def __call__(self, population, *args, **kwargs):
+    def __call__(self, population, **kwargs):
         """
         The basic interface for a pipeline operator in LEAP.
 
-        :param *args: optional variable sequence of arguments
         :param **kwargs: optional dictionary of arguments
         :param population: a list of individuals to be operated upon
         """
@@ -70,7 +69,7 @@ class Operator(abc.ABC):
 # evaluate operator
 ##############################
 @curry
-def evaluate(next_individual, *args, **kwargs):
+def evaluate(next_individual, **kwargs):
     """ Evaluate and returns the next individual in the pipeline
 
     >>> import core, binary_problems
@@ -87,14 +86,14 @@ def evaluate(next_individual, *args, **kwargs):
     while True:
         individual = next(next_individual)
         individual.evaluate()
-        yield individual, args, kwargs
+        yield individual, kwargs
 
 
 ##############################
 # clone operator
 ##############################
 @curry
-def clone(next_individual, *args, **kwargs):
+def clone(next_individual, **kwargs):
     """ clones and returns the next individual in the pipeline
 
     >>> import core
@@ -109,15 +108,15 @@ def clone(next_individual, *args, **kwargs):
     :return: copy of next_individual
     """
     while True:
-        individual, args, kwargs = next(next_individual)
-        yield individual.clone(), args, kwargs
+        individual,  kwargs = next(next_individual)
+        yield individual.clone(), kwargs
 
 
 # ##############################
 # # mutate_bitflip operator
 # ##############################
 @curry
-def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
+def mutate_bitflip(next_individual, expected=1, **kwargs):
     """ mutate and return an individual with a binary representation
 
     >>> import core, binary_problems
@@ -138,7 +137,7 @@ def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
         else:
             return gene
 
-    individual, args, kwargs = next(next_individual)
+    individual, kwargs = next(next_individual)
 
     # Given the average expected number of mutations, calculate the probability
     # for flipping each bit.
@@ -147,7 +146,7 @@ def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
     while True:
         individual.genome = [flip(gene) for gene in individual.genome]
 
-        yield individual, args, kwargs
+        yield individual, kwargs
 
 
 # ##############################
@@ -241,7 +240,7 @@ def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
 #         return self.parents + population, args, kwargs
 
 
-def naive_cyclic_selection_generator(population, *args, **kwargs):
+def naive_cyclic_selection_generator(population, **kwargs):
     """ Deterministically returns individuals, and repeats the same sequence
     when exhausted.
 
@@ -266,11 +265,11 @@ def naive_cyclic_selection_generator(population, *args, **kwargs):
     iter = itertools.cycle(population)
 
     while True:
-        yield next(iter), args, kwargs
+        yield next(iter), kwargs
 
 
 @curry
-def pool(next_individual, size, *args, **kwargs):
+def pool(next_individual, size, **kwargs):
     """ 'Sink' for creating `size` individuals from preceding pipeline source.
 
     Allows for "pooling" individuals to be processed by next pipeline
@@ -296,4 +295,4 @@ def pool(next_individual, size, *args, **kwargs):
     :param size: how many kids we want
     :return: population of `size` offspring
     """
-    return [next(next_individual) for _ in range(size)], args, kwargs
+    return [next(next_individual) for _ in range(size)], kwargs
