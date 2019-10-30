@@ -85,9 +85,12 @@ def evaluate(next_individual, *args, **kwargs):
     :return: the evaluated individual
     """
     while True:
-        individual = next(next_individual)
+        individual, pipe_args, pipe_kwargs = next(next_individual)
         individual.evaluate()
-        yield individual, args, kwargs
+
+        # Use unpacking to combine args passed in explicitly from the user with
+        # those passed through the pipe.
+        yield individual, (*pipe_args, *args), {**pipe_kwargs, **kwargs}
 
 
 ##############################
@@ -109,8 +112,8 @@ def clone(next_individual, *args, **kwargs):
     :return: copy of next_individual
     """
     while True:
-        individual, args, kwargs = next(next_individual)
-        yield individual.clone(), args, kwargs
+        individual, pipe_args, pipe_kwargs = next(next_individual)
+        yield individual.clone(), (*pipe_args, *args), {**pipe_kwargs, **kwargs}
 
 
 # ##############################
@@ -138,7 +141,7 @@ def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
         else:
             return gene
 
-    individual, args, kwargs = next(next_individual)
+    individual, pipe_args, pipe_kwargs = next(next_individual)
 
     # Given the average expected number of mutations, calculate the probability
     # for flipping each bit.
@@ -147,7 +150,7 @@ def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
     while True:
         individual.genome = [flip(gene) for gene in individual.genome]
 
-        yield individual, args, kwargs
+        yield individual,  (*pipe_args, *args), {**pipe_kwargs, **kwargs}
 
 
 # ##############################
@@ -296,4 +299,18 @@ def pool(next_individual, size, *args, **kwargs):
     :param size: how many kids we want
     :return: population of `size` offspring
     """
-    return [next(next_individual) for _ in range(size)], args, kwargs
+    # TODO this could be more elegant, and I'm not sure about the priority
+    # order for what overwrites what for function arguments vs. pipe data.
+    final_args = ()
+    final_kwargs = {}
+    final_pool = []
+
+    for _ in range(size):
+        individual, pipe_args, pipe_kwargs = next(next_individual)
+        final_args = (*final_args, *pipe_args)
+        final_kwargs = {**final_kwargs, **pipe_kwargs}
+
+        final_pool.append(individual)
+
+    # return [next(next_individual) for _ in range(size)], args, kwargs
+    return final_pool, final_args, final_kwargs
