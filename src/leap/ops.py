@@ -52,10 +52,11 @@ class Operator(abc.ABC):
     """
 
     @abc.abstractmethod
-    def __call__(self, population, **kwargs):
+    def __call__(self, population, *args, **kwargs):
         """
         The basic interface for a pipeline operator in LEAP.
 
+        :param *args: optional variable sequence of arguments
         :param **kwargs: optional dictionary of arguments
         :param population: a list of individuals to be operated upon
         """
@@ -69,7 +70,7 @@ class Operator(abc.ABC):
 # evaluate operator
 ##############################
 @curry
-def evaluate(next_individual, **kwargs):
+def evaluate(next_individual, *args, **kwargs):
     """ Evaluate and returns the next individual in the pipeline
 
     >>> import core, binary_problems
@@ -84,16 +85,19 @@ def evaluate(next_individual, **kwargs):
     :return: the evaluated individual
     """
     while True:
-        individual = next(next_individual)
+        individual, pipe_args, pipe_kwargs = next(next_individual)
         individual.evaluate()
-        yield individual, kwargs
+
+        # Use unpacking to combine args passed in explicitly from the user with
+        # those passed through the pipe.
+        yield individual, (*pipe_args, *args), {**pipe_kwargs, **kwargs}
 
 
 ##############################
 # clone operator
 ##############################
 @curry
-def clone(next_individual, **kwargs):
+def clone(next_individual, *args, **kwargs):
     """ clones and returns the next individual in the pipeline
 
     >>> import core
@@ -108,15 +112,15 @@ def clone(next_individual, **kwargs):
     :return: copy of next_individual
     """
     while True:
-        individual,  kwargs = next(next_individual)
-        yield individual.clone(), kwargs
+        individual, pipe_args, pipe_kwargs = next(next_individual)
+        yield individual.clone(), (*pipe_args, *args), {**pipe_kwargs, **kwargs}
 
 
 # ##############################
 # # mutate_bitflip operator
 # ##############################
 @curry
-def mutate_bitflip(next_individual, expected=1, **kwargs):
+def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
     """ mutate and return an individual with a binary representation
 
     >>> import core, binary_problems
@@ -137,7 +141,7 @@ def mutate_bitflip(next_individual, expected=1, **kwargs):
         else:
             return gene
 
-    individual, kwargs = next(next_individual)
+    individual, pipe_args, pipe_kwargs = next(next_individual)
 
     # Given the average expected number of mutations, calculate the probability
     # for flipping each bit.
@@ -146,7 +150,7 @@ def mutate_bitflip(next_individual, expected=1, **kwargs):
     while True:
         individual.genome = [flip(gene) for gene in individual.genome]
 
-        yield individual, kwargs
+        yield individual,  (*pipe_args, *args), {**pipe_kwargs, **kwargs}
 
 
 # ##############################
@@ -240,7 +244,7 @@ def mutate_bitflip(next_individual, expected=1, **kwargs):
 #         return self.parents + population, args, kwargs
 
 
-def naive_cyclic_selection_generator(population, **kwargs):
+def naive_cyclic_selection_generator(population, *args, **kwargs):
     """ Deterministically returns individuals, and repeats the same sequence
     when exhausted.
 
@@ -265,11 +269,11 @@ def naive_cyclic_selection_generator(population, **kwargs):
     iter = itertools.cycle(population)
 
     while True:
-        yield next(iter), kwargs
+        yield next(iter), args, kwargs
 
 
 @curry
-def pool(next_individual, size, **kwargs):
+def pool(next_individual, size, *args, **kwargs):
     """ 'Sink' for creating `size` individuals from preceding pipeline source.
 
     Allows for "pooling" individuals to be processed by next pipeline
@@ -295,4 +299,18 @@ def pool(next_individual, size, **kwargs):
     :param size: how many kids we want
     :return: population of `size` offspring
     """
-    return [next(next_individual) for _ in range(size)], kwargs
+    # TODO this could be more elegant, and I'm not sure about the priority
+    # order for what overwrites what for function arguments vs. pipe data.
+    final_args = ()
+    final_kwargs = {}
+    final_pool = []
+
+    for _ in range(size):
+        individual, pipe_args, pipe_kwargs = next(next_individual)
+        final_args = (*final_args, *pipe_args)
+        final_kwargs = {**final_kwargs, **pipe_kwargs}
+
+        final_pool.append(individual)
+
+    # return [next(next_individual) for _ in range(size)], args, kwargs
+    return final_pool, final_args, final_kwargs
