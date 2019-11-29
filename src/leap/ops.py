@@ -9,7 +9,8 @@ import random
 
 
 import numpy as np
-from toolz import curry
+import toolz
+from toolz import curry, topk
 
 from leap.core import Individual
 
@@ -200,8 +201,47 @@ def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
 #     """
 #     inds = list(sorted(list(population), reverse=True))
 #     return inds[0:mu], context
-#
-#
+
+def truncate(population, size, second_population=None, *args, **kwargs):
+    """ return the `size` best individuals from the given population
+
+        This defaults to (mu, lambda) if `second_population` is not given.
+
+        second_population is an optional population that is "blended" with the
+        first for truncation purposes, and is usually used to allow parents
+        and offspring to compete. (I.e., mu + lambda).
+
+        FIXME this will also "truncate" *args and **kwargs passed down the line since this expects a sequence
+        and not a generator. (Actually, this will be after a pool() call, which returns those, so this should
+        work as expected, right?)
+
+        >>> from leap import core, ops, binary_problems
+        >>> pop = []
+        >>> pop.append(core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+        >>> pop.append(core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+        >>> pop.append(core.Individual([1, 1, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+        >>> pop.append(core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+
+        We need to evaluate them to get their fitness to sort them for truncation.
+
+        >>> pop = [evaluate(i) for i in pop]
+
+        >>> truncated = truncate(pop, 3)
+
+        >>> truncated
+
+        :param population: that needs downsized
+        :param size: is what to resize population to
+        :param second_population: is optional second population to include
+                                  with population for downsizing
+        :return: truncated population (plus optional second population)
+    """
+    if second_population is not None:
+        return toolz.itertoolz.topk(size, itertools.chain(population,
+                                                          second_population))
+    else:
+        return toolz.itertoolz.topk(size, population)
+
 # ##############################
 # # tournament selection operator
 # ##############################
