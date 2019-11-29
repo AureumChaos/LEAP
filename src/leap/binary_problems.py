@@ -1,3 +1,6 @@
+"""
+    A set of standard EA problems that rely on a binary-representation
+"""
 from leap.problem import ScalarProblem
 from leap import core
 

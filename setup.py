@@ -1,8 +1,8 @@
 from setuptools import setup
 
 setup(
-    name='LEAP',
-    version='2.0dev',
+    name='leap',
+    version='2.0.dev',
     package_dir={'': 'src/'},
     packages=['leap'],
     url='https://github.com/AureumChaos/LEAP',

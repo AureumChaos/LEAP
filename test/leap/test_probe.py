@@ -1,8 +1,16 @@
-import io
+"""
+    Unit tests for the various pipeline probes.
+
+    Note that this *NOT* use python3 unittest.  pytest?
+"""
+
+import io, sys, os
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../src'))
 
 from leap.probe import *
-from leap import core, binary, data
-from leap import operate as op
+from leap import core, binary_problems, data
+from leap import ops as op
 
 
 ##############################
