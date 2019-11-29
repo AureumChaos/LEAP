@@ -1,7 +1,7 @@
 from matplotlib import pyplot as plt
 
 from leap.example.simple_ea import simple_ea
-from leap import core, real, operate as op
+from leap import core, real_problems, operate as op
 from leap.probe import PlotTrajectoryProbe, PlotProbe
 
 
@@ -9,8 +9,8 @@ def initialize_seeded(initialize, seed_pop):
     """A population initializer that injects a fixed list of seed individuals
     into the population, and fills the remaining space with newly generated individuals.
 
-    >>> from leap import real
-    >>> random_init = real.initialize_vectors_uniform(bounds=[[0, 0]] * 2)
+    >>> from leap import real_problems
+    >>> random_init = real_problems.initialize_vectors_uniform(bounds=[[0, 0]] * 2)
     >>> init = initialize_seeded(random_init, [[5.0, 5.0], [4.5, -6]])
     >>> init(5)
     [[5.0, 5.0], [4.5, -6], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
@@ -68,10 +68,10 @@ def quad_probes(modulo):
 
 
 if __name__ == '__main__':
-    random_init = real.initialize_vectors_uniform(bounds=[[-0.5, 0.5]] * 2)
+    random_init = real_problems.initialize_vectors_uniform(bounds=[[-0.5, 0.5]] * 2)
 
-    problem1 = real.Spheroid()
-    problem2 = real.Rastrigin(a=10)
+    problem1 = real_problems.Spheroid()
+    problem2 = real_problems.Rastrigin(a=10)
 
     trajectory_probe_1, bsf_probe_1, trajectory_probe_2, bsf_probe_2 = quad_probes(50)
     plt.draw()

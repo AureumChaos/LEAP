@@ -20,7 +20,7 @@ def initialize_vectors_uniform(bounds):
     :param bounds:
     :return:
 
-    >>> from leap import core, real
+    >>> from leap import core, real_problems
     >>> bounds = [(0, 1), (0, 1), (-1, 100)]
     >>> init = initialize_vectors_uniform(bounds)
     >>> for x in init(5):
@@ -657,8 +657,8 @@ class MatrixTransformedProblem(ScalarProblem):
 
         For example, consider a sphere function whose global optimum is situated at (0, 1):
 
-        >>> from leap import real
-        >>> s = real.TranslatedProblem(real.Spheroid(), offset=[0, 1])
+        >>> from leap import real_problems
+        >>> s = real_problems.TranslatedProblem(real_problems.Spheroid(), offset=[0, 1])
         >>> round(s.evaluate([0, 1]), 5)
         0
 

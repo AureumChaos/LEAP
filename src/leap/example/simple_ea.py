@@ -13,7 +13,7 @@ Commands:
 """
 import click
 
-from leap import core, real, probe
+from leap import core, real_problems, probe
 from leap import operate as op
 
 
@@ -46,18 +46,18 @@ def simple_ea(evals, pop_size, individual_cls, decoder, problem, evaluate, initi
     block.  Here's what a basic (mu, lambda)-style EA looks like (that is, an EA that throws away the parents at each
     generation in favor of their offspring):
 
-    >>> from leap import core, real
+    >>> from leap import core, real_problems
     >>> from leap import operate as op
     >>> pop_size = 5  # Size of the parent population
     >>> l = 10  # The length of the genome
     >>> ea = simple_ea(evals=1000, pop_size=pop_size,
     ...                individual_cls=core.Individual,  # Use the standard Individual as the prototype for the population
     ...                decoder=core.IdentityDecoder(),  # Genotype and phenotype are the same for this task
-    ...                problem=real.Spheroid(maximize=False),  # Solve a Spheroid minimization problem
+    ...                problem=real_problems.Spheroid(maximize=False),  # Solve a Spheroid minimization problem
     ...                evaluate=op.evaluate,  # Evaluate fitness with the basic evaluation operator
     ...
     ...                # Initialized genomes are random real-valued vectors
-    ...                initialize=real.initialize_vectors_uniform(
+    ...                initialize=real_problems.initialize_vectors_uniform(
     ...                    # Initialize each element between 0 and 1
     ...                    bounds=[[-5.12, 5.12]] * l
     ...                ),
@@ -126,11 +126,11 @@ def mu_comma_lambda(evals, pop_size, l, mutate_prob, mutate_std):
     ea = simple_ea(evals=evals, pop_size=pop_size,
                    individual_cls=core.Individual,  # Use the standard Individual as the prototype for the population.
                    decoder=core.IdentityDecoder(),  # Genotype and phenotype are the same for this task.
-                   problem=real.Spheroid(maximize=False),  # Solve a Spheroid minimization problem.
+                   problem=real_problems.Spheroid(maximize=False),  # Solve a Spheroid minimization problem.
                    evaluate=op.evaluate,  # Evaluate fitness with the basic evaluation operator.
 
                    # Initialized genomes are random real-valued vectors.
-                   initialize=real.initialize_vectors_uniform(
+                   initialize=real_problems.initialize_vectors_uniform(
                        # Initialize each element between 0 and 1.
                        bounds=[[-5.12, 5.12]] * l
                    ),
@@ -167,11 +167,11 @@ def mu_plus_lambda(evals, mu, lambda_, l, mutate_prob, mutate_std):
     ea = simple_ea(evals=evals, pop_size=mu + lambda_,
                    individual_cls=core.Individual,  # Use the standard Individual as the prototype for the population.
                    decoder=core.IdentityDecoder(),  # Genotype and phenotype are the same for this task.
-                   problem=real.Spheroid(maximize=False),  # Solve a Spheroid minimization problem.
+                   problem=real_problems.Spheroid(maximize=False),  # Solve a Spheroid minimization problem.
                    evaluate=op.evaluate,  # Evaluate fitness with the basic evaluation operator.
 
                    # Initialized genomes are random real-valued vectors.
-                   initialize=real.initialize_vectors_uniform(
+                   initialize=real_problems.initialize_vectors_uniform(
                        # Initialize each element between 0 and 1.
                        bounds=[[-5.12, 5.12]] * l
                    ),

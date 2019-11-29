@@ -11,7 +11,7 @@ import time
 
 import numpy as np
 
-from leap import core, real
+from leap import core, real_problems
 
 
 ##############################
@@ -103,7 +103,7 @@ class KeyboardBrain(Brain):
 ##############################
 # Class BrainProblem
 ##############################
-class BrainProblem(real.ScalarProblem):
+class BrainProblem(real_problems.ScalarProblem):
     def __init__(self, runs, steps, environment, behavior_fitness, stop_on_done=True, maximize=True):
         super().__init__(maximize)
         self.runs = runs

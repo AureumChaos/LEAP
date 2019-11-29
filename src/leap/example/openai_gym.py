@@ -4,7 +4,7 @@ import click
 import gym
 import numpy as np
 
-from leap import brains, core, real, probe
+from leap import brains, core, real_problems, probe
 from leap import operate as op
 from leap.example.simple_ea import simple_ea
 
@@ -84,7 +84,7 @@ def evolve_pitt(runs, steps, env, evals, pop_size, num_rules, mutate_prob, mutat
                        evaluate=op.evaluate,  # Evaluate fitness with the basic evaluation operator.
 
                        # Initialized genomes are random real-valued vectors.
-                       initialize=real.initialize_vectors_uniform(
+                       initialize=real_problems.initialize_vectors_uniform(
                            # Initialize each element between 0 and 1.
                            bounds=([[-0.0, 1.0]] * (num_inputs*2 + num_outputs)) * num_rules
                        ),
