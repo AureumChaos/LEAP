@@ -55,3 +55,13 @@ def test_truncation_selection():
     assert pop[3] in truncated
 
 
+def test_truncation_parents_selection():
+    # like above, but add possible parents
+    # TODO implement
+    pass
+
+
+def test_truncation_selection_pipeline_args():
+    # test capability of passing along pipeline arguments
+    # TODO implement
+    pass

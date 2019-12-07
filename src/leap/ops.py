@@ -226,12 +226,12 @@ def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
 #     inds = list(sorted(list(population), reverse=True))
 #     return inds[0:mu], context
 
-def truncate(population, size, second_population=None, *args, **kwargs):
+def truncate(population, size,  *args, **kwargs):
     """ return the `size` best individuals from the given population
 
         This defaults to (mu, lambda) if `second_population` is not given.
 
-        second_population is an optional population that is "blended" with the
+        kwargs['pareents'] is an optional population that is "blended" with the
         first for truncation purposes, and is usually used to allow parents
         and offspring to compete. (I.e., mu + lambda).
 
@@ -260,9 +260,9 @@ def truncate(population, size, second_population=None, *args, **kwargs):
                                   with population for downsizing
         :return: truncated population (plus optional second population)
     """
-    if second_population is not None:
+    if 'parents' in kwargs:
         return toolz.itertoolz.topk(size, itertools.chain(population,
-                                                          second_population))
+                                                          kwargs['parents']))
     else:
         return toolz.itertoolz.topk(size, population)
 
