@@ -6,7 +6,8 @@ traditional selection and reproduction strategies here.
 import abc
 import itertools
 import random
-
+import types
+from collections.abc import Iterator
 
 import numpy as np
 import toolz
@@ -65,13 +66,35 @@ class Operator(abc.ABC):
 
 
 
+def next_individual(individual, *args, **kwargs):
+    """ Ensures that the next individual is returned regardless if this argument is a generator, an actual individual,
+        or a (individual, args, kwargs) tuple.
+
+    TODO this could probably become a function decorator
+
+    :param individual:
+    :return: actual individual and *args and **kwards
+    """
+    if isinstance(individual, Individual):
+        return individual, args, kwargs
+    elif isinstance(individual, ()):
+        # if we have a tuple, it's likely an (individual, args, kwargs) passed down the pipeline, so just unpack
+        # that and send it down the line.
+        # FIXME This assumes that the given tuple is of the form (individual, args, kwargs)
+        individual, pipe_args, pipe_kwargs = individual
+        # recursively call this to ensure there's not more unpacking to do
+        return next_individual(individual, (*args, *pipe_args), {**kwargs, **kwargs})
+    if isinstance(individual, types.GeneratorType) or isinstance(individual, Iterator):
+        return next(individual), args, kwargs
+    else:
+        raise RuntimeError('Invalid arguments passed to next_individual()')
 
 
 ##############################
 # evaluate operator
 ##############################
 @curry
-def evaluate(next_individual, *args, **kwargs):
+def evaluate(individual, *args, **kwargs):
     """ Evaluate and returns the next individual in the pipeline
 
     >>> import core, binary_problems
@@ -82,16 +105,16 @@ def evaluate(next_individual, *args, **kwargs):
 
     >>> evaluated_ind = evaluate(iter([ind]))
 
-    :param next_individual: iterator pointing to next individual to be evaluated
+    :param individual: iterator pointing to next individual to be evaluated
     :return: the evaluated individual
     """
     while True:
-        individual, pipe_args, pipe_kwargs = next(next_individual)
+        # "combined" means combining any args, kwargs passed in to this function with those passed in from upstream
+        # in the pipeline.
+        individual, combined_args, combined_kwargs = next_individual(individual, *args, **kwargs)
         individual.evaluate()
 
-        # Use unpacking to combine args passed in explicitly from the user with
-        # those passed through the pipe.
-        yield individual, (*pipe_args, *args), {**pipe_kwargs, **kwargs}
+        yield individual, combined_args, combined_kwargs
 
 
 ##############################

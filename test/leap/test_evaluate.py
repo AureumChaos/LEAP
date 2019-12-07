@@ -10,7 +10,31 @@ from leap import binary_problems
 from leap import ops
 
 
+def test_simple_evaluate():
+    # Let's try evaluating a single individual
+    i = core.Individual([1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())
+
+    evaluated_individual, args, kwargs = ops.evaluate(i)
+
+    assert i.fitness == 2
+    assert args == ()
+    assert kwargs == {}
+
+
+
+def test_evaluate_with_args():
+    # Let's try evaluating a single individual
+    i = core.Individual([1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())
+
+    evaluated_individual, args, kwargs = ops.evaluate(i, 99, foo='bar')
+
+    assert i.fitness == 2
+    assert args == (99,)
+    assert kwargs['foo'] == 'bar'
+
+
 def test_evaluate():
+
     # We need an Individual with a simple encoding and a corresponding
     # problem so that we have something with which to evaluate.
 
