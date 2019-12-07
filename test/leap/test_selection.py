@@ -40,9 +40,18 @@ def test_truncation_selection():
     pop.append(core.Individual([1, 1, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
     pop.append(core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
 
-    pop = [ops.evaluate(i) for i in pop]
+    i = iter(pop)
 
-    truncated = ops.truncate(pop, 3)
+    # We first need to evaluate all the individuals so that truncation selection has fitnesses to compare
+    pop = [individual for individual, args, kwargs in ops.evaluate(i)]
 
-    pass
+    i = iter(pop)
+    truncated = ops.truncate(i, 2)
+
+    assert len(truncated) == 2
+
+    # Just to make sure, check that the two best individuals from the original population are in the selected population
+    assert pop[2] in truncated
+    assert pop[3] in truncated
+
 
