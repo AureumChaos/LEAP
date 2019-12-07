@@ -12,23 +12,25 @@ from leap import ops
 
 def test_simple_evaluate():
     # Let's try evaluating a single individual
-    i = core.Individual([1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())
+    pop = []
 
-    evaluated_individual, args, kwargs = next(ops.evaluate(i))
+    pop.append(core.Individual([1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
 
-    assert i.fitness == 2
+    evaluated_individual, args, kwargs = next(ops.evaluate(iter(pop)))
+
+    assert evaluated_individual.fitness == 2
     assert args == ()
     assert kwargs == {}
 
 
 
 def test_evaluate_with_args():
-    # Let's try evaluating a single individual
-    i = core.Individual([1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())
+    pop = []
+    pop.append(core.Individual([1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
 
-    evaluated_individual, args, kwargs = next(ops.evaluate(i, 99, foo='bar'))
+    evaluated_individual, args, kwargs = next(ops.evaluate(iter(pop), 99, foo='bar'))
 
-    assert i.fitness == 2
+    assert evaluated_individual.fitness == 2
     assert args == (99,)
     assert kwargs['foo'] == 'bar'
 
@@ -54,16 +56,22 @@ def test_evaluate():
     # TODO add a test to ensure that the args and kwargs get properly
     # propagated.
 
-    new_pop = [i for i, args, kwargs in ops.evaluate(iter(pop))]
+    new_pop = []
+
+    i = iter(pop) # this must be declared *outside* the for loop, else there will be an extra iteration
+    for individual, args, kwargs in ops.evaluate(i):
+        new_pop.append(individual)
 
     # Which should now have a fitness.
+    assert new_pop[0].fitness == 2
 
-    assert new_pop[0].fitness is not None
+    # I've been having problems with extra iterations
+    assert len(new_pop) == len(pop)
 
     # And so to show that there's no copying, we can similarly refer to
     # the same individual in the original sequence to show that, yes,
     # it really did get evaluated.
 
-    assert pop[0].fitness is not None
+    assert pop[0].fitness == 2
 
 

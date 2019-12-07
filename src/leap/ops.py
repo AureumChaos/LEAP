@@ -94,7 +94,7 @@ def next_individual(individual, *args, **kwargs):
 # evaluate operator
 ##############################
 @curry
-def evaluate(individual, *args, **kwargs):
+def evaluate(next_individual, *args, **kwargs):
     """ Evaluate and returns the next individual in the pipeline
 
     >>> import core, binary_problems
@@ -111,10 +111,11 @@ def evaluate(individual, *args, **kwargs):
     while True:
         # "combined" means combining any args, kwargs passed in to this function with those passed in from upstream
         # in the pipeline.
-        individual, combined_args, combined_kwargs = next_individual(individual, *args, **kwargs)
+        # individual, pipe_args, pipe_kwargs = next(next_individual)
+        individual = next(next_individual)
         individual.evaluate()
 
-        yield individual, combined_args, combined_kwargs
+        yield individual, args, kwargs #(*args, *pipe_args), {**kwargs, **pipe_kwargs}
 
 
 ##############################
