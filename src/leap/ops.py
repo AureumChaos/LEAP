@@ -247,12 +247,12 @@ def truncate(population, size,  *args, **kwargs):
         >>> pop.append(core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
 
         We need to evaluate them to get their fitness to sort them for truncation.
+        >>> i = iter(pop)
+        >>> pop = [individual for individual, args, kwargs in evaluate(i)]
 
-        >>> pop = [evaluate(i) for i in pop]
+        >>> i = iter(pop)
+        >>> truncated = truncate(i, 2)
 
-        >>> truncated = truncate(pop, 3)
-
-        >>> truncated
 
         :param population: that needs downsized
         :param size: is what to resize population to
