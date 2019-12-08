@@ -166,13 +166,13 @@ def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
         else:
             return gene
 
-    individual, pipe_args, pipe_kwargs = next(next_individual)
-
-    # Given the average expected number of mutations, calculate the probability
-    # for flipping each bit.
-    probability = 1.0 / len(individual.genome) * expected
-
     while True:
+        individual, pipe_args, pipe_kwargs = next(next_individual)
+
+        # Given the average expected number of mutations, calculate the probability
+        # for flipping each bit.
+        probability = 1.0 / len(individual.genome) * expected
+
         individual.genome = [flip(gene) for gene in individual.genome]
 
         yield individual,  (*pipe_args, *args), {**pipe_kwargs, **kwargs}
@@ -236,9 +236,9 @@ def truncate(previous, size,  *args, **kwargs):
                                   with population for downsizing
         :return: truncated population (plus optional second population)
     """
-    if isinstance(previous, ()):
+    if isinstance(previous, tuple):
         # If this is plugged into a pipeline, then previous will contain these items which will have to be unpacked
-        population, pipe_args, pipe_kwargs = next(previous)
+        population, pipe_args, pipe_kwargs = previous
     else:
         # Else we presume that previous is actually a sequence of individual representing a population
         population = previous
