@@ -202,12 +202,12 @@ def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
 #
 
 @curry
-def truncate(population, size,  *args, **kwargs):
+def truncate(previous, size,  *args, **kwargs):
     """ return the `size` best individuals from the given population
 
         This defaults to (mu, lambda) if `second_population` is not given.
 
-        kwargs['pareents'] is an optional population that is "blended" with the
+        kwargs['parents'] is an optional population that is "blended" with the
         first for truncation purposes, and is usually used to allow parents
         and offspring to compete. (I.e., mu + lambda).
 
@@ -230,46 +230,29 @@ def truncate(population, size,  *args, **kwargs):
         >>> truncated = truncate(i, 2)
 
 
-        :param population: that needs downsized
+        :param previous: is the tuple from the previous pipeline operator of (population, *args, **kwargs)
         :param size: is what to resize population to
         :param second_population: is optional second population to include
                                   with population for downsizing
         :return: truncated population (plus optional second population)
     """
+    if isinstance(previous, ()):
+        # If this is plugged into a pipeline, then previous will contain these items which will have to be unpacked
+        population, pipe_args, pipe_kwargs = next(previous)
+    else:
+        # Else we presume that previous is actually a sequence of individual representing a population
+        population = previous
+        pipe_args = ()
+        pipe_kwargs = {}
+
     if 'parents' in kwargs:
         return toolz.itertoolz.topk(size, itertools.chain(population,
-                                                          kwargs['parents'])), args, kwargs
+                                                          kwargs['parents'])), (*args, *pipe_args), {**kwargs, **pipe_kwargs}
     else:
-        return toolz.itertoolz.topk(size, population), args, kwargs
+        return toolz.itertoolz.topk(size, population), (*args, *pipe_args), {**kwargs, **pipe_kwargs}
 
 
 
-# ##############################
-# # tournament selection operator
-# ##############################
-# @curry
-# def tournament(population, context, n, num_competitors=2):
-#     """
-#     Select `n` individuals form a population via tournament selection.
-#     :param list population: A list of individuals
-#     :param int n: The number of individuals to select
-#     :param int num_competitors: The number of individuals that compete in each tournament
-#     :return: A generator that produces `n` individuals
-#
-#     >>> from leap import core, real, data
-#     >>> pop = data.test_population
-#     >>> for (ind, f) in zip(pop, [3, 1, 4, 2]):
-#     ...     ind.fitness = f
-#     >>> pop, _ = tournament(pop, None, 3)
-#     >>> pop  # doctest:+ELLIPSIS
-#     [..., ..., ...]
-#     """
-#     result = []
-#     for i in range(n):
-#         competitors = np.random.choice(population, num_competitors)
-#         result.append(max(competitors))
-#     return result, context
-#
 
 
 def tournament(population, k=2, *args, **kwargs):

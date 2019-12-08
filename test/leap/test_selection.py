@@ -48,7 +48,7 @@ def test_truncation_selection():
     pop = [individual for individual, args, kwargs in ops.evaluate(i)]
 
     i = iter(pop)
-    truncated = ops.truncate(i, 2)
+    truncated, args, kwargs = ops.truncate(i, 2)
 
     assert len(truncated) == 2
 
@@ -79,7 +79,7 @@ def test_truncation_parents_selection():
     parents_iter = iter(parents)
     offspring_iter = iter(offspring)
 
-    truncated = ops.truncate(offspring_iter, 2, parents=parents_iter)
+    truncated, args, kwargs = ops.truncate(offspring_iter, 2, parents=parents_iter)
 
     assert len(truncated) == 2
 
