@@ -65,29 +65,29 @@ class Operator(abc.ABC):
         pass
 
 
-
-def next_individual(individual, *args, **kwargs):
-    """ Ensures that the next individual is returned regardless if this argument is a generator, an actual individual,
-        or a (individual, args, kwargs) tuple.
-
-    TODO this could probably become a function decorator
-
-    :param individual:
-    :return: actual individual and *args and **kwards
-    """
-    if isinstance(individual, Individual):
-        return individual, args, kwargs
-    elif isinstance(individual, ()):
-        # if we have a tuple, it's likely an (individual, args, kwargs) passed down the pipeline, so just unpack
-        # that and send it down the line.
-        # FIXME This assumes that the given tuple is of the form (individual, args, kwargs)
-        individual, pipe_args, pipe_kwargs = individual
-        # recursively call this to ensure there's not more unpacking to do
-        return next_individual(individual, (*args, *pipe_args), {**kwargs, **kwargs})
-    if isinstance(individual, types.GeneratorType) or isinstance(individual, Iterator):
-        return next(individual), args, kwargs
-    else:
-        raise RuntimeError('Invalid arguments passed to next_individual()')
+# PROBABLY NOT NEEDED, MAC (12/8/19)
+# def next_individual(individual, *args, **kwargs):
+#     """ Ensures that the next individual is returned regardless if this argument is a generator, an actual individual,
+#         or a (individual, args, kwargs) tuple.
+#
+#     TODO this could probably become a function decorator
+#
+#     :param individual:
+#     :return: actual individual and *args and **kwards
+#     """
+#     if isinstance(individual, Individual):
+#         return individual, args, kwargs
+#     elif isinstance(individual, ()):
+#         # if we have a tuple, it's likely an (individual, args, kwargs) passed down the pipeline, so just unpack
+#         # that and send it down the line.
+#         # FIXME This assumes that the given tuple is of the form (individual, args, kwargs)
+#         individual, pipe_args, pipe_kwargs = individual
+#         # recursively call this to ensure there's not more unpacking to do
+#         return next_individual(individual, (*args, *pipe_args), {**kwargs, **kwargs})
+#     if isinstance(individual, types.GeneratorType) or isinstance(individual, Iterator):
+#         return next(individual), args, kwargs
+#     else:
+#         raise RuntimeError('Invalid arguments passed to next_individual()')
 
 
 ##############################
@@ -200,32 +200,8 @@ def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
 #     return result, context
 #
 #
-# ##############################
-# # truncation selection operator
-# ##############################
-# @curry
-# def truncation(population, context, mu):
-#     """
-#     Returns the `mu` individuals with the best fitness.
-#
-#     For example, say we have a population of 10 individuals with the following fitnesses:
-#
-#     >>> from leap import core, real
-#     >>> fitnesses = [0.12473057, 0.74763715, 0.6497458 , 0.36178902, 0.41318757, 0.69130493, 0.67464942, 0.14895497, 0.15406642, 0.31307095]
-#     >>> population = [Individual([i], core.IdentityDecoder(), real.Spheroid()) for i in range(10)]
-#     >>> for (ind, f) in zip(population, fitnesses):
-#     ...     ind.fitness = f
-#
-#     The three highest-fitness individuals are are the indices 1, 5, and 6:
-#
-#     >>> from leap.util import print_list
-#     >>> pop, _ = truncation(population, None, 3)
-#     >>> print_list(pop)
-#     [[1], [5], [6]]
-#     """
-#     inds = list(sorted(list(population), reverse=True))
-#     return inds[0:mu], context
 
+@curry
 def truncate(population, size,  *args, **kwargs):
     """ return the `size` best individuals from the given population
 
@@ -294,22 +270,24 @@ def truncate(population, size,  *args, **kwargs):
 #         result.append(max(competitors))
 #     return result, context
 #
-#
-# ##############################
-# # Class MuPlusLambda
-# ##############################
-# class MuPlusLambdaConcatenation(Operator):
-#     def __init__(self):
-#         self.parents = None
-#
-#     def capture_parents(self, population, *args, **kwargs):
-#         self.parents = population
-#         return population, args, kwargs
-#
-#     def __call__(self, population, *args, **kwargs):
-#         return self.parents + population, args, kwargs
 
 
+def tournament(population, k=2, *args, **kwargs):
+    """ Selects the best individual from k individuals randomly selected from
+        the given population
+
+    :param population: from which to select
+    :param k: are randomly drawn from which to choose the best
+    :return: the best of k individuals drawn from population
+    """
+    while True:
+        choices = random.choices(population, k=k)
+        best = max(choices)
+        yield best, args, kwargs
+
+
+
+@curry
 def naive_cyclic_selection_generator(population, *args, **kwargs):
     """ Deterministically returns individuals, and repeats the same sequence
     when exhausted.
