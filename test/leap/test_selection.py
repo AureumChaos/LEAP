@@ -11,6 +11,7 @@ from leap import binary_problems
 
 
 def test_naive_cyclic_selection():
+    """ Test of the naive deterministic cyclic selection """
     pop = []
 
     pop.append(core.Individual([0, 0]))
@@ -33,6 +34,7 @@ def test_naive_cyclic_selection():
 
 
 def test_truncation_selection():
+    """ Basic truncation selection test"""
     pop = []
 
     pop.append(core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
@@ -56,10 +58,11 @@ def test_truncation_selection():
 
 
 def test_truncation_parents_selection():
-    # Test (mu + lambda), i.e., parents competing with offspring
-    # Create parent and offspring populations such that each has an "best" individual that will be selected by
-    # truncation selection.
+    """ Test (mu + lambda), i.e., parents competing with offspring
 
+    Create parent and offspring populations such that each has an "best" individual that will be selected by
+    truncation selection.
+    """
     parents = []
 
     parents.append(core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
@@ -85,6 +88,29 @@ def test_truncation_parents_selection():
 
 
 def test_truncation_selection_pipeline_args():
-    # test capability of passing along pipeline arguments
-    # TODO implement
-    pass
+    """ test capability of passing along pipeline arguments for truncation selection
+    """
+
+    pop = []
+
+    pop.append(core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+    pop.append(core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+    pop.append(core.Individual([1, 1, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+    pop.append(core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+
+    i = iter(pop)
+
+    # We first need to evaluate all the individuals so that truncation selection has fitnesses to compare
+    pop = [individual for individual, args, kwargs in ops.evaluate(i)]
+
+    i = iter(pop)
+    truncated, args, kwargs = ops.truncate(i, 2, 42, foo='bar')
+
+    assert len(truncated) == 2
+
+    # Just to make sure, check that the two best individuals from the original population are in the selected population
+    assert pop[2] in truncated
+    assert pop[3] in truncated
+
+    assert args == (42,)
+    assert kwargs['foo'] == 'bar'

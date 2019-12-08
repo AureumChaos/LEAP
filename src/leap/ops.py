@@ -262,9 +262,11 @@ def truncate(population, size,  *args, **kwargs):
     """
     if 'parents' in kwargs:
         return toolz.itertoolz.topk(size, itertools.chain(population,
-                                                          kwargs['parents']))
+                                                          kwargs['parents'])), args, kwargs
     else:
-        return toolz.itertoolz.topk(size, population)
+        return toolz.itertoolz.topk(size, population), args, kwargs
+
+
 
 # ##############################
 # # tournament selection operator
