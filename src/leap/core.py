@@ -180,7 +180,8 @@ class Individual:
         return self.problem.worse_than(self.fitness, other.fitness)
 
     def __str__(self):
-        return self.genome.__str__()
+        # return self.genome.__str__()
+        return f"{type(self).__name__}({self.genome.__repr__()}, {self.decoder.__repr__()}, {self.problem.__repr__()})"
 
     def __repr__(self):
         return f"{type(self).__name__}({self.genome.__repr__()}, {self.decoder.__repr__()}, {self.problem.__repr__()})"

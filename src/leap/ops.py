@@ -167,7 +167,8 @@ def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
             return gene
 
     while True:
-        individual, pipe_args, pipe_kwargs = next(next_individual)
+        # individual, pipe_args, pipe_kwargs = next(next_individual)
+        foo = next(next_individual)
 
         # Given the average expected number of mutations, calculate the probability
         # for flipping each bit.
