@@ -13,8 +13,7 @@ Commands:
 """
 import click
 
-from leap import core, real, probe
-from leap import operate as op
+from leap import core, real, probe, ops
 
 
 def simple_ea(evals, pop_size, individual_cls, decoder, problem, evaluate, initialize, pipeline, step_notify_list=[]):
@@ -46,15 +45,14 @@ def simple_ea(evals, pop_size, individual_cls, decoder, problem, evaluate, initi
     block.  Here's what a basic (mu, lambda)-style EA looks like (that is, an EA that throws away the parents at each
     generation in favor of their offspring):
 
-    >>> from leap import core, real
-    >>> from leap import operate as op
+    >>> from leap import core, real, ops
     >>> pop_size = 5  # Size of the parent population
     >>> l = 10  # The length of the genome
     >>> ea = simple_ea(evals=1000, pop_size=pop_size,
     ...                individual_cls=core.Individual,  # Use the standard Individual as the prototype for the population
     ...                decoder=core.IdentityDecoder(),  # Genotype and phenotype are the same for this task
     ...                problem=real.Spheroid(maximize=False),  # Solve a Spheroid minimization problem
-    ...                evaluate=op.evaluate,  # Evaluate fitness with the basic evaluation operator
+    ...                evaluate=ops.evaluate,  # Evaluate fitness with the basic evaluation operator
     ...
     ...                # Initialized genomes are random real-valued vectors
     ...                initialize=real.initialize_vectors_uniform(
@@ -65,11 +63,11 @@ def simple_ea(evals, pop_size, individual_cls, decoder, problem, evaluate, initi
     ...                # The operator pipeline
     ...                pipeline=[
     ...                    # Select mu parents via tournament selection
-    ...                    op.tournament(n=pop_size),
+    ...                    ops.tournament(n=pop_size),
     ...                    # Clone them to create offspring
-    ...                    op.cloning,
+    ...                    ops.cloning,
     ...                    # Apply Gaussian mutation to each gene with a certain probability
-    ...                    op.mutate_gaussian(prob=0.1, std=0.05)
+    ...                    ops.mutate_gaussian(prob=0.1, std=0.05)
     ...                ])
     >>> ea # doctest:+ELLIPSIS
     <generator ...>
@@ -102,7 +100,7 @@ def simple_ea(evals, pop_size, individual_cls, decoder, problem, evaluate, initi
             f(i)
         # Run the population through the operator pipeline
         # We aren't using any context data, so we pass in None
-        population, _ = op.do_pipeline(population, None, *pipeline)
+        population, _ = ops.do_pipeline(population, None, *pipeline)
         population, _ = evaluate(population)  # Evaluate the fitness of the offspring population
         i += len(population)  # Increment the eval counter by the size of the population
         yield (i, best(population))  # Yield the best individual for each generation
@@ -127,7 +125,7 @@ def mu_comma_lambda(evals, pop_size, l, mutate_prob, mutate_std):
                    individual_cls=core.Individual,  # Use the standard Individual as the prototype for the population.
                    decoder=core.IdentityDecoder(),  # Genotype and phenotype are the same for this task.
                    problem=real.Spheroid(maximize=False),  # Solve a Spheroid minimization problem.
-                   evaluate=op.evaluate,  # Evaluate fitness with the basic evaluation operator.
+                   evaluate=ops.evaluate,  # Evaluate fitness with the basic evaluation operator.
 
                    # Initialized genomes are random real-valued vectors.
                    initialize=real.initialize_vectors_uniform(
@@ -138,11 +136,11 @@ def mu_comma_lambda(evals, pop_size, l, mutate_prob, mutate_std):
                    # The operator pipeline.
                    pipeline=[
                        # Select mu parents via tournament selection.
-                       op.tournament(n=pop_size),
+                       ops.tournament(n=pop_size),
                        # Clone them to create offspring.
-                       op.cloning,
+                       ops.cloning,
                        # Apply Gaussian mutation to each gene with a certain probability.
-                       op.mutate_gaussian(prob=mutate_prob, std=mutate_std)
+                       ops.mutate_gaussian(prob=mutate_prob, std=mutate_std)
                    ])
 
     print('generation, best_of_gen_fitness')
@@ -161,14 +159,14 @@ def mu_plus_lambda(evals, mu, lambda_, l, mutate_prob, mutate_std):
     """Apply a (μ + λ)-style generational EA with truncation selection and Gaussian
     mutation to the `Spheroid` function."""
     # Setup a (μ + λ) concatenation operator
-    mu_plus_lambda_cat = op.MuPlusLambdaConcatenation()
+    mu_plus_lambda_cat = ops.MuPlusLambdaConcatenation()
     # Setup a probe to collect the BSF fitness
     bsf_probe = probe.memory_probe(probe=probe.BestSoFar(just_fitness=True))
     ea = simple_ea(evals=evals, pop_size=mu + lambda_,
                    individual_cls=core.Individual,  # Use the standard Individual as the prototype for the population.
                    decoder=core.IdentityDecoder(),  # Genotype and phenotype are the same for this task.
                    problem=real.Spheroid(maximize=False),  # Solve a Spheroid minimization problem.
-                   evaluate=op.evaluate,  # Evaluate fitness with the basic evaluation operator.
+                   evaluate=ops.evaluate,  # Evaluate fitness with the basic evaluation operator.
 
                    # Initialized genomes are random real-valued vectors.
                    initialize=real.initialize_vectors_uniform(
@@ -181,14 +179,14 @@ def mu_plus_lambda(evals, mu, lambda_, l, mutate_prob, mutate_std):
                        # Collect the BSF fitness at the start of each generation
                        bsf_probe,
                        # Choose the best μ individuals to serve as parents
-                       op.truncation(mu=mu),
+                       ops.truncation(mu=mu),
                        # Save the parents for later.
                        # (This function saves state into the MuPlusLambdaConcatenation operator)
                        mu_plus_lambda_cat.capture_parents,
                        # Clone the parents to create offspring.
-                       op.cloning,
+                       ops.cloning,
                        # Apply Gaussian mutation to each gene with a certain probability.
-                       op.mutate_gaussian(prob=mutate_prob, std=mutate_std),
+                       ops.mutate_gaussian(prob=mutate_prob, std=mutate_std),
                        # Concatenate parents and offspring.
                        mu_plus_lambda_cat
                    ])

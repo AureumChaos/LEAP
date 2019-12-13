@@ -1,7 +1,7 @@
 from matplotlib import pyplot as plt
 
 from leap.example.simple_ea import simple_ea
-from leap import core, real, operate as op
+from leap import core, real, ops
 from leap.probe import PlotTrajectoryProbe, PlotProbe
 
 
@@ -36,7 +36,7 @@ def ea(problem, initialize, probes=[], step_notify=[], evals=200, l=2):
                    individual_cls=core.Individual,  # Use the standard Individual as the prototype for the population.
                    decoder=core.IdentityDecoder(),  # Genotype and phenotype are the same for this task.
                    problem=problem,
-                   evaluate=op.evaluate,  # Evaluate fitness with the basic evaluation operator.
+                   evaluate=ops.evaluate,  # Evaluate fitness with the basic evaluation operator.
 
                    initialize=initialize,
 
@@ -45,11 +45,11 @@ def ea(problem, initialize, probes=[], step_notify=[], evals=200, l=2):
                    # The operator pipeline.
                    pipeline=probes + [
                        # Select mu parents via tournament selection.
-                       op.tournament(n=pop_size),
+                       ops.tournament(n=pop_size),
                        # Clone them to create offspring.
-                       op.cloning,
+                       ops.cloning,
                        # Apply Gaussian mutation to each gene with a certain probability.
-                       op.mutate_gaussian(prob=mutate_prob, std=mutate_std, hard_bounds=(-5.12, 5.12))
+                       ops.mutate_gaussian(prob=mutate_prob, std=mutate_std, hard_bounds=(-5.12, 5.12))
                    ])
     return ea
 

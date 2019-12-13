@@ -4,8 +4,7 @@ import click
 import gym
 import numpy as np
 
-from leap import brains, core, real, probe
-from leap import operate as op
+from leap import brains, core, real, probe, ops
 from leap.example.simple_ea import simple_ea
 
 
@@ -81,7 +80,7 @@ def evolve_pitt(runs, steps, env, evals, pop_size, num_rules, mutate_prob, mutat
                            num_memory_registers=0
                        ),
                        problem=brains.BrainProblem(runs, steps, environment, brains.reward_fitness),
-                       evaluate=op.evaluate,  # Evaluate fitness with the basic evaluation operator.
+                       evaluate=ops.evaluate,  # Evaluate fitness with the basic evaluation operator.
 
                        # Initialized genomes are random real-valued vectors.
                        initialize=real.initialize_vectors_uniform(
@@ -97,11 +96,11 @@ def evolve_pitt(runs, steps, env, evals, pop_size, num_rules, mutate_prob, mutat
                            stdout_probe,
                            file_probe,
                            # Select mu parents via tournament selection.
-                           op.tournament(n=pop_size),
+                           ops.tournament(n=pop_size),
                            # Clone them to create offspring.
-                           op.cloning,
+                           ops.cloning,
                            # Apply Gaussian mutation to each gene with a certain probability.
-                           op.mutate_gaussian(prob=mutate_prob, std=mutate_std, hard_bounds=(0, 1))
+                           ops.mutate_gaussian(prob=mutate_prob, std=mutate_std, hard_bounds=(0, 1))
                        ])
         list(ea)
 
