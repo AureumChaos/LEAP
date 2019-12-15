@@ -21,14 +21,14 @@ def test_naive_cyclic_selection():
     # given population
     selector = ops.naive_cyclic_selection_generator(pop)
 
-    selected, args, kwargs = next(selector)
+    selected = next(selector)
     assert selected.genome == [0,0]
 
-    selected, args, kwargs = next(selector)
+    selected = next(selector)
     assert selected.genome == [0,1]
 
     # And now we cycle back to the first individual
-    selected, args, kwargs = next(selector)
+    selected = next(selector)
     assert selected.genome == [0,0]
 
 

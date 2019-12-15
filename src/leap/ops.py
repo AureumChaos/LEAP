@@ -283,7 +283,7 @@ def tournament(population, k=2):
 
 
 @curry
-def naive_cyclic_selection_generator(population, *args, **kwargs):
+def naive_cyclic_selection_generator(population):
     """ Deterministically returns individuals, and repeats the same sequence
     when exhausted.
 
@@ -308,7 +308,7 @@ def naive_cyclic_selection_generator(population, *args, **kwargs):
     iter = itertools.cycle(population)
 
     while True:
-        yield next(iter), args, kwargs
+        yield next(iter)
 
 
 @curry
