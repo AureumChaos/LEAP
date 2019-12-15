@@ -162,19 +162,17 @@ def clone(next_individual):
 # # mutate_bitflip operator
 # ##############################
 @curry
-def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
+def mutate_bitflip(next_individual, expected=1):
     """ mutate and return an individual with a binary representation
 
     >>> import core, binary_problems
 
     >>> original = Individual([1,1])
 
-    >>> mutated_generator = mutate_bitflip(iter([original]))
+    >>> mutated = next(mutate_bitflip(iter([original])))
 
     :param individual: to be mutated
     :param expected: the *expected* number of mutations, on average
-    :param args: optional args
-    :param kwargs: optional keyword args
     :return: mutated individual
     """
     def flip(gene):
@@ -185,15 +183,16 @@ def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
 
     while True:
         # individual, pipe_args, pipe_kwargs = next(next_individual)
-        foo = next(next_individual)
+        individual = next(next_individual)
 
         # Given the average expected number of mutations, calculate the probability
-        # for flipping each bit.
+        # for flipping each bit.  This calculation must be made each time given
+        # that we may be dealing with dynamic lengths.
         probability = 1.0 / len(individual.genome) * expected
 
         individual.genome = [flip(gene) for gene in individual.genome]
 
-        yield individual,  (*pipe_args, *args), {**pipe_kwargs, **kwargs}
+        yield individual
 
 
 # ##############################
