@@ -311,7 +311,7 @@ def naive_cyclic_selection_generator(population):
 
 
 @curry
-def pool(next_individual, size, *args, **kwargs):
+def pool(next_individual, size):
     """ 'Sink' for creating `size` individuals from preceding pipeline source.
 
     Allows for "pooling" individuals to be processed by next pipeline
@@ -337,18 +337,4 @@ def pool(next_individual, size, *args, **kwargs):
     :param size: how many kids we want
     :return: population of `size` offspring
     """
-    # TODO this could be more elegant, and I'm not sure about the priority
-    # order for what overwrites what for function arguments vs. pipe data.
-    final_args = ()
-    final_kwargs = {}
-    final_pool = []
-
-    for _ in range(size):
-        individual, pipe_args, pipe_kwargs = next(next_individual)
-        final_args = (*final_args, *pipe_args)
-        final_kwargs = {**final_kwargs, **pipe_kwargs}
-
-        final_pool.append(individual)
-
-    # return [next(next_individual) for _ in range(size)], args, kwargs
-    return final_pool, final_args, final_kwargs
+    return [next(next_individual) for _ in range(size)]
