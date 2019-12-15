@@ -90,11 +90,26 @@ class Operator(abc.ABC):
 #         raise RuntimeError('Invalid arguments passed to next_individual()')
 
 
+def get_context(iterable, **kwargs):
+    """ Convenience function for grabbing the the optional context possibly passed down the pipeline
+
+    :param iterable: iterator pointing to a sequence that has been passed in to an operator
+    :param kwargs:
+    :return: a context object
+    """
+    try:
+        context = next(iterable)
+        return {**context, **kwargs}
+    except StopIteration:
+        # No context as next element so return empty context plus any optional keyword arguments
+        return kwargs
+
+
 ##############################
 # evaluate operator
 ##############################
 @curry
-def evaluate(next_individual, *args, **kwargs):
+def evaluate(next_individual, **kwargs):
     """ Evaluate and returns the next individual in the pipeline
 
     >>> import core, binary_problems
@@ -105,17 +120,20 @@ def evaluate(next_individual, *args, **kwargs):
 
     >>> evaluated_ind = evaluate(iter([ind]))
 
-    :param individual: iterator pointing to next individual to be evaluated
+    :param next_individual: iterator pointing to next individual to be evaluated
+    :param kwargs: contains optional context state to pass down the pipeline in context dictionaries
     :return: the evaluated individual
     """
     while True:
         # "combined" means combining any args, kwargs passed in to this function with those passed in from upstream
         # in the pipeline.
         # individual, pipe_args, pipe_kwargs = next(next_individual)
-        individual = next(next_individual)
+        individual= next(next_individual)
         individual.evaluate()
 
-        yield individual, args, kwargs #(*args, *pipe_args), {**kwargs, **pipe_kwargs}
+        context = get_context(next_individual, **kwargs)
+
+        yield individual, context
 
 
 ##############################
