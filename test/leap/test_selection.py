@@ -42,19 +42,17 @@ def test_truncation_selection():
     pop.append(core.Individual([1, 1, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
     pop.append(core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
 
-    i = iter(pop)
-
     # We first need to evaluate all the individuals so that truncation selection has fitnesses to compare
-    pop = [individual for individual, args, kwargs in ops.evaluate(i)]
+    pop = [individual for individual in ops.evaluate(iter(pop))]
 
-    i = iter(pop)
-    truncated, args, kwargs = ops.truncate(i, 2)
+    truncated = ops.truncate(pop, 2)
 
     assert len(truncated) == 2
 
     # Just to make sure, check that the two best individuals from the original population are in the selected population
     assert pop[2] in truncated
     assert pop[3] in truncated
+
 
 
 def test_truncation_parents_selection():
@@ -68,52 +66,21 @@ def test_truncation_parents_selection():
     parents.append(core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
     parents.append(core.Individual([1, 1, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
     i = iter(parents)
-    parents = [individual for individual, args, kwargs in ops.evaluate(i)]
+    parents = [individual for individual in ops.evaluate(i)]
 
     offspring = []
     offspring.append(core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
     offspring.append(core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
     i = iter(offspring)
-    offspring = [individual for individual, args, kwargs in ops.evaluate(i)]
+    offspring = [individual for individual in ops.evaluate(i)]
 
-    parents_iter = iter(parents)
-    offspring_iter = iter(offspring)
-
-    truncated, args, kwargs = ops.truncate(offspring_iter, 2, parents=parents_iter)
+    truncated = ops.truncate(offspring, 2, parents=parents)
 
     assert len(truncated) == 2
 
     assert parents[1] in truncated
     assert offspring[1] in truncated
 
-
-def test_truncation_selection_pipeline_args():
-    """ test capability of passing along pipeline arguments for truncation selection
-    """
-
-    pop = []
-
-    pop.append(core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
-    pop.append(core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
-    pop.append(core.Individual([1, 1, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
-    pop.append(core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
-
-    i = iter(pop)
-
-    # We first need to evaluate all the individuals so that truncation selection has fitnesses to compare
-    pop = [individual for individual, args, kwargs in ops.evaluate(i)]
-
-    i = iter(pop)
-    truncated, args, kwargs = ops.truncate(i, 2, 42, foo='bar')
-
-    assert len(truncated) == 2
-
-    # Just to make sure, check that the two best individuals from the original population are in the selected population
-    assert pop[2] in truncated
-    assert pop[3] in truncated
-
-    assert args == (42,)
-    assert kwargs['foo'] == 'bar'
 
 
 def test_tournament_selection():

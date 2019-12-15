@@ -220,18 +220,10 @@ def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
 #
 
 @curry
-def truncate(previous, size,  *args, **kwargs):
+def truncate(offspring, size, parents=None):
     """ return the `size` best individuals from the given population
 
-        This defaults to (mu, lambda) if `second_population` is not given.
-
-        kwargs['parents'] is an optional population that is "blended" with the
-        first for truncation purposes, and is usually used to allow parents
-        and offspring to compete. (I.e., mu + lambda).
-
-        FIXME this will also "truncate" *args and **kwargs passed down the line since this expects a sequence
-        and not a generator. (Actually, this will be after a pool() call, which returns those, so this should
-        work as expected, right?)
+        This defaults to (mu, lambda) if `parents` is not given.
 
         >>> from leap import core, ops, binary_problems
         >>> pop = []
@@ -242,32 +234,22 @@ def truncate(previous, size,  *args, **kwargs):
 
         We need to evaluate them to get their fitness to sort them for truncation.
         >>> i = iter(pop)
-        >>> pop = [individual for individual, args, kwargs in evaluate(i)]
+        >>> pop = [individual for individual in evaluate(i)]
 
-        >>> i = iter(pop)
-        >>> truncated = truncate(i, 2)
+        >>> truncated = truncate(pop, 2)
 
+        TODO Do we want an optional context to over-ride the 'parents' parameter?
 
-        :param previous: is the tuple from the previous pipeline operator of (population, *args, **kwargs)
+        :param offspring: offspring to truncate down to a smaller population
         :param size: is what to resize population to
-        :param second_population: is optional second population to include
+        :param second_population: is optional parent population to include
                                   with population for downsizing
-        :return: truncated population (plus optional second population)
+        :return: truncated population
     """
-    if isinstance(previous, tuple):
-        # If this is plugged into a pipeline, then previous will contain these items which will have to be unpacked
-        population, pipe_args, pipe_kwargs = previous
+    if parents is not None:
+        return toolz.itertoolz.topk(size, itertools.chain(offspring, parents))
     else:
-        # Else we presume that previous is actually a sequence of individual representing a population
-        population = previous
-        pipe_args = ()
-        pipe_kwargs = {}
-
-    if 'parents' in kwargs:
-        return toolz.itertoolz.topk(size, itertools.chain(population,
-                                                          kwargs['parents'])), (*args, *pipe_args), {**kwargs, **pipe_kwargs}
-    else:
-        return toolz.itertoolz.topk(size, population), (*args, *pipe_args), {**kwargs, **pipe_kwargs}
+        return toolz.itertoolz.topk(size, offspring)
 
 
 
