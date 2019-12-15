@@ -20,6 +20,8 @@ if __name__ == '__main__':
 
     max_generation = 5
 
+    # TODO add in context for tradcking and reporting generation as start of example of using context state
+
     for generation in range(max_generation):
         survivors = pipe(parents,
                          ops.tournament,
