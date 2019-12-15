@@ -21,11 +21,14 @@ if __name__ == '__main__':
     max_generation = 5
 
     for generation in range(max_generation):
-        survivors, args, kwargs = pipe(parents,
+        survivors = pipe(parents,
                          ops.tournament,
                          ops.clone,
                          ops.mutate_bitflip,
+                         ops.evaluate,
                          ops.pool(size=10),  # 10 offspring
                          ops.truncate(size=5))  # (mu + lambda)
 
-        parents = list(offspring)
+        parents = survivors
+
+    pass
