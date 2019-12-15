@@ -118,7 +118,7 @@ def evaluate(next_individual, **kwargs):
 
     >>> ind = core.Individual([1,1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())
 
-    >>> evaluated_ind = evaluate(iter([ind]))
+    >>> evaluated_ind, context = next(evaluate(iter([ind])))
 
     :param next_individual: iterator pointing to next individual to be evaluated
     :param kwargs: contains optional context state to pass down the pipeline in context dictionaries
@@ -140,7 +140,7 @@ def evaluate(next_individual, **kwargs):
 # clone operator
 ##############################
 @curry
-def clone(next_individual, *args, **kwargs):
+def clone(next_individual, **kwargs):
     """ clones and returns the next individual in the pipeline
 
     >>> import core
@@ -155,8 +155,9 @@ def clone(next_individual, *args, **kwargs):
     :return: copy of next_individual
     """
     while True:
-        individual, pipe_args, pipe_kwargs = next(next_individual)
-        yield individual.clone(), (*pipe_args, *args), {**pipe_kwargs, **kwargs}
+        individual = next(next_individual)
+        context = get_context(next_individual, **kwargs)
+        yield individual.clone(), context
 
 
 # ##############################
