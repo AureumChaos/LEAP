@@ -138,7 +138,7 @@ def evaluate(next_individual):
 # clone operator
 ##############################
 @curry
-def clone(next_individual, **kwargs):
+def clone(next_individual):
     """ clones and returns the next individual in the pipeline
 
     >>> import core
@@ -154,8 +154,8 @@ def clone(next_individual, **kwargs):
     """
     while True:
         individual = next(next_individual)
-        context = get_context(next_individual, **kwargs)
-        yield individual.clone(), context
+
+        yield individual.clone()
 
 
 # ##############################
