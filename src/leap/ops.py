@@ -109,7 +109,7 @@ def get_context(iterable, **kwargs):
 # evaluate operator
 ##############################
 @curry
-def evaluate(next_individual, **kwargs):
+def evaluate(next_individual):
     """ Evaluate and returns the next individual in the pipeline
 
     >>> import core, binary_problems
@@ -118,7 +118,7 @@ def evaluate(next_individual, **kwargs):
 
     >>> ind = core.Individual([1,1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())
 
-    >>> evaluated_ind, context = next(evaluate(iter([ind])))
+    >>> evaluated_ind = next(evaluate(iter([ind])))
 
     :param next_individual: iterator pointing to next individual to be evaluated
     :param kwargs: contains optional context state to pass down the pipeline in context dictionaries
@@ -131,9 +131,7 @@ def evaluate(next_individual, **kwargs):
         individual= next(next_individual)
         individual.evaluate()
 
-        context = get_context(next_individual, **kwargs)
-
-        yield individual, context
+        yield individual
 
 
 ##############################
@@ -275,18 +273,22 @@ def truncate(previous, size,  *args, **kwargs):
 
 
 
-def tournament(population, k=2, *args, **kwargs):
+def tournament(population, k=2, context={}, **kwargs):
     """ Selects the best individual from k individuals randomly selected from
         the given population
 
     :param population: from which to select
-    :param k: are randomly drawn from which to choose the best
+    :param k: are randomly drawn from which to choose the best; by default this is 2 for binary tournament selection
+    :param context: optional context passed down from the pipeline
     :return: the best of k individuals drawn from population
     """
     while True:
         choices = random.choices(population, k=k)
         best = max(choices)
-        yield best, args, kwargs
+
+        # Return the best, and merge any keyword context passed in via the preceding pipeline operators and
+        # via the explicit call to this function.
+        yield best, {**context, **kwargs}
 
 
 
