@@ -273,22 +273,30 @@ def truncate(previous, size,  *args, **kwargs):
 
 
 
-def tournament(population, k=2, context={}, **kwargs):
+def tournament(population, k=2):
     """ Selects the best individual from k individuals randomly selected from
         the given population
 
-    :param population: from which to select
-    :param k: are randomly drawn from which to choose the best; by default this is 2 for binary tournament selection
-    :param context: optional context passed down from the pipeline
-    :return: the best of k individuals drawn from population
+        >>> from leap import core, ops, binary_problems
+        >>> pop = []
+        >>> pop.append(core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+        >>> pop.append(core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+
+        We need to evaluate them to get their fitness to sort them for truncation.
+        >>> i = iter(pop)
+        >>> pop = [individual for individual, args, kwargs in evaluate(i)]
+
+        >>> best = tournament(pop)
+
+        :param population: from which to select
+        :param k: are randomly drawn from which to choose the best; by default this is 2 for binary tournament selection
+        :return: the best of k individuals drawn from population
     """
     while True:
         choices = random.choices(population, k=k)
         best = max(choices)
 
-        # Return the best, and merge any keyword context passed in via the preceding pipeline operators and
-        # via the explicit call to this function.
-        yield best, {**context, **kwargs}
+        yield best
 
 
 

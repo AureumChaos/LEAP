@@ -127,9 +127,9 @@ def test_tournament_selection():
     i = iter(pop)
 
     # We first need to evaluate all the individuals so that truncation selection has fitnesses to compare
-    pop = [individual for individual, context in ops.evaluate(i)]
+    pop = [individual for individual in ops.evaluate(i)]
 
-    best, context = next(ops.tournament(pop))
+    best = next(ops.tournament(pop))
     pass
 
     # This assert will sometimes not work because it's possible to select the same individual more than once, and that
@@ -137,22 +137,5 @@ def test_tournament_selection():
     # assert pop[1] == best
 
 
-def test_tournament_with_args():
-    """ tournament selection support for pipeline argsv"""
 
-    pop = []
-
-    # Make a population where binary tournament has an obvious reproducible choice
-    pop.append(core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
-    pop.append(core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
-
-    i = iter(pop)
-
-    # We first need to evaluate all the individuals so that truncation selection has fitnesses to compare
-    pop = [individual for individual, args, kwargs in ops.evaluate(i)]
-
-    best, args, kwargs = next(ops.tournament(pop, 2, 44, foo='bar'))
-
-    assert args == (44,)
-    assert kwargs['foo'] == 'bar'
 
