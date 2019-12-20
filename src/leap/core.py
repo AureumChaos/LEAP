@@ -15,6 +15,12 @@ import random
 from toolz import curry
 from toolz.itertoolz import pluck
 
+# This defines a global context that is a dictionary of dictionaries.  The
+# intent is for certain operators and functions to add to and modify this
+# context.  Third party operators and functions will just add a new top-level
+# dedicated key.
+context = {'leap' : {}}
+
 
 @curry
 def create_binary_sequence(length=5):
@@ -340,3 +346,7 @@ class BinaryToRealDecoder(Decoder):
         int_values = self.binary_to_int_decoder.decode(genome)
         values = [l + i * inc for l, i, inc in zip(self.lower_bounds, int_values, self.increments)]
         return values
+
+
+if __name__ == '__main__':
+    pass
