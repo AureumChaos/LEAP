@@ -13,17 +13,20 @@ def inc_generation(context, callbacks=[]):
     can also be given by inc_generation.generation().
 
     This will optionally call all the given callback functions whenever the
-    generation is incremented.
+    generation is incremented. The registered callback functions should have a signature f(int),
+    where the int is the new generation.
+
+    TODO Should we make core.context the default?
 
     >>> import core
     >>> my_inc_generation = inc_generation(core.context)
 
-    :param context: will set leap.generation to the incremented generation
-    :param callbacks: optional list of callback function to call when a
+    :param context: will set ['leap']['generation'] to the incremented generation
+    :param callbacks: optional list of callback function to call when a generation changes
     generation is incremented
     :return:
     """
-    curr_generation  = 0 # current generation
+    curr_generation  = 0
     context = context
     context['leap']['generation'] = 0
     callbacks = callbacks
@@ -37,7 +40,14 @@ def inc_generation(context, callbacks=[]):
         nonlocal callbacks
         curr_generation += 1
 
-        # TODO add callback support
+        # Update the context
+        context['leap']['generation'] = curr_generation
+
+        # Now echo the new generation to all the registered callbacks.
+        # TODO There is probably a more pythonic way to do this
+        [f(curr_generation) for f in callbacks]
+
+        return curr_generation
 
     do_increment.generation = generation
 
