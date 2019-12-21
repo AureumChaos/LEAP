@@ -17,7 +17,6 @@ def inc_generation(context, callbacks=[]):
 
     >>> import core
     >>> my_inc_generation = inc_generation(core.context)
-    >>> print(core.context)
 
     :param context: will set leap.generation to the incremented generation
     :param callbacks: optional list of callback function to call when a
