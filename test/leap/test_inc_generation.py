@@ -25,6 +25,7 @@ def test_inc_generation():
     # Now do the increment
     curr_generation = my_inc_generation()
 
+    # The generation incrementer always returns the new generation
     assert curr_generation == 1
 
     # The core context state should have updated
