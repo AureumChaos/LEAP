@@ -1,3 +1,7 @@
+"""
+  Probes are pipeline operators to instrument state that passes through the pipeline
+  such as populations or individuals.
+"""
 import sys
 
 from matplotlib import pyplot as plt
@@ -13,6 +17,15 @@ from leap import ops as op
 ##############################
 @curry
 def print_probe(population, context, probe, stream=sys.stdout, prefix=''):
+    """ pipeline operator for printing the given populaiton
+
+    :param population:
+    :param context:
+    :param probe:
+    :param stream:
+    :param prefix:
+    :return:
+    """
     val = prefix + str(probe(population, context))
     stream.write(val)
     return population, context
