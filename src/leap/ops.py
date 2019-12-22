@@ -65,45 +65,6 @@ class Operator(abc.ABC):
         pass
 
 
-# PROBABLY NOT NEEDED, MAC (12/8/19)
-# def next_individual(individual, *args, **kwargs):
-#     """ Ensures that the next individual is returned regardless if this argument is a generator, an actual individual,
-#         or a (individual, args, kwargs) tuple.
-#
-#     TODO this could probably become a function decorator
-#
-#     :param individual:
-#     :return: actual individual and *args and **kwards
-#     """
-#     if isinstance(individual, Individual):
-#         return individual, args, kwargs
-#     elif isinstance(individual, ()):
-#         # if we have a tuple, it's likely an (individual, args, kwargs) passed down the pipeline, so just unpack
-#         # that and send it down the line.
-#         # FIXME This assumes that the given tuple is of the form (individual, args, kwargs)
-#         individual, pipe_args, pipe_kwargs = individual
-#         # recursively call this to ensure there's not more unpacking to do
-#         return next_individual(individual, (*args, *pipe_args), {**kwargs, **kwargs})
-#     if isinstance(individual, types.GeneratorType) or isinstance(individual, Iterator):
-#         return next(individual), args, kwargs
-#     else:
-#         raise RuntimeError('Invalid arguments passed to next_individual()')
-
-
-def get_context(iterable, **kwargs):
-    """ Convenience function for grabbing the the optional context possibly passed down the pipeline
-
-    :param iterable: iterator pointing to a sequence that has been passed in to an operator
-    :param kwargs:
-    :return: a context object
-    """
-    try:
-        context = next(iterable)
-        return {**context, **kwargs}
-    except StopIteration:
-        # No context as next element so return empty context plus any optional keyword arguments
-        return kwargs
-
 
 ##############################
 # evaluate operator
