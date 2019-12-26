@@ -1,6 +1,10 @@
 """
   Probes are pipeline operators to instrument state that passes through the pipeline
   such as populations or individuals.
+
+  TODO Will have to sync with Siggy on updating his code to work with the new paradigm.
+  Shouldn't be too hard, and use of callbacks for inc_generation() should help as well as use
+  of context objects.
 """
 import sys
 
