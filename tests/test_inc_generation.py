@@ -3,7 +3,7 @@
 """
 import sys, os
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from leap import core
 from leap import binary_problems
