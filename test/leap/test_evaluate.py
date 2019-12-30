@@ -10,36 +10,33 @@ from leap import binary_problems
 from leap import ops
 
 
-def test_evaluate():
-    # We need an Individual with a simple encoding and a corresponding
-    # problem so that we have something with which to evaluate.
+def test_simple_evaluate():
+    # Let's try evaluating a single individual
+    pop = []
 
-    pop = [core.Individual([1, 1], decoder=core.IdentityDecoder(),
-                           problem=binary_problems.MaxOnes())]
+    pop.append(core.Individual([1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
 
-    # The one individual hasn't been evaluated yet, so its fitness
-    # should be None
+    evaluated_individual = next(ops.evaluate(iter(pop)))
 
-    assert pop[0].fitness is None
+    assert evaluated_individual.fitness == 2
 
-    # Since we're using generators, let's create a new sequence with
-    # the hopefully now evaluated individual.  Note that evaluate() returns
-    # the evaluated individual *and* the optional args and kwargs.  Since
-    # we're doing a test, we strip out the args and kwargs to get at just
-    # the individual.
-    # TODO add a test to ensure that the args and kwargs get properly
-    # propagated.
 
-    new_pop = [i for i, args, kwargs in ops.evaluate(iter(pop))]
 
-    # Which should now have a fitness.
+def test_multiple_evaluations():
+    # Let's try evaluating a single individual
+    pop = []
 
-    assert new_pop[0].fitness is not None
+    pop.append(core.Individual([0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+    pop.append(core.Individual([0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+    pop.append(core.Individual([1, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+    pop.append(core.Individual([1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
 
-    # And so to show that there's no copying, we can similarly refer to
-    # the same individual in the original sequence to show that, yes,
-    # it really did get evaluated.
+    evaluated_individuals  = [individual for individual in ops.evaluate(iter(pop))]
 
-    assert pop[0].fitness is not None
+    # Since this is the MAX ONES problem, we just count the ones ahead of time, and ensure that the actual
+    # fitnesses match up.
+    expected_fitnesses = [0, 1, 1, 2]
 
+    for individual, fitness in zip(evaluated_individuals, expected_fitnesses):
+        assert individual.fitness == fitness
 

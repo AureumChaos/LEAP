@@ -6,10 +6,12 @@ traditional selection and reproduction strategies here.
 import abc
 import itertools
 import random
-
+import types
+from collections.abc import Iterator
 
 import numpy as np
-from toolz import curry
+import toolz
+from toolz import curry, topk
 
 from leap.core import Individual
 
@@ -64,13 +66,11 @@ class Operator(abc.ABC):
 
 
 
-
-
 ##############################
 # evaluate operator
 ##############################
 @curry
-def evaluate(next_individual, *args, **kwargs):
+def evaluate(next_individual):
     """ Evaluate and returns the next individual in the pipeline
 
     >>> import core, binary_problems
@@ -79,25 +79,27 @@ def evaluate(next_individual, *args, **kwargs):
 
     >>> ind = core.Individual([1,1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())
 
-    >>> evaluated_ind = evaluate(iter([ind]))
+    >>> evaluated_ind = next(evaluate(iter([ind])))
 
     :param next_individual: iterator pointing to next individual to be evaluated
+    :param kwargs: contains optional context state to pass down the pipeline in context dictionaries
     :return: the evaluated individual
     """
     while True:
-        individual, pipe_args, pipe_kwargs = next(next_individual)
+        # "combined" means combining any args, kwargs passed in to this function with those passed in from upstream
+        # in the pipeline.
+        # individual, pipe_args, pipe_kwargs = next(next_individual)
+        individual= next(next_individual)
         individual.evaluate()
 
-        # Use unpacking to combine args passed in explicitly from the user with
-        # those passed through the pipe.
-        yield individual, (*pipe_args, *args), {**pipe_kwargs, **kwargs}
+        yield individual
 
 
 ##############################
 # clone operator
 ##############################
 @curry
-def clone(next_individual, *args, **kwargs):
+def clone(next_individual):
     """ clones and returns the next individual in the pipeline
 
     >>> import core
@@ -112,27 +114,26 @@ def clone(next_individual, *args, **kwargs):
     :return: copy of next_individual
     """
     while True:
-        individual, pipe_args, pipe_kwargs = next(next_individual)
-        yield individual.clone(), (*pipe_args, *args), {**pipe_kwargs, **kwargs}
+        individual = next(next_individual)
+
+        yield individual.clone()
 
 
 # ##############################
 # # mutate_bitflip operator
 # ##############################
 @curry
-def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
+def mutate_bitflip(next_individual, expected=1):
     """ mutate and return an individual with a binary representation
 
     >>> import core, binary_problems
 
     >>> original = Individual([1,1])
 
-    >>> mutated_generator = mutate_bitflip(iter([original]))
+    >>> mutated = next(mutate_bitflip(iter([original])))
 
     :param individual: to be mutated
     :param expected: the *expected* number of mutations, on average
-    :param args: optional args
-    :param kwargs: optional keyword args
     :return: mutated individual
     """
     def flip(gene):
@@ -141,16 +142,18 @@ def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
         else:
             return gene
 
-    individual, pipe_args, pipe_kwargs = next(next_individual)
-
-    # Given the average expected number of mutations, calculate the probability
-    # for flipping each bit.
-    probability = 1.0 / len(individual.genome) * expected
-
     while True:
+        # individual, pipe_args, pipe_kwargs = next(next_individual)
+        individual = next(next_individual)
+
+        # Given the average expected number of mutations, calculate the probability
+        # for flipping each bit.  This calculation must be made each time given
+        # that we may be dealing with dynamic lengths.
+        probability = 1.0 / len(individual.genome) * expected
+
         individual.genome = [flip(gene) for gene in individual.genome]
 
-        yield individual,  (*pipe_args, *args), {**pipe_kwargs, **kwargs}
+        yield individual
 
 
 # ##############################
@@ -175,76 +178,72 @@ def mutate_bitflip(next_individual, expected=1, *args, **kwargs):
 #     return result, context
 #
 #
-# ##############################
-# # truncation selection operator
-# ##############################
-# @curry
-# def truncation(population, context, mu):
-#     """
-#     Returns the `mu` individuals with the best fitness.
-#
-#     For example, say we have a population of 10 individuals with the following fitnesses:
-#
-#     >>> from leap import core, real
-#     >>> fitnesses = [0.12473057, 0.74763715, 0.6497458 , 0.36178902, 0.41318757, 0.69130493, 0.67464942, 0.14895497, 0.15406642, 0.31307095]
-#     >>> population = [Individual([i], core.IdentityDecoder(), real.Spheroid()) for i in range(10)]
-#     >>> for (ind, f) in zip(population, fitnesses):
-#     ...     ind.fitness = f
-#
-#     The three highest-fitness individuals are are the indices 1, 5, and 6:
-#
-#     >>> from leap.util import print_list
-#     >>> pop, _ = truncation(population, None, 3)
-#     >>> print_list(pop)
-#     [[1], [5], [6]]
-#     """
-#     inds = list(sorted(list(population), reverse=True))
-#     return inds[0:mu], context
-#
-#
-# ##############################
-# # tournament selection operator
-# ##############################
-# @curry
-# def tournament(population, context, n, num_competitors=2):
-#     """
-#     Select `n` individuals form a population via tournament selection.
-#     :param list population: A list of individuals
-#     :param int n: The number of individuals to select
-#     :param int num_competitors: The number of individuals that compete in each tournament
-#     :return: A generator that produces `n` individuals
-#
-#     >>> from leap import core, real, data
-#     >>> pop = data.test_population
-#     >>> for (ind, f) in zip(pop, [3, 1, 4, 2]):
-#     ...     ind.fitness = f
-#     >>> pop, _ = tournament(pop, None, 3)
-#     >>> pop  # doctest:+ELLIPSIS
-#     [..., ..., ...]
-#     """
-#     result = []
-#     for i in range(n):
-#         competitors = np.random.choice(population, num_competitors)
-#         result.append(max(competitors))
-#     return result, context
-#
-#
-# ##############################
-# # Class MuPlusLambda
-# ##############################
-# class MuPlusLambdaConcatenation(Operator):
-#     def __init__(self):
-#         self.parents = None
-#
-#     def capture_parents(self, population, *args, **kwargs):
-#         self.parents = population
-#         return population, args, kwargs
-#
-#     def __call__(self, population, *args, **kwargs):
-#         return self.parents + population, args, kwargs
+
+@curry
+def truncate(offspring, size, parents=None):
+    """ return the `size` best individuals from the given population
+
+        This defaults to (mu, lambda) if `parents` is not given.
+
+        >>> from leap import core, ops, binary_problems
+        >>> pop = []
+        >>> pop.append(core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+        >>> pop.append(core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+        >>> pop.append(core.Individual([1, 1, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+        >>> pop.append(core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+
+        We need to evaluate them to get their fitness to sort them for truncation.
+        >>> i = iter(pop)
+        >>> pop = [individual for individual in evaluate(i)]
+
+        >>> truncated = truncate(pop, 2)
+
+        TODO Do we want an optional context to over-ride the 'parents' parameter?
+
+        :param offspring: offspring to truncate down to a smaller population
+        :param size: is what to resize population to
+        :param second_population: is optional parent population to include
+                                  with population for downsizing
+        :return: truncated population
+    """
+    if parents is not None:
+        return toolz.itertoolz.topk(size, itertools.chain(offspring, parents))
+    else:
+        return toolz.itertoolz.topk(size, offspring)
 
 
-def naive_cyclic_selection_generator(population, *args, **kwargs):
+
+
+
+def tournament(population, k=2):
+    """ Selects the best individual from k individuals randomly selected from
+        the given population
+
+        >>> from leap import core, ops, binary_problems
+        >>> pop = []
+        >>> pop.append(core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+        >>> pop.append(core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+
+        We need to evaluate them to get their fitness to sort them for truncation.
+        >>> i = iter(pop)
+        >>> pop = [individual for individual, args, kwargs in evaluate(i)]
+
+        >>> best = tournament(pop)
+
+        :param population: from which to select
+        :param k: are randomly drawn from which to choose the best; by default this is 2 for binary tournament selection
+        :return: the best of k individuals drawn from population
+    """
+    while True:
+        choices = random.choices(population, k=k)
+        best = max(choices)
+
+        yield best
+
+
+
+@curry
+def naive_cyclic_selection_generator(population):
     """ Deterministically returns individuals, and repeats the same sequence
     when exhausted.
 
@@ -269,11 +268,11 @@ def naive_cyclic_selection_generator(population, *args, **kwargs):
     iter = itertools.cycle(population)
 
     while True:
-        yield next(iter), args, kwargs
+        yield next(iter)
 
 
 @curry
-def pool(next_individual, size, *args, **kwargs):
+def pool(next_individual, size):
     """ 'Sink' for creating `size` individuals from preceding pipeline source.
 
     Allows for "pooling" individuals to be processed by next pipeline
@@ -299,18 +298,4 @@ def pool(next_individual, size, *args, **kwargs):
     :param size: how many kids we want
     :return: population of `size` offspring
     """
-    # TODO this could be more elegant, and I'm not sure about the priority
-    # order for what overwrites what for function arguments vs. pipe data.
-    final_args = ()
-    final_kwargs = {}
-    final_pool = []
-
-    for _ in range(size):
-        individual, pipe_args, pipe_kwargs = next(next_individual)
-        final_args = (*final_args, *pipe_args)
-        final_kwargs = {**final_kwargs, **pipe_kwargs}
-
-        final_pool.append(individual)
-
-    # return [next(next_individual) for _ in range(size)], args, kwargs
-    return final_pool, final_args, final_kwargs
+    return [next(next_individual) for _ in range(size)]

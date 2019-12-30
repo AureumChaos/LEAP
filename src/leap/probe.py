@@ -1,3 +1,11 @@
+"""
+  Probes are pipeline operators to instrument state that passes through the pipeline
+  such as populations or individuals.
+
+  TODO Will have to sync with Siggy on updating his code to work with the new paradigm.
+  Shouldn't be too hard, and use of callbacks for inc_generation() should help as well as use
+  of context objects.
+"""
 import sys
 
 from matplotlib import pyplot as plt
@@ -13,6 +21,15 @@ from leap import ops as op
 ##############################
 @curry
 def print_probe(population, context, probe, stream=sys.stdout, prefix=''):
+    """ pipeline operator for printing the given populaiton
+
+    :param population:
+    :param context:
+    :param probe:
+    :param stream:
+    :param prefix:
+    :return:
+    """
     val = prefix + str(probe(population, context))
     stream.write(val)
     return population, context

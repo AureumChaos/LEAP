@@ -1,8 +1,6 @@
 """
     Unit tests for cloning
 """
-import unittest
-
 import sys, os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../src'))
@@ -11,30 +9,25 @@ from leap import core
 from leap import binary_problems
 from leap import ops
 
+def test_clone():
+    # We need an encoder and problem to ensure those float across during
+    # clones.
+    decoder = core.IdentityDecoder()
+    problem = binary_problems.MaxOnes()
 
-class TestClone(unittest.TestCase):
+    original = core.Individual([1, 1], decoder=decoder, problem=problem)
 
-    def test_clone(self):
-        # We need an encoder and problem to ensure those float across during
-        # clones.
-        decoder = core.IdentityDecoder()
-        problem = binary_problems.MaxOnes()
+    cloned = next(ops.clone(iter([original])))
 
-        original = core.Individual([1, 1], decoder=decoder, problem=problem)
+    assert original == cloned
 
-        cloned, args, kwargs = next(ops.clone(iter([original])))
+    # Yes, but did the other state make it across OK?
 
-        self.assertEqual(original, cloned)
-
-        # Yes, but did the other state make it across OK?
-
-        self.assertEqual(original.fitness, cloned.fitness)
-        self.assertEqual(original.decoder, cloned.decoder)
-        self.assertEqual(original.problem, cloned.problem)
-        self.assertEqual(original.attributes, cloned.attributes)
+    assert original.fitness == cloned.fitness
+    assert original.decoder == cloned.decoder
+    assert original.problem == cloned.problem
+    assert original.attributes == cloned.attributes
 
 
 
-if __name__ == '__main__':
-    unittest.main()
 

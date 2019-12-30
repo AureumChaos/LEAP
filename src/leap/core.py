@@ -10,8 +10,30 @@
 import abc
 from copy import deepcopy
 from functools import total_ordering
+import random
 
+from toolz import curry
 from toolz.itertoolz import pluck
+
+# This defines a global context that is a dictionary of dictionaries.  The
+# intent is for certain operators and functions to add to and modify this
+# context.  Third party operators and functions will just add a new top-level
+# dedicated key.
+context = {'leap' : {}}
+
+
+@curry
+def create_binary_sequence(length=5):
+    """ for creating a binary sequences for binary genomes
+
+    E.g., can be used for Individual.create_population
+
+    :param length: how many genes?
+    :return: binary vector of given length
+    """
+    return [random.choice([0,1]) for _ in range(length)]
+
+
 
 
 ##############################
@@ -64,14 +86,27 @@ class Individual:
         A convenience method for initializing a population of the appropriate subtype.
 
         :param n: The size of the population to generate
-        :param initialize: A function f(m) that initializes m genomes
+        :param initialize: A function f(m) that initializes a genome
         :param decoder: The decoder to attach individuals to
         :param problem: The problem to attach individuals to
         :return: A list of n individuals of this class's (or subclass's) type
         """
-        genomes = initialize(n)
-        assert(len(genomes) == n)
-        return [cls(g, decoder, problem) for g in genomes]
+        # genomes = initialize(n)
+        # assert(len(genomes) == n)
+        return [cls(genome=initialize(), decoder=decoder, problem=problem) for _ in range(n)]
+
+
+    @classmethod
+    def evaluate_population(cls, population):
+        """ Convenience function for bulk serial evaluation of a given population
+
+        :param population: to be evaluated
+        :return: evaluated population
+        """
+        for individual in population:
+            individual.evaluate()
+
+        return population
 
     def clone(self):
         """Create a 'clone' of this `Individual`, copying the genome, but not fitness.
@@ -151,7 +186,8 @@ class Individual:
         return self.problem.worse_than(self.fitness, other.fitness)
 
     def __str__(self):
-        return self.genome.__str__()
+        # return self.genome.__str__()
+        return f"{type(self).__name__}({self.genome.__repr__()}, {self.decoder.__repr__()}, {self.problem.__repr__()})"
 
     def __repr__(self):
         return f"{type(self).__name__}({self.genome.__repr__()}, {self.decoder.__repr__()}, {self.problem.__repr__()})"
@@ -310,3 +346,7 @@ class BinaryToRealDecoder(Decoder):
         int_values = self.binary_to_int_decoder.decode(genome)
         values = [l + i * inc for l, i, inc in zip(self.lower_bounds, int_values, self.increments)]
         return values
+
+
+if __name__ == '__main__':
+    pass
