@@ -42,6 +42,8 @@ class Operator(abc.ABC):
     LEAP treats operators as functions of two arguments: the population, and a "context" `dict` that may be used in
     some algorithms to maintain some global state or parameters independent of the population.
 
+    TODO The above description is outdated. --Siggy
+
     You can inherit from this class to define operators as classes.  Classes support operators that take extra arguments
     at construction time (such as a mutation rate) and maintain some internal private state, and they allow certain
     special patterns (such as multi-function operators).
@@ -49,7 +51,7 @@ class Operator(abc.ABC):
     But inheriting from this class is optional.  LEAP can treat any `callable` object that takes two parameters as an
     operator.  You may define your custom operators as closures (which also allow for construction-time arguments and
     internal state), as simple functions (when no additional arguments are necessary), or as curried functions (i.e.
-    with the help of `toolz.pipe(...)`.
+    with the help of `toolz.curry(...)`.
 
     """
 
@@ -246,6 +248,9 @@ def tournament(population, k=2):
 def naive_cyclic_selection_generator(population):
     """ Deterministically returns individuals, and repeats the same sequence
     when exhausted.
+
+    TODO "cyclic_selection_generator" is a mouthful.  How about we rename this 
+    to "unpool", since it's basically the opposite of pool()? --Siggy
 
     This is "naive" because it doesn't shuffle the population between complete
     tours to minimize bias.
