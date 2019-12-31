@@ -4,9 +4,7 @@ import click
 import gym
 import numpy as np
 
-from leap import brains, core, real_problems, probe
-from leap import operate as ops
-from leap import brains, core, real, probe, ops
+from leap import brains, core, real_problems, probe, ops
 from leap.example.simple_ea import simple_ea
 
 

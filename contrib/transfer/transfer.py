@@ -1,7 +1,7 @@
 from matplotlib import pyplot as plt
 
 from leap.example.simple_ea import simple_ea
-from leap import core, real, ops
+from leap import core, real_problems, ops
 from leap.probe import PlotTrajectoryProbe, PlotProbe
 
 

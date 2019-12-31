@@ -13,8 +13,7 @@ Commands:
 """
 import click
 
-from leap import core, real_problems, probe
-from leap import core, real, probe, ops
+from leap import core, real_problems, probe, ops
 
 
 def simple_ea(evals, pop_size, individual_cls, decoder, problem, evaluate, initialize, pipeline, step_notify_list=[]):

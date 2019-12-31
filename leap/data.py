@@ -10,7 +10,7 @@ def _build_test_pop():
            core.Individual([0, 0, 1, 0, 0], core.IdentityDecoder(), binary_problems.MaxOnes()),
            core.Individual([0, 1, 1, 1, 1], core.IdentityDecoder(), binary_problems.MaxOnes()),
            core.Individual([1, 0, 0, 0, 1], core.IdentityDecoder(), binary_problems.MaxOnes())]
-    pop, _ = op.evaluate(iter(pop))
+    pop = core.Individual.evaluate_population(pop)
 
     # Assign distinct values to an attribute on each individual
     attrs = [('foo', ['GREEN', 15, 'BLUE', 72.81]),

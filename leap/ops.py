@@ -91,7 +91,7 @@ def evaluate(next_individual):
         # "combined" means combining any args, kwargs passed in to this function with those passed in from upstream
         # in the pipeline.
         # individual, pipe_args, pipe_kwargs = next(next_individual)
-        individual= next(next_individual)
+        individual = next(next_individual)
         individual.evaluate()
 
         yield individual
