@@ -75,7 +75,7 @@ class Operator(abc.ABC):
 def evaluate(next_individual):
     """ Evaluate and returns the next individual in the pipeline
 
-    >>> import core, binary_problems
+    >>> from leap import core, binary_problems
 
     We need to specify the decoder and problem so that evaluation is possible.
 
@@ -104,7 +104,7 @@ def evaluate(next_individual):
 def clone(next_individual):
     """ clones and returns the next individual in the pipeline
 
-    >>> import core
+    >>> from leap import core
 
     Create a common decoder and problem for individuals.
 
@@ -128,7 +128,7 @@ def clone(next_individual):
 def mutate_bitflip(next_individual, expected=1):
     """ mutate and return an individual with a binary representation
 
-    >>> import core, binary_problems
+    >>> from leap import core, binary_problems
 
     >>> original = Individual([1,1])
 
@@ -188,15 +188,14 @@ def truncate(offspring, size, parents=None):
         This defaults to (mu, lambda) if `parents` is not given.
 
         >>> from leap import core, ops, binary_problems
-        >>> pop = []
-        >>> pop.append(core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
-        >>> pop.append(core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
-        >>> pop.append(core.Individual([1, 1, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
-        >>> pop.append(core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+        >>> pop = [core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
+        ...        core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
+        ...        core.Individual([1, 1, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
+        ...        core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())]
 
         We need to evaluate them to get their fitness to sort them for truncation.
-        >>> i = iter(pop)
-        >>> pop = [individual for individual in evaluate(i)]
+
+        >>> pop = core.Individual.evaluate_population(pop)
 
         >>> truncated = truncate(pop, 2)
 
@@ -214,21 +213,17 @@ def truncate(offspring, size, parents=None):
         return toolz.itertoolz.topk(size, offspring)
 
 
-
-
-
 def tournament(population, k=2):
     """ Selects the best individual from k individuals randomly selected from
         the given population
 
         >>> from leap import core, ops, binary_problems
-        >>> pop = []
-        >>> pop.append(core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
-        >>> pop.append(core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+        >>> pop = [core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
+        ...        core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())]
 
         We need to evaluate them to get their fitness to sort them for truncation.
-        >>> i = iter(pop)
-        >>> pop = [individual for individual, args, kwargs in evaluate(i)]
+
+        >>> pop = core.Individual.evaluate_population(pop)
 
         >>> best = tournament(pop)
 
@@ -241,7 +236,6 @@ def tournament(population, k=2):
         best = max(choices)
 
         yield best
-
 
 
 @curry
@@ -258,22 +252,20 @@ def naive_cyclic_selection_generator(population):
     TODO implement non-naive version that shuffles population before first
     iteration and after every complete loop to minimize sample bias.
 
-    >>> import core, ops
+    >>> from leap import core, ops
 
-    >>> pop = []
-
-    >>> pop.append(core.Individual([0, 0]))
-    >>> pop.append(core.Individual([0, 1]))
+    >>> pop = [core.Individual([0, 0]),
+    ...        core.Individual([0, 1])]
 
     >>> cyclic_selector = ops.naive_cyclic_selection_generator(pop)
 
     :param population: from which to select
     :return: the next selected individual
     """
-    iter = itertools.cycle(population)
+    itr = itertools.cycle(population)
 
     while True:
-        yield next(iter)
+        yield next(itr)
 
 
 @curry
@@ -285,12 +277,10 @@ def pool(next_individual, size):
     selection and birth operators, but could also be used to, say, "pool"
     individuals to be passed to an EDA as a training set.
 
-    >>> import core, ops
+    >>> from leap import core, ops
 
-    >>> pop = []
-
-    >>> pop.append(core.Individual([0, 0]))
-    >>> pop.append(core.Individual([0, 1]))
+    >>> pop = [core.Individual([0, 0]),
+    ...        core.Individual([0, 1])]
 
     >>> cyclic_selector = ops.naive_cyclic_selection_generator(pop)
 

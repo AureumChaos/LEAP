@@ -1,10 +1,6 @@
 """
     Unit test for selection operators.
 """
-import sys, os
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
 from leap import core
 from leap import ops
 from leap import binary_problems
@@ -12,10 +8,8 @@ from leap import binary_problems
 
 def test_naive_cyclic_selection():
     """ Test of the naive deterministic cyclic selection """
-    pop = []
-
-    pop.append(core.Individual([0, 0]))
-    pop.append(core.Individual([0, 1]))
+    pop = [core.Individual([0, 0]),
+           core.Individual([0, 1])]
 
     # This selection operator will deterministically cycle through the
     # given population
@@ -32,18 +26,15 @@ def test_naive_cyclic_selection():
     assert selected.genome == [0,0]
 
 
-
 def test_truncation_selection():
     """ Basic truncation selection test"""
-    pop = []
-
-    pop.append(core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
-    pop.append(core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
-    pop.append(core.Individual([1, 1, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
-    pop.append(core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
+    pop = [core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
+           core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
+           core.Individual([1, 1, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
+           core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())]
 
     # We first need to evaluate all the individuals so that truncation selection has fitnesses to compare
-    pop = [individual for individual in ops.evaluate(iter(pop))]
+    pop = core.Individual.evaluate_population(pop)
 
     truncated = ops.truncate(pop, 2)
 
@@ -54,25 +45,20 @@ def test_truncation_selection():
     assert pop[3] in truncated
 
 
-
 def test_truncation_parents_selection():
     """ Test (mu + lambda), i.e., parents competing with offspring
 
     Create parent and offspring populations such that each has an "best" individual that will be selected by
     truncation selection.
     """
-    parents = []
+    parents = [core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
+               core.Individual([1, 1, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())]
 
-    parents.append(core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
-    parents.append(core.Individual([1, 1, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
-    i = iter(parents)
-    parents = [individual for individual in ops.evaluate(i)]
+    parents = core.Individual.evaluate_population(parents)
 
-    offspring = []
-    offspring.append(core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
-    offspring.append(core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
-    i = iter(offspring)
-    offspring = [individual for individual in ops.evaluate(i)]
+    offspring = [core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
+                 core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())]
+    offspring = core.Individual.evaluate_population(offspring)
 
     truncated = ops.truncate(offspring, 2, parents=parents)
 
@@ -82,19 +68,14 @@ def test_truncation_parents_selection():
     assert offspring[1] in truncated
 
 
-
 def test_tournament_selection():
     """ This simple binary tournament selection """
-    pop = []
-
     # Make a population where binary tournament has an obvious reproducible choice
-    pop.append(core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
-    pop.append(core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()))
-
-    i = iter(pop)
+    pop = [core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
+           core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())]
 
     # We first need to evaluate all the individuals so that truncation selection has fitnesses to compare
-    pop = [individual for individual in ops.evaluate(i)]
+    pop = core.Individual.evaluate_population(pop)
 
     best = next(ops.tournament(pop))
     pass

@@ -56,8 +56,8 @@ class Individual:
 
         We also require `Individual`s to maintain a reference to the `Problem`:
 
-        >>> from leap import binary
-        >>> ind = Individual([0, 0, 1, 0, 1], decoder=IdentityDecoder(), problem=binary.MaxOnes())
+        >>> from leap import binary_problems
+        >>> ind = Individual([0, 0, 1, 0, 1], decoder=IdentityDecoder(), problem=binary_problems.MaxOnes())
         >>> ind.genome
         [0, 0, 1, 0, 1]
 
@@ -114,8 +114,8 @@ class Individual:
         A deep copy of the genome will be created, so if your `Individual` has a custom genome type, it's important
         that it implements the `__deepcopy__()` method.
 
-        >>> from leap import binary
-        >>> ind = Individual([0, 1, 1, 0], IdentityDecoder(), binary.MaxOnes())
+        >>> from leap import binary_problems
+        >>> ind = Individual([0, 1, 1, 0], IdentityDecoder(), binary_problems.MaxOnes())
         >>>
         """
         new_genome = deepcopy(self.genome)
@@ -154,8 +154,8 @@ class Individual:
         Because `Individual`s know about their `Problem`, the know how to compare themselves
         to one another.  One individual is better than another if and only if it is greater than the other:
 
-        >>> from leap import binary
-        >>> f = binary.MaxOnes(maximize=True)
+        >>> from leap import binary_problems
+        >>> f = binary_problems.MaxOnes(maximize=True)
         >>> ind_A = Individual([0, 0, 1, 0, 1], IdentityDecoder, problem=f)
         >>> ind_A.fitness = 2
         >>> ind_B = Individual([1, 1, 1, 1, 1], IdentityDecoder, problem=f)
@@ -168,7 +168,7 @@ class Individual:
         The `>` function may indicate maximization, minimization, Pareto dominance, etc.: it all depends on the
         underlying `Problem`.
 
-        >>> f = binary.MaxOnes(maximize=False)
+        >>> f = binary_problems.MaxOnes(maximize=False)
         >>> ind_A = Individual([0, 0, 1, 0, 1], IdentityDecoder, problem=f)
         >>> ind_A.fitness = 2
         >>> ind_B = Individual([1, 1, 1, 1, 1], IdentityDecoder, problem=f)
@@ -186,8 +186,7 @@ class Individual:
         return self.problem.worse_than(self.fitness, other.fitness)
 
     def __str__(self):
-        # return self.genome.__str__()
-        return f"{type(self).__name__}({self.genome.__repr__()}, {self.decoder.__repr__()}, {self.problem.__repr__()})"
+        return self.genome.__str__()
 
     def __repr__(self):
         return f"{type(self).__name__}({self.genome.__repr__()}, {self.decoder.__repr__()}, {self.problem.__repr__()})"

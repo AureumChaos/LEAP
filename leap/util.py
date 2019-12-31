@@ -18,7 +18,7 @@ def inc_generation(context, callbacks=[]):
 
     TODO Should we make core.context the default?
 
-    >>> import core
+    >>> from leap import core
     >>> my_inc_generation = inc_generation(core.context)
 
     :param context: will set ['leap']['generation'] to the incremented generation

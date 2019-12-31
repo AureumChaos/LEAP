@@ -22,6 +22,7 @@ def print_population(population, generation):
     for individual in population:
         print(generation, individual.genome, individual.fitness)
 
+
 if __name__ == '__main__':
     parents = core.Individual.create_population(5, initialize=core.create_binary_sequence,
                                                 decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())
