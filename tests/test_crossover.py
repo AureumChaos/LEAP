@@ -44,7 +44,7 @@ def test_uniform_crossover_bad_len():
         new_pop = list(itertools.islice(ops.uniform_crossover(i), 2))
 
 
-def test_k_ary_crossover_bad_lengths():
+def test_n_ary_crossover_bad_lengths():
     """ Test assertions for bad lengths """
     pop = []
     pop.append(core.Individual([0, 0, 1]))
@@ -56,7 +56,7 @@ def test_k_ary_crossover_bad_lengths():
         new_pop = list(itertools.islice(ops.n_ary_crossover(i), 2))
 
 
-def test_k_ary_crossover_bad_crossover_points():
+def test_n_ary_crossover_bad_crossover_points():
     """ Test assertions for having more crossover points than genome length """
     pop = []
     pop.append(core.Individual([0, 0]))
@@ -68,7 +68,7 @@ def test_k_ary_crossover_bad_crossover_points():
         new_pop = list(itertools.islice(ops.n_ary_crossover(i, num_points=3), 2))
 
 
-def test_k_ary_crossover():
+def test_n_ary_crossover():
     """ Test assertions for having more crossover points than genome length """
     pop = []
     pop.append(core.Individual([0, 0]))
