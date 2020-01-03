@@ -5,7 +5,7 @@ import gym
 import numpy as np
 
 from leap import brains, core, real_problems, probe, ops
-from leap.example.simple_ea import simple_ea
+from leap.examples.simple_ea import simple_ea
 
 
 @click.group()
