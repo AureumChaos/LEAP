@@ -30,6 +30,17 @@ from leap.core import Individual
 #         population, context = op(population, context)
 #     return population, context
 
+def compute_expected_probability(expected, individual_genome):
+    """ Computed the probability of mutation based on the desired average
+    expected mutation and genome length.
+
+    :param expected: times individual is to be mutated on average
+    :param individual_genome: genome for which to compute the probability
+    :return: the corresponding probability of mutation
+    """
+    return 1.0 / len(individual_genome) * expected
+
+
 
 ##############################
 # Class Operator
@@ -143,15 +154,16 @@ def mutate_bitflip(next_individual, expected=1):
             return gene
 
     while True:
-        # individual, pipe_args, pipe_kwargs = next(next_individual)
         individual = next(next_individual)
 
         # Given the average expected number of mutations, calculate the probability
         # for flipping each bit.  This calculation must be made each time given
         # that we may be dealing with dynamic lengths.
-        probability = 1.0 / len(individual.genome) * expected
+        probability = compute_expected_probability(expected, individual.genome)
 
         individual.genome = [flip(gene) for gene in individual.genome]
+
+        individual.fitness = None # invalidate fitness since we have new genome
 
         yield individual
 
@@ -290,25 +302,38 @@ def n_ary_crossover(next_individual, num_points=1):
 # ##############################
 # # mutate_gaussian operator
 # ##############################
-# @curry
-# def mutate_gaussian(population, context, prob, std, hard_bounds=(-np.inf, np.inf)):
-#     def add_gauss(x):
-#         if np.random.uniform() < prob:
-#             return x + np.random.normal()*std
-#         else:
-#             return x
-#
-#     def clip(x):
-#         return max(hard_bounds[0], min(hard_bounds[1], x))
-#
-#     result = []
-#     for ind in population:
-#         ind.genome = [clip(add_gauss(x)) for x in ind.genome]
-#         ind.fitness = None
-#         result.append(ind)
-#     return result, context
-#
-#
+@curry
+def mutate_gaussian_single_std(next_individual, std, expected=1, hard_bounds=(-np.inf, np.inf)):
+    """ mutate and return an individual with a real-valued representation
+
+    :param next_individual: to be mutated
+    :param std: standard deviation to be equally applied to all individuals
+    :param expected: the *expected* number of mutations per individual, on average
+    :param hard_bounds: to clip for mutations; defaults to (- ∞, ∞)
+    :return:
+    """
+    def add_gauss(x):
+        if random.random() < probability:
+            return random.gauss(x, std)
+        else:
+            return x
+
+    def clip(x):
+        return max(hard_bounds[0], min(hard_bounds[1], x))
+
+    while True:
+        individual = next(next_individual)
+
+        # compute actual probability of mutation based on expected number of
+        # mutations and the genome length
+        probability = compute_expected_probability(expected, individual.genome)
+
+        individual.genome = [clip(add_gauss(x)) for x in ind.genome]
+
+        individual.fitness = None # invalidate fitness since we have new genome
+
+        yield individual
+
 
 @curry
 def truncate(offspring, size, parents=None):
@@ -378,7 +403,7 @@ def naive_cyclic_selection_generator(population):
     """ Deterministically returns individuals, and repeats the same sequence
     when exhausted.
 
-    TODO "cyclic_selection_generator" is a mouthful.  How about we rename this 
+    TODO "cyclic_selection_generator" is a mouthful.  How about we rename this
     to "unpool", since it's basically the opposite of pool()? --Siggy
 
     This is "naive" because it doesn't shuffle the population between complete
