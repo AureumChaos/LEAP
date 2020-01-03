@@ -8,37 +8,8 @@ import numpy as np
 
 from leap.problem import ScalarProblem
 
+from leap import core
 
-##############################
-# Closure real-genome initializer
-##############################
-def initialize_vectors_uniform(bounds):
-    """
-
-    :param decoder:
-    :param problem:
-    :param bounds:
-    :return:
-
-    >>> from leap import core, real_problems
-    >>> bounds = [(0, 1), (0, 1), (-1, 100)]
-    >>> init = initialize_vectors_uniform(bounds)
-    >>> for x in init(5):
-    ...     print(x) # +doctest: ELLIPSIS
-    [...]
-    [...]
-    [...]
-    [...]
-    [...]
-    """
-    def generate_genome():
-        for (min, max) in bounds:
-            yield random.uniform(min, max)
-
-    def f(pop_size):
-        return [list(generate_genome()) for _ in range(pop_size)]
-
-    return f
 
 
 ##############################
@@ -48,7 +19,7 @@ class Spheroid(ScalarProblem):
     """ Classic parabolid function, known as the "sphere" or "spheroid" problem, because its equal-fitness contours form (hyper)spheres in n > 2.
 
     .. math::
-    
+
        f(\\vec{x}) = \\sum_{i}^n x_i^2
 
     .. plot::
@@ -103,12 +74,12 @@ class Rastrigin(ScalarProblem):
     """ The classic Rastrigin problem.  The Rastrigin provides a real-valued fitness landscape with a quadratic global structure (like the :class:`~leap.real.Spheroid`), plus a sinusoidal local structure with many local optima.
 
     .. math::
-    
+
        f(\\vec{x}) = An + \\sum_{i=1}^n x_i^2 - A\\cos(2\\pi x_i)
 
     .. plot::
        :include-source:
-   
+
        from leap import real
        bounds = real.Rastrigin.bounds  # Contains traditional bounds
        real.plot_2d_problem(real.Rastrigin(), xlim=bounds, ylim=bounds, granularity=0.025)
@@ -709,7 +680,7 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface', ax=None, granularity=0.
 
     .. plot::
        :include-source:
-   
+
        from leap import real
        problem = real.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
        real.plot_2d_problem(problem, xlim=(0, 1), ylim=(0, 1), granularity=0.025);
@@ -731,7 +702,7 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface', ax=None, granularity=0.
 
        plt.subplot(122)
        real.plot_2d_problem(real.Rastrigin(), ax=plt.gca(), kind='contour', xlim=bounds, ylim=bounds)
-       
+
     """
     def call(phenome):
         return problem.evaluate(phenome)
