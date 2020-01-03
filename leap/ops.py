@@ -239,7 +239,7 @@ def n_ary_crossover(next_individual, num_points=1):
         """
         Randomly choose (without replacement) crossover points.
         """
-        pp = list(range(genome_size))  # See De Jong, EC, pg 145
+        pp = list(range(0, genome_size))  # See De Jong, EC, pg 145
 
         xpts = [pp.pop(random.randrange(len(pp))) for i in range(num_points)]
         xpts.sort()
