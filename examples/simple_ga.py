@@ -33,7 +33,7 @@ if __name__ == '__main__':
     # print initial, random population
     print_population(parents, generation=0)
 
-    max_generation = 5
+    max_generation = 6
 
     # We use the provided core.context, but we could roll our own if we wanted to keep
     # separate contexts.  E.g., island models may want to have their own contexts.
@@ -44,9 +44,11 @@ if __name__ == '__main__':
                          ops.tournament,
                          ops.clone,
                          ops.mutate_bitflip,
+                         ops.uniform_crossover,
                          ops.evaluate,
                          ops.pool(size=10),  # 10 offspring
-                         ops.truncate(size=5))  # (mu + lambda)
+                         ops.tournament,
+                         ops.pool(size=5))  # 5 survivors via binary tournament selection
 
         parents = survivors
 

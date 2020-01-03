@@ -209,6 +209,78 @@ def uniform_crossover(next_individual, p_swap=0.5):
         yield child2
 
 
+@curry
+def n_ary_crossover(next_individual, num_points=1):
+    """ Do crossover between individuals between N crossover points.
+
+    1 < n < genome length - 1
+
+    We also assume that the passed in individuals are *clones* of parents.
+
+    >>> from leap import core, binary_problems
+
+    >>> first = Individual([0,0])
+    >>> second = Individual([1,1])
+    >>> i = iter([first, second])
+    >>> result = n_ary_crossover(i)
+
+    >>> new_first = next(result)
+    >>> new_second = next(result)
+
+    :param next_individual: where we get the next individual from the pipeline
+    :param num_points: how many crossing points do we allow?
+    :return: two recombined
+    """
+    def _pick_crossover_points(num_points, genome_size):
+        """
+        Randomly choose (without replacement) crossover points.
+        """
+        pp = list(range(0, genome_size))  # See De Jong, EC, pg 145
+
+        xpts = [pp.pop(random.randrange(len(pp))) for i in range(num_points)]
+        xpts.sort()
+        xpts = [0] + xpts + [genome_size]  # Add start and end
+
+        return xpts
+
+    def _n_ary_crossover(child1, child2, num_points):
+        # Sanity checks
+        if len(child1.genome) != len(child2.genome):
+            raise RuntimeError('Invalid length for n_ary_crossover')
+        elif len(child1.genome) < num_points + 1:
+            raise RuntimeError('Invalid number of crossover points for n_ary_crossover')
+
+        children = [child1, child2]
+        genome1 = child1.genome[0:0]  # empty sequence - maintain type
+        genome2 = child2.genome[0:0]
+
+        # Used to toggle which sub-sequence is copied between offspring
+        src1, src2 = 0, 1
+
+        # Pick crossover points
+        xpts = _pick_crossover_points(num_points, len(child1.genome))
+
+        for start, stop in toolz.itertoolz.sliding_window(2, xpts):
+            genome1 += children[src1].genome[start:stop]
+            genome2 += children[src2].genome[start:stop]
+
+            # Now swap crossover direction
+            src1, src2 = src2, src1
+
+        child1.genome = genome1
+        child2.genome = genome2
+
+        return child1, child2
+
+    while True:
+        parent1 = next(next_individual)
+        parent2 = next(next_individual)
+
+        child1, child2 = _n_ary_crossover(parent1, parent2, num_points)
+
+        yield child1
+        yield child2
+
 
 
 # ##############################
@@ -233,6 +305,7 @@ def uniform_crossover(next_individual, p_swap=0.5):
 #     return result, context
 #
 #
+
 
 @curry
 def truncate(offspring, size, parents=None):
