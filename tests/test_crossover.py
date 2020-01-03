@@ -42,3 +42,44 @@ def test_uniform_crossover_bad_len():
 
     with pytest.raises(RuntimeError):
         new_pop = list(itertools.islice(ops.uniform_crossover(i), 2))
+
+
+def test_k_ary_crossover_bad_lengths():
+    """ Test assertions for bad lengths """
+    pop = []
+    pop.append(core.Individual([0, 0, 1]))
+    pop.append(core.Individual([1, 1]))
+
+    i = ops.naive_cyclic_selection_generator(pop)
+
+    with pytest.raises(RuntimeError):
+        new_pop = list(itertools.islice(ops.n_ary_crossover(i), 2))
+
+
+def test_k_ary_crossover_bad_crossover_points():
+    """ Test assertions for having more crossover points than genome length """
+    pop = []
+    pop.append(core.Individual([0, 0]))
+    pop.append(core.Individual([1, 1]))
+
+    i = ops.naive_cyclic_selection_generator(pop)
+
+    with pytest.raises(RuntimeError):
+        new_pop = list(itertools.islice(ops.n_ary_crossover(i, num_points=3), 2))
+
+
+def test_k_ary_crossover():
+    """ Test assertions for having more crossover points than genome length """
+    pop = []
+    pop.append(core.Individual([0, 0]))
+    pop.append(core.Individual([1, 1]))
+
+    i = ops.naive_cyclic_selection_generator(pop)
+
+    new_pop = list(itertools.islice(ops.n_ary_crossover(i), 2))
+
+    # Given that there are only two genes, one [0,0] and the other [1,1] and a single crossover point, and that the
+    # only two valid crossover points are 0 or 1, then there are two possible valid states for offspring with single
+    # point crossover.
+    assert pop[0].genome == [1,1] or pop[0].genome == [0,1]
+    assert pop[1].genome == [0,0] or pop[1].genome == [1,0]
