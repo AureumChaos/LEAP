@@ -40,23 +40,17 @@ if __name__ == '__main__':
     generation_counter = util.inc_generation(context=core.context)
 
     while generation_counter.generation() < max_generation:
-        survivors = pipe(parents,
+        offspring = pipe(parents,
                          ops.tournament,
                          ops.clone,
                          ops.mutate_bitflip,
                          ops.uniform_crossover,
                          ops.evaluate,
-                         ops.pool(size=10),  # 10 offspring
-                         ops.tournament,
-                         ops.pool(size=5))  # 5 survivors via binary tournament selection
+                         ops.pool(size=len(parents)))  # accumulate offspring
 
-        parents = survivors
+        parents = offspring
 
-        generation_counter() # increment to the next generation
+        generation_counter()  # increment to the next generation
 
         # Just to demonstrate that we can also get the current generation from the context
         print_population(parents, core.context['leap']['generation'])
-
-
-
-    pass

@@ -16,14 +16,14 @@ def test_naive_cyclic_selection():
     selector = ops.naive_cyclic_selection_generator(pop)
 
     selected = next(selector)
-    assert selected.genome == [0,0]
+    assert selected.genome == [0, 0]
 
     selected = next(selector)
-    assert selected.genome == [0,1]
+    assert selected.genome == [0, 1]
 
     # And now we cycle back to the first individual
     selected = next(selector)
-    assert selected.genome == [0,0]
+    assert selected.genome == [0, 0]
 
 
 def test_truncation_selection():

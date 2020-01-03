@@ -1,20 +1,17 @@
 """
     Unit tests for crossover operators
 """
-import sys, os, itertools
+import itertools
 
 import pytest
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from leap import core
 from leap import ops
 
 
 def test_uniform_crossover():
-    pop = []
-    pop.append(core.Individual([0, 0]))
-    pop.append(core.Individual([1, 1]))
+    pop = [core.Individual([0, 0]),
+           core.Individual([1, 1])]
 
     # We need a cyclic generator because there are only two individuals in the population, and once the first two
     # are selected for uniform crossover, the next two parents are selected and crossed over.  The cyclic iterator
@@ -35,9 +32,8 @@ def test_uniform_crossover():
 def test_uniform_crossover_bad_len():
     """ Test assertion for mis-matched genome lengths
     """
-    pop = []
-    pop.append(core.Individual([0, 0, 1]))
-    pop.append(core.Individual([1, 1]))
+    pop = [core.Individual([0, 0, 1]),
+           core.Individual([1, 1])]
 
     i = ops.naive_cyclic_selection_generator(pop)
 
@@ -50,9 +46,8 @@ def test_n_ary_crossover_bad_lengths():
 
     (Separate tests for variable length crossover.)
     """
-    pop = []
-    pop.append(core.Individual([0, 0, 1]))
-    pop.append(core.Individual([1, 1]))
+    pop = [core.Individual([0, 0, 1]),
+           core.Individual([1, 1])]
 
     i = ops.naive_cyclic_selection_generator(pop)
 
@@ -62,9 +57,8 @@ def test_n_ary_crossover_bad_lengths():
 
 def test_n_ary_crossover_bad_crossover_points():
     """ Test assertions for having more crossover points than genome length """
-    pop = []
-    pop.append(core.Individual([0, 0]))
-    pop.append(core.Individual([1, 1]))
+    pop = [core.Individual([0, 0]),
+           core.Individual([1, 1])]
 
     i = ops.naive_cyclic_selection_generator(pop)
 
@@ -74,9 +68,8 @@ def test_n_ary_crossover_bad_crossover_points():
 
 def test_n_ary_crossover():
     """ Does n-point crossover even work? """
-    pop = []
-    pop.append(core.Individual([0, 0]))
-    pop.append(core.Individual([1, 1]))
+    pop = [core.Individual([0, 0]),
+           core.Individual([1, 1])]
 
     i = ops.naive_cyclic_selection_generator(pop)
 

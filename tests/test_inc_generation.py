@@ -1,14 +1,8 @@
 """
     Unit tests for inc_generation()
 """
-import sys, os
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from leap import core
-from leap import binary_problems
-from leap import ops
-from leap import util
+from leap import core, util
 
 
 def test_inc_generation():
