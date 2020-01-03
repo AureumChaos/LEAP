@@ -13,6 +13,8 @@ from toolz import curry
 
 from leap.core import Individual
 
+from leap import util
+
 
 ##############################
 # do_pipeline method
@@ -303,16 +305,17 @@ def n_ary_crossover(next_individual, num_points=1):
 # # mutate_gaussian operator
 # ##############################
 @curry
-def mutate_gaussian_single_std(next_individual, std, expected=1, hard_bounds=(-np.inf, np.inf)):
+def mutate_gaussian(next_individual, std, expected=1, hard_bounds=(-np.inf, np.inf)):
     """ mutate and return an individual with a real-valued representation
 
     :param next_individual: to be mutated
-    :param std: standard deviation to be equally applied to all individuals
+    :param std: standard deviation to be equally applied to all individuals; this
+    can be a scalar value or a "shadow vector" of standard deviations
     :param expected: the *expected* number of mutations per individual, on average
     :param hard_bounds: to clip for mutations; defaults to (- ∞, ∞)
     :return:
     """
-    def add_gauss(x):
+    def add_gauss(x, std):
         if random.random() < probability:
             return random.gauss(x, std)
         else:
@@ -328,7 +331,12 @@ def mutate_gaussian_single_std(next_individual, std, expected=1, hard_bounds=(-n
         # mutations and the genome length
         probability = compute_expected_probability(expected, individual.genome)
 
-        individual.genome = [clip(add_gauss(x)) for x in ind.genome]
+        if util.is_sequence(std):
+            # We're given a vector of "shadow standard deviations" so apply
+            # each sigma individually to each gene
+            individual.genome = [clip(add_gauss(x, s)) for x, s in zip(ind.genome, std)]
+        else:
+            individual.genome = [clip(add_gauss(x, std)) for x in ind.genome]
 
         individual.fitness = None # invalidate fitness since we have new genome
 
