@@ -6,12 +6,10 @@ traditional selection and reproduction strategies here.
 import abc
 import itertools
 import random
-import types
-from collections.abc import Iterator
 
 import numpy as np
 import toolz
-from toolz import curry, topk
+from toolz import curry
 
 from leap.core import Individual
 
@@ -59,6 +57,8 @@ class Operator(abc.ABC):
     def __call__(self, population, *args, **kwargs):
         """
         The basic interface for a pipeline operator in LEAP.
+
+        TODO this method signature is outdated. --Siggy
 
         :param *args: optional variable sequence of arguments
         :param **kwargs: optional dictionary of arguments
@@ -156,6 +156,59 @@ def mutate_bitflip(next_individual, expected=1):
         individual.genome = [flip(gene) for gene in individual.genome]
 
         yield individual
+
+
+@curry
+def uniform_crossover(next_individual, p_swap=0.5):
+    """ Generator for recombining two individuals and passing them down the line.
+
+    >>> from leap import core, binary_problems
+
+    >>> first = Individual([0,0])
+    >>> second = Individual([1,1])
+    >>> i = iter([first, second])
+    >>> result = uniform_crossover(i)
+
+    >>> new_first = next(result)
+    >>> new_second = next(result)
+
+    :param next_individual: where we get the next individual
+    :param p_swap: how likely are we to swap each pair of genes
+    :return: two recombined individuals
+    """
+    def _uniform_crossover(ind1, ind2, p_swap):
+        """ Recombination operator that can potentially swap any matching pair of
+        genes between two individuals with some probability.
+
+        It is assumed that ind1.genome and ind2.genome are lists of things.
+
+        :param ind1: The first individual
+        :param ind2: The second individual
+        :param p_swap:
+
+        :return: a copy of both individuals with individual.genome bits
+                 swapped based on probability
+        """
+        if len(ind1.genome) != len(ind2.genome):
+            # TODO what about variable length genomes?
+            raise RuntimeError('genomes must be same length for uniform crossover')
+
+        for i in range(len(ind1.genome)):
+            if random.random() < p_swap:
+                ind1.genome[i], ind2.genome[i] = ind2.genome[i], ind1.genome[i]
+
+        return ind1, ind2
+
+    while True:
+        parent1 = next(next_individual)
+        parent2 = next(next_individual)
+
+        child1, child2 = _uniform_crossover(parent1, parent2, p_swap)
+
+        yield child1
+        yield child2
+
+
 
 
 # ##############################
