@@ -1,6 +1,8 @@
 """
     Unit test for selection operators.
 """
+import itertools
+
 from leap import core
 from leap import ops
 from leap import binary_problems
@@ -8,8 +10,8 @@ from leap import binary_problems
 
 def test_naive_cyclic_selection():
     """ Test of the naive deterministic cyclic selection """
-    pop = [core.Individual([0, 0]),
-           core.Individual([0, 1])]
+    pop = [core.Individual([0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
+           core.Individual([0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())]
 
     # This selection operator will deterministically cycle through the
     # given population
@@ -24,6 +26,30 @@ def test_naive_cyclic_selection():
     # And now we cycle back to the first individual
     selected = next(selector)
     assert selected.genome == [0, 0]
+
+
+
+def test_cyclic_selection():
+    """ Test of the naive deterministic cyclic selection """
+
+    # We're just going to use integers for the population as that's sufficient for testing this selection
+    # operator; we don't want to get in the weeds with comparing individuals for sequence equivalency testing.
+    pop = list(range(4))
+
+    # This selection operator will deterministically cycle through the
+    # given population
+    selector = ops.cyclic_selection(pop)
+
+    # first cycle should be the same order as we started
+    first_iteration = [next(selector) for _ in range(len(pop))]
+
+    assert pop == first_iteration
+
+    # the second iteration should be shuffled
+    second_iteration = [next(selector) for _ in range(len(pop))]
+
+    assert pop != second_iteration
+
 
 
 def test_truncation_selection():

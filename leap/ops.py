@@ -434,13 +434,14 @@ def cyclic_selection(population):
     # this is essentially itertools.cycle() that just shuffles
     # the saved sequence between cycles.
     saved = []
-    for element in iterable:
-        yield element
-        saved.append(element)
+    for individual in population:
+        yield individual
+        saved.append(individual)
     while saved:
+        # randomize the sequence between cycles to remove this source of sample bias
         random.shuffle(saved)
-        for element in saved:
-              yield element
+        for individual in saved:
+              yield individual
 
 
 
