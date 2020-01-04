@@ -11,24 +11,22 @@ import numpy as np
 import toolz
 from toolz import curry
 
+from leap import util
 from leap.core import Individual
 
 
 ##############################
-# do_pipeline method
+# Function compute_expected_probability
 ##############################
-# def do_pipeline(population, context, *pipeline):
-#     """
-#     FIXME commented out because this isn't used anywhere; will uncomment and
-#     modify should that change.  MAC.  10/18/19
-#     :param population:
-#     :param context:
-#     :param pipeline:
-#     :return:
-#     """
-#     for op in pipeline:
-#         population, context = op(population, context)
-#     return population, context
+def compute_expected_probability(expected, individual_genome):
+    """ Computed the probability of mutation based on the desired average
+    expected mutation and genome length.
+
+    :param expected: times individual is to be mutated on average
+    :param individual_genome: genome for which to compute the probability
+    :return: the corresponding probability of mutation
+    """
+    return 1.0 / len(individual_genome) * expected
 
 
 ##############################
@@ -278,29 +276,49 @@ def n_ary_crossover(next_individual, num_points=1):
         yield child2
 
 
-
 # ##############################
 # # mutate_gaussian operator
 # ##############################
-# @curry
-# def mutate_gaussian(population, context, prob, std, hard_bounds=(-np.inf, np.inf)):
-#     def add_gauss(x):
-#         if np.random.uniform() < prob:
-#             return x + np.random.normal()*std
-#         else:
-#             return x
-#
-#     def clip(x):
-#         return max(hard_bounds[0], min(hard_bounds[1], x))
-#
-#     result = []
-#     for ind in population:
-#         ind.genome = [clip(add_gauss(x)) for x in ind.genome]
-#         ind.fitness = None
-#         result.append(ind)
-#     return result, context
-#
-#
+@curry
+def mutate_gaussian(next_individual, std, expected=1, hard_bounds=(-np.inf, np.inf)):
+    """ mutate and return an individual with a real-valued representation
+
+    TODO hard_bounds should also be able to take a sequence —Siggy
+
+    :param next_individual: to be mutated
+    :param std: standard deviation to be equally applied to all individuals; this
+        can be a scalar value or a "shadow vector" of standard deviations
+    :param expected: the *expected* number of mutations per individual, on average
+    :param hard_bounds: to clip for mutations; defaults to (- ∞, ∞)
+    :return: a generator of mutated individuals.
+
+    """
+    def add_gauss(x, std):
+        if random.random() < probability:
+            return random.gauss(x, std)
+        else:
+            return x
+
+    def clip(x):
+        return max(hard_bounds[0], min(hard_bounds[1], x))
+
+    while True:
+        individual = next(next_individual)
+
+        # compute actual probability of mutation based on expected number of
+        # mutations and the genome length
+        probability = compute_expected_probability(expected, individual.genome)
+
+        if util.is_sequence(std):
+            # We're given a vector of "shadow standard deviations" so apply
+            # each sigma individually to each gene
+            individual.genome = [clip(add_gauss(x, s)) for x, s in zip(individual.genome, std)]
+        else:
+            individual.genome = [clip(add_gauss(x, std)) for x in individual.genome]
+
+        individual.fitness = None # invalidate fitness since we have new genome
+
+        yield individual
 
 
 @curry

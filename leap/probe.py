@@ -314,36 +314,38 @@ class PlotTrajectoryProbe:
 
         import matplotlib.pyplot as plt
         from leap.probe import PlotTrajectoryProbe
-        from leap.example.simple_ea import simple_ea
-        from leap import core, real, operate as op
+        from leap.algorithm import generational_ea
+        from leap import core, ops, real_problems
 
         # The fitness landscape
-        problem = real.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
+        problem = real_problems.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
 
         # If no axis is provided, a new figure will be created for the probe to write to
-        trajectory_probe = PlotTrajectoryProbe(contours=problem, xlim=(0, 1), ylim=(0, 1), granularity=0.025)
+        trajectory_probe = PlotTrajectoryProbe(context=core.context,
+                                               contours=problem,
+                                               xlim=(0, 1), ylim=(0, 1),
+                                               granularity=0.025)
 
         # Create an algorithm that contains the probe in the operator pipeline
 
         l = 10
         mutate_prob = 1/l
         pop_size = 10
-        ea = simple_ea(evals=50, pop_size=pop_size,
-                       individual_cls=core.Individual,
-                       decoder=core.IdentityDecoder(),
-                       problem=real.Spheroid(maximize=False),
-                       evaluate=op.evaluate,
+        ea = generational_ea(generations=50, pop_size=pop_size,
+                             individual_cls=core.Individual,
 
-                       initialize=real.initialize_vectors_uniform(
-                           bounds=[[0.4, 0.6]] * l
-                       ),
+                             decoder=core.IdentityDecoder(),
+                             problem=real_problems.Spheroid(maximize=False),
+                             initialize=core.create_real_vector(bounds=[[0.4, 0.6]] * l),
 
-                       pipeline=[
-                           trajectory_probe,  # Insert the probe into the pipeline like so
-                           op.tournament(n=pop_size),
-                           op.cloning,
-                           op.mutate_gaussian(prob=mutate_prob, std=0.1, hard_bounds=(0, 1))
-                       ])
+                             pipeline=[
+                                 trajectory_probe,  # Insert the probe into the pipeline like so
+                                 ops.tournament,
+                                 ops.clone,
+                                 ops.mutate_gaussian(std=0.1),
+                                 ops.evaluate,
+                                 ops.pool(size=pop_size)
+                             ])
         list(ea);
 
 

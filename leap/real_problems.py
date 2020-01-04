@@ -10,38 +10,6 @@ from leap.problem import ScalarProblem
 
 
 ##############################
-# Closure real-genome initializer
-##############################
-def initialize_vectors_uniform(bounds):
-    """
-
-    :param decoder:
-    :param problem:
-    :param bounds:
-    :return:
-
-    >>> from leap import core, real_problems
-    >>> bounds = [(0, 1), (0, 1), (-1, 100)]
-    >>> init = initialize_vectors_uniform(bounds)
-    >>> for x in init(5):
-    ...     print(x) # +doctest: ELLIPSIS
-    [...]
-    [...]
-    [...]
-    [...]
-    [...]
-    """
-    def generate_genome():
-        for (min, max) in bounds:
-            yield random.uniform(min, max)
-
-    def f(pop_size):
-        return [list(generate_genome()) for _ in range(pop_size)]
-
-    return f
-
-
-##############################
 # Class Spheroid
 ##############################
 class Spheroid(ScalarProblem):
