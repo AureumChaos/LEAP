@@ -155,7 +155,7 @@ class AttributesCSVProbe(op.Operator):
         self.do_fitness = do_fitness
         self.do_genome = do_genome
 
-        self.writer = csv.DictWriter(stream, fieldnames=['step'] + attributes + ['fitness', 'genome'])
+        self.writer = csv.DictWriter(stream, fieldnames=['step'] + list(attributes) + ['fitness', 'genome'])
         if header:
             self.writer.writeheader()
 

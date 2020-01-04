@@ -41,8 +41,8 @@ def initialize_seeded(initialize, seed_pop):
     """A population initializer that injects a fixed list of seed individuals
     into the population, and fills the remaining space with newly generated individuals.
 
-    >>> from leap import real_problems
-    >>> random_init = real_problems.create_real_value_sequence(bounds=[[0, 0]] * 2)
+    >>> from leap import core
+    >>> random_init = core.create_real_vector(bounds=[[0, 0]] * 2)
     >>> init = initialize_seeded(random_init, [[5.0, 5.0], [4.5, -6]])
     >>> init(5)
     [[5.0, 5.0], [4.5, -6], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
@@ -54,7 +54,7 @@ def initialize_seeded(initialize, seed_pop):
     def f(pop_size):
         assert (pop_size >= len(seed_pop))
         n_new = pop_size - len(seed_pop)
-        return seed_pop + initialize(n_new)
+        return iter(seed_pop + initialize(n_new))
 
     return f
 

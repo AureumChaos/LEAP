@@ -5,7 +5,7 @@ import gym
 import numpy as np
 
 from leap import brains, core, real_problems, probe, ops
-from examples.simple_ea import simple_ea
+from leap.algorithm import generational_ea
 
 
 @click.group()
@@ -67,41 +67,40 @@ def evolve_pitt(runs, steps, env, evals, pop_size, num_rules, mutate_prob, mutat
     environment = gym.make(env)
     num_inputs = int(np.prod(environment.observation_space.shape))
     num_outputs = int(np.prod(environment.action_space.shape))
-    stdout_probe = probe.CSVFitnessStatsProbe(sys.stdout)
+    stdout_probe = probe.PopFitnessStatsCSVProbe(core.context, stream=sys.stdout)
 
     with open(output, 'w') as genomes_file:
-        file_probe = probe.CSVAttributesProbe(genomes_file, best_only=True, do_fitness=True, do_genome=True)
-        ea = simple_ea(evals=evals, pop_size=pop_size,
-                       individual_cls=core.Individual,  # Use the standard Individual as the prototype for the population.
-                       decoder=brains.PittRulesDecoder(
-                           input_space=environment.observation_space,
-                           output_space=environment.action_space,
-                           priority_metric=brains.PittRulesBrain.PriorityMetric.RULE_ORDER,
-                           num_memory_registers=0
-                       ),
-                       problem=brains.BrainProblem(runs, steps, environment, brains.reward_fitness),
-                       evaluate=ops.evaluate,  # Evaluate fitness with the basic evaluation operator.
+        file_probe = probe.AttributesCSVProbe(core.context, stream=genomes_file, do_fitness=True, do_genome=True)
+        ea = generational_ea(generations=evals, pop_size=pop_size,
+                             individual_cls=core.Individual,  # Use the standard Individual as the population prototype.
 
-                       # Initialized genomes are random real-valued vectors.
-                       initialize=real_problems.initialize_vectors_uniform(
-                           # Initialize each element between 0 and 1.
-                           bounds=([[-0.0, 1.0]] * (num_inputs*2 + num_outputs)) * num_rules
-                       ),
+                             # Decode genomes into Pitt-style rules
+                             decoder=brains.PittRulesDecoder(
+                                 input_space=environment.observation_space,
+                                 output_space=environment.action_space,
+                                 priority_metric=brains.PittRulesBrain.PriorityMetric.RULE_ORDER,
+                                 num_memory_registers=0
+                             ),
+                             # Solve a problem that executes agents in the environment and obtains fitness from it
+                             problem=brains.BrainProblem(runs, steps, environment, brains.reward_fitness),
 
-                       # Step notification for our CSV probe
-                       step_notify_list=[stdout_probe.set_step, file_probe.set_step],
+                             # Initialized genomes are random real-valued vectors.
+                             initialize=core.create_real_vector(
+                                 # Initialize each element between 0 and 1.
+                                 bounds=([[-0.0, 1.0]] * (num_inputs*2 + num_outputs)) * num_rules
+                             ),
 
-                       # The operator pipeline.
-                       pipeline=[
-                           stdout_probe,
-                           file_probe,
-                           # Select mu parents via tournament selection.
-                           ops.tournament(n=pop_size),
-                           # Clone them to create offspring.
-                           ops.cloning,
-                           # Apply Gaussian mutation to each gene with a certain probability.
-                           ops.mutate_gaussian(prob=mutate_prob, std=mutate_std, hard_bounds=(0, 1))
-                       ])
+                             # The operator pipeline.
+                             pipeline=[
+                                 ops.tournament,
+                                 ops.clone,
+                                 # Apply Gaussian mutation to each gene with a certain probability.
+                                 ops.mutate_gaussian(std=mutate_std, hard_bounds=(0, 1)),
+                                 ops.evaluate,
+                                 #file_probe,
+                                 ops.pool(size=pop_size),
+                                 stdout_probe
+                             ])
         list(ea)
 
 

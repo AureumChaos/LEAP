@@ -37,8 +37,10 @@ def create_binary_sequence(length):
 
     E.g., can be used for `Individual.create_population`
 
-    >>> from leap import core
-    >>> population = Individual.create_population(10, core.create_binary_sequence(length=10)
+    >>> from leap import core, binary_problems
+    >>> population = Individual.create_population(10, core.create_binary_sequence(length=10),
+    ...                                           decoder=core.IdentityDecoder,
+    ...                                           problem=binary_problems.MaxOnes)
 
     """
     def create():
@@ -54,6 +56,7 @@ def create_real_vector(bounds):
     """
     A closure for initializing lists of real numbers for real-valued genomes, sampled from a uniform distribution.
 
+    TODO Allow either a single tuple or a sequence of tuples for bounds. —Siggy
 
     :param bounds: a list of (min, max) values bounding the uniform sampline of each element
     :return: A function that, when called, generates a random genome.
@@ -61,9 +64,11 @@ def create_real_vector(bounds):
 
     E.g., can be used for `Individual.create_population`
 
-    >>> from leap import core
+    >>> from leap import core, real_problems
     >>> bounds = [(0, 1), (0, 1), (-1, 100)]
-    >>> population = Individual.create_population(10, core.create_real_vector(bounds))
+    >>> population = Individual.create_population(10, core.create_real_vector(bounds),
+    ...                                           decoder=core.IdentityDecoder,
+    ...                                           problem=real_problems.Spheroid)
 
     """
     def create():
@@ -73,31 +78,6 @@ def create_real_vector(bounds):
         return genome
 
     return create
-
-
-
-##############################
-# Closure real-genome initializer
-##############################
-def create_real_value_sequence(bounds, length):
-    """ for creating real-value sequences for real-value genomes
-
-    :param bounds: is a tuple of (min,max) bounds to be sampled for each gene.  Also can be sequence of such tuples
-                   to specify ranges for each real-valued gene.
-    :param length: how many genes to produce?
-    :return: real-valued vector of given length
-
-    >>> from leap import core, real_problems
-    >>> bounds = [(0, 1), (0, 1), (-1, 100)]
-    >>> init = create_real_value_sequence(bounds, 3)
-
-    """
-    # This will likely go away with merge with issue-30 since Siggy has already re-implemented this.
-    if util.is_sequence(bounds):
-        pass
-    else:
-        pass
-
 
 
 ##############################
