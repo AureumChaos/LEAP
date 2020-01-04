@@ -54,15 +54,11 @@ class Operator(abc.ABC):
     """
 
     @abc.abstractmethod
-    def __call__(self, population, *args, **kwargs):
+    def __call__(self, pop_generator):
         """
         The basic interface for a pipeline operator in LEAP.
 
-        TODO this method signature is outdated. --Siggy
-
-        :param *args: optional variable sequence of arguments
-        :param **kwargs: optional dictionary of arguments
-        :param population: a list of individuals to be operated upon
+        :param pop_generator: a list or generator of individuals to be operated upon
         """
         pass
 

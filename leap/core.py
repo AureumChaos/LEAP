@@ -19,7 +19,7 @@ from toolz.itertoolz import pluck
 # intent is for certain operators and functions to add to and modify this
 # context.  Third party operators and functions will just add a new top-level
 # dedicated key.
-context = {'leap' : {}}
+context = {'leap': {}}
 
 
 @curry
@@ -31,9 +31,7 @@ def create_binary_sequence(length=5):
     :param length: how many genes?
     :return: binary vector of given length
     """
-    return [random.choice([0,1]) for _ in range(length)]
-
-
+    return [random.choice([0, 1]) for _ in range(length)]
 
 
 ##############################
@@ -95,7 +93,6 @@ class Individual:
         # assert(len(genomes) == n)
         return [cls(genome=initialize(), decoder=decoder, problem=problem) for _ in range(n)]
 
-
     @classmethod
     def evaluate_population(cls, population):
         """ Convenience function for bulk serial evaluation of a given population
@@ -147,6 +144,8 @@ class Individual:
         :param other: to which to compare
         :return: if this Individual is less fit than another
         """
+        if other is None:  # Never equal to None
+            return False
         return self.problem.equivalent(self.fitness, other.fitness)
 
     def __lt__(self, other):
@@ -183,6 +182,8 @@ class Individual:
         :return: if this Individual has the same fitness as another even if
                  they have different genomes
         """
+        if other is None:  # Always better than None
+            return False
         return self.problem.worse_than(self.fitness, other.fitness)
 
     def __str__(self):
