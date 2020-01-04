@@ -6,7 +6,6 @@
 """
 import collections
 
-
 # ##############################
 # Function is_sequence
 # ##############################

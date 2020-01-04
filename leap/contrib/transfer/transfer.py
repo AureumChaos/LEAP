@@ -10,7 +10,7 @@ def initialize_seeded(initialize, seed_pop):
     into the population, and fills the remaining space with newly generated individuals.
 
     >>> from leap import real_problems
-    >>> random_init = real_problems.initialize_vectors_uniform(bounds=[[0, 0]] * 2)
+    >>> random_init = real_problems.create_real_value_sequence(bounds=[[0, 0]] * 2)
     >>> init = initialize_seeded(random_init, [[5.0, 5.0], [4.5, -6]])
     >>> init(5)
     [[5.0, 5.0], [4.5, -6], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]

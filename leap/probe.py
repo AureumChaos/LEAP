@@ -339,7 +339,7 @@ class PlotTrajectoryProbe:
                                  trajectory_probe,  # Insert the probe into the pipeline like so
                                  ops.tournament,
                                  ops.clone,
-                                 ops.mutate_gaussian(std=0.1),
+                                 ops.mutate_gaussian(std=0.1, hard_bounds=(0, 1)),
                                  ops.evaluate,
                                  ops.pool(size=pop_size)
                              ])

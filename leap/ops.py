@@ -11,8 +11,8 @@ import numpy as np
 import toolz
 from toolz import curry
 
-from leap import util
 from leap.core import Individual
+from leap import util
 
 
 ##############################
@@ -59,7 +59,6 @@ class Operator(abc.ABC):
         :param pop_generator: a list or generator of individuals to be operated upon
         """
         pass
-
 
 
 ##############################
@@ -139,15 +138,16 @@ def mutate_bitflip(next_individual, expected=1):
             return gene
 
     while True:
-        # individual, pipe_args, pipe_kwargs = next(next_individual)
         individual = next(next_individual)
 
         # Given the average expected number of mutations, calculate the probability
         # for flipping each bit.  This calculation must be made each time given
         # that we may be dealing with dynamic lengths.
-        probability = 1.0 / len(individual.genome) * expected
+        probability = compute_expected_probability(expected, individual.genome)
 
         individual.genome = [flip(gene) for gene in individual.genome]
+
+        individual.fitness = None # invalidate fitness since we have new genome
 
         yield individual
 
@@ -291,7 +291,6 @@ def mutate_gaussian(next_individual, std, expected=1, hard_bounds=(-np.inf, np.i
     :param expected: the *expected* number of mutations per individual, on average
     :param hard_bounds: to clip for mutations; defaults to (- ∞, ∞)
     :return: a generator of mutated individuals.
-
     """
     def add_gauss(x, std):
         if random.random() < probability:
@@ -379,25 +378,19 @@ def tournament(population, k=2):
 
 
 @curry
-def naive_cyclic_selection_generator(population):
+def naive_cyclic_selection(population):
     """ Deterministically returns individuals, and repeats the same sequence
     when exhausted.
 
-    TODO "cyclic_selection_generator" is a mouthful.  How about we rename this 
-    to "unpool", since it's basically the opposite of pool()? --Siggy
-
     This is "naive" because it doesn't shuffle the population between complete
     tours to minimize bias.
-
-    TODO implement non-naive version that shuffles population before first
-    iteration and after every complete loop to minimize sample bias.
 
     >>> from leap import core, ops
 
     >>> pop = [core.Individual([0, 0]),
     ...        core.Individual([0, 1])]
 
-    >>> cyclic_selector = ops.naive_cyclic_selection_generator(pop)
+    >>> cyclic_selector = ops.naive_cyclic_selection(pop)
 
     :param population: from which to select
     :return: the next selected individual
@@ -406,6 +399,33 @@ def naive_cyclic_selection_generator(population):
 
     while True:
         yield next(itr)
+
+
+@curry
+def cyclic_selection(population):
+    """ Deterministically returns individuals in order, then shuffles the sequence, returns the individuals in that
+    new order, and repeats this process.
+    >>> from leap import core, ops
+
+    >>> pop = [core.Individual([0, 0]),
+    ...        core.Individual([0, 1])]
+
+    >>> cyclic_selector = ops.cyclic_selection(pop)
+
+    :param population: from which to select
+    :return: the next selected individual
+    """
+    # this is essentially itertools.cycle() that just shuffles
+    # the saved sequence between cycles.
+    saved = []
+    for individual in population:
+        yield individual
+        saved.append(individual)
+    while saved:
+        # randomize the sequence between cycles to remove this source of sample bias
+        random.shuffle(saved)
+        for individual in saved:
+              yield individual
 
 
 @curry
@@ -422,7 +442,7 @@ def pool(next_individual, size):
     >>> pop = [core.Individual([0, 0]),
     ...        core.Individual([0, 1])]
 
-    >>> cyclic_selector = ops.naive_cyclic_selection_generator(pop)
+    >>> cyclic_selector = ops.naive_cyclic_selection(pop)
 
     >>> pool = ops.pool(cyclic_selector, 3)
 

@@ -16,7 +16,7 @@ class Spheroid(ScalarProblem):
     """ Classic parabolid function, known as the "sphere" or "spheroid" problem, because its equal-fitness contours form (hyper)spheres in n > 2.
 
     .. math::
-    
+
        f(\\vec{x}) = \\sum_{i}^n x_i^2
 
     .. plot::
@@ -71,15 +71,16 @@ class Rastrigin(ScalarProblem):
     """ The classic Rastrigin problem.  The Rastrigin provides a real-valued fitness landscape with a quadratic global structure (like the :class:`~leap.real_problems.Spheroid`), plus a sinusoidal local structure with many local optima.
 
     .. math::
-    
+
        f(\\vec{x}) = An + \\sum_{i=1}^n x_i^2 - A\\cos(2\\pi x_i)
 
     .. plot::
        :include-source:
-   
+
        from leap import real_problems
        bounds = real_problems.Rastrigin.bounds  # Contains traditional bounds
        real_problems.plot_2d_problem(real_problems.Rastrigin(), xlim=bounds, ylim=bounds, granularity=0.025)
+
 
     """
 
@@ -677,7 +678,7 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface', ax=None, granularity=0.
 
     .. plot::
        :include-source:
-   
+
        from leap import real_problems
        problem = real_problems.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
        real_problems.plot_2d_problem(problem, xlim=(0, 1), ylim=(0, 1), granularity=0.025);
@@ -699,7 +700,7 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface', ax=None, granularity=0.
 
        plt.subplot(122)
        real_problems.plot_2d_problem(real_problems.Rastrigin(), ax=plt.gca(), kind='contour', xlim=bounds, ylim=bounds)
-       
+
     """
     def call(phenome):
         return problem.evaluate(phenome)
