@@ -13,6 +13,8 @@ from toolz import curry
 
 from leap.core import Individual
 
+from leap import util
+
 
 ##############################
 # do_pipeline method
@@ -29,6 +31,17 @@ from leap.core import Individual
 #     for op in pipeline:
 #         population, context = op(population, context)
 #     return population, context
+
+def compute_expected_probability(expected, individual_genome):
+    """ Computed the probability of mutation based on the desired average
+    expected mutation and genome length.
+
+    :param expected: times individual is to be mutated on average
+    :param individual_genome: genome for which to compute the probability
+    :return: the corresponding probability of mutation
+    """
+    return 1.0 / len(individual_genome) * expected
+
 
 
 ##############################
@@ -141,15 +154,16 @@ def mutate_bitflip(next_individual, expected=1):
             return gene
 
     while True:
-        # individual, pipe_args, pipe_kwargs = next(next_individual)
         individual = next(next_individual)
 
         # Given the average expected number of mutations, calculate the probability
         # for flipping each bit.  This calculation must be made each time given
         # that we may be dealing with dynamic lengths.
-        probability = 1.0 / len(individual.genome) * expected
+        probability = compute_expected_probability(expected, individual.genome)
 
         individual.genome = [flip(gene) for gene in individual.genome]
+
+        individual.fitness = None # invalidate fitness since we have new genome
 
         yield individual
 
@@ -282,25 +296,44 @@ def n_ary_crossover(next_individual, num_points=1):
 # ##############################
 # # mutate_gaussian operator
 # ##############################
-# @curry
-# def mutate_gaussian(population, context, prob, std, hard_bounds=(-np.inf, np.inf)):
-#     def add_gauss(x):
-#         if np.random.uniform() < prob:
-#             return x + np.random.normal()*std
-#         else:
-#             return x
-#
-#     def clip(x):
-#         return max(hard_bounds[0], min(hard_bounds[1], x))
-#
-#     result = []
-#     for ind in population:
-#         ind.genome = [clip(add_gauss(x)) for x in ind.genome]
-#         ind.fitness = None
-#         result.append(ind)
-#     return result, context
-#
-#
+@curry
+def mutate_gaussian(next_individual, std, expected=1, hard_bounds=(-np.inf, np.inf)):
+    """ mutate and return an individual with a real-valued representation
+
+    :param next_individual: to be mutated
+    :param std: standard deviation to be equally applied to all individuals; this
+    can be a scalar value or a "shadow vector" of standard deviations
+    :param expected: the *expected* number of mutations per individual, on average
+    :param hard_bounds: to clip for mutations; defaults to (- ∞, ∞)
+    :return:
+    """
+    def add_gauss(x, std):
+        if random.random() < probability:
+            return random.gauss(x, std)
+        else:
+            return x
+
+    def clip(x):
+        return max(hard_bounds[0], min(hard_bounds[1], x))
+
+    while True:
+        individual = next(next_individual)
+
+        # compute actual probability of mutation based on expected number of
+        # mutations and the genome length
+        probability = compute_expected_probability(expected, individual.genome)
+
+        if util.is_sequence(std):
+            # We're given a vector of "shadow standard deviations" so apply
+            # each sigma individually to each gene
+            individual.genome = [clip(add_gauss(x, s)) for x, s in zip(ind.genome, std)]
+        else:
+            individual.genome = [clip(add_gauss(x, std)) for x in ind.genome]
+
+        individual.fitness = None # invalidate fitness since we have new genome
+
+        yield individual
+
 
 
 @curry
@@ -361,25 +394,19 @@ def tournament(population, k=2):
 
 
 @curry
-def naive_cyclic_selection_generator(population):
+def naive_cyclic_selection(population):
     """ Deterministically returns individuals, and repeats the same sequence
     when exhausted.
 
-    TODO "cyclic_selection_generator" is a mouthful.  How about we rename this 
-    to "unpool", since it's basically the opposite of pool()? --Siggy
-
     This is "naive" because it doesn't shuffle the population between complete
     tours to minimize bias.
-
-    TODO implement non-naive version that shuffles population before first
-    iteration and after every complete loop to minimize sample bias.
 
     >>> from leap import core, ops
 
     >>> pop = [core.Individual([0, 0]),
     ...        core.Individual([0, 1])]
 
-    >>> cyclic_selector = ops.naive_cyclic_selection_generator(pop)
+    >>> cyclic_selector = ops.naive_cyclic_selection(pop)
 
     :param population: from which to select
     :return: the next selected individual
@@ -388,6 +415,34 @@ def naive_cyclic_selection_generator(population):
 
     while True:
         yield next(itr)
+
+
+@curry
+def cyclic_selection(population):
+    """ Deterministically returns individuals in order, then shuffles the sequence, returns the individuals in that
+    new order, and repeats this process.
+    >>> from leap import core, ops
+
+    >>> pop = [core.Individual([0, 0]),
+    ...        core.Individual([0, 1])]
+
+    >>> cyclic_selector = ops.cyclic_selection(pop)
+
+    :param population: from which to select
+    :return: the next selected individual
+    """
+    # this is essentially itertools.cycle() that just shuffles
+    # the saved sequence between cycles.
+    saved = []
+    for individual in population:
+        yield individual
+        saved.append(individual)
+    while saved:
+        # randomize the sequence between cycles to remove this source of sample bias
+        random.shuffle(saved)
+        for individual in saved:
+              yield individual
+
 
 
 @curry
@@ -404,7 +459,7 @@ def pool(next_individual, size):
     >>> pop = [core.Individual([0, 0]),
     ...        core.Individual([0, 1])]
 
-    >>> cyclic_selector = ops.naive_cyclic_selection_generator(pop)
+    >>> cyclic_selector = ops.naive_cyclic_selection(pop)
 
     >>> pool = ops.pool(cyclic_selector, 3)
 
