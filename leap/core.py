@@ -22,16 +22,54 @@ from toolz.itertoolz import pluck
 context = {'leap': {}}
 
 
-@curry
-def create_binary_sequence(length=5):
-    """ for creating a binary sequences for binary genomes
-
-    E.g., can be used for Individual.create_population
+##############################
+# Closure create_binary_sequence
+##############################
+def create_binary_sequence(length):
+    """
+    A closure for initializing a binary sequences for binary genomes.
 
     :param length: how many genes?
-    :return: binary vector of given length
+    :return: a function that, when called, generates a binary vector of given length
+
+    E.g., can be used for `Individual.create_population`
+
+    >>> from leap import core
+    >>> population = Individual.create_population(10, core.create_binary_sequence(length=10)
+
     """
-    return [random.choice([0, 1]) for _ in range(length)]
+    def create():
+        return [random.choice([0, 1]) for _ in range(length)]
+
+    return create
+
+
+##############################
+# Closure create_real_vector
+##############################
+def create_real_vector(bounds):
+    """
+    A closure for initializing lists of real numbers for real-valued genomes, sampled from a uniform distribution.
+
+
+    :param bounds: a list of (min, max) values bounding the uniform sampline of each element
+    :return: A function that, when called, generates a random genome.
+
+
+    E.g., can be used for `Individual.create_population`
+
+    >>> from leap import core
+    >>> bounds = [(0, 1), (0, 1), (-1, 100)]
+    >>> population = Individual.create_population(10, core.create_real_vector(bounds))
+
+    """
+    def create():
+        genome = []
+        for (min_, max_) in bounds:
+            genome.append(random.uniform(min_, max_))
+        return genome
+
+    return create
 
 
 ##############################

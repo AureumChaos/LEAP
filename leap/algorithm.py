@@ -3,27 +3,28 @@ from toolz import pipe
 from leap import core, util
 
 
-def simple_ea(generations, pop_size, individual_cls, initialize, decoder, problem, pipeline):
+def generational_ea(generations, pop_size, individual_cls, initialize, decoder, problem, pipeline):
     """
-    An example implementation of a basic evolutionary algorithm.
+    This function provides an evolutionary algorithm with a generational population model.
 
-    This function initializes and evaluates a population of size `pop_size`, and then pipes it through an operator
+    When called, this initializes and evaluates a population of size `pop_size` using the  and then pipes it through an operator
     `pipeline` (i.e. a list of operators) to obtain offspring.  Wash, rinse, repeat.
 
-    The algorithm here is implement at the "metaheuristic" level.  In order to apply it to a particular problem, you
-    must provide implementations of its various components: you must decide the population size, how individuals are
-    represented and initialized, the pipeline of reproductive operators, etc.
+    The algorithm is provided  here at the "metaheuristic" level: in order to apply it to a particular problem, you
+    must parameterize it with implementations of its various components: you must decide the population size, how
+    individuals are represented and initialized, the pipeline of reproductive operators, etc. A metaheuristic
+    template of this kind can be used to implement genetic algorithms, genetic programming, certain
+    evolution strategies, and all manner of other (novel) algorithms by passing in appropriate components as parameters.
 
-    :param int evals: the stopping condition—stop after `evals` fitness evaluations
+    :param int generations: The number of generations to run the algorithm for.
     :param int pop_size: Size of the initial population
     :param class individual_cls: class representing the (sub)type of `Individual` the population should be generated
         from
     :param `Decoder` decoder: the Decoder that should be used to convert individual genomes into phenomes
     :param `Problem` problem: the Problem that should be used to evaluate individuals' fitness
-    :param evaluate: the evaluation operator
-    :param initialize: a function that creates the genomes for the initial population (takes an integer `n` and returns
-        a list of `n` genomes
-    :param list pipeline: a list of operators that are applied (in order) to the population each generation
+    :param initialize: a function that creates a new genome every time it is called
+    :param list pipeline: a list of operators that are applied (in order) to to create the offspring population at each
+        generation
     :return: a generator of `(int, individual_cls)` pairs representing the best individual at each generation.
 
     The intent behind this kind of EA interface is to allow the complete configuration of a basic evolutionary
@@ -35,21 +36,21 @@ def simple_ea(generations, pop_size, individual_cls, initialize, decoder, proble
     >>> from leap import core, ops, binary_problems
     >>> l = 10  # The length of the genome
     >>> pop_size = 5
-    >>> ea = simple_ea(generations=100, pop_size=pop_size,
-    ...                individual_cls=core.Individual, # Use the standard Individual as the prototype for the population
+    >>> ea = generational_ea(generations=100, pop_size=pop_size,
+    ...                      individual_cls=core.Individual, # Use the standard Individual as the prototype for the population
     ...
-    ...                decoder=core.IdentityDecoder(),          # Genotype and phenotype are the same for this task
-    ...                problem=binary_problems.MaxOnes(),       # Solve a MaxOnes Boolean optimization problem
-    ...                initialize=core.create_binary_sequence(length=10),  # Initial genomes are random binary sequences
+    ...                      decoder=core.IdentityDecoder(),          # Genotype and phenotype are the same for this task
+    ...                      problem=binary_problems.MaxOnes(),       # Solve a MaxOnes Boolean optimization problem
+    ...                      initialize=core.create_binary_sequence(length=10),  # Initial genomes are random binary sequences
     ...
-    ...                # The operator pipeline
-    ...                pipeline=[ops.tournament,                     # Select parents via tournament selection
-    ...                          ops.clone,                          # Copy them (just to be safe)
-    ...                          ops.mutate_bitflip,                 # Basic mutation: defaults to a 1/L mutation rate
-    ...                          ops.uniform_crossover(p_swap=0.4),  # Crossover with a 40% chance of swapping each gene
-    ...                          ops.evaluate,                       # Evaluate fitness
-    ...                          ops.pool(size=pop_size)             # Collect offspring into a new population
-    ...                ])
+    ...                      # The operator pipeline
+    ...                      pipeline=[ops.tournament,                     # Select parents via tournament selection
+    ...                                ops.clone,                          # Copy them (just to be safe)
+    ...                                ops.mutate_bitflip,                 # Basic mutation: defaults to a 1/L mutation rate
+    ...                                ops.uniform_crossover(p_swap=0.4),  # Crossover with a 40% chance of swapping each gene
+    ...                                ops.evaluate,                       # Evaluate fitness
+    ...                                ops.pool(size=pop_size)             # Collect offspring into a new population
+    ...                      ])
     >>> ea # doctest:+ELLIPSIS
     <generator ...>
 
@@ -62,8 +63,8 @@ def simple_ea(generations, pop_size, individual_cls, initialize, decoder, proble
     ...
     (100, Individual(...))
 
-    In this case, we see that the best individual reported from the initial population (at generation 0),
-    followed by the best-so-far individual at each subsequent generation.
+    The best individual reported from the initial population  is reported at generation 0) followed by the best-so-far
+    individual at each subsequent generation.
     """
     # Initialize a population of pop_size individuals of the same type as individual_cls
     parents = individual_cls.create_population(pop_size, initialize=initialize, decoder=decoder, problem=problem)

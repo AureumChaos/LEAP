@@ -4,9 +4,30 @@
 
     print_list : for pretty printing a list when pprint isn't sufficient.
 """
+import collections
 
 
-def inc_generation(context, callbacks=[]):
+# ##############################
+# Function is_sequence
+# ##############################
+def is_sequence(obj):
+    """ :return: True if obj is a sequence
+
+        Cribbed from https://stackoverflow.com/questions/2937114/python-check-if-an-object-is-a-sequence?lq=1
+
+        E.g., used to determine if gaussian mutation has a single specified
+        standard deviation, or a vector of standard deviations.
+
+        >>> is_sequence(0.5)
+        False
+
+        >>> is_sequence([0.1, 0.2, 0.3])
+        True
+    """
+    return isinstance(obj, collections.abc.Sequence)
+
+
+def inc_generation(context, callbacks=()):
     """ This tracks the current generation
 
     The `context` is used to report the current generation, though that

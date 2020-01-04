@@ -1,8 +1,23 @@
 leap package
 ============
 
+Subpackages
+-----------
+
+.. toctree::
+
+   leap.contrib
+
 Submodules
 ----------
+
+leap.algorithm module
+---------------------
+
+.. automodule:: leap.algorithm
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 leap.binary\_problems module
 ----------------------------

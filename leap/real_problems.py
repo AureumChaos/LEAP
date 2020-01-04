@@ -10,38 +10,6 @@ from leap.problem import ScalarProblem
 
 
 ##############################
-# Closure real-genome initializer
-##############################
-def initialize_vectors_uniform(bounds):
-    """
-
-    :param decoder:
-    :param problem:
-    :param bounds:
-    :return:
-
-    >>> from leap import core, real_problems
-    >>> bounds = [(0, 1), (0, 1), (-1, 100)]
-    >>> init = initialize_vectors_uniform(bounds)
-    >>> for x in init(5):
-    ...     print(x) # +doctest: ELLIPSIS
-    [...]
-    [...]
-    [...]
-    [...]
-    [...]
-    """
-    def generate_genome():
-        for (min, max) in bounds:
-            yield random.uniform(min, max)
-
-    def f(pop_size):
-        return [list(generate_genome()) for _ in range(pop_size)]
-
-    return f
-
-
-##############################
 # Class Spheroid
 ##############################
 class Spheroid(ScalarProblem):
@@ -54,9 +22,9 @@ class Spheroid(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real
-       bounds = real.Spheroid.bounds  # Contains traditional bounds
-       real.plot_2d_problem(real.Spheroid(), xlim=bounds, ylim=bounds, granularity=0.025)
+       from leap import real_problems
+       bounds = real_problems.Spheroid.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(real_problems.Spheroid(), xlim=bounds, ylim=bounds, granularity=0.025)
 
     """
 
@@ -100,7 +68,7 @@ class Spheroid(ScalarProblem):
 # Class Rastrigin
 ##############################
 class Rastrigin(ScalarProblem):
-    """ The classic Rastrigin problem.  The Rastrigin provides a real-valued fitness landscape with a quadratic global structure (like the :class:`~leap.real.Spheroid`), plus a sinusoidal local structure with many local optima.
+    """ The classic Rastrigin problem.  The Rastrigin provides a real-valued fitness landscape with a quadratic global structure (like the :class:`~leap.real_problems.Spheroid`), plus a sinusoidal local structure with many local optima.
 
     .. math::
     
@@ -109,9 +77,9 @@ class Rastrigin(ScalarProblem):
     .. plot::
        :include-source:
    
-       from leap import real
-       bounds = real.Rastrigin.bounds  # Contains traditional bounds
-       real.plot_2d_problem(real.Rastrigin(), xlim=bounds, ylim=bounds, granularity=0.025)
+       from leap import real_problems
+       bounds = real_problems.Rastrigin.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(real_problems.Rastrigin(), xlim=bounds, ylim=bounds, granularity=0.025)
 
     """
 
@@ -164,9 +132,9 @@ class Rosenbrock(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real
-       bounds = real.Rosenbrock.bounds  # Contains traditional bounds
-       real.plot_2d_problem(real.Rosenbrock(), xlim=bounds, ylim=bounds, granularity=0.025)
+       from leap import real_problems
+       bounds = real_problems.Rosenbrock.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(real_problems.Rosenbrock(), xlim=bounds, ylim=bounds, granularity=0.025)
 
     """
 
@@ -226,9 +194,9 @@ class StepProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real
-       bounds = real.StepProblem.bounds  # Contains traditional bounds
-       real.plot_2d_problem(real.StepProblem(), xlim=bounds, ylim=bounds, granularity=0.025)
+       from leap import real_problems
+       bounds = real_problems.StepProblem.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(real_problems.StepProblem(), xlim=bounds, ylim=bounds, granularity=0.025)
 
     """
 
@@ -280,9 +248,9 @@ class NoisyQuartic(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real
-       bounds = real.NoisyQuartic.bounds  # Contains traditional bounds
-       real.plot_2d_problem(real.NoisyQuartic(), xlim=bounds, ylim=bounds, granularity=0.025)
+       from leap import real_problems
+       bounds = real_problems.NoisyQuartic.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(real_problems.NoisyQuartic(), xlim=bounds, ylim=bounds, granularity=0.025)
 
     """
 
@@ -359,9 +327,9 @@ class ShekelProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real
-       bounds = real.ShekelProblem.bounds  # Contains traditional bounds
-       real.plot_2d_problem(real.ShekelProblem(), xlim=bounds, ylim=bounds, granularity=0.9)
+       from leap import real_problems
+       bounds = real_problems.ShekelProblem.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(real_problems.ShekelProblem(), xlim=bounds, ylim=bounds, granularity=0.9)
 
     """
 
@@ -432,20 +400,20 @@ class CosineFamilyProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real
-       problem = real.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
-       bounds = real.CosineFamilyProblem.bounds  # Contains traditional bounds
-       real.plot_2d_problem(problem, xlim=bounds, ylim=bounds, granularity=0.025)
+       from leap import real_problems
+       problem = real_problems.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
+       bounds = real_problems.CosineFamilyProblem.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(problem, xlim=bounds, ylim=bounds, granularity=0.025)
 
     The number of optima can be varied independently by each dimension:
 
     .. plot::
        :include-source:
 
-       from leap import real
-       problem = real.CosineFamilyProblem(alpha=3.0, global_optima_counts=[4, 2], local_optima_counts=[2, 2])
-       bounds = real.CosineFamilyProblem.bounds  # Contains traditional bounds
-       real.plot_2d_problem(problem, xlim=bounds, ylim=bounds, granularity=0.025)
+       from leap import real_problems
+       problem = real_problems.CosineFamilyProblem(alpha=3.0, global_optima_counts=[4, 2], local_optima_counts=[2, 2])
+       bounds = real_problems.CosineFamilyProblem.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(problem, xlim=bounds, ylim=bounds, granularity=0.025)
 
     """
 
@@ -481,26 +449,26 @@ class TranslatedProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real
+       from leap import real_problems
 
-       original_problem = real.Spheroid()
+       original_problem = real_problems.Spheroid()
        offset = [-1.0, -2.5]
-       translated_problem = real.TranslatedProblem(original_problem, offset)
+       translated_problem = real_problems.TranslatedProblem(original_problem, offset)
 
        fig = plt.figure(figsize=(12, 8))
 
        plt.subplot(221, projection='3d')
-       bounds = real.Spheroid.bounds  # Contains traditional bounds
-       real.plot_2d_problem(original_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+       bounds = real_problems.Spheroid.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(original_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
 
        plt.subplot(222, projection='3d')
-       real.plot_2d_problem(translated_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+       real_problems.plot_2d_problem(translated_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
 
        plt.subplot(223)
-       real.plot_2d_problem(original_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+       real_problems.plot_2d_problem(original_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
 
        plt.subplot(224)
-       real.plot_2d_problem(translated_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+       real_problems.plot_2d_problem(translated_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
     """
     def __init__(self, problem, offset, maximize=True):
         super().__init__(maximize=maximize)
@@ -518,13 +486,13 @@ class TranslatedProblem(ScalarProblem):
         .. plot::
            :include-source:
 
-           from leap import real
+           from leap import real_problems
 
-           original_problem = real.Rastrigin()
-           bounds = real.Rastrigin.bounds  # Contains traditional bounds
-           translated_problem = real.TranslatedProblem.random(original_problem, bounds, 2)
+           original_problem = real_problems.Rastrigin()
+           bounds = real_problems.Rastrigin.bounds  # Contains traditional bounds
+           translated_problem = real_problems.TranslatedProblem.random(original_problem, bounds, 2)
 
-           real.plot_2d_problem(translated_problem, kind='contour', xlim=bounds, ylim=bounds)
+           real_problems.plot_2d_problem(translated_problem, kind='contour', xlim=bounds, ylim=bounds)
         """
         min_offset, max_offset = offset_bounds
         offset = np.random.uniform(min_offset, max_offset, dimensions)
@@ -559,35 +527,35 @@ class MatrixTransformedProblem(ScalarProblem):
     :param matrix: an nxn matrix, where n is the genome length.
     :returns: a function that first applies -matrix to the input, then applies fun to the transformed input.
 
-    For example, here we manually construct a 2x2 rotation matrix and apply it to the :class:`~leap.real.Rosenbrock`
+    For example, here we manually construct a 2x2 rotation matrix and apply it to the :class:`~leap.real_problems.Rosenbrock`
     function:
 
     .. plot::
        :include-source:
 
-       from leap import real
+       from leap import real_problems
 
-       original_problem = real.Rosenbrock()
+       original_problem = real_problems.Rosenbrock()
        theta = np.pi/2
        matrix = [[np.cos(theta), -np.sin(theta)],\
                  [np.sin(theta), np.cos(theta)]]
 
-       transformed_problem = real.MatrixTransformedProblem(original_problem, matrix)
+       transformed_problem = real_problems.MatrixTransformedProblem(original_problem, matrix)
 
        fig = plt.figure(figsize=(12, 8))
 
        plt.subplot(221, projection='3d')
-       bounds = real.Rosenbrock.bounds  # Contains traditional bounds
-       real.plot_2d_problem(original_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+       bounds = real_problems.Rosenbrock.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(original_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
 
        plt.subplot(222, projection='3d')
-       real.plot_2d_problem(transformed_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+       real_problems.plot_2d_problem(transformed_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
 
        plt.subplot(223)
-       real.plot_2d_problem(original_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+       real_problems.plot_2d_problem(original_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
 
        plt.subplot(224)
-       real.plot_2d_problem(transformed_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+       real_problems.plot_2d_problem(transformed_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
 
     """
     def __init__(self, problem, matrix, maximize=True):
@@ -601,42 +569,42 @@ class MatrixTransformedProblem(ScalarProblem):
 
     @classmethod
     def random_orthonormal(cls, problem, dimensions, maximize=True):
-        """Create a :class:`~leap.real.MatrixTransformedProblem` that performs a random rotation and/or inversion of the
+        """Create a :class:`~leap.real_problems.MatrixTransformedProblem` that performs a random rotation and/or inversion of the
         function.
 
         We accomplish this by generating a random orthonormal basis for R^n and plugging the resulting matrix into
-        :class:`~leap.real.MatrixTransformedProblem`.
+        :class:`~leap.real_problems.MatrixTransformedProblem`.
 
         This algorithm follows directly from the definition of orthonormality.  It is described in Hansen and
         Ostermeier's original CMA-ES paper: "Completely derandomized self-adaptation in evolution strategies."
         Evolutionary computation 9.2 (2001): 159-195.
 
-        :param problem: the original :class:`~leap.real.ScalarProblem` to apply the transform to.
+        :param problem: the original :class:`~leap.real_problems.ScalarProblem` to apply the transform to.
         :param dimensions: the number of elements each vector should have.
 
         .. plot::
            :include-source:
 
-           from leap import real
+           from leap import real_problems
 
-           original_problem = real.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 3], local_optima_counts=[2, 3])
+           original_problem = real_problems.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 3], local_optima_counts=[2, 3])
 
-           transformed_problem = real.MatrixTransformedProblem.random_orthonormal(original_problem, 2)
+           transformed_problem = real_problems.MatrixTransformedProblem.random_orthonormal(original_problem, 2)
 
            fig = plt.figure(figsize=(12, 8))
 
            plt.subplot(221, projection='3d')
            bounds = original_problem.bounds
-           real.plot_2d_problem(original_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+           real_problems.plot_2d_problem(original_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
 
            plt.subplot(222, projection='3d')
-           real.plot_2d_problem(transformed_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+           real_problems.plot_2d_problem(transformed_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
 
            plt.subplot(223)
-           real.plot_2d_problem(original_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+           real_problems.plot_2d_problem(original_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
 
            plt.subplot(224)
-           real.plot_2d_problem(transformed_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
+           real_problems.plot_2d_problem(transformed_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
         """
         matrix = np.random.normal(size=[dimensions, dimensions])
         for i, row in enumerate(matrix):
@@ -710,9 +678,9 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface', ax=None, granularity=0.
     .. plot::
        :include-source:
    
-       from leap import real
-       problem = real.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
-       real.plot_2d_problem(problem, xlim=(0, 1), ylim=(0, 1), granularity=0.025);
+       from leap import real_problems
+       problem = real_problems.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
+       real_problems.plot_2d_problem(problem, xlim=(0, 1), ylim=(0, 1), granularity=0.025);
 
     You can also specify axes explicitly (ex. by using `ax=plt.gca()`.  When plotting surfaces, you  must configure your
     axes to use `projection='3d'`.  Contour plots don't need 3D axes:
@@ -721,16 +689,16 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface', ax=None, granularity=0.
        :include-source:
 
        from matplotlib import pyplot as plt
-       from leap import real
+       from leap import real_problems
 
        fig = plt.figure(figsize=(12, 4))
-       bounds=real.Rastrigin.bounds  # Contains default bounds
+       bounds=real_problems.Rastrigin.bounds  # Contains default bounds
 
        plt.subplot(121, projection='3d')
-       real.plot_2d_problem(real.Rastrigin(), ax=plt.gca(), xlim=bounds, ylim=bounds)
+       real_problems.plot_2d_problem(real_problems.Rastrigin(), ax=plt.gca(), xlim=bounds, ylim=bounds)
 
        plt.subplot(122)
-       real.plot_2d_problem(real.Rastrigin(), ax=plt.gca(), kind='contour', xlim=bounds, ylim=bounds)
+       real_problems.plot_2d_problem(real_problems.Rastrigin(), ax=plt.gca(), kind='contour', xlim=bounds, ylim=bounds)
        
     """
     def call(phenome):
@@ -767,13 +735,13 @@ def plot_2d_function(fun, xlim, ylim, ax=None, granularity=0.1):
        import numpy as np
        from scipy import linalg
 
-       from leap import real
+       from leap import real_problems
 
        def sinc_hd(phenome):
            r = linalg.norm(phenome)
            return np.sin(r)/r
 
-       real.plot_2d_function(sinc_hd, xlim=(-10, 10), ylim=(-10, 10), granularity=0.2)
+       real_problems.plot_2d_function(sinc_hd, xlim=(-10, 10), ylim=(-10, 10), granularity=0.2)
 
 
     """
@@ -820,13 +788,13 @@ def plot_2d_contour(fun, xlim, ylim, ax=None, granularity=0.1):
        import numpy as np
        from scipy import linalg
 
-       from leap import real
+       from leap import real_problems
 
        def sinc_hd(phenome):
            r = linalg.norm(phenome)
            return np.sin(r)/r
 
-       real.plot_2d_contour(sinc_hd, xlim=(-10, 10), ylim=(-10, 10), granularity=0.2)
+       real_problems.plot_2d_contour(sinc_hd, xlim=(-10, 10), ylim=(-10, 10), granularity=0.2)
 
 
     """
