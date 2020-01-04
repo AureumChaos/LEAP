@@ -361,25 +361,19 @@ def tournament(population, k=2):
 
 
 @curry
-def naive_cyclic_selection_generator(population):
+def naive_cyclic_selection(population):
     """ Deterministically returns individuals, and repeats the same sequence
     when exhausted.
 
-    TODO "cyclic_selection_generator" is a mouthful.  How about we rename this 
-    to "unpool", since it's basically the opposite of pool()? --Siggy
-
     This is "naive" because it doesn't shuffle the population between complete
     tours to minimize bias.
-
-    TODO implement non-naive version that shuffles population before first
-    iteration and after every complete loop to minimize sample bias.
 
     >>> from leap import core, ops
 
     >>> pop = [core.Individual([0, 0]),
     ...        core.Individual([0, 1])]
 
-    >>> cyclic_selector = ops.naive_cyclic_selection_generator(pop)
+    >>> cyclic_selector = ops.naive_cyclic_selection(pop)
 
     :param population: from which to select
     :return: the next selected individual
@@ -388,6 +382,33 @@ def naive_cyclic_selection_generator(population):
 
     while True:
         yield next(itr)
+
+
+@curry
+def cyclic_selection(population):
+    """ Deterministically returns individuals in order, then shuffles the sequence, returns the individuals in that
+    new order, and repeats this process.
+    >>> from leap import core, ops
+
+    >>> pop = [core.Individual([0, 0]),
+    ...        core.Individual([0, 1])]
+
+    >>> cyclic_selector = ops.cyclic_selection(pop)
+
+    :param population: from which to select
+    :return: the next selected individual
+    """
+    # this is essentially itertools.cycle() that just shuffles
+    # the saved sequence between cycles.
+    saved = []
+    for element in iterable:
+        yield element
+        saved.append(element)
+    while saved:
+        random.shuffle(saved)
+        for element in saved:
+              yield element
+
 
 
 @curry
@@ -404,7 +425,7 @@ def pool(next_individual, size):
     >>> pop = [core.Individual([0, 0]),
     ...        core.Individual([0, 1])]
 
-    >>> cyclic_selector = ops.naive_cyclic_selection_generator(pop)
+    >>> cyclic_selector = ops.naive_cyclic_selection(pop)
 
     >>> pool = ops.pool(cyclic_selector, 3)
 

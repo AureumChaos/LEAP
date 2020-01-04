@@ -17,7 +17,7 @@ def test_uniform_crossover():
     # are selected for uniform crossover, the next two parents are selected and crossed over.  The cyclic iterator
     # ensures we just select the same two individuals again even though the yield statements in the uniform
     # crossover operator are not invoked again.
-    i = ops.naive_cyclic_selection_generator(pop)
+    i = ops.naive_cyclic_selection(pop)
 
     # Do swap with 100% certainty, which will cause the two individuals' genomes to exchange values
     new_pop = list(itertools.islice(ops.uniform_crossover(i, p_swap=1.0), 2))
@@ -35,7 +35,7 @@ def test_uniform_crossover_bad_len():
     pop = [core.Individual([0, 0, 1]),
            core.Individual([1, 1])]
 
-    i = ops.naive_cyclic_selection_generator(pop)
+    i = ops.naive_cyclic_selection(pop)
 
     with pytest.raises(RuntimeError):
         new_pop = list(itertools.islice(ops.uniform_crossover(i), 2))
@@ -49,7 +49,7 @@ def test_n_ary_crossover_bad_lengths():
     pop = [core.Individual([0, 0, 1]),
            core.Individual([1, 1])]
 
-    i = ops.naive_cyclic_selection_generator(pop)
+    i = ops.naive_cyclic_selection(pop)
 
     with pytest.raises(RuntimeError):
         new_pop = list(itertools.islice(ops.n_ary_crossover(i), 2))
@@ -60,7 +60,7 @@ def test_n_ary_crossover_bad_crossover_points():
     pop = [core.Individual([0, 0]),
            core.Individual([1, 1])]
 
-    i = ops.naive_cyclic_selection_generator(pop)
+    i = ops.naive_cyclic_selection(pop)
 
     with pytest.raises(RuntimeError):
         new_pop = list(itertools.islice(ops.n_ary_crossover(i, num_points=3), 2))
@@ -71,7 +71,7 @@ def test_n_ary_crossover():
     pop = [core.Individual([0, 0]),
            core.Individual([1, 1])]
 
-    i = ops.naive_cyclic_selection_generator(pop)
+    i = ops.naive_cyclic_selection(pop)
 
     new_pop = list(itertools.islice(ops.n_ary_crossover(i), 2))
 

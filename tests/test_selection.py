@@ -13,7 +13,7 @@ def test_naive_cyclic_selection():
 
     # This selection operator will deterministically cycle through the
     # given population
-    selector = ops.naive_cyclic_selection_generator(pop)
+    selector = ops.naive_cyclic_selection(pop)
 
     selected = next(selector)
     assert selected.genome == [0, 0]
