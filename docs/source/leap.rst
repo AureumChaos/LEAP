@@ -1,6 +1,13 @@
 leap package
 ============
 
+Subpackages
+-----------
+
+.. toctree::
+
+   leap.contrib
+
 Submodules
 ----------
 

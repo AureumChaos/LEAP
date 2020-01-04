@@ -1,16 +1,11 @@
 """
   Probes are pipeline operators to instrument state that passes through the pipeline
   such as populations or individuals.
-
-  TODO Will have to sync with Siggy on updating his code to work with the new paradigm.
-  Shouldn't be too hard, and use of callbacks for inc_generation() should help as well as use
-  of context objects.
 """
 import csv
 import sys
 
 from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from toolz import curry
 
@@ -207,37 +202,40 @@ class PopulationPlotProbe:
        :include-source:
 
         import matplotlib.pyplot as plt
-        from leap.probe import PlotProbe
+        from leap import core
+        from leap.probe import PopulationPlotProbe
+
+
         plt.figure()  # Setup a figure to plot to
-        plot_probe = PlotProbe(ylim=(0, 70), ax=plt.gca())
+        plot_probe = PopulationPlotProbe(core.context, ylim=(0, 70), ax=plt.gca())
+
 
         # Create an algorithm that contains the probe in the operator pipeline
-        from leap.example.simple_ea import simple_ea
-        from leap import core, real, operate as op
+        from leap import ops, real_problems
+        from leap.algorithm import generational_ea
+
+        # The fitness landscape
+        problem = real_problems.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
 
         l = 10
-        mutate_prob = 1/l
-        pop_size = 5
-        ea = simple_ea(evals=1000, pop_size=pop_size,
-                       individual_cls=core.Individual,
-                       decoder=core.IdentityDecoder(),
-                       problem=real.Spheroid(maximize=False),
-                       evaluate=op.evaluate,
+        pop_size = 10
+        ea = generational_ea(generations=100, pop_size=pop_size,
+                             individual_cls=core.Individual,
 
-                       initialize=real.initialize_vectors_uniform(
-                           bounds=[[-5.12, 5.12]] * l
-                       ),
+                             decoder=core.IdentityDecoder(),
+                             problem=real_problems.Spheroid(maximize=False),
+                             initialize=core.create_real_vector(bounds=[[-5.12, 5.12]] * l),
 
-                       step_notify_list=[plot_probe.set_step], # STEP NOTIFICATION: sets plot_probe's x-coordinate
-
-                       pipeline=[
-                           # PIPELINE: sets plot_probe's y-coordinate
-                           plot_probe,
-                           op.tournament(n=pop_size),
-                           op.cloning,
-                           op.mutate_gaussian(prob=mutate_prob, std=1.0)
-                       ])
+                             pipeline=[
+                                 plot_probe,  # Insert the probe into the pipeline like so
+                                 ops.tournament,
+                                 ops.clone,
+                                 ops.mutate_gaussian(std=1.0),
+                                 ops.evaluate,
+                                 ops.pool(size=pop_size)
+                             ])
         list(ea);
+
 
 
     To get a live-updated plot that words like a real-time video of the EA's progress, use this probe in conjunction
@@ -329,7 +327,6 @@ class PlotTrajectoryProbe:
         # Create an algorithm that contains the probe in the operator pipeline
 
         l = 10
-        mutate_prob = 1/l
         pop_size = 10
         ea = generational_ea(generations=50, pop_size=pop_size,
                              individual_cls=core.Individual,

@@ -27,7 +27,7 @@ def is_sequence(obj):
     return isinstance(obj, collections.abc.Sequence)
 
 
-def inc_generation(context, callbacks=[]):
+def inc_generation(context, callbacks=()):
     """ This tracks the current generation
 
     The `context` is used to report the current generation, though that
