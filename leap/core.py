@@ -15,6 +15,9 @@ import random
 from toolz import curry
 from toolz.itertoolz import pluck
 
+from leap import util
+
+
 # This defines a global context that is a dictionary of dictionaries.  The
 # intent is for certain operators and functions to add to and modify this
 # context.  Third party operators and functions will just add a new top-level
@@ -33,36 +36,30 @@ def create_binary_sequence(length=5):
     """
     return [random.choice([0, 1]) for _ in range(length)]
 
+
+
 ##############################
 # Closure real-genome initializer
 ##############################
-def initialize_vectors_uniform(bounds):
-    """
+def create_real_value_sequence(bounds, length):
+    """ for creating real-value sequences for real-value genomes
 
-    :param decoder:
-    :param problem:
-    :param bounds:
-    :return:
+    :param bounds: is a tuple of (min,max) bounds to be sampled for each gene.  Also can be sequence of such tuples
+                   to specify ranges for each real-valued gene.
+    :param length: how many genes to produce?
+    :return: real-valued vector of given length
 
     >>> from leap import core, real_problems
     >>> bounds = [(0, 1), (0, 1), (-1, 100)]
-    >>> init = initialize_vectors_uniform(bounds)
-    >>> for x in init(5):
-    ...     print(x) # +doctest: ELLIPSIS
-    [...]
-    [...]
-    [...]
-    [...]
-    [...]
+    >>> init = create_real_value_sequence(bounds, 3)
+
     """
-    def generate_genome():
-        for (min, max) in bounds:
-            yield random.uniform(min, max)
+    # This will likely go away with merge with issue-30 since Siggy has already re-implemented this.
+    if util.is_sequence(bounds):
+        pass
+    else:
+        pass
 
-    def f(pop_size):
-        return [list(generate_genome()) for _ in range(pop_size)]
-
-    return f
 
 
 ##############################

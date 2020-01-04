@@ -224,7 +224,7 @@ class PopulationPlotProbe:
                        problem=real.Spheroid(maximize=False),
                        evaluate=op.evaluate,
 
-                       initialize=real.initialize_vectors_uniform(
+                       initialize=real.create_real_value_sequence(
                            bounds=[[-5.12, 5.12]] * l
                        ),
 
@@ -334,7 +334,7 @@ class PlotTrajectoryProbe:
                        problem=real.Spheroid(maximize=False),
                        evaluate=op.evaluate,
 
-                       initialize=real.initialize_vectors_uniform(
+                       initialize=real.create_real_value_sequence(
                            bounds=[[0.4, 0.6]] * l
                        ),
 
