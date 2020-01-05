@@ -44,19 +44,25 @@ def initialize_seeded(initialize, seed_pop):
     >>> from leap import core
     >>> random_init = core.create_real_vector(bounds=[[0, 0]] * 2)
     >>> init = initialize_seeded(random_init, [[5.0, 5.0], [4.5, -6]])
-    >>> init(5)
+    >>> [init() for _ in range(5)]
     [[5.0, 5.0], [4.5, -6], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
 
     """
     assert (initialize is not None)
     assert (seed_pop is not None)
 
-    def f(pop_size):
-        assert (pop_size >= len(seed_pop))
-        n_new = pop_size - len(seed_pop)
-        return iter(seed_pop + initialize(n_new))
+    i = 0
 
-    return f
+    def create():
+        nonlocal i
+        if i < len(seed_pop):
+            ind = seed_pop[i]
+            i += 1
+            return ind
+        else:
+            return initialize()
+
+    return create
 
 
 
