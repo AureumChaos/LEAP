@@ -41,9 +41,9 @@ class BestSoFarProbe(op.Operator):
         self.writer = csv.DictWriter(stream, fieldname=['step', 'bsf'])
 
     def __call__(self, next_individual):
-        assert(next_individual is not None)
-        assert('leap' in self.context)
-        assert('generation' in self.context['leap'])
+        assert (next_individual is not None)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
 
         ind = next(next_individual)
         if self.bsf is None or (ind > self.bsf):
@@ -59,7 +59,7 @@ class BestSoFarProbe(op.Operator):
 ##############################
 # Class PopFitnessStatsProbe
 ##############################
-class PopFitnessStatsCSVProbe(op.Operator):
+class FitnessStatsCSVProbe(op.Operator):
     def __init__(self, context, stream=sys.stdout, header=True):
         assert (stream is not None)
         assert (hasattr(stream, 'write'))
@@ -113,16 +113,17 @@ class AttributesCSVProbe(op.Operator):
     record the best individual's fitness and genome to a `StringIO` file object:
 
     >>> import io
+    >>> from leap import core
     >>> from leap.data import test_population
     >>> stream = io.StringIO()
-    >>> probe = AttributesCSVProbe(stream, best_only=True, do_fitness=True, do_genome=True)
-    >>> probe.set_step(100)
-    >>> probe(test_population, context=None)
-    (..., None)
+    >>> probe = AttributesCSVProbe(core.context, stream, best_only=True, do_fitness=True, do_genome=True)
+    >>> core.context['leap']['generation'] = 100
+    >>> probe(test_population) == test_population
+    True
 
     >>> print(stream.getvalue())
-    step, fitness, genome
-    100, 4, [0, 1, 1, 1, 1]
+    step,fitness,genome
+    100,4,"[0, 1, 1, 1, 1]"
     <BLANKLINE>
 
     You could just as easily use standard streams like `sys.stdout` for the `stream` parameter.
@@ -132,52 +133,64 @@ class AttributesCSVProbe(op.Operator):
     every individual in the population:
 
     >>> stream = io.StringIO()
-    >>> probe = AttributesCSVProbe(stream, attributes=['foo', 'bar'])
-    >>> probe.set_step(100)
-    >>> r = probe(test_population, context=None)
+    >>> probe = AttributesCSVProbe(core.context, stream, attributes=['foo', 'bar'])
+    >>> core.context['leap']['generation'] = 100
+    >>> r = probe(test_population)
     >>> print(stream.getvalue())
-    step, foo, bar
-    100, GREEN, Colorless
-    100, 15, green
-    100, BLUE, ideas
-    100, 72.81, sleep
+    step,foo,bar
+    100,GREEN,Colorless
+    100,15,green
+    100,BLUE,ideas
+    100,72.81,sleep
     <BLANKLINE>
     """
 
-    def __init__(self, context, stream=sys.stdout, attributes=(), header=True, do_fitness=False, do_genome=False):
+    def __init__(self, context, stream=sys.stdout, attributes=(), best_only=False, header=True, do_fitness=False,
+                 do_genome=False):
         assert (stream is not None)
         assert (hasattr(stream, 'write'))
         assert (len(attributes) >= 0)
+        self.context = context
         self.stream = stream
         self.attributes = attributes
-        self.context = context
+        self.best_only = best_only
 
         self.do_fitness = do_fitness
         self.do_genome = do_genome
 
-        self.writer = csv.DictWriter(stream, fieldnames=['step'] + list(attributes) + ['fitness', 'genome'])
+        fieldnames = ['step'] + list(attributes)
+        if do_fitness:
+            fieldnames.append('fitness')
+        if do_genome:
+            fieldnames.append('genome')
+
+        self.writer = csv.DictWriter(stream, fieldnames=fieldnames, lineterminator='\n')
         if header:
             self.writer.writeheader()
 
-    def __call__(self, next_individual):
-        assert (next_individual is not None)
+    def __call__(self, population):
+        assert (population is not None)
         assert ('leap' in self.context)
         assert ('generation' in self.context['leap'])
 
-        ind = next(next_individual)
+        individuals = [max(population)] if self.best_only else population
 
-        csvrow = {'step': self.context['leap']['generation'],
-                  'fitness': ind.fitness,
-                  'genome': str(ind.genome)
-                  }
-        for attr in self.attributes:
-            if attr not in ind.attributes:
-                raise ValueError('Attribute "{0}" not found in individual "{1}".'.format(attr, ind.__repr__()))
-            csvrow[attr] = ind.attributes[attr]
+        for ind in individuals:
+            csvrow = {'step': self.context['leap']['generation']}
 
-        self.writer.writerow(csvrow)
+            for attr in self.attributes:
+                if attr not in ind.attributes:
+                    raise ValueError('Attribute "{0}" not found in individual "{1}".'.format(attr, ind.__repr__()))
+                csvrow[attr] = ind.attributes[attr]
 
-        yield ind
+            if self.do_fitness:
+                csvrow['fitness'] = ind.fitness
+            if self.do_genome:
+                csvrow['genome'] = str(ind.genome)
+
+            self.writer.writerow(csvrow)
+
+        return population
 
 
 ##############################
@@ -261,9 +274,9 @@ class PopulationPlotProbe:
         self.context = context
 
     def __call__(self, population):
-        assert(population is not None)
-        assert('leap' in self.context)
-        assert('generation' in self.context['leap'])
+        assert (population is not None)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
         step = self.context['leap']['generation']
 
         if step % self.modulo == 0:
@@ -348,7 +361,8 @@ class PlotTrajectoryProbe:
 
     """
 
-    def __init__(self, context, ax=None, xlim=(-5.12, 5.12), ylim=(-5.12, 5.12), contours=None, granularity=0.1, modulo=1):
+    def __init__(self, context, ax=None, xlim=(-5.12, 5.12), ylim=(-5.12, 5.12), contours=None, granularity=0.1,
+                 modulo=1):
         if ax is None:
             ax = plt.subplot(111)
         if contours:
@@ -374,9 +388,9 @@ class PlotTrajectoryProbe:
         self.context = context
 
     def __call__(self, population):
-        assert(population is not None)
-        assert('leap' in self.context)
-        assert('generation' in self.context['leap'])
+        assert (population is not None)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
         step = self.context['leap']['generation']
 
         if step % self.modulo == 0:
@@ -408,10 +422,9 @@ def best_of_gen(population):
     :param population: a list of individuals
     :param context: optional `dict` of auxiliary state (ignored)
 
-    >>> from leap import ops
+    >>> from leap import core, ops
     >>> from leap.data import test_population
-    >>> pop, _ = op.evaluate(test_population)
-    >>> print(best_of_gen(pop))
+    >>> print(best_of_gen(test_population))
     [0, 1, 1, 1, 1]
     """
     assert (len(population) > 0)

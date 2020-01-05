@@ -67,7 +67,7 @@ def evolve_pitt(runs, steps, env, evals, pop_size, num_rules, mutate_prob, mutat
     environment = gym.make(env)
     num_inputs = int(np.prod(environment.observation_space.shape))
     num_outputs = int(np.prod(environment.action_space.shape))
-    stdout_probe = probe.PopFitnessStatsCSVProbe(core.context, stream=sys.stdout)
+    stdout_probe = probe.FitnessStatsCSVProbe(core.context, stream=sys.stdout)
 
     with open(output, 'w') as genomes_file:
         file_probe = probe.AttributesCSVProbe(core.context, stream=genomes_file, do_fitness=True, do_genome=True)

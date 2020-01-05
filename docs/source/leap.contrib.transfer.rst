@@ -12,14 +12,6 @@ leap.contrib.transfer.sequential module
    :undoc-members:
    :show-inheritance:
 
-leap.contrib.transfer.transfer module
--------------------------------------
-
-.. automodule:: leap.contrib.transfer.transfer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 
 Module contents
 ---------------
