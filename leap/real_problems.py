@@ -1,6 +1,10 @@
-"""Functions and objects for working with real-valued optimization problems."""
+"""This module contains a variety of classic real-valued optimization problems that frequently occur in research
+benchmarks.
+
+It also contains helpers for translating, rotating, and visualizing them."""
 
 import random
+import warnings
 
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -13,11 +17,13 @@ from leap.problem import ScalarProblem
 # Class Spheroid
 ##############################
 class Spheroid(ScalarProblem):
-    """ Classic parabolid function, known as the "sphere" or "spheroid" problem, because its equal-fitness contours form (hyper)spheres in n > 2.
+    """ Classic paraboloid function, known as the "sphere" or "spheroid" problem, because its equal-fitness contours form (hyper)spheres in n > 2.
 
     .. math::
 
        f(\\vec{x}) = \\sum_{i}^n x_i^2
+
+    :param bool maximize: the function is maximized if `True`, else minimized.
 
     .. plot::
        :include-source:
@@ -44,10 +50,10 @@ class Spheroid(ScalarProblem):
         >>> Spheroid().evaluate(phenome)
         3.14
 
-        :param phenome: to be evaluated
-        :return: sum(phenome**2)
+        :param phenome: real-valued vector to be evaluated
+        :return: it's fitness, `sum(phenome**2)`
         """
-        return sum([x**2 for x in phenome])
+        return sum([x ** 2 for x in phenome])
 
     def worse_than(self, first_fitness, second_fitness):
         """
@@ -68,11 +74,15 @@ class Spheroid(ScalarProblem):
 # Class Rastrigin
 ##############################
 class Rastrigin(ScalarProblem):
-    """ The classic Rastrigin problem.  The Rastrigin provides a real-valued fitness landscape with a quadratic global structure (like the :class:`~leap.real_problems.Spheroid`), plus a sinusoidal local structure with many local optima.
+    """ The classic Rastrigin problem.  The Rastrigin provides a real-valued fitness landscape with a quadratic global
+    structure (like the :class:`~leap.real_problems.Spheroid`), plus a sinusoidal local structure with many local
+    optima.
 
     .. math::
 
        f(\\vec{x}) = An + \\sum_{i=1}^n x_i^2 - A\\cos(2\\pi x_i)
+
+    :param bool maximize: the function is maximized if `True`, else minimized.
 
     .. plot::
        :include-source:
@@ -101,9 +111,10 @@ class Rastrigin(ScalarProblem):
         >>> Rastrigin().evaluate(phenome) # +doctest: ELLIPSIS
         3.872969...
 
-        :param phenome: to be evaluated
+        :param phenome: real-valued vector to be evaluated
+        :returns: its fitness
         """
-        return self.a*len(phenome) + sum([x**2 + self.a*np.cos(2*np.pi*x) for x in phenome])
+        return self.a * len(phenome) + sum([x ** 2 + self.a * np.cos(2 * np.pi * x) for x in phenome])
 
     def worse_than(self, first_fitness, second_fitness):
         """
@@ -130,6 +141,8 @@ class Rosenbrock(ScalarProblem):
 
        f(\\mathbf{x}) = \\sum_{i=1}^{d-1} \\left[ 100 (x_{i + 1} - x_i^2)^2 + (x_i - 1)^2\\right]
 
+    :param bool maximize: the function is maximized if `True`, else minimized.
+
     .. plot::
        :include-source:
 
@@ -155,13 +168,14 @@ class Rosenbrock(ScalarProblem):
         >>> Rosenbrock().evaluate(phenome)
         22.3
 
-        :param phenome: to be evaluated
+        :param phenome: real-valued vector to be evaluated
+        :returns: its fitness
         """
         sum = 0
         # TODO Speed this up with numpy
         for i, x in enumerate(phenome[0:-1]):
             x_p = phenome[i + 1]
-            sum += 100*(x_p - x**2)**2 + (x - 1)**2
+            sum += 100 * (x_p - x ** 2) ** 2 + (x - 1) ** 2
         return sum
 
     def worse_than(self, first_fitness, second_fitness):
@@ -192,6 +206,8 @@ class StepProblem(ScalarProblem):
 
     where :math:`\\lfloor x \\rfloor` denotes the floor function.
 
+    :param bool maximize: the function is maximized if `True`, else minimized.
+
     .. plot::
        :include-source:
 
@@ -217,7 +233,8 @@ class StepProblem(ScalarProblem):
         >>> StepProblem().evaluate(phenome)
         4.0
 
-        :param phenome: to be evaluated
+        :param phenome: real-valued vector to be evaluated
+        :returns: its fitness
         """
         return np.sum(np.floor(phenome))
 
@@ -246,6 +263,8 @@ class NoisyQuartic(ScalarProblem):
 
        f(\\mathbf{x}) = \\sum_{i=1}^{n} i x_i^4 + \\texttt{gauss}(0, 1)
 
+    :param bool maximize: the function is maximized if `True`, else minimized.
+
     .. plot::
        :include-source:
 
@@ -272,7 +291,8 @@ class NoisyQuartic(ScalarProblem):
         >>> print(f'Result: {r}')
         Result: ...
 
-        :param phenome: to be evaluated
+        :param phenome: real-valued vector to be evaluated
+        :returns: its fitness
         """
         indices = np.arange(len(phenome))
         noise = np.random.normal(0, 1, len(phenome))
@@ -324,6 +344,7 @@ class ShekelProblem(ScalarProblem):
     :param [int] c: list of values for the function's :math:`c_j` parameters.  Each `c[j]` approximately corresponds to
         the depth of the jth foxhole.
     :param maximize: the function is maximized if `True`, else minimized.
+    :param bool maximize: the function is maximized if `True`, else minimized.
 
     .. plot::
        :include-source:
@@ -337,8 +358,8 @@ class ShekelProblem(ScalarProblem):
     """ Standard bounds."""
     bounds = (-65.536, 65.536)
 
-    points = np.array([[-32, -16, 0, 16, 32]*5,
-                       [-32]*5 + [-16]*5 + [0]*5 + [16]*5 + [32]*5])
+    points = np.array([[-32, -16, 0, 16, 32] * 5,
+                       [-32] * 5 + [-16] * 5 + [0] * 5 + [16] * 5 + [32] * 5])
 
     # TODO See if we get an error if we try to add a constructor that doesn't set maximize
 
@@ -351,14 +372,15 @@ class ShekelProblem(ScalarProblem):
         """
         Computes the function value from a real-valued list phenome (the output varies, since the function has noise).
 
-        :param phenome: to be evaluated
+        :param phenome: real-valued to be evaluated
+        :returns: its fitness
         """
-        assert(len(phenome) == 2)
+        assert (len(phenome) == 2)
 
         def f(j):
-            return self.c[j] + (phenome[0] - self.points[0][j])**6 + (phenome[1] - self.points[1][j])**6
+            return self.c[j] + (phenome[0] - self.points[0][j]) ** 6 + (phenome[1] - self.points[1][j]) ** 6
 
-        return 1/(1/self.k + np.sum([1/f(j) for j in range(25)]))
+        return 1 / (1 / self.k + np.sum([1 / f(j) for j in range(25)]))
 
     def worse_than(self, first_fitness, second_fitness):
         """
@@ -373,6 +395,349 @@ class ShekelProblem(ScalarProblem):
         True
         """
         return super().worse_than(first_fitness, second_fitness)
+
+
+##############################
+# Class GriewankProblem
+##############################
+class GriewankProblem(ScalarProblem):
+    """The classic Griewank problem.  Like the :class:`~leap.real_problems.Rastrigin` function, the Griewank has a
+    quadratic global structure with many local optima that are distributed in a regular pattern.
+
+    .. math::
+        f(\\mathbf{x}) = \\sum_{i=1}^d \\frac{x_i^2}{4000} -
+                         \\prod_{i=1}^d \\cos\\left(\\frac{x_i}{\\sqrt{i}}\\right) + 1
+
+    :param bool maximize: the function is maximized if `True`, else minimized.
+
+    .. plot::
+       :include-source:
+
+       from leap import real_problems
+       bounds = real_problems.GriewankProblem.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(real_problems.GriewankProblem(), xlim=bounds, ylim=bounds, granularity=10)
+
+
+    .. plot::
+       :include-source:
+
+       from leap import real_problems
+       bounds = [-50, 50]
+       real_problems.plot_2d_problem(real_problems.GriewankProblem(), xlim=bounds, ylim=bounds, granularity=1)
+    """
+
+    bounds = [-600, 600]
+
+    def __init__(self, maximize=False):
+        super().__init__(maximize)
+
+    def evaluate(self, phenome):
+        """
+        Computes the function value from a real-valued phenome.
+
+        :param phenome: real-valued vector to be evaluated
+        :returns: its fitness.
+        """
+        phenome = np.array(phenome)
+        t1 = np.sum(np.power(phenome, 2) / 4000)
+        i_vector = np.sqrt(np.arange(1, len(phenome) + 1))
+        t2 = np.prod(np.cos(phenome / i_vector))
+        return t1 - t2 + 1
+
+
+##############################
+# Class AckleyProblem
+##############################
+class AckleyProblem(ScalarProblem):
+    """
+    .. math::
+        f(\\mathbf{x}) = -a \\exp \\left( -b \\sqrt \\frac{1}{d} \\sum_{i=1}^d x_i^2 \\right)
+                         - \\exp \\left( \\frac{1}{d} \\sum_{i=1}^d \\cos(cx_i) \\right)
+                         + a + \\exp(1)
+
+
+    :param float a: depth parameter for the bowl-shaped macrostructure
+    :param float b: exponential scale parameter for the bowl
+    :param float c: wavenumber (frequency) of the cosine pattern of local optima
+    :param bool maximize: the function is maximized if `True`, else minimized.
+
+    .. plot::
+       :include-source:
+
+       from leap import real_problems
+       import math
+       problem = real_problems.AckleyProblem(a=20, b=0.2, c=2*math.pi)
+       bounds = real_problems.AckleyProblem.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(problem, xlim=bounds, ylim=bounds, granularity=0.25)
+    """
+
+    bounds = [-32.768, 32.768]
+
+    def __init__(self, a=20, b=0.2, c=2 * np.pi, maximize=False):
+        super().__init__(maximize)
+        self.a = a
+        self.b = b
+        self.c = c
+
+    def evaluate(self, phenome):
+        """
+        Computes the function value from a real-valued phenome.
+
+        :param phenome: real-valued vector to be evaluated
+        :returns: its fitness.
+        """
+        phenome = np.array(phenome)
+        d = len(phenome)
+        t1 = -self.a * np.exp(-self.b * np.sqrt(1.0 / d * np.sum(np.power(phenome, 2))))
+        t2 = np.exp(1.0 / d * np.sum(np.cos(self.c * phenome)))
+        return t1 - t2 + self.a + np.e
+
+
+##############################
+# Class WeierstrassProblem
+##############################
+class WeierstrassProblem(ScalarProblem):
+    """The Weierstrass function is famous for being the first discovered example of a function that is continuous, but
+    not differentiable.  Built by adding the terms of a Fourier series, it has a jagged, self-similar structure:
+
+    .. math::
+        f(\\mathbf{x}) = \\sum_{i=1}^d \\left[ \\sum_{k=0}^{kmax} a^k \\cos\\left( 2\\pi b^k(x_i + 0.5)\\right)
+                         - n \\sum_{k=0}^{kmax} a^k \\cos(\\pi b^k) \\right]
+
+    When used in optimization benchmarks, it's typically to carry out the Fourier sum to `kmax=20` terms.
+
+    :param int kmax: number of terms to carry the Fourier sum out to
+    :param float a: amplitude parameter of the cosine terms
+    param float b: wavenumber (frequency) parameter of the cosine terms
+    :param bool maximize: the function is maximized if `True`, else minimized.
+
+    .. plot::
+       :include-source:
+
+       from leap import real_problems
+       bounds = real_problems.WeierstrassProblem.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(real_problems.WeierstrassProblem(), xlim=bounds, ylim=bounds, granularity=0.01)
+    """
+    bounds = [-0.5, 0.5]
+
+    def __init__(self, kmax=20, a=0.5, b=3, maximize=False):
+        super().__init__(maximize)
+        self.kmax = kmax
+        self.a = a
+        self.b = b
+
+    def evaluate(self, phenome):
+        """
+        Computes the function value from a real-valued phenome.
+
+        :param phenome: real-valued vector to be evaluated
+        :returns: its fitness.
+        """
+        phenome = np.array(phenome)
+        result = 0
+        for d, x in enumerate(phenome):
+            t1 = 0
+            t2 = 0
+            for k in range(self.kmax):
+                t1 += self.a ** k * np.cos(2 * np.pi * (self.b ** k) * (x + 0.5))
+                t2 += self.a ** k * np.cos(np.pi * (self.b ** k))
+            result += t1 - (d + 1) * t2
+        return result
+
+
+##############################
+# Class LangermannProblem
+##############################
+class LangermannProblem(ScalarProblem):
+    """A popular multi-modal test function with character.
+
+    .. math::
+        f(\\mathbf{x}) = -\\sum_{i=1}^m c_i \\exp\\left( -\\frac{1}{\\pi} \\sum_{j=1}^d(x_j - A_{ij})^2\\right)
+                         \\cos\\left(\\pi\\sum_{j=1}^d(x_j - A_{ij})^2\\right)
+
+    Langermann's function is parameters by a vector :math:`c_i` of length :math:`m` and a matrix :math:`A_{ij}` of
+    dimension :math:`m \\times 2`.  This class uses the traditional parameterization as the default, with :math:`m=5`
+    and 
+
+    .. math::
+        c = (1, 2, 5, 2, 3) \\\\
+        A = \\left[ \\begin{array}{ll}
+                        3 & 5\\\\
+                        5 & 2\\\\
+                        2 & 1\\\\
+                        1 & 4\\\\
+                        7 & 9
+                    \\end{array} \\right].
+
+    :param int m: total number of terms in the function's sum
+    :param [float] c: amplitude coefficients for each term
+    :param [[float]] a: offsets points for each term
+    :param bool maximize: the function is maximized if `True`, else minimized.
+
+    .. plot::
+       :include-source:
+
+       from leap import real_problems
+       bounds = real_problems.LangermannProblem.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(real_problems.LangermannProblem(), xlim=bounds, ylim=bounds, granularity=0.2)
+    """
+
+    bounds = [0, 10]
+
+    default_a = ((3, 5),
+                 (5, 2),
+                 (2, 1),
+                 (1, 4),
+                 (7, 9))
+
+    def __init__(self, m=5, c=(1, 2, 5, 2, 3), a=default_a, maximize=False):
+        super().__init__(maximize)
+
+        self.m = m
+        self.c = np.array(c)
+        self.a = np.array(a)
+
+        if not np.isscalar(m):
+            raise ValueError(f"Got value of {m} for 'm', but must be a scalar.")
+        if len(self.c.shape) != 1:
+            raise ValueError(f"Got a value of shape {self.c.shape} for 'c', "
+                             f"but it must be one-dimensional with length {m}.")
+        if self.a.shape != (m, 2):
+            raise ValueError(f"Got a value of shape {self.a.shape} for 'a', but must be a {m}x2 matrix.")
+
+    def evaluate(self, phenome):
+        """
+        Computes the function value from a real-valued phenome.
+
+        :param phenome: real-valued vector to be evaluated
+        :returns: its fitness.
+        """
+        assert (phenome is not None)
+        phenome = np.array(phenome)
+        result = 0
+        for i in range(self.m):
+            result -= self.c[i] * np.exp(-1.0 / np.pi * np.sum((phenome - self.a[i]) ** 2)) \
+                      * np.cos(np.pi * np.sum((phenome - self.a[i]) ** 2))
+        return result
+
+
+##############################
+# Class LunacekProblem
+##############################
+class LunacekProblem(ScalarProblem):
+    """
+    Lunacek's function is also know as the "double Rastrigin" or "bi-Rastrigin" problem, because it overlays a
+    :class:`~leap.real_problems.Rastrigin`-style cosine function across a *pair* of spheroid functions.
+
+    This function was designed to model the double-funnel macrostructure that occurs in some difficult cases
+    of the Lennard-Jones function (a famous function from molecular dynamics).
+
+    .. math::
+        f(\\mathbf{x}) = \\min \\left( \\left\\{ \\sum_{i=1}^N(x_i - \\mu_1)^2 \\right\\},
+                                       \\left\\{ d \\cdot N + s \\cdot \\sum_{i=1}^N(x_i - \\mu_2)^2\\right\\} \\right)
+                         + 10\\sum_{i=1}^N(1 - \\cos(2\\pi(x_i-\\mu_i))),
+
+    where :math:`N` is the dimensionality of the solution vector, and the second sphere center parameter
+    :math:`\\mu_2` is typically given by
+
+    .. math::
+        \\mu_2 = -\\sqrt{\\frac{\\mu_1^2 - d}{s}}
+
+    and :math:`s` is by default a function on :math:`N`:
+
+    .. math::
+        s = 1 - \\frac{1}{2\\sqrt{N + 20} - 8.2}
+
+    These respective defaults are used for :math:`\\mu_2` and :math:`s` whenever `mu_2` and `s` are set to `None`.
+
+    Because of these complicated defaults, this class requires that you explicitly set the dimensionality of :math:`N`
+    of the expected input solutions.  A warning will be thrown if an input solution is encountered that doesn't match
+    the expected dimensionality.
+
+    :param int N: dimensionality of the anticipated input solutions
+    :param float d: base fitness value of the second spheroid
+    :param float mu_1: offset of the first spheroid
+    :param float mu_2: offset of the second spheroid (if `None`, this will be calculated automatically)
+    :param float s: scale parameter for the second spheroid (if `None`, this will be calculated automatically)
+    :param bool maximize: the function is maximized if `True`, else minimized.
+
+    .. plot::
+       :include-source:
+
+       from leap import real_problems
+       bounds = real_problems.LunacekProblem.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(real_problems.LunacekProblem(N=2), xlim=bounds, ylim=bounds, granularity=0.1)
+    """
+    bounds = (-5, 5)
+
+    def __init__(self, N, d=1.0, mu_1=2.5, mu_2=None, s=None, maximize=False):
+        super().__init__(maximize)
+        self.N = N
+        self.d = d
+        self.mu_1 = mu_1
+
+        # s and mu_2 are automatically inferred if not given
+        self.s = s if s is not None else 1 - 1.0/(2*np.sqrt(N + 20) - 8.2)
+        self.mu_2 = mu_2 if mu_2 is not None else -np.sqrt((mu_1**2 - d)/self.s)
+
+    def evaluate(self, phenome):
+        """
+        Computes the function value from a real-valued phenome.
+
+        :param phenome: real-valued vector to be evaluated
+        :returns: its fitness.
+        """
+        assert(phenome is not None)
+        if len(phenome) != self.N:
+            warnings.warn(f"Phenome has length {len(phenome)}, but this function expected {self.N}-dimensional input.")
+        phenome = np.array(phenome)
+        sphere1 = np.sum((phenome - self.mu_1)**2)
+        sphere2 = self.d * len(phenome) + self.s*np.sum((phenome - self.mu_2)**2)
+        sinusoid = 10*np.sum(1-np.cos(2*np.pi*(phenome - self.mu_1)))
+        return min(sphere1, sphere2) + sinusoid
+
+
+##############################
+# Class SchwefelProblem
+##############################
+class SchwefelProblem(ScalarProblem):
+    """
+    Schwefel's function is another traditional multimodal test function whose local optima are distributed in a slightly
+    irregular way, and whose global optimum is out at the edge of the search space (with no gently sloping
+    macrostructure to guide the algorithm toward it).
+
+    Compare this to the :class:`~leap.real_problems.Rastrigin` function, whose global optimum lies at the center of a
+    quadratic bowl with a regular grid of local optima.
+
+    .. math::
+        f(\\mathbf{x}) = \\sum_{i=1}^d\\left(-x_i \\cdot\\sin\\left(\\sqrt{\\|x_i\\|} \\right)\\right) + \\alpha \cdot d
+
+    :param float alpha: fitness offset (the default value ensures that the global optimum has zero fitness)
+    :param bool maximize: the function is maximized if `True`, else minimized.
+
+    .. plot::
+       :include-source:
+
+       from leap import real_problems
+       bounds = real_problems.SchwefelProblem.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(real_problems.SchwefelProblem(), xlim=bounds, ylim=bounds, granularity=10)
+    """
+    bounds = (-512, 512)
+
+    def __init__(self, alpha=418.982887, maximize=False):
+        super().__init__(maximize)
+        self.alpha = alpha
+
+    def evaluate(self, phenome):
+        """
+        Computes the function value from a real-valued phenome.
+
+        :param phenome: real-valued vector to be evaluated
+        :returns: its fitness.
+        """
+        assert(phenome is not None)
+        phenome = np.array(phenome)
+        return np.sum(-phenome * np.sin(np.sqrt(np.abs(phenome)))) + self.alpha * len(phenome)
 
 
 ##############################
@@ -424,18 +789,24 @@ class CosineFamilyProblem(ScalarProblem):
         super().__init__(maximize)
         self.alpha = alpha
         self.dimensions = len(global_optima_counts)
-        assert(len(local_optima_counts) == self.dimensions)
+        assert (len(local_optima_counts) == self.dimensions)
         self.global_optima_counts = np.array(global_optima_counts)
         self.local_optima_counts = np.array(local_optima_counts)
 
     def evaluate(self, phenome):
+        """
+        Computes the function value from a real-valued phenome.
+
+        :param phenome: real-valued vector to be evaluated
+        :returns: its fitness.
+        """
         phenome = np.array(phenome)
         term1 = -np.cos((self.global_optima_counts - 1) * 2 * np.pi * phenome)
         term2 = - self.alpha * np.cos((self.global_optima_counts - 1) * 2 * np.pi * self.local_optima_counts * phenome)
-        value = np.sum(term1 + term2)/(2*self.dimensions)
+        value = np.sum(term1 + term2) / (2 * self.dimensions)
         # We modify the original function to make it a maximization problem
         # and so that the global optima are scaled to always have a fitness of 1
-        return -2/(self.alpha + 1) * value
+        return -2 / (self.alpha + 1) * value
 
 
 ##############################
@@ -471,9 +842,10 @@ class TranslatedProblem(ScalarProblem):
        plt.subplot(224)
        real_problems.plot_2d_problem(translated_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
     """
+
     def __init__(self, problem, offset, maximize=True):
         super().__init__(maximize=maximize)
-        assert(problem is not None)
+        assert (problem is not None)
         self.problem = problem
         self.offset = np.array(offset)
         if hasattr(problem, 'bounds'):
@@ -559,10 +931,11 @@ class MatrixTransformedProblem(ScalarProblem):
        real_problems.plot_2d_problem(transformed_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
 
     """
+
     def __init__(self, problem, matrix, maximize=True):
         super().__init__(maximize=maximize)
-        assert(problem is not None)
-        assert(len(matrix) == len(matrix[0]))
+        assert (problem is not None)
+        assert (len(matrix) == len(matrix[0]))
         self.matrix = np.array(matrix)
         self.problem = problem
         if hasattr(problem, 'bounds'):
@@ -578,7 +951,7 @@ class MatrixTransformedProblem(ScalarProblem):
 
         This algorithm follows directly from the definition of orthonormality.  It is described in Hansen and
         Ostermeier's original CMA-ES paper: "Completely derandomized self-adaptation in evolution strategies."
-        Evolutionary computation 9.2 (2001): 159-195.
+        *Evolutionary Computation* 9.2 (2001): 159-195.
 
         :param problem: the original :class:`~leap.real_problems.ScalarProblem` to apply the transform to.
         :param dimensions: the number of elements each vector should have.
@@ -614,9 +987,9 @@ class MatrixTransformedProblem(ScalarProblem):
             matrix[i, :] = row / np.linalg.norm(row)
 
         # Any vector in the resulting matrix will be of unit length
-        assert(round(np.linalg.norm(matrix[0], 5)) == 1.0)
+        assert (round(np.linalg.norm(matrix[0], 5)) == 1.0)
         # Any pair of vectors will be linearly independent
-        assert(abs(round(np.dot(matrix[0], matrix[1]), 5)) == 0.0)
+        assert (abs(round(np.dot(matrix[0], matrix[1]), 5)) == 0.0)
 
         return cls(problem, matrix, maximize)
 
@@ -649,7 +1022,8 @@ class MatrixTransformedProblem(ScalarProblem):
         >>> round(r.evaluate([0, 1]), 5)
         2.0
         """
-        assert(len(phenome) == len(self.matrix)), f"Tried to evalute a {len(phenome)}-D genome in a {len(self.matrix)}-D fitness function."
+        assert (len(phenome) == len(
+            self.matrix)), f"Tried to evalute a {len(phenome)}-D genome in a {len(self.matrix)}-D fitness function."
         new_point = np.matmul(self.matrix, phenome)
         return self.problem.evaluate(new_point)
 
@@ -702,6 +1076,7 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface', ax=None, granularity=0.
        real_problems.plot_2d_problem(real_problems.Rastrigin(), ax=plt.gca(), kind='contour', xlim=bounds, ylim=bounds)
 
     """
+
     def call(phenome):
         return problem.evaluate(phenome)
 
@@ -746,8 +1121,8 @@ def plot_2d_function(fun, xlim, ylim, ax=None, granularity=0.1):
 
 
     """
-    assert(len(xlim) == 2)
-    assert(len(ylim) == 2)
+    assert (len(xlim) == 2)
+    assert (len(ylim) == 2)
 
     if ax is None:
         fig = plt.figure()
@@ -761,7 +1136,11 @@ def plot_2d_function(fun, xlim, ylim, ax=None, granularity=0.1):
     y = np.arange(ylim[0], ylim[1], granularity)
     xx, yy = np.meshgrid(x, y)
 
-    return ax.plot_surface(xx, yy, v_fun(xx, yy))
+    print(xx.__repr__())
+    print(yy.__repr__())
+    zz = v_fun(xx, yy)
+    print(zz.__repr__())
+    return ax.plot_surface(xx, yy, zz)
 
 
 ##############################
@@ -799,8 +1178,8 @@ def plot_2d_contour(fun, xlim, ylim, ax=None, granularity=0.1):
 
 
     """
-    assert(len(xlim) == 2)
-    assert(len(ylim) == 2)
+    assert (len(xlim) == 2)
+    assert (len(ylim) == 2)
 
     if ax is None:
         fig = plt.figure()

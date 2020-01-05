@@ -411,7 +411,6 @@ class PlotTrajectoryProbe:
         if np.max(self.y) > self.top:
             self.ax.set_ylim(top=np.max(self.y))
 
-
 ##############################
 # best_of_gen function
 ##############################
