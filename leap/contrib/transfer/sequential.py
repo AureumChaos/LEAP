@@ -1,4 +1,5 @@
 import abc
+import csv
 
 
 class Repertoire(abc.ABC):
@@ -13,24 +14,33 @@ class Repertoire(abc.ABC):
 
 
 class PopulationSeedingRepertoire:
-    def __init__(self, problems, initialize, algorithm, problem_kwargs):
-        assert(problems is not None)
-        assert(len(problems) >= 0)
+    def __init__(self, initialize, algorithm, repfile=None):
         assert(algorithm is not None)
-        self.repertoire = []
-        self.problems = problems
+        if repfile:
+            with open(repfile, 'r') as f:
+                self.repertoire = list(csv.reader(f, quoting=csv.QUOTE_NONNUMERIC))
+        else:
+            self.repertoire = []
         self.initialize = initialize
         self.algorithm = algorithm
-        self.problem_kwargs = problem_kwargs
 
-    def build_repertoire(self):
-        results = [self.algorithm(p, self.initialize, **self.problem_kwargs[i]) for i, p in enumerate(self.problems)]
+    def build_repertoire(self, problems, problem_kwargs):
+        assert(problems is not None)
+        assert(len(problems) >= 0)
+        assert(problem_kwargs is None or len(problem_kwargs) == len(problems))
+        if problem_kwargs is None:
+            problem_kwargs = [{}]*len(problems)
+        results = [self.algorithm(p, self.initialize, **problem_kwargs[i]) for i, p in enumerate(problems)]
         results = list(zip(*results))  # Execute the algorithm concurrently on all the source tasks
         results = zip(*results)  # Unzip them into individual BSF trajectories
         #assert(len(results) == len(self.problems))
         for r in results:
             last_step, last_ind = r[-1]
             self.repertoire.append(last_ind.genome)
+
+    def export(self, path):
+        with open(path, 'w') as f:
+            csv.writer(f).writerows(self.repertoire)
 
     def apply(self, problem, **kwargs):
         repertoire_init = initialize_seeded(self.initialize, self.repertoire)

@@ -1136,11 +1136,7 @@ def plot_2d_function(fun, xlim, ylim, ax=None, granularity=0.1):
     y = np.arange(ylim[0], ylim[1], granularity)
     xx, yy = np.meshgrid(x, y)
 
-    print(xx.__repr__())
-    print(yy.__repr__())
-    zz = v_fun(xx, yy)
-    print(zz.__repr__())
-    return ax.plot_surface(xx, yy, zz)
+    return ax.plot_surface(xx, yy, v_fun(xx, yy))
 
 
 ##############################

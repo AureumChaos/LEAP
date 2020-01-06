@@ -146,7 +146,7 @@ class AttributesCSVProbe(op.Operator):
     """
 
     def __init__(self, context, stream=sys.stdout, attributes=(), best_only=False, header=True, do_fitness=False,
-                 do_genome=False):
+                 do_genome=False, note='', job=None):
         assert (stream is not None)
         assert (hasattr(stream, 'write'))
         assert (len(attributes) >= 0)
@@ -157,8 +157,14 @@ class AttributesCSVProbe(op.Operator):
 
         self.do_fitness = do_fitness
         self.do_genome = do_genome
+        self.note = note
+        self.job = job
 
         fieldnames = ['step'] + list(attributes)
+        if job:
+            fieldnames.append('job')
+        if note is not '':
+            fieldnames.append('note')
         if do_fitness:
             fieldnames.append('fitness')
         if do_genome:
@@ -183,6 +189,10 @@ class AttributesCSVProbe(op.Operator):
                     raise ValueError('Attribute "{0}" not found in individual "{1}".'.format(attr, ind.__repr__()))
                 csvrow[attr] = ind.attributes[attr]
 
+            if self.job:
+                csvrow['job'] = self.job
+            if self.note is not '':
+                csvrow['note'] = self.note
             if self.do_fitness:
                 csvrow['fitness'] = ind.fitness
             if self.do_genome:
@@ -287,6 +297,7 @@ class PopulationPlotProbe:
             line.set_ydata(self.y)
             self.__rescale_ax()
             self.ax.figure.canvas.draw()
+            plt.pause(0.000001)
         return population
 
     def __rescale_ax(self):
@@ -410,6 +421,7 @@ class PlotTrajectoryProbe:
             self.ax.set_ylim(bottom=np.min(self.y))
         if np.max(self.y) > self.top:
             self.ax.set_ylim(top=np.max(self.y))
+
 
 ##############################
 # best_of_gen function
