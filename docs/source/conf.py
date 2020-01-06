@@ -39,13 +39,14 @@ release = ''
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'matplotlib.sphinxext.plot_directive',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.doctest',
+    'matplotlib.sphinxext.plot_directive',  # Allows building and displaying Matplotlib examples right in the docs
+    'sphinx.ext.autodoc',  # For sucking up docstrings in our source code
+    'sphinx.ext.doctest',  # Doctests!
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
-    'sphinx_rtd_theme'
+    'sphinx_rtd_theme',
+    'm2r'  # For converting markdown (i.e. our README) into a Sphinx page
 ]
 
 # Add any paths that contain templates here, relative to this directory.

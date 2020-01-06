@@ -504,7 +504,7 @@ class WeierstrassProblem(ScalarProblem):
         f(\\mathbf{x}) = \\sum_{i=1}^d \\left[ \\sum_{k=0}^{kmax} a^k \\cos\\left( 2\\pi b^k(x_i + 0.5)\\right)
                          - n \\sum_{k=0}^{kmax} a^k \\cos(\\pi b^k) \\right]
 
-    When used in optimization benchmarks, it's typically to carry out the Fourier sum to `kmax=20` terms.
+    When used in optimization benchmarks, it's typical to carry out the Fourier sum to `kmax=20` terms.
 
     :param int kmax: number of terms to carry the Fourier sum out to
     :param float a: amplitude parameter of the cosine terms
@@ -555,9 +555,9 @@ class LangermannProblem(ScalarProblem):
         f(\\mathbf{x}) = -\\sum_{i=1}^m c_i \\exp\\left( -\\frac{1}{\\pi} \\sum_{j=1}^d(x_j - A_{ij})^2\\right)
                          \\cos\\left(\\pi\\sum_{j=1}^d(x_j - A_{ij})^2\\right)
 
-    Langermann's function is parameters by a vector :math:`c_i` of length :math:`m` and a matrix :math:`A_{ij}` of
+    Langermann's function is parameterized by a vector :math:`c_i` of length :math:`m` and a matrix :math:`A_{ij}` of
     dimension :math:`m \\times 2`.  This class uses the traditional parameterization as the default, with :math:`m=5`
-    and 
+    and
 
     .. math::
         c = (1, 2, 5, 2, 3) \\\\

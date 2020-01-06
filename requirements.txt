@@ -2,6 +2,7 @@ click
 coveralls
 gym
 jupyter
+m2r
 matplotlib
 nbconvert
 nbformat
