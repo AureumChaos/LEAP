@@ -237,9 +237,6 @@ class PopulationPlotProbe:
         from leap import ops, real_problems
         from leap.algorithm import generational_ea
 
-        # The fitness landscape
-        problem = real_problems.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
-
         l = 10
         pop_size = 10
         ea = generational_ea(generations=100, pop_size=pop_size,
@@ -350,14 +347,13 @@ class PlotTrajectoryProbe:
 
         # Create an algorithm that contains the probe in the operator pipeline
 
-        l = 10
-        pop_size = 10
-        ea = generational_ea(generations=50, pop_size=pop_size,
+        pop_size = 100
+        ea = generational_ea(generations=20, pop_size=pop_size,
                              individual_cls=core.Individual,
 
                              decoder=core.IdentityDecoder(),
-                             problem=real_problems.SpheroidProblem(maximize=False),
-                             initialize=core.create_real_vector(bounds=[[0.4, 0.6]] * l),
+                             problem=problem,
+                             initialize=core.create_real_vector(bounds=[[0.4, 0.6]] * 2),
 
                              pipeline=[
                                  trajectory_probe,  # Insert the probe into the pipeline like so
