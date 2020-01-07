@@ -246,7 +246,7 @@ class PopulationPlotProbe:
                              individual_cls=core.Individual,
 
                              decoder=core.IdentityDecoder(),
-                             problem=real_problems.Spheroid(maximize=False),
+                             problem=real_problems.SpheroidProblem(maximize=False),
                              initialize=core.create_real_vector(bounds=[[-5.12, 5.12]] * l),
 
                              pipeline=[
@@ -356,7 +356,7 @@ class PlotTrajectoryProbe:
                              individual_cls=core.Individual,
 
                              decoder=core.IdentityDecoder(),
-                             problem=real_problems.Spheroid(maximize=False),
+                             problem=real_problems.SpheroidProblem(maximize=False),
                              initialize=core.create_real_vector(bounds=[[0.4, 0.6]] * l),
 
                              pipeline=[

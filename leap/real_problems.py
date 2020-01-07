@@ -14,9 +14,9 @@ from leap.problem import ScalarProblem
 
 
 ##############################
-# Class Spheroid
+# Class SpheroidProblem
 ##############################
-class Spheroid(ScalarProblem):
+class SpheroidProblem(ScalarProblem):
     """ Classic paraboloid function, known as the "sphere" or "spheroid" problem, because its equal-fitness contours form (hyper)spheres in n > 2.
 
     .. math::
@@ -29,12 +29,12 @@ class Spheroid(ScalarProblem):
        :include-source:
 
        from leap import real_problems
-       bounds = real_problems.Spheroid.bounds  # Contains traditional bounds
-       real_problems.plot_2d_problem(real_problems.Spheroid(), xlim=bounds, ylim=bounds, granularity=0.025)
+       bounds = real_problems.SpheroidProblem.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(real_problems.SpheroidProblem(), xlim=bounds, ylim=bounds, granularity=0.025)
 
     """
 
-    """ Standard bounds for a sphere functions solution."""
+    """ Standard bounds for a spheroid functions solution."""
     bounds = (-5.12, 5.12)
 
     # TODO See if we get an error if we try to add a constructor that doesn't set maximize
@@ -47,7 +47,7 @@ class Spheroid(ScalarProblem):
         Computes the function value from a real-valued list phenome:
 
         >>> phenome = [0.5, 0.8, 1.5]
-        >>> Spheroid().evaluate(phenome)
+        >>> SpheroidProblem().evaluate(phenome)
         3.14
 
         :param phenome: real-valued vector to be evaluated
@@ -59,11 +59,11 @@ class Spheroid(ScalarProblem):
         """
         We maximize by default:
 
-        >>> s = Spheroid()
+        >>> s = SpheroidProblem()
         >>> s.worse_than(100, 10)
         False
 
-        >>> s = Spheroid(maximize=False)
+        >>> s = SpheroidProblem(maximize=False)
         >>> s.worse_than(100, 10)
         True
         """
@@ -71,11 +71,11 @@ class Spheroid(ScalarProblem):
 
 
 ##############################
-# Class Rastrigin
+# Class RastriginProblem
 ##############################
-class Rastrigin(ScalarProblem):
+class RastriginProblem(ScalarProblem):
     """ The classic Rastrigin problem.  The Rastrigin provides a real-valued fitness landscape with a quadratic global
-    structure (like the :class:`~leap.real_problems.Spheroid`), plus a sinusoidal local structure with many local
+    structure (like the :class:`~leap.real_problems.SpheroidProblem`), plus a sinusoidal local structure with many local
     optima.
 
     .. math::
@@ -88,8 +88,8 @@ class Rastrigin(ScalarProblem):
        :include-source:
 
        from leap import real_problems
-       bounds = real_problems.Rastrigin.bounds  # Contains traditional bounds
-       real_problems.plot_2d_problem(real_problems.Rastrigin(), xlim=bounds, ylim=bounds, granularity=0.025)
+       bounds = real_problems.RastriginProblem.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(real_problems.RastriginProblem(), xlim=bounds, ylim=bounds, granularity=0.025)
 
 
     """
@@ -108,7 +108,7 @@ class Rastrigin(ScalarProblem):
         Computes the function value from a real-valued list phenome:
 
         >>> phenome = [1.0/12, 0]
-        >>> Rastrigin().evaluate(phenome) # +doctest: ELLIPSIS
+        >>> RastriginProblem().evaluate(phenome) # +doctest: ELLIPSIS
         3.872969...
 
         :param phenome: real-valued vector to be evaluated
@@ -120,11 +120,11 @@ class Rastrigin(ScalarProblem):
         """
         We maximize by default:
 
-        >>> s = Rastrigin()
+        >>> s = RastriginProblem()
         >>> s.worse_than(100, 10)
         False
 
-        >>> s = Rastrigin(maximize=False)
+        >>> s = RastriginProblem(maximize=False)
         >>> s.worse_than(100, 10)
         True
         """
@@ -132,10 +132,10 @@ class Rastrigin(ScalarProblem):
 
 
 ##############################
-# Class Rosenbrock
+# Class RosenbrockProblem
 ##############################
-class Rosenbrock(ScalarProblem):
-    """ The classic Rosenbrock problem, a.k.a. the "banana" or "valley" function.
+class RosenbrockProblem(ScalarProblem):
+    """ The classic RosenbrockProblem problem, a.k.a. the "banana" or "valley" function.
 
     .. math::
 
@@ -147,8 +147,8 @@ class Rosenbrock(ScalarProblem):
        :include-source:
 
        from leap import real_problems
-       bounds = real_problems.Rosenbrock.bounds  # Contains traditional bounds
-       real_problems.plot_2d_problem(real_problems.Rosenbrock(), xlim=bounds, ylim=bounds, granularity=0.025)
+       bounds = real_problems.RosenbrockProblem.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(real_problems.RosenbrockProblem(), xlim=bounds, ylim=bounds, granularity=0.025)
 
     """
 
@@ -165,7 +165,7 @@ class Rosenbrock(ScalarProblem):
         Computes the function value from a real-valued list phenome:
 
         >>> phenome = [0.5, -0.2, 0.1]
-        >>> Rosenbrock().evaluate(phenome)
+        >>> RosenbrockProblem().evaluate(phenome)
         22.3
 
         :param phenome: real-valued vector to be evaluated
@@ -182,11 +182,11 @@ class Rosenbrock(ScalarProblem):
         """
         We maximize by default:
 
-        >>> s = Rosenbrock()
+        >>> s = RosenbrockProblem()
         >>> s.worse_than(100, 10)
         False
 
-        >>> s = Rosenbrock(maximize=False)
+        >>> s = RosenbrockProblem(maximize=False)
         >>> s.worse_than(100, 10)
         True
         """
@@ -254,9 +254,9 @@ class StepProblem(ScalarProblem):
 
 
 ##############################
-# Class NoisyQuartic
+# Class NoisyQuarticProblem
 ##############################
-class NoisyQuartic(ScalarProblem):
+class NoisyQuarticProblem(ScalarProblem):
     """ The classic 'quadratic quartic' function with Gaussian noise:
 
     .. math::
@@ -269,8 +269,8 @@ class NoisyQuartic(ScalarProblem):
        :include-source:
 
        from leap import real_problems
-       bounds = real_problems.NoisyQuartic.bounds  # Contains traditional bounds
-       real_problems.plot_2d_problem(real_problems.NoisyQuartic(), xlim=bounds, ylim=bounds, granularity=0.025)
+       bounds = real_problems.NoisyQuarticProblem.bounds  # Contains traditional bounds
+       real_problems.plot_2d_problem(real_problems.NoisyQuarticProblem(), xlim=bounds, ylim=bounds, granularity=0.025)
 
     """
 
@@ -287,7 +287,7 @@ class NoisyQuartic(ScalarProblem):
         Computes the function value from a real-valued list phenome (the output varies, since the function has noise):
 
         >>> phenome = [3.5, -3.8, 5.0]
-        >>> r = NoisyQuartic().evaluate(phenome)
+        >>> r = NoisyQuarticProblem().evaluate(phenome)
         >>> print(f'Result: {r}')
         Result: ...
 
@@ -302,11 +302,11 @@ class NoisyQuartic(ScalarProblem):
         """
         We maximize by default:
 
-        >>> s = NoisyQuartic()
+        >>> s = NoisyQuarticProblem()
         >>> s.worse_than(100, 10)
         False
 
-        >>> s = NoisyQuartic(maximize=False)
+        >>> s = NoisyQuarticProblem(maximize=False)
         >>> s.worse_than(100, 10)
         True
         """
@@ -401,7 +401,7 @@ class ShekelProblem(ScalarProblem):
 # Class GriewankProblem
 ##############################
 class GriewankProblem(ScalarProblem):
-    """The classic Griewank problem.  Like the :class:`~leap.real_problems.Rastrigin` function, the Griewank has a
+    """The classic Griewank problem.  Like the :class:`~leap.real_problems.RastriginProblem` function, the Griewank has a
     quadratic global structure with many local optima that are distributed in a regular pattern.
 
     .. math::
@@ -627,7 +627,7 @@ class LangermannProblem(ScalarProblem):
 class LunacekProblem(ScalarProblem):
     """
     Lunacek's function is also know as the "double Rastrigin" or "bi-Rastrigin" problem, because it overlays a
-    :class:`~leap.real_problems.Rastrigin`-style cosine function across a *pair* of spheroid functions.
+    :class:`~leap.real_problems.RastriginProblem`-style cosine function across a *pair* of spheroid functions.
 
     This function was designed to model the double-funnel macrostructure that occurs in some difficult cases
     of the Lennard-Jones function (a famous function from molecular dynamics).
@@ -706,7 +706,7 @@ class SchwefelProblem(ScalarProblem):
     irregular way, and whose global optimum is out at the edge of the search space (with no gently sloping
     macrostructure to guide the algorithm toward it).
 
-    Compare this to the :class:`~leap.real_problems.Rastrigin` function, whose global optimum lies at the center of a
+    Compare this to the :class:`~leap.real_problems.RastriginProblem` function, whose global optimum lies at the center of a
     quadratic bowl with a regular grid of local optima.
 
     .. math::
@@ -823,14 +823,14 @@ class TranslatedProblem(ScalarProblem):
 
        from leap import real_problems
 
-       original_problem = real_problems.Spheroid()
+       original_problem = real_problems.SpheroidProblem()
        offset = [-1.0, -2.5]
        translated_problem = real_problems.TranslatedProblem(original_problem, offset)
 
        fig = plt.figure(figsize=(12, 8))
 
        plt.subplot(221, projection='3d')
-       bounds = real_problems.Spheroid.bounds  # Contains traditional bounds
+       bounds = real_problems.SpheroidProblem.bounds  # Contains traditional bounds
        real_problems.plot_2d_problem(original_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
 
        plt.subplot(222, projection='3d')
@@ -861,8 +861,8 @@ class TranslatedProblem(ScalarProblem):
 
            from leap import real_problems
 
-           original_problem = real_problems.Rastrigin()
-           bounds = real_problems.Rastrigin.bounds  # Contains traditional bounds
+           original_problem = real_problems.RastriginProblem()
+           bounds = real_problems.RastriginProblem.bounds  # Contains traditional bounds
            translated_problem = real_problems.TranslatedProblem.random(original_problem, bounds, 2)
 
            real_problems.plot_2d_problem(translated_problem, kind='contour', xlim=bounds, ylim=bounds)
@@ -878,7 +878,7 @@ class TranslatedProblem(ScalarProblem):
         Translation can be used in higher than two dimensions:
 
         >>> offset = [-1.0, -1.0, 1.0, 1.0, -5.0]
-        >>> t_sphere = TranslatedProblem(Spheroid(), offset)
+        >>> t_sphere = TranslatedProblem(SpheroidProblem(), offset)
         >>> genome = [0.5, 2.0, 3.0, 8.5, -0.6]
         >>> t_sphere.evaluate(genome)
         90.86
@@ -900,7 +900,7 @@ class MatrixTransformedProblem(ScalarProblem):
     :param matrix: an nxn matrix, where n is the genome length.
     :returns: a function that first applies -matrix to the input, then applies fun to the transformed input.
 
-    For example, here we manually construct a 2x2 rotation matrix and apply it to the :class:`~leap.real_problems.Rosenbrock`
+    For example, here we manually construct a 2x2 rotation matrix and apply it to the :class:`~leap.real_problems.RosenbrockProblem`
     function:
 
     .. plot::
@@ -908,7 +908,7 @@ class MatrixTransformedProblem(ScalarProblem):
 
        from leap import real_problems
 
-       original_problem = real_problems.Rosenbrock()
+       original_problem = real_problems.RosenbrockProblem()
        theta = np.pi/2
        matrix = [[np.cos(theta), -np.sin(theta)],\
                  [np.sin(theta), np.cos(theta)]]
@@ -918,7 +918,7 @@ class MatrixTransformedProblem(ScalarProblem):
        fig = plt.figure(figsize=(12, 8))
 
        plt.subplot(221, projection='3d')
-       bounds = real_problems.Rosenbrock.bounds  # Contains traditional bounds
+       bounds = real_problems.RosenbrockProblem.bounds  # Contains traditional bounds
        real_problems.plot_2d_problem(original_problem, xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
 
        plt.subplot(222, projection='3d')
@@ -1000,7 +1000,7 @@ class MatrixTransformedProblem(ScalarProblem):
         For example, consider a sphere function whose global optimum is situated at (0, 1):
 
         >>> from leap import real_problems
-        >>> s = real_problems.TranslatedProblem(real_problems.Spheroid(), offset=[0, 1])
+        >>> s = real_problems.TranslatedProblem(real_problems.SpheroidProblem(), offset=[0, 1])
         >>> round(s.evaluate([0, 1]), 5)
         0
 
@@ -1067,13 +1067,13 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface', ax=None, granularity=0.
        from leap import real_problems
 
        fig = plt.figure(figsize=(12, 4))
-       bounds=real_problems.Rastrigin.bounds  # Contains default bounds
+       bounds=real_problems.RastriginProblem.bounds  # Contains default bounds
 
        plt.subplot(121, projection='3d')
-       real_problems.plot_2d_problem(real_problems.Rastrigin(), ax=plt.gca(), xlim=bounds, ylim=bounds)
+       real_problems.plot_2d_problem(real_problems.RastriginProblem(), ax=plt.gca(), xlim=bounds, ylim=bounds)
 
        plt.subplot(122)
-       real_problems.plot_2d_problem(real_problems.Rastrigin(), ax=plt.gca(), kind='contour', xlim=bounds, ylim=bounds)
+       real_problems.plot_2d_problem(real_problems.RastriginProblem(), ax=plt.gca(), kind='contour', xlim=bounds, ylim=bounds)
 
     """
 

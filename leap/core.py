@@ -68,7 +68,7 @@ def create_real_vector(bounds):
     >>> bounds = [(0, 1), (0, 1), (-1, 100)]
     >>> population = Individual.create_population(10, core.create_real_vector(bounds),
     ...                                           decoder=core.IdentityDecoder,
-    ...                                           problem=real_problems.Spheroid)
+    ...                                           problem=real_problems.SpheroidProblem)
 
     """
     def create():
