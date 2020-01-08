@@ -890,6 +890,8 @@ class TranslatedProblem(ScalarProblem):
         new_phenome = np.array(phenome) - self.offset
         return self.problem.evaluate(new_phenome)
 
+    def __str__(self):
+        return f"{TranslatedProblem.__name__}({type(self.problem).__name__})"
 
 ################################
 # Class MatrixTransformedProblem
@@ -1027,11 +1029,14 @@ class MatrixTransformedProblem(ScalarProblem):
         new_point = np.matmul(self.matrix, phenome)
         return self.problem.evaluate(new_point)
 
+    def __str__(self):
+        return f"{MatrixTransformedProblem.__name__}({type(self.problem).__name__})"
+
 
 ##############################
 # Function plot_2d_problem
 ##############################
-def plot_2d_problem(problem, xlim, ylim, kind='surface', ax=None, granularity=0.1):
+def plot_2d_problem(problem, xlim, ylim, kind='surface', ax=None, granularity=None):
     """
     Convenience function for plotting a :class:`~leap.problem.Problem` that accepts 2-D real-valued phenomes and produces a 1-D scalar fitness output.
 
@@ -1043,7 +1048,8 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface', ax=None, granularity=0.
     :param kind: The kind of plot to create: 'surface' or 'contour'
     :type kind: str
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will be created).
-    :param float granularity: Spacing of the grid to sample points along.
+    :param float granularity: Spacing of the grid to sample points along. If none is given, then the granularity
+        will default to 1/50th of the range of the function's `bounds` attribute.
 
 
     The difference between this and :meth:`plot_2d_function` is that this takes a :class:`~leap.problem.Problem` object (instead of a raw function).
@@ -1080,10 +1086,13 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface', ax=None, granularity=0.
     def call(phenome):
         return problem.evaluate(phenome)
 
+    if granularity is None:
+        granularity = (problem.bounds[1] - problem.bounds[0])/50.
+
     if kind == 'surface':
-        return plot_2d_function(call, xlim, ylim, ax, granularity)
+        return plot_2d_function(call, xlim, ylim, granularity, ax)
     elif kind == 'contour':
-        return plot_2d_contour(call, xlim, ylim, ax, granularity)
+        return plot_2d_contour(call, xlim, ylim, granularity, ax)
     else:
         raise ValueError(f'Unrecognized plot kind: "{kind}".')
 
@@ -1091,7 +1100,7 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface', ax=None, granularity=0.
 ##############################
 # Function plot_2d_function
 ##############################
-def plot_2d_function(fun, xlim, ylim, ax=None, granularity=0.1):
+def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None):
     """
     Convenience method for plotting a function that accepts 2-D real-valued imputs and produces a 1-D scalar output.
 
@@ -1142,7 +1151,7 @@ def plot_2d_function(fun, xlim, ylim, ax=None, granularity=0.1):
 ##############################
 # Function plot_2d_contour
 ##############################
-def plot_2d_contour(fun, xlim, ylim, ax=None, granularity=0.1):
+def plot_2d_contour(fun, xlim, ylim, granularity, ax=None):
     """
     Convenience method for plotting contours for a function that accepts 2-D real-valued inputs and produces a 1-D
     scalar output.

@@ -316,13 +316,15 @@ class PlotTrajectoryProbe:
     Measure and plot a scatterplot of the populations' location in a 2-D phenotype space.
 
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will be created).
-    :param ~leap.problem.Problem contours: a problem defining a 2-D fitness function (this will be used to draw fitness
-        contours in the background of the scatterplot).
     :param xlim: Bounds of the horizontal axis.
     :type xlim: (float, float)
     :param ylim: Bounds of the vertical axis.
     :type ylim: (float, float)
-    :param float granularity: Spacing of the grid to sample points along while drawing the fitness contours.
+    :param ~leap.problem.Problem contours: a problem defining a 2-D fitness function (this will be used to draw fitness
+        contours in the background of the scatterplot).
+    :param float granularity: (Optional) spacing of the grid to sample points along while drawing the fitness contours.
+         If none is given, then the granularity will default to 1/50th of the range of the function's `bounds`
+         attribute.
     :param int modulo: take and plot a measurement every `modulo` steps (default 1).
 
     Attach this probe to matplotlib :class:`Axes` and then insert it into an EA's operator pipeline to get a live
@@ -368,7 +370,7 @@ class PlotTrajectoryProbe:
 
     """
 
-    def __init__(self, context, ax=None, xlim=(-5.12, 5.12), ylim=(-5.12, 5.12), contours=None, granularity=0.1,
+    def __init__(self, context, ax=None, xlim=(-5.12, 5.12), ylim=(-5.12, 5.12), contours=None, granularity=None,
                  modulo=1):
         if ax is None:
             ax = plt.subplot(111)
@@ -377,6 +379,8 @@ class PlotTrajectoryProbe:
             def v_fun(x, y):
                 return contours.evaluate([x, y])
 
+            if granularity is None:
+                granularity = (contours.bounds[1] - contours.bounds[0])/50.
             x = np.arange(xlim[0], xlim[1], granularity)
             y = np.arange(ylim[0], ylim[1], granularity)
             xx, yy = np.meshgrid(x, y)
