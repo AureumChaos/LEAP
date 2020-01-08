@@ -114,9 +114,9 @@ def clone(next_individual):
         yield individual.clone()
 
 
-# ##############################
-# # mutate_bitflip operator
-# ##############################
+##############################
+# Function mutate_bitflip
+##############################
 @curry
 def mutate_bitflip(next_individual, expected=1):
     """ mutate and return an individual with a binary representation
@@ -152,6 +152,9 @@ def mutate_bitflip(next_individual, expected=1):
         yield individual
 
 
+##############################
+# Function uniform_crossover
+##############################
 @curry
 def uniform_crossover(next_individual, p_swap=0.5):
     """ Generator for recombining two individuals and passing them down the line.
@@ -203,6 +206,9 @@ def uniform_crossover(next_individual, p_swap=0.5):
         yield child2
 
 
+##############################
+# Function n_ary_crossover
+##############################
 @curry
 def n_ary_crossover(next_individual, num_points=1):
     """ Do crossover between individuals between N crossover points.
@@ -276,9 +282,9 @@ def n_ary_crossover(next_individual, num_points=1):
         yield child2
 
 
-# ##############################
-# # mutate_gaussian operator
-# ##############################
+##############################
+# Function mutate_gaussian
+##############################
 @curry
 def mutate_gaussian(next_individual, std, expected=1, hard_bounds=(-np.inf, np.inf)):
     """ mutate and return an individual with a real-valued representation
@@ -320,6 +326,9 @@ def mutate_gaussian(next_individual, std, expected=1, hard_bounds=(-np.inf, np.i
         yield individual
 
 
+##############################
+# Function truncate
+##############################
 @curry
 def truncate(offspring, size, parents=None):
     """ return the `size` best individuals from the given population
@@ -352,6 +361,9 @@ def truncate(offspring, size, parents=None):
         return toolz.itertoolz.topk(size, offspring)
 
 
+##############################
+# Function tournament
+##############################
 def tournament(population, k=2):
     """ Selects the best individual from k individuals randomly selected from
         the given population
@@ -377,6 +389,9 @@ def tournament(population, k=2):
         yield best
 
 
+##############################
+# Function naive_cyclic_selection
+##############################
 @curry
 def naive_cyclic_selection(population):
     """ Deterministically returns individuals, and repeats the same sequence
@@ -401,6 +416,9 @@ def naive_cyclic_selection(population):
         yield next(itr)
 
 
+##############################
+# Function cyclic_selection
+##############################
 @curry
 def cyclic_selection(population):
     """ Deterministically returns individuals in order, then shuffles the sequence, returns the individuals in that
@@ -428,6 +446,15 @@ def cyclic_selection(population):
               yield individual
 
 
+##############################
+# Function random_selection
+##############################
+def random_selection(population):
+    yield random.choice(population)
+
+##############################
+# Function pool
+##############################
 @curry
 def pool(next_individual, size):
     """ 'Sink' for creating `size` individuals from preceding pipeline source.
@@ -454,3 +481,38 @@ def pool(next_individual, size):
     :return: population of `size` offspring
     """
     return [next(next_individual) for _ in range(size)]
+
+
+##############################
+# Function migrate
+##############################
+def migrate(context, topology, emigrant_selector, replacement_selector, migration_gap):
+
+    num_islands = topology.number_of_nodes()
+    immigrants = [[] for i in range(num_islands)]
+
+    def do_migrate(population):
+        current_subpop = context['leap']['subpopulation']
+
+        # Immigration
+        for imm in immigrants[current_subpop]:
+            # Compete for a place in the new population
+            contestant = next(replacement_selector(population))
+            if imm > contestant:
+                population.remove(contestant)
+                population.append(imm)
+
+        immigrants[current_subpop] = []
+
+        # Emigration
+        if context['leap']['generation'] % migration_gap == 0:
+            sponsor = next(emigrant_selector(population))  # Choose an emigrant individual
+            emi = next(emigrant_selector(population)).clone()  # Clone it and copy fitness
+            emi.fitness = sponsor.fitness
+            neighbors = topology.neighbors(current_subpop)  # Get neighboring islands
+            dest = random.choice(list(neighbors))  # Randomly select a neighboring island
+            immigrants[dest].append(emi)  # Add the emigrant to its immigration list
+
+        return population
+
+    return do_migrate

@@ -1,8 +1,13 @@
+import random
+
 from toolz import pipe
 
 from leap import core, util
 
 
+##############################
+# Function generational_ea
+##############################
 def generational_ea(generations, pop_size, individual_cls, initialize, decoder, problem, pipeline):
     """
     This function provides an evolutionary algorithm with a generational population model.
@@ -90,4 +95,41 @@ def generational_ea(generations, pop_size, individual_cls, initialize, decoder, 
         generation_counter()  # Increment to the next generation
 
         # Output the best-so-far individual for each generation
+        yield (generation_counter.generation(), bsf)
+
+
+##############################
+# Function multi_population_ea
+##############################
+def multi_population_ea(generations, num_populations, pop_size, individual_cls, initialize, decoder, problem, pipeline,
+                        subpop_pipelines):
+    # Initialize populations of pop_size individuals of the same type as individual_cls
+    pops = [individual_cls.create_population(pop_size, initialize=initialize, decoder=decoder, problem=problem)
+            for _ in range(num_populations)]
+
+    # Evaluate initial population
+    pops = [core.Individual.evaluate_population(p) for p in pops]
+
+    # Set up a generation counter that records the current generation to core.context
+    generation_counter = util.inc_generation(context=core.context)
+
+    # Output the best individual in the initial population
+    bsf = [max(p) for p in pops]
+    yield (0, bsf)
+
+    while generation_counter.generation() < generations:
+        # Execute each population serially
+        for i, parents in enumerate(pops):
+            core.context['leap']['subpopulation'] = i
+            # Execute the operators to create a new offspring population
+            offspring = pipe(parents, *pipeline, *subpop_pipelines[i])
+
+            if max(offspring) > bsf[i]:  # Update the best-so-far individual
+                bsf[i] = max(offspring)
+
+            pops[i] = offspring  # Replace parents with offspring
+
+        generation_counter()  # Increment to the next generation
+
+        # Output the best-of-gen individuals for each generation
         yield (generation_counter.generation(), bsf)

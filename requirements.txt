@@ -6,6 +6,7 @@ m2r
 matplotlib
 nbconvert
 nbformat
+networkx
 numpy
 pytest
 pytest-cov
