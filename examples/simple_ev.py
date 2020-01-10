@@ -11,7 +11,7 @@ from toolz import pipe
 
 from leap import core
 from leap import ops
-from leap import binary_problems
+from leap import real_problems
 from leap import util
 
 
@@ -27,8 +27,16 @@ def print_population(population, generation):
 
 
 if __name__ == '__main__':
-    parents = core.Individual.create_population(5, initialize=core.create_binary_sequence,
-                                                decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())
+    # Define the real value bounds for initializing the population. In this case,
+    # we define a genome of four bounds.
+
+    # the (-5.12,5.12) was what was originally used for this problem in
+    # Ken De Jong's 1975 dissertation, so was used for historical reasons.
+    bounds = [(-5.12,5.12), (-5.12,5.12), (-5.12,5.12), (-5.12,5.12)]
+    parents = core.Individual.create_population(5,
+                                                initialize=core.create_real_vector(bounds),
+                                                decoder=core.IdentityDecoder(),
+                                                problem=real_problems.SpheroidProblem())
 
     # Evaluate initial population
     parents = core.Individual.evaluate_population(parents)
@@ -36,7 +44,7 @@ if __name__ == '__main__':
     # print initial, random population
     print_population(parents, generation=0)
 
-    max_generation = 6
+    max_generation = 100
 
     # We use the provided core.context, but we could roll our own if we wanted to keep
     # separate contexts.  E.g., island models may want to have their own contexts.
@@ -44,12 +52,12 @@ if __name__ == '__main__':
 
     while generation_counter.generation() < max_generation:
         offspring = pipe(parents,
-                         ops.tournament,
+                         ops.cyclic_selection,
                          ops.clone,
-                         ops.mutate_bitflip,
-                         ops.uniform_crossover,
+                         ops.mutate_gaussian(std=.1),
                          ops.evaluate,
-                         ops.pool(size=len(parents)))  # accumulate offspring
+                         ops.pool(size=len(parents)),
+                         ops.truncate(size=len(parents), parents=parents))  # accumulate offspring
 
         parents = offspring
 
