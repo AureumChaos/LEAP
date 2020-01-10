@@ -36,7 +36,7 @@ if __name__ == '__main__':
     parents = core.Individual.create_population(5,
                                                 initialize=core.create_real_vector(bounds),
                                                 decoder=core.IdentityDecoder(),
-                                                problem=real_problems.SpheroidProblem())
+                                                problem=real_problems.SpheroidProblem(maximize=False))
 
     # Evaluate initial population
     parents = core.Individual.evaluate_population(parents)
