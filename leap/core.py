@@ -54,7 +54,11 @@ def create_binary_sequence(length):
 ##############################
 def create_real_vector(bounds):
     """
-    A closure for initializing lists of real numbers for real-valued genomes, sampled from a uniform distribution.
+    A closure for initializing lists of real numbers for real-valued genomes,
+    sampled from a uniform distribution.
+
+    Having a closure allows us to just call the returned function N times
+    in `Individual.create_population()`.
 
     TODO Allow either a single tuple or a sequence of tuples for bounds. —Siggy
 
@@ -62,7 +66,7 @@ def create_real_vector(bounds):
     :return: A function that, when called, generates a random genome.
 
 
-    E.g., can be used for `Individual.create_population`
+    E.g., can be used for `Individual.create_population()`
 
     >>> from leap import core, real_problems
     >>> bounds = [(0, 1), (0, 1), (-1, 100)]
@@ -72,10 +76,7 @@ def create_real_vector(bounds):
 
     """
     def create():
-        genome = []
-        for (min_, max_) in bounds:
-            genome.append(random.uniform(min_, max_))
-        return genome
+        return [random.uniform(min_, max_) for min_, max_ in bounds]
 
     return create
 
