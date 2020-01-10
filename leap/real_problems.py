@@ -843,7 +843,9 @@ class TranslatedProblem(ScalarProblem):
        real_problems.plot_2d_problem(translated_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
     """
 
-    def __init__(self, problem, offset, maximize=True):
+    def __init__(self, problem, offset, maximize=None):
+        if maximize is None:
+            maximize = problem.maximize
         super().__init__(maximize=maximize)
         assert (problem is not None)
         self.problem = problem
@@ -852,7 +854,7 @@ class TranslatedProblem(ScalarProblem):
             self.bounds = problem.bounds
 
     @classmethod
-    def random(cls, problem, offset_bounds, dimensions, maximize=True):
+    def random(cls, problem, offset_bounds, dimensions, maximize=None):
         """ Apply a random real-valued translation to a fitness function, sampled uniformly between min_offset and
         max_offset in every dimension.
 
@@ -892,6 +894,31 @@ class TranslatedProblem(ScalarProblem):
 
     def __str__(self):
         return f"{TranslatedProblem.__name__}({type(self.problem).__name__})"
+
+
+################################
+# Class ScaledProblem
+################################
+class ScaledProblem(ScalarProblem):
+    """ Scale the search space of a fitness function up or down."""
+    def __init__(self, problem, new_bounds, maximize=None):
+        if maximize is None:
+            maximize = problem.maximize
+        super().__init__(maximize=maximize)
+        self.problem = problem
+        if not hasattr(problem, 'bounds'):
+            raise ValueError(f"Problem {problem} has no 'bounds' attribute.  The original bounds must be defined before"
+                             f"we can scale them with this method.")
+        self.old_bounds = problem.bounds
+        self.bounds = new_bounds
+
+    def evaluate(self, phenome):
+        phenome = np.array(phenome)
+        transformed_phenome = self.old_bounds[0] + (phenome - self.bounds[0])/(self.bounds[1] - self.bounds[0])\
+                                                   * (self.old_bounds[1] - self.old_bounds[0])
+        assert(len(transformed_phenome) == len(phenome))
+        return self.problem.evaluate(transformed_phenome)
+
 
 ################################
 # Class MatrixTransformedProblem
@@ -934,7 +961,9 @@ class MatrixTransformedProblem(ScalarProblem):
 
     """
 
-    def __init__(self, problem, matrix, maximize=True):
+    def __init__(self, problem, matrix, maximize=None):
+        if maximize is None:
+            maximize = problem.maximize
         super().__init__(maximize=maximize)
         assert (problem is not None)
         assert (len(matrix) == len(matrix[0]))
@@ -944,7 +973,7 @@ class MatrixTransformedProblem(ScalarProblem):
             self.bounds = problem.bounds
 
     @classmethod
-    def random_orthonormal(cls, problem, dimensions, maximize=True):
+    def random_orthonormal(cls, problem, dimensions, maximize=None):
         """Create a :class:`~leap.real_problems.MatrixTransformedProblem` that performs a random rotation and/or inversion of the
         function.
 

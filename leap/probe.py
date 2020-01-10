@@ -410,6 +410,7 @@ class PlotTrajectoryProbe:
             self.sc.set_offsets(np.c_[self.x, self.y])
             self.__rescale_ax()
             self.ax.figure.canvas.draw()
+            plt.pause(0.000001)
         return population
 
     def __rescale_ax(self):
