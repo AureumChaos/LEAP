@@ -57,7 +57,7 @@ if __name__ == '__main__':
                          ops.mutate_gaussian(std=.1),
                          ops.evaluate,
                          ops.pool(size=len(parents)),
-                         ops.truncate(size=len(parents), parents=parents))  # accumulate offspring
+                         ops.truncate(size=len(parents), parents=parents)) # mu + lambda
 
         parents = offspring
 
