@@ -1,3 +1,5 @@
+**LEAP: Evolutionary Algorithms in Python**
+
 *Written by Dr. Jeffrey K. Bassett, Dr. Mark Coletti, and Eric Scott*
 
 ![Build Status](https://travis-ci.org/AureumChaos/LEAP.svg?branch=master)
@@ -109,3 +111,7 @@ make test-slow
 ```
 
 respectively.
+
+The output will look something like this:
+
+![pytest output example](_static/pytest_output.png)
