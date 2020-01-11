@@ -12,7 +12,7 @@ help:
 	@echo \#
 	@echo \#\	make setup
 	@echo \#
-	@echo \# Run tests, and build docs:
+	@echo \# Run tests, build docs:
 	@echo \#
 	@echo \#\	make test
 	@echo \#\	make doc
@@ -21,6 +21,11 @@ help:
 	@echo \#
 	@echo \#\	make test-fast
 	@echo \#\	make test-slow
+	@echo \#
+	@echo \# Test the Jupyter examples after installing a kernel:
+	@echo \#
+	@echo \#\	make kernel
+	@echo \#\	make test-jupyter
 	@echo \#
 	@echo \#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
 	@echo

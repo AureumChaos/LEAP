@@ -1111,12 +1111,16 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface', ax=None, granularity=No
        real_problems.plot_2d_problem(real_problems.RastriginProblem(), ax=plt.gca(), kind='contour', xlim=bounds, ylim=bounds)
 
     """
-
+    
     def call(phenome):
         return problem.evaluate(phenome)
 
     if granularity is None:
-        granularity = (problem.bounds[1] - problem.bounds[0])/50.
+        if hasattr(problem, 'bounds'):
+            granularity = (problem.bounds[1] - problem.bounds[0])/50.
+        else:
+            raise ValueError(f"Problem {problem} has no 'bounds' attribute, so we couldn't set the granularity " +
+                              "automatically.  You'll need to specify the granularity to plot the problem.")
 
     if kind == 'surface':
         return plot_2d_function(call, xlim, ylim, granularity, ax)
