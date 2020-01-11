@@ -39,7 +39,7 @@ class SpheroidProblem(ScalarProblem):
 
     # TODO See if we get an error if we try to add a constructor that doesn't set maximize
 
-    def __init__(self, maximize=True):
+    def __init__(self, maximize=False):
         super().__init__(maximize)
 
     def evaluate(self, phenome):
@@ -99,7 +99,7 @@ class RastriginProblem(ScalarProblem):
 
     # TODO See if we get an error if we try to add a constructor that doesn't set maximize
 
-    def __init__(self, a=1.0, maximize=True):
+    def __init__(self, a=1.0, maximize=False):
         super().__init__(maximize)
         self.a = a
 
@@ -157,7 +157,7 @@ class RosenbrockProblem(ScalarProblem):
 
     # TODO See if we get an error if we try to add a constructor that doesn't set maximize
 
-    def __init__(self, maximize=True):
+    def __init__(self, maximize=False):
         super().__init__(maximize)
 
     def evaluate(self, phenome):
@@ -279,7 +279,7 @@ class NoisyQuarticProblem(ScalarProblem):
 
     # TODO See if we get an error if we try to add a constructor that doesn't set maximize
 
-    def __init__(self, maximize=True):
+    def __init__(self, maximize=False):
         super().__init__(maximize)
 
     def evaluate(self, phenome):
@@ -363,7 +363,7 @@ class ShekelProblem(ScalarProblem):
 
     # TODO See if we get an error if we try to add a constructor that doesn't set maximize
 
-    def __init__(self, k=500, c=np.arange(1, 26), maximize=True):
+    def __init__(self, k=500, c=np.arange(1, 26), maximize=False):
         super().__init__(maximize)
         self.k = k
         self.c = c
@@ -785,7 +785,7 @@ class CosineFamilyProblem(ScalarProblem):
 
     bounds = (0, 1)
 
-    def __init__(self, alpha, global_optima_counts, local_optima_counts, maximize=True):
+    def __init__(self, alpha, global_optima_counts, local_optima_counts, maximize=False):
         super().__init__(maximize)
         self.alpha = alpha
         self.dimensions = len(global_optima_counts)
@@ -1018,9 +1018,9 @@ class MatrixTransformedProblem(ScalarProblem):
             matrix[i, :] = row / np.linalg.norm(row)
 
         # Any vector in the resulting matrix will be of unit length
-        assert (round(np.linalg.norm(matrix[0], 5)) == 1.0)
+        assert (round(np.linalg.norm(matrix[0], 5)) == 1.0), f"A column in the transformation matrix has a norm of {np.linalg.norm(matrix[0], 5)}, but it should always be approximately 1.0."
         # Any pair of vectors will be linearly independent
-        assert (abs(round(np.dot(matrix[0], matrix[1]), 5)) == 0.0)
+        assert (abs(round(np.dot(matrix[0], matrix[1]), 5)) == 0.0), f"A pair of columns in the transformation matrix has dot product of {round(np.dot(matrix[0], matrix[1]), 5)}, but it should always be approximately 0.0."
 
         return cls(problem, matrix, maximize)
 
