@@ -15,6 +15,7 @@ install:
 script:
  - make setup
  - make test
+ - make test-jupyter
 
 # For coveralls.io
 after_success:
