@@ -710,7 +710,7 @@ class SchwefelProblem(ScalarProblem):
     quadratic bowl with a regular grid of local optima.
 
     .. math::
-        f(\\mathbf{x}) = \\sum_{i=1}^d\\left(-x_i \\cdot\\sin\\left(\\sqrt{\\|x_i\\|} \\right)\\right) + \\alpha \cdot d
+        f(\\mathbf{x}) = \\sum_{i=1}^d\\left(-x_i \\cdot\\sin\\left(\\sqrt{\\|x_i\\|} \\right)\\right) + \\alpha \\cdot d
 
     :param float alpha: fitness offset (the default value ensures that the global optimum has zero fitness)
     :param bool maximize: the function is maximized if `True`, else minimized.

@@ -321,7 +321,7 @@ class PittRulesBrain(Brain):
 
 
 ##############################
-# Class PittRulesBrain
+# Class PittRulesDecoder
 ##############################
 class PittRulesDecoder(core.Decoder):
     def __init__(self, input_space, output_space, priority_metric, num_memory_registers):
