@@ -67,18 +67,18 @@ pop_size = 5
 ea = generational_ea(generations=100, pop_size=pop_size,
                      individual_cls=core.Individual, # Use the standard Individual as the prototype for the population
 
-                      decoder=core.IdentityDecoder(),          # Genotype and phenotype are the same for this task
-                      problem=binary_problems.MaxOnes(),       # Solve a MaxOnes Boolean optimization problem
-                      initialize=core.create_binary_sequence(length=10),  # Initial genomes are random binary sequences
+                    decoder=core.IdentityDecoder(),          # Genotype and phenotype are the same for this task
+                    problem=binary_problems.MaxOnes(),       # Solve a MaxOnes Boolean optimization problem
+                    initialize=core.create_binary_sequence(length=10),  # Initial genomes are random binary sequences
 
-                      # The operator pipeline
-                      pipeline=[ops.tournament,                     # Select parents via tournament selection
-                                ops.clone,                          # Copy them (just to be safe)
-                                ops.mutate_bitflip,                 # Basic mutation: defaults to a 1/L mutation rate
-                                ops.uniform_crossover(p_swap=0.4),  # Crossover with a 40% chance of swapping each gene
-                                ops.evaluate,                       # Evaluate fitness
-                                ops.pool(size=pop_size)             # Collect offspring into a new population
-                      ])
+                    # The operator pipeline
+                    pipeline=[ops.tournament,                     # Select parents via tournament selection
+                            ops.clone,                          # Copy them (just to be safe)
+                            ops.mutate_bitflip,                 # Basic mutation: defaults to a 1/L mutation rate
+                            ops.uniform_crossover(p_swap=0.4),  # Crossover with a 40% chance of swapping each gene
+                            ops.evaluate,                       # Evaluate fitness
+                            ops.pool(size=pop_size)             # Collect offspring into a new population
+                    ])
 
 print(list(ea))
 ```
