@@ -1,3 +1,8 @@
+# This is our manually-curated lists of requirements, which we have not pinned down to specific versions.
+#
+# We periodically run 'pip freeze' on this to generate requirements_freeze.txt, which pins dependencies to
+# versions that are known to be compatible with LEAP.
+
 click
 coveralls
 gym

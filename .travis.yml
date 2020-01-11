@@ -8,7 +8,7 @@ python:
 
 # Install dependencies into Travis-CI's virtualenv
 install:
- - pip install -r requirements.txt
+ - pip install -r requirements_freeze.txt
  - python -m ipykernel install --user --name='LEAP_venv'
 
 # The command to run our test suite
