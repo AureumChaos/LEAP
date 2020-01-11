@@ -92,8 +92,8 @@ If you want to build a fresh set of docs for yourself, you can do so after runni
 make doc
 ```
 
-This will create HTML documentation in the `docs/build/html/` directory.  It might take some time, since 
-building the docs involves generating some plots and executing some example algorithms.
+This will create HTML documentation in the `docs/build/html/` directory.  It might take a while the first time,
+since building the docs involves generating some plots and executing some example algorithms.
 
 ## Run the Test Suite
 
