@@ -24,7 +24,8 @@ def print_population(population, generation):
 
 
 if __name__ == '__main__':
-    parents = core.Individual.create_population(5, initialize=core.create_binary_sequence,
+    parents = core.Individual.create_population(5,
+                                                initialize=core.create_binary_sequence(4),
                                                 decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())
 
     # Evaluate initial population
