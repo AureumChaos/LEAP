@@ -1,3 +1,5 @@
+import glob
+
 from nbconvert import NotebookExporter
 from nbconvert.preprocessors import ExecutePreprocessor
 import nbformat
@@ -35,9 +37,12 @@ def run_notebook(path, timeout=120):
     return nb, errors
 
 
-@pytest.mark.system  # This is a slow test, so we mark it for the system suite
-def test_notebook():
-    """The jupyter_plotting.ipynb example notebook should run from beginning to end with no errors."""
-    nb, errors = run_notebook('src/leap/example/jupyter_plotting.ipynb')
+# We give Jupyter tests a separate marker, because they can only run if the 'LEAP_venv' kernel is configured propertly by the user
+@pytest.mark.jupyter
+@pytest.mark.parametrize('path', glob.glob('examples/*.ipynb'))
+def test_notebook(path):
+    """Ensure that all of the notebooks in the examples directory run without errors."""
+    nb, errors = run_notebook(path)
 
+    # No errors is success
     assert errors == []
