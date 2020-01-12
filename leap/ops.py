@@ -499,6 +499,7 @@ def migrate(context, topology, emigrant_selector, replacement_selector, migratio
             # Compete for a place in the new population
             contestant = next(replacement_selector(population))
             if imm > contestant:
+                # FIXME This is fishy!  What if there are two copies of contestant?  What if contestant.__eq()__ is not properly implemented?
                 population.remove(contestant)
                 population.append(imm)
 

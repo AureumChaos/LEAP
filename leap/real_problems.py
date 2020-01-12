@@ -980,12 +980,15 @@ class MatrixTransformedProblem(ScalarProblem):
         We accomplish this by generating a random orthonormal basis for R^n and plugging the resulting matrix into
         :class:`~leap.real_problems.MatrixTransformedProblem`.
 
-        This algorithm follows directly from the definition of orthonormality.  It is described in Hansen and
-        Ostermeier's original CMA-ES paper: "Completely derandomized self-adaptation in evolution strategies."
-        *Evolutionary Computation* 9.2 (2001): 159-195.
+        The classic algorithm we use here is based on the Gramm-Schmidt process: we first generate a set of random vectors, and 
+        then convert them into an orthonormal basis.  This approach is described in Hansen and Ostermeier's original CMA-ES paper:
+
+        "Completely derandomized self-adaptation in evolution strategies." *Evolutionary Computation* 9.2 (2001): 159-195.
 
         :param problem: the original :class:`~leap.real_problems.ScalarProblem` to apply the transform to.
-        :param dimensions: the number of elements each vector should have.
+        :param int dimensions: the number of elements each vector should have.
+        :param bool maximize: whether to maximize or minimize the resulting fitness function.  Defaults to whatever setting the 
+            underlying problem uses.
 
         .. plot::
            :include-source:
@@ -1018,7 +1021,7 @@ class MatrixTransformedProblem(ScalarProblem):
             matrix[i, :] = row / np.linalg.norm(row)
 
         # Any vector in the resulting matrix will be of unit length
-        assert (round(np.linalg.norm(matrix[0], 5)) == 1.0), f"A column in the transformation matrix has a norm of {np.linalg.norm(matrix[0], 5)}, but it should always be approximately 1.0."
+        assert (round(np.linalg.norm(matrix[0]), 5) == 1.0), f"A column in the transformation matrix has a norm of {np.linalg.norm(matrix[0])}, but it should always be approximately 1.0."
         # Any pair of vectors will be linearly independent
         assert (abs(round(np.dot(matrix[0], matrix[1]), 5)) == 0.0), f"A pair of columns in the transformation matrix has dot product of {round(np.dot(matrix[0], matrix[1]), 5)}, but it should always be approximately 0.0."
 
