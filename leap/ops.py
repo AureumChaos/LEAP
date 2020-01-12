@@ -390,6 +390,28 @@ def tournament(population, k=2):
 
 
 ##############################
+# Function insertion_selection
+##############################
+def insertion_selection(offspring, parents, size=len(parents)):
+    """ do exclusive tournament selection between offspring and parents
+
+    This is typically used for Ken De Jong's EV algorithm for survival selection.  It works by uniformly selecting an
+    offspring, then a parent, and then selecting the best as a survivor.
+
+    :param offspring: population to select from
+    :param parents: population to select from
+    :param size: of the returned surviving population
+    :return: the surviving population
+    """
+    survivors = []
+    for _ in range(size):
+        selected_offspring = random.choice(offspring)
+        selected_parent = random.choice(parents)
+        survivors.append(max(selected_offspring, selected_parent))
+    return survivors
+
+
+##############################
 # Function naive_cyclic_selection
 ##############################
 @curry
