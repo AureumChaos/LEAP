@@ -57,15 +57,15 @@ class SpheroidProblem(ScalarProblem):
 
     def worse_than(self, first_fitness, second_fitness):
         """
-        We maximize by default:
+        We minimize by default:
 
-        >>> s = SpheroidProblem()
-        >>> s.worse_than(100, 10)
-        False
-
-        >>> s = SpheroidProblem(maximize=False)
+        >>> s = NoisyQuarticProblem()
         >>> s.worse_than(100, 10)
         True
+
+        >>> s = NoisyQuarticProblem(maximize=True)
+        >>> s.worse_than(100, 10)
+        False
         """
         return super().worse_than(first_fitness, second_fitness)
 
@@ -118,15 +118,15 @@ class RastriginProblem(ScalarProblem):
 
     def worse_than(self, first_fitness, second_fitness):
         """
-        We maximize by default:
+        We minimize by default:
 
-        >>> s = RastriginProblem()
-        >>> s.worse_than(100, 10)
-        False
-
-        >>> s = RastriginProblem(maximize=False)
+        >>> s = NoisyQuarticProblem()
         >>> s.worse_than(100, 10)
         True
+
+        >>> s = NoisyQuarticProblem(maximize=True)
+        >>> s.worse_than(100, 10)
+        False
         """
         return super().worse_than(first_fitness, second_fitness)
 
@@ -180,15 +180,15 @@ class RosenbrockProblem(ScalarProblem):
 
     def worse_than(self, first_fitness, second_fitness):
         """
-        We maximize by default:
+        We minimize by default:
 
-        >>> s = RosenbrockProblem()
-        >>> s.worse_than(100, 10)
-        False
-
-        >>> s = RosenbrockProblem(maximize=False)
+        >>> s = NoisyQuarticProblem()
         >>> s.worse_than(100, 10)
         True
+
+        >>> s = NoisyQuarticProblem(maximize=True)
+        >>> s.worse_than(100, 10)
+        False
         """
         return super().worse_than(first_fitness, second_fitness)
 
@@ -300,15 +300,15 @@ class NoisyQuarticProblem(ScalarProblem):
 
     def worse_than(self, first_fitness, second_fitness):
         """
-        We maximize by default:
+        We minimize by default:
 
         >>> s = NoisyQuarticProblem()
         >>> s.worse_than(100, 10)
-        False
-
-        >>> s = NoisyQuarticProblem(maximize=False)
-        >>> s.worse_than(100, 10)
         True
+
+        >>> s = NoisyQuarticProblem(maximize=True)
+        >>> s.worse_than(100, 10)
+        False
         """
         return super().worse_than(first_fitness, second_fitness)
 
@@ -384,15 +384,15 @@ class ShekelProblem(ScalarProblem):
 
     def worse_than(self, first_fitness, second_fitness):
         """
-        We maximize by default:
+        We minimize by default:
 
-        >>> s = ShekelProblem()
-        >>> s.worse_than(100, 10)
-        False
-
-        >>> s = ShekelProblem(maximize=False)
+        >>> s = NoisyQuarticProblem()
         >>> s.worse_than(100, 10)
         True
+
+        >>> s = NoisyQuarticProblem(maximize=True)
+        >>> s.worse_than(100, 10)
+        False
         """
         return super().worse_than(first_fitness, second_fitness)
 
