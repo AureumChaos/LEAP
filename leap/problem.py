@@ -48,6 +48,7 @@ class Problem(ABC):
 ##############################
 class ScalarProblem(Problem):
     def __init__(self, maximize):
+        super().__init__()
         self.maximize = maximize
 
     def worse_than(self, first_fitness, second_fitness):
@@ -82,7 +83,7 @@ class ScalarProblem(Problem):
 ##############################
 # Class FunctionProblem
 ##############################
-class FunctionProblem(Problem):
+class FunctionProblem(ScalarProblem):
 
     def __init__(self, fitness_function, maximize):
         super().__init__(maximize)
