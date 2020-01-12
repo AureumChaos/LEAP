@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
 """
-    EV is a simple ES-like EA invented by Ken De Jong for educational purposes.
+    This implements a simple Evolutionary Programming (EP) system.
 
-    Essentially, an EV uses a real-valued representation, and a pre-defined, static standard deviation
-    applied to the Gaussian mutation operator.
-
-    Note that there are sibling examples the demonstrate more true evolutionary strategy-like approaches.
 """
 from toolz import pipe
 
