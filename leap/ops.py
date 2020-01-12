@@ -392,6 +392,7 @@ def tournament(population, k=2):
 ##############################
 # Function insertion_selection
 ##############################
+@curry
 def insertion_selection(offspring, parents):
     """ do exclusive selection between offspring and parents
 
@@ -405,9 +406,11 @@ def insertion_selection(offspring, parents):
     """
     for child in offspring:
         selected_parent_index = random.randrange(len(parents))
-        parents[selected_parent_index] = max(child, parents[selected_parent_index]))
+        parents[selected_parent_index] = max(child,
+                                             parents[selected_parent_index])
 
-    return parents
+        return parents
+
 
 
 ##############################
@@ -442,8 +445,10 @@ def naive_cyclic_selection(population):
 ##############################
 @curry
 def cyclic_selection(population):
-    """ Deterministically returns individuals in order, then shuffles the sequence, returns the individuals in that
-    new order, and repeats this process.
+    """ Deterministically returns individuals in order, then shuffles the
+    sequence, returns the individuals in that new order, and repeats this
+    process.
+
     >>> from leap import core, ops
 
     >>> pop = [core.Individual([0, 0]),
@@ -471,7 +476,14 @@ def cyclic_selection(population):
 # Function random_selection
 ##############################
 def random_selection(population):
-    yield random.choice(population)
+    """ return a uniformly randomly selected individual from the population
+
+    :param population: from which to select
+    :return: a uniformly selected individual
+    """
+    while True:
+        yield random.choice(population)
+
 
 ##############################
 # Function pool
