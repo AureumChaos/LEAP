@@ -392,23 +392,22 @@ def tournament(population, k=2):
 ##############################
 # Function insertion_selection
 ##############################
-def insertion_selection(offspring, parents, size=len(parents)):
-    """ do exclusive tournament selection between offspring and parents
+def insertion_selection(offspring, parents):
+    """ do exclusive selection between offspring and parents
 
-    This is typically used for Ken De Jong's EV algorithm for survival selection.  It works by uniformly selecting an
-    offspring, then a parent, and then selecting the best as a survivor.
+    This is typically used for Ken De Jong's EV algorithm for survival
+    selection.  Each offspring is deterministically selected and a random
+    parent is selected; if the offspring wins, then it replaces the parent.
 
     :param offspring: population to select from
-    :param parents: population to select from
-    :param size: of the returned surviving population
-    :return: the surviving population
+    :param parents: parents to potentially update with better offspring
+    :return: the updated parent population
     """
-    survivors = []
-    for _ in range(size):
-        selected_offspring = random.choice(offspring)
-        selected_parent = random.choice(parents)
-        survivors.append(max(selected_offspring, selected_parent))
-    return survivors
+    for child in offspring:
+        selected_parent_index = random.randrange(len(parents))
+        parents[selected_parent_index] = max(child, parents[selected_parent_index]))
+
+    return parents
 
 
 ##############################
