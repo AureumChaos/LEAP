@@ -25,7 +25,7 @@ def print_population(population, generation):
     for individual in population:
         print(generation, individual.genome, individual.fitness)
 
-BROOD_SIZE = 3 # how many offspring each parent will reproduce
+BROOD_SIZE = 2 # how many offspring each parent will reproduce
 
 if __name__ == '__main__':
     # Define the real value bounds for initializing the population. In this case,
@@ -58,7 +58,7 @@ if __name__ == '__main__':
                          ops.mutate_gaussian(std=.1),
                          ops.evaluate,
                          ops.pool(size=len(parents) * BROOD_SIZE), # create the brood
-                         ops.truncate(size=len(parents), parents=parents)) # mu + lambda
+                         ops.insertion_selection(parents=parents)) # mu + lambda
 
         parents = offspring
 
