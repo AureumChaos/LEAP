@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """
-    This implements a simple Evolutionary Programming (EP) system.
+    This implements a simple Evolutionary Programming (EP) system, but it
+    does not evolve state machines as done with the original EP approach.
+
+    TODO convert to a state machines problem
 
 """
 from toolz import pipe
