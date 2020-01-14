@@ -69,6 +69,9 @@ class SpheroidProblem(ScalarProblem):
         """
         return super().worse_than(first_fitness, second_fitness)
 
+    def __str__(self):
+        return SpheroidProblem.__name__
+
 
 ##############################
 # Class RastriginProblem
@@ -129,6 +132,9 @@ class RastriginProblem(ScalarProblem):
         False
         """
         return super().worse_than(first_fitness, second_fitness)
+
+    def __str__(self):
+        return RastriginProblem.__name__
 
 
 ##############################
@@ -192,6 +198,9 @@ class RosenbrockProblem(ScalarProblem):
         """
         return super().worse_than(first_fitness, second_fitness)
 
+    def __str__(self):
+        return RosenbrockProblem.__name__
+
 
 ##############################
 # Class StepProblem
@@ -252,6 +261,9 @@ class StepProblem(ScalarProblem):
         """
         return super().worse_than(first_fitness, second_fitness)
 
+    def __str__(self):
+        return StepProblem.__name__
+
 
 ##############################
 # Class NoisyQuarticProblem
@@ -311,6 +323,9 @@ class NoisyQuarticProblem(ScalarProblem):
         False
         """
         return super().worse_than(first_fitness, second_fitness)
+
+    def __str__(self):
+        return NoisyQuarticProblem.__name__
 
 
 ##############################
@@ -396,6 +411,9 @@ class ShekelProblem(ScalarProblem):
         """
         return super().worse_than(first_fitness, second_fitness)
 
+    def __str__(self):
+        return ShekelProblem.__name__
+
 
 ##############################
 # Class GriewankProblem
@@ -444,6 +462,9 @@ class GriewankProblem(ScalarProblem):
         t2 = np.prod(np.cos(phenome / i_vector))
         return t1 - t2 + 1
 
+    def __str__(self):
+        return GriewankProblem.__name__
+
 
 ##############################
 # Class AckleyProblem
@@ -491,6 +512,9 @@ class AckleyProblem(ScalarProblem):
         t1 = -self.a * np.exp(-self.b * np.sqrt(1.0 / d * np.sum(np.power(phenome, 2))))
         t2 = np.exp(1.0 / d * np.sum(np.cos(self.c * phenome)))
         return t1 - t2 + self.a + np.e
+
+    def __str__(self):
+        return AckleyProblem.__name__
 
 
 ##############################
@@ -544,19 +568,22 @@ class WeierstrassProblem(ScalarProblem):
             result += t1 - (d + 1) * t2
         return result
 
+    def __str__(self):
+        return WeierstrassProblem.__name__
+
 
 ##############################
 # Class LangermannProblem
 ##############################
 class LangermannProblem(ScalarProblem):
-    """A popular multi-modal test function with character.
+    """A popular multi-modal test function built by summing together :math:`m` terms.
 
     .. math::
         f(\\mathbf{x}) = -\\sum_{i=1}^m c_i \\exp\\left( -\\frac{1}{\\pi} \\sum_{j=1}^d(x_j - A_{ij})^2\\right)
                          \\cos\\left(\\pi\\sum_{j=1}^d(x_j - A_{ij})^2\\right)
 
     Langermann's function is parameterized by a vector :math:`c_i` of length :math:`m` and a matrix :math:`A_{ij}` of
-    dimension :math:`m \\times 2`.  This class uses the traditional parameterization as the default, with :math:`m=5`
+    dimension :math:`m \\times d`.  This class uses the traditional parameterization as the default, with :math:`m=5`
     and
 
     .. math::
@@ -602,8 +629,8 @@ class LangermannProblem(ScalarProblem):
         if len(self.c.shape) != 1:
             raise ValueError(f"Got a value of shape {self.c.shape} for 'c', "
                              f"but it must be one-dimensional with length {m}.")
-        if self.a.shape != (m, 2):
-            raise ValueError(f"Got a value of shape {self.a.shape} for 'a', but must be a {m}x2 matrix.")
+        if len(self.a.shape) !=2 or self.a.shape[0] != m:
+            raise ValueError(f"Got a value of shape {self.a.shape} for 'a', but must be a {m}xd matrix.")
 
     def evaluate(self, phenome):
         """
@@ -614,11 +641,16 @@ class LangermannProblem(ScalarProblem):
         """
         assert (phenome is not None)
         phenome = np.array(phenome)
+        if len(phenome) != self.a.shape[1]:
+            raise ValueError(f"Received an {len(phenome)}-dimensional phenome, but this is a {self.a.shape[1]}-dimensional Langerman function.")
         result = 0
         for i in range(self.m):
             result -= self.c[i] * np.exp(-1.0 / np.pi * np.sum((phenome - self.a[i]) ** 2)) \
                       * np.cos(np.pi * np.sum((phenome - self.a[i]) ** 2))
         return result
+
+    def __str__(self):
+        return LangermannProblem.__name__
 
 
 ##############################
@@ -696,6 +728,9 @@ class LunacekProblem(ScalarProblem):
         sinusoid = 10*np.sum(1-np.cos(2*np.pi*(phenome - self.mu_1)))
         return min(sphere1, sphere2) + sinusoid
 
+    def __str__(self):
+        return LunacekProblem.__name__
+
 
 ##############################
 # Class SchwefelProblem
@@ -738,6 +773,9 @@ class SchwefelProblem(ScalarProblem):
         assert(phenome is not None)
         phenome = np.array(phenome)
         return np.sum(-phenome * np.sin(np.sqrt(np.abs(phenome)))) + self.alpha * len(phenome)
+
+    def __str__(self):
+        return SchwefelProblem.__name__
 
 
 ##############################
@@ -807,6 +845,9 @@ class CosineFamilyProblem(ScalarProblem):
         # We modify the original function to make it a maximization problem
         # and so that the global optima are scaled to always have a fitness of 1
         return -2 / (self.alpha + 1) * value
+
+    def __str__(self):
+        return CosineFamilyProblem.__name__
 
 
 ##############################
@@ -893,7 +934,7 @@ class TranslatedProblem(ScalarProblem):
         return self.problem.evaluate(new_phenome)
 
     def __str__(self):
-        return f"{TranslatedProblem.__name__}({type(self.problem).__name__})"
+        return f"{TranslatedProblem.__name__}({str(self.problem)})"
 
 
 ################################
@@ -918,6 +959,9 @@ class ScaledProblem(ScalarProblem):
                                                    * (self.old_bounds[1] - self.old_bounds[0])
         assert(len(transformed_phenome) == len(phenome))
         return self.problem.evaluate(transformed_phenome)
+
+    def __str__(self):
+        return f"{ScaledProblem.__name__}({str(self.problem)})"
 
 
 ################################
@@ -1062,7 +1106,7 @@ class MatrixTransformedProblem(ScalarProblem):
         return self.problem.evaluate(new_point)
 
     def __str__(self):
-        return f"{MatrixTransformedProblem.__name__}({type(self.problem).__name__})"
+        return f"{MatrixTransformedProblem.__name__}({str(self.problem)})"
 
 
 ##############################
