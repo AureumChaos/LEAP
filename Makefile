@@ -52,7 +52,7 @@ setup:
 test:
 	# Default options are configured in pytest.ini
 	# Skip jupyter tests, because they only work if the kernel is configured manually
-	py.test -m "not jupyter"  
+	py.test -m "not jupyter"
 
 test-fast:
 	py.test -m "not system and not jupyter"
