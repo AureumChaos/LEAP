@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 """
-    This implements a simple Evolutionary Programming (EP) system, but it
-    does not evolve state machines as done with the original EP approach.
-
-    TODO convert to a state machines problem
+    This implements a simple Evolutionary Strategy (ES) system, and implements
+    a very crude self-adaptive step-size mechanism to show how to use contexts.
 
 """
 from toolz import pipe
@@ -14,6 +12,10 @@ from leap import real_problems
 from leap import util
 
 
+BROOD_SIZE = 3 # how many offspring each parent will reproduce
+MAX_GENERATIONS = 10
+
+
 def print_population(population, generation):
     """ Convenience function for pretty printing a population that's associated with a given generation
 
@@ -22,9 +24,23 @@ def print_population(population, generation):
     :return: None
     """
     for individual in population:
-        print(generation, individual.genome, individual.fitness)
+        print(generation, core.context['leap']['std'], individual.genome, individual.fitness)
 
-BROOD_SIZE = 3 # how many offspring each parent will reproduce
+
+def anneal_std(generation):
+    """ Cool down the step-size each generation.
+
+    This tickles core.context['leap']['std']
+
+    :param generation: current generation, which the callback always gives
+    :return: new std
+    """
+    # .85 was an original annealing step size used by Hans-Paul Schwefel, though
+    # this was in the context of the 1/5 success rule, which we've not
+    # implemented here.
+    # Handbook of EC, B1.3:2
+    core.context['leap']['std'] *= .85
+
 
 if __name__ == '__main__':
     # Define the real value bounds for initializing the population. In this case,
@@ -41,20 +57,20 @@ if __name__ == '__main__':
     # Evaluate initial population
     parents = core.Individual.evaluate_population(parents)
 
-    # print initial, random population
-    print_population(parents, generation=0)
-
-    max_generation = 100
+    core.context['leap']['std'] = 2
 
     # We use the provided core.context, but we could roll our own if we wanted to keep
     # separate contexts.  E.g., island models may want to have their own contexts.
-    generation_counter = util.inc_generation(context=core.context)
+    generation_counter = util.inc_generation(context=core.context, callbacks=(anneal_std,) )
 
-    while generation_counter.generation() < max_generation:
+    # print initial, random population
+    print_population(parents, generation=0)
+
+    while generation_counter.generation() < MAX_GENERATIONS:
         offspring = pipe(parents,
-                         ops.cyclic_selection,
+                         ops.random_selection,
                          ops.clone,
-                         ops.mutate_gaussian(std=.1),
+                         ops.mutate_gaussian(std=core.context['leap']['std']),
                          ops.evaluate,
                          ops.pool(size=len(parents) * BROOD_SIZE), # create the brood
                          ops.truncate(size=len(parents), parents=parents)) # mu + lambda
