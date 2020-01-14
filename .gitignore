@@ -9,8 +9,14 @@ docker-nom/build/
 \#*\#
 .\#*
 venv/
-src/LEAP.egg-info/
+*.egg-info/
 docs/build/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+.pytest_cache
+build/
+dist/
 
 #Subversion
 .svn

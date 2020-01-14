@@ -6,15 +6,23 @@ Subpackages
 
 .. toctree::
 
-   leap.example
+   leap.contrib
 
 Submodules
 ----------
 
-leap.binary module
-------------------
+leap.algorithm module
+---------------------
 
-.. automodule:: leap.binary
+.. automodule:: leap.algorithm
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+leap.binary\_problems module
+----------------------------
+
+.. automodule:: leap.binary_problems
    :members:
    :undoc-members:
    :show-inheritance:
@@ -43,10 +51,10 @@ leap.data module
    :undoc-members:
    :show-inheritance:
 
-leap.operate module
--------------------
+leap.ops module
+---------------
 
-.. automodule:: leap.operate
+.. automodule:: leap.ops
    :members:
    :undoc-members:
    :show-inheritance:
@@ -67,10 +75,10 @@ leap.problem module
    :undoc-members:
    :show-inheritance:
 
-leap.real module
-----------------
+leap.real\_problems module
+--------------------------
 
-.. automodule:: leap.real
+.. automodule:: leap.real_problems
    :members:
    :undoc-members:
    :show-inheritance:
