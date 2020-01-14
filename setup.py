@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='leap',
-    version='2.0.dev',
+    version='0.1-pre',
     packages=['leap'],
     url='https://github.com/AureumChaos/LEAP',
     license='Academic',
