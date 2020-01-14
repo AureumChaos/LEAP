@@ -31,9 +31,8 @@ class PopulationSeedingRepertoire:
         if problem_kwargs is None:
             problem_kwargs = [{}]*len(problems)
         results = [self.algorithm(p, self.initialize, **problem_kwargs[i]) for i, p in enumerate(problems)]
-        results = list(zip(*results))  # Execute the algorithm concurrently on all the source tasks
-        results = zip(*results)  # Unzip them into individual BSF trajectories
-        #assert(len(results) == len(self.problems))
+        results = [list(ea) for ea in results]  # Execute each algorithm sequentially
+        assert(len(results) == len(problems))
         for r in results:
             last_step, last_ind = r[-1]
             self.repertoire.append(last_ind.genome)
