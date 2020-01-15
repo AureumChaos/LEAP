@@ -176,5 +176,11 @@ The LEAP development roadmap is as follows:
     - checkpoint / restart support
     - hall of fame
 1. Future features
+    - Rule systems
+        - Mich Approach
+        - Pitt Approach
     - Genetic Programming (GP)
-    - Covariance Matrix Adaptation Evolution Strategy (CMA-ES)
+    - Estimation of Distribution Algorithms (EDA)
+        - Covariance Matrix Adaptation Evolution Strategy (CMA-ES)
+        - Population-based Incremental Learning (PBIL)
+        - Bayesian Optimization Algorithm (BOA)
