@@ -119,9 +119,6 @@ The output will look something like this:
 
 ## Roadmap
 
-Roadmap
-=======
-
 The LEAP development roadmap is as follows:
 
 1. pre-Minimally Viable Product -- released 1/14/2020 as ``0.1-pre``
