@@ -61,7 +61,7 @@ if __name__ == '__main__':
                              problem=problem,
                              initialize=core.create_real_vector(bounds=[problem.bounds] * l),
 
-                             pipeline=[
+                             shared_pipeline=[
                                  ops.tournament,
                                  ops.clone,
                                  ops.mutate_gaussian(std=30, hard_bounds=problem.bounds),

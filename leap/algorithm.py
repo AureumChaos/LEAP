@@ -28,7 +28,7 @@ def generational_ea(generations, pop_size, individual_cls, initialize, decoder, 
     :param `Decoder` decoder: the Decoder that should be used to convert individual genomes into phenomes
     :param `Problem` problem: the Problem that should be used to evaluate individuals' fitness
     :param initialize: a function that creates a new genome every time it is called
-    :param list pipeline: a list of operators that are applied (in order) to to create the offspring population at each
+    :param list pipeline: a list of operators that are applied (in order) to create the offspring population at each
         generation
     :return: a generator of `(int, individual_cls)` pairs representing the best individual at each generation.
 
@@ -101,8 +101,87 @@ def generational_ea(generations, pop_size, individual_cls, initialize, decoder, 
 ##############################
 # Function multi_population_ea
 ##############################
-def multi_population_ea(generations, num_populations, pop_size, individual_cls, initialize, decoder, problem, pipeline,
-                        subpop_pipelines):
+def multi_population_ea(generations, num_populations, pop_size, individual_cls, initialize, decoder, problem, shared_pipeline,
+                        subpop_pipelines=None):
+    """
+    An EA that maintains multiple (interacting) subpopulations, i.e. for implementing island models.
+
+    This effectively executes several EAs concurrently that share the same generation counter, and which share the 
+    same representation (:py:class:`~leap.core.Individual`, :py:class:`~leap.core.Decoder`) and objective function 
+    (:py:class:`~leap.problem.Problem`), and which share all or part of the same operator pipeline.
+
+    :param int generations: The number of generations to run the algorithm for.
+    :param int num_populations: The number of separate populations to maintain.
+    :param int pop_size: Size of the initial population
+    :param class individual_cls: class representing the (sub)type of `Individual` the population should be generated
+        from
+    :param `Decoder` decoder: the Decoder that should be used to convert individual genomes into phenomes
+    :param `Problem` problem: the Problem that should be used to evaluate individuals' fitness
+    :param initialize: a function that creates a new genome every time it is called
+    :param list shared_pipeline: a list of operators that every population will uses to create the offspring 
+        population at each generation
+    :param list subpop_pipelines: a list of population-specific operator lists, the ith of which will only be applied
+        to the ith population (after the `shared_pipeline`).  Ignored if `None`.
+    :return: a generator of `(int, [individual_cls])` pairs representing the best individual in each population 
+        at each generation.
+
+    To turn a multi-population EA into an island model, use the :py:function:`~leap.ops.migrate` operator in the 
+    shared pipeline.  This operator takes a `NetworkX` graph describing the topology of connections between islands 
+    as input.
+
+    For example, here's how we might define a fully connected 4-island model that solves a 
+    :py:class:`~leap.real_problems.SchwefelProblem` using a real-vector representation:
+
+    >>> import networkx as nx
+    >>> from leap.algorithm import multi_population_ea
+    >>> from leap import ops, real_problems
+    >>> 
+    >>> topology = nx.complete_graph(4)
+    >>> nx.draw(topology)
+    >>> problem = real_problems.SchwefelProblem(maximize=False)
+    ...
+    >>> l = 2  # Length of the genome
+    >>> pop_size = 10
+    >>> ea = multi_population_ea(generations=1000, num_populations=topology.number_of_nodes(), pop_size=pop_size,
+    ...                         individual_cls=core.Individual,
+    ...
+    ...                         decoder=core.IdentityDecoder(),
+    ...                         problem=problem,
+    ...                         initialize=core.create_real_vector(bounds=[problem.bounds] * l),
+    ...
+    ...                         shared_pipeline=[
+    ...                             ops.tournament,
+    ...                             ops.clone,
+    ...                             ops.mutate_gaussian(std=30, hard_bounds=problem.bounds),
+    ...                             ops.evaluate,
+    ...                             ops.pool(size=pop_size),
+    ...                             ops.migrate(core.context,
+    ...                                         topology=topology,
+    ...                                         emigrant_selector=ops.tournament,
+    ...                                         replacement_selector=ops.random_selection,
+    ...                                         migration_gap=50)
+    ...                         ])
+    >>> ea # doctest:+ELLIPSIS
+    <generator ...>
+    
+    We can now run the algorithm by pulling output from its generator, which gives us the best individual in each 
+    population at each generation:
+
+    >>> from itertools import islice
+    >>> result = list(islice(ea, 5))  # Run the first 5 generations by pulsing the generator
+    >>> print(*result, sep='\\n')
+    (0, [Individual(...), Individual(...), Individual(...), Individual(...)])
+    (1, [Individual(...), Individual(...), Individual(...), Individual(...)])
+    (2, [Individual(...), Individual(...), Individual(...), Individual(...)])
+    (3, [Individual(...), Individual(...), Individual(...), Individual(...)])
+    (4, [Individual(...), Individual(...), Individual(...), Individual(...)])
+
+    While each population is executing, `multi_population_ea` writes the index 
+    of the current subpopulation to `core.context['leap']['subpopulation']`.  That way shared operators (such as 
+    :py:function:`~leap.ops.migrate`) have the option of accessing the share context to learn which 
+    subpopulation they are currently working with.
+
+    """
     # Initialize populations of pop_size individuals of the same type as individual_cls
     pops = [individual_cls.create_population(pop_size, initialize=initialize, decoder=decoder, problem=problem)
             for _ in range(num_populations)]
@@ -122,7 +201,8 @@ def multi_population_ea(generations, num_populations, pop_size, individual_cls, 
         for i, parents in enumerate(pops):
             core.context['leap']['subpopulation'] = i
             # Execute the operators to create a new offspring population
-            offspring = pipe(parents, *pipeline, *subpop_pipelines[i])
+            operators = list(shared_pipeline) + list(subpop_pipelines[i]) if subpop_pipelines else []
+            offspring = pipe(parents, *operators)
 
             if max(offspring) > bsf[i]:  # Update the best-so-far individual
                 bsf[i] = max(offspring)
