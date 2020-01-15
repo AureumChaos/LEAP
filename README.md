@@ -175,7 +175,7 @@ The LEAP development roadmap is as follows:
         - technical report
     - checkpoint / restart support
     - hall of fame
-1. Future features
+1. Future features, in no particular order of priority
     - Rule systems
         - Mich Approach
         - Pitt Approach
