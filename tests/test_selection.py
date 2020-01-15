@@ -30,7 +30,7 @@ def test_naive_cyclic_selection():
 
 
 def test_cyclic_selection():
-    """ Test of the naive deterministic cyclic selection """
+    """ Test of the deterministic cyclic selection """
 
     # We're just going to use integers for the population as that's sufficient for testing this selection
     # operator; we don't want to get in the weeds with comparing individuals for sequence equivalency testing.
