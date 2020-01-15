@@ -16,6 +16,7 @@ Welcome to LEAP: Library for Evolutionary Algorithms in Python's documentation!
    LEAP Metaheuristics <metaheuristics>
    Building New Algorithms <building>
    Cookbook <cookbook>
+   Roadmap <roadmap>
 
 
 
