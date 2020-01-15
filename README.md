@@ -163,7 +163,7 @@ The LEAP development roadmap is as follows:
         - ~~basic run-time visualizations~~
         - ~~use with Jupyter notebooks~~
     - ~~documentation outline/stubs for ReadTheDocs~~
-1. Minimally Viable Product -- tentative release in mid-February
+1. Minimally Viable Product -- tentative release in February
     - distributed / parallel fitness evaluations
         - distribute local cores vs. distributed cluster nodes
         - synchronous vs. asynchronous evaluations
@@ -173,4 +173,8 @@ The LEAP development roadmap is as follows:
     - minimally complete documentation
         - fleshed out ReadTheDocs documentation
         - technical report
-1. ???
+    - checkpoint / restart support
+    - hall of fame
+1. Future features
+    - Genetic Programming (GP)
+    - Covariance Matrix Adaptation Evolution Strategy (CMA-ES)
