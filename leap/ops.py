@@ -286,7 +286,7 @@ def n_ary_crossover(next_individual, num_points=1):
 # Function mutate_gaussian
 ##############################
 @curry
-def mutate_gaussian(next_individual, std, expected=1, hard_bounds=(-np.inf, np.inf)):
+def mutate_gaussian(next_individual, std, expected=None, hard_bounds=(-np.inf, np.inf)):
     """ mutate and return an individual with a real-valued representation
 
     TODO hard_bounds should also be able to take a sequence —Siggy
@@ -294,7 +294,8 @@ def mutate_gaussian(next_individual, std, expected=1, hard_bounds=(-np.inf, np.i
     :param next_individual: to be mutated
     :param std: standard deviation to be equally applied to all individuals; this
         can be a scalar value or a "shadow vector" of standard deviations
-    :param expected: the *expected* number of mutations per individual, on average
+    :param expected: the *expected* number of mutations per individual, on average.  If None, all genes will be 
+        mutated.
     :param hard_bounds: to clip for mutations; defaults to (- ∞, ∞)
     :return: a generator of mutated individuals.
     """
@@ -312,7 +313,10 @@ def mutate_gaussian(next_individual, std, expected=1, hard_bounds=(-np.inf, np.i
 
         # compute actual probability of mutation based on expected number of
         # mutations and the genome length
-        probability = compute_expected_probability(expected, individual.genome)
+        if expected is None:
+            probability = 1.0
+        else:
+            probability = compute_expected_probability(expected, individual.genome)
 
         if util.is_sequence(std):
             # We're given a vector of "shadow standard deviations" so apply
