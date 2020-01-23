@@ -7,6 +7,7 @@ import sys
 
 from matplotlib import pyplot as plt
 import numpy as np
+import pandas as pd
 from toolz import curry
 
 from leap import ops as op
@@ -38,7 +39,7 @@ class BestSoFarProbe(op.Operator):
     def __init__(self, context, stream=sys.stdout, header=True):
         self.bsf = None
         self.context = context
-        self.writer = csv.DictWriter(stream, fieldname=['step', 'bsf'])
+        self.writer = csv.DictWriter(stream, fieldnames=['step', 'bsf'])
 
     def __call__(self, next_individual):
         assert (next_individual is not None)
@@ -110,30 +111,31 @@ class AttributesCSVProbe(op.Operator):
 
     Most often, you will want to record only the best individual in the population at each step, and you'll just want
     to know its fitness and genome.  You can do this with this class's boolean flags.  For example, here's how you'd
-    record the best individual's fitness and genome to a `StringIO` file object:
+    record the best individual's fitness and genome to a dataframe:
 
-    >>> import io
     >>> from leap import core
     >>> from leap.data import test_population
-    >>> stream = io.StringIO()
-    >>> probe = AttributesCSVProbe(core.context, stream, best_only=True, do_fitness=True, do_genome=True)
+    >>> probe = AttributesCSVProbe(core.context, do_dataframe=True, best_only=True, do_fitness=True, do_genome=True)
     >>> core.context['leap']['generation'] = 100
     >>> probe(test_population) == test_population
     True
 
-    >>> print(stream.getvalue())
-    step,fitness,genome
-    100,4,"[0, 1, 1, 1, 1]"
-    <BLANKLINE>
+    You can retrieve the result programatically from the `dataframe` property:
 
-    You could just as easily use standard streams like `sys.stdout` for the `stream` parameter.
+    >>> probe.dataframe
+       step  fitness           genome
+    0   100        4  [0, 1, 1, 1, 1]
 
+    By default, the results are also written to `sys.stdout`.  You can pass any file object you like into the `stream` parameter.
+    
     Another common use of this task is to record custom attributes that are stored on individuals in certain kinds of
     experiments.  Here's how you would record the values of `ind.attributes['foo']` and `ind.attributes['bar']` for
-    every individual in the population:
+    every individual in the population.  We write to a stream object this time to demonstrate how to use the probe 
+    without a dataframe:
 
+    >>> import io
     >>> stream = io.StringIO()
-    >>> probe = AttributesCSVProbe(core.context, stream, attributes=['foo', 'bar'])
+    >>> probe = AttributesCSVProbe(core.context, attributes=['foo', 'bar'], stream=stream)
     >>> core.context['leap']['generation'] = 100
     >>> r = probe(test_population)
     >>> print(stream.getvalue())
@@ -145,7 +147,7 @@ class AttributesCSVProbe(op.Operator):
     <BLANKLINE>
     """
 
-    def __init__(self, context, stream=sys.stdout, attributes=(), best_only=False, header=True, do_fitness=False,
+    def __init__(self, context, attributes=(), stream=sys.stdout, do_dataframe=False, best_only=False, header=True, do_fitness=False,
                  do_genome=False, note='', job=None):
         assert (stream is not None)
         assert (hasattr(stream, 'write'))
@@ -159,6 +161,10 @@ class AttributesCSVProbe(op.Operator):
         self.do_genome = do_genome
         self.note = note
         self.job = job
+        self.do_dataframe = do_dataframe
+
+        if (not do_dataframe) and stream is None:
+            raise ValueError("Both 'stream'=None and 'do_dataframe'=False, but at least one must be enabled.")
 
         fieldnames = ['step'] + list(attributes)
         if job:
@@ -170,9 +176,26 @@ class AttributesCSVProbe(op.Operator):
         if do_genome:
             fieldnames.append('genome')
 
-        self.writer = csv.DictWriter(stream, fieldnames=fieldnames, lineterminator='\n')
-        if header:
-            self.writer.writeheader()
+        self.fieldnames = fieldnames
+
+        if self.do_dataframe:
+            # We'll store rows of data as dicts in this list as we collect them
+            self.data = []
+
+        if stream is not None:
+            # We'll write rows of data to this stream as we collect them
+            self.writer = csv.DictWriter(stream, fieldnames=fieldnames, lineterminator='\n')
+            if header:
+                self.writer.writeheader()
+
+    @property
+    def dataframe(self):
+        if not self.do_dataframe:
+            raise ValueError('Tried to retrieve a dataframe of results, but this ' + 
+                             f'{type(AttributesCSVProbe).__name__} was initialized with dataframe=False.')
+        # We create the DataFrame on demand because it's inefficient to append to a DataFrame, 
+        # so we only want to create it after we are done generating data.
+        return pd.DataFrame(self.data, columns=self.fieldnames)
 
     def __call__(self, population):
         assert (population is not None)
@@ -182,29 +205,37 @@ class AttributesCSVProbe(op.Operator):
         individuals = [max(population)] if self.best_only else population
 
         for ind in individuals:
-            csvrow = {'step': self.context['leap']['generation']}
+            row = self.get_row_dict(ind)
+            if self.writer is not None:
+                self.writer.writerow(row)
 
-            for attr in self.attributes:
-                if attr not in ind.attributes:
-                    raise ValueError('Attribute "{0}" not found in individual "{1}".'.format(attr, ind.__repr__()))
-                csvrow[attr] = ind.attributes[attr]
-
-            if self.job:
-                csvrow['job'] = self.job
-            if self.note is not '':
-                csvrow['note'] = self.note
-            if self.do_fitness:
-                csvrow['fitness'] = ind.fitness
-            if self.do_genome:
-                csvrow['genome'] = str(ind.genome)
-
-            self.writer.writerow(csvrow)
+            if self.do_dataframe:
+                self.data.append(row)
 
         return population
 
+    def get_row_dict(self, ind):
+        row = {'step': self.context['leap']['generation']}
+
+        for attr in self.attributes:
+            if attr not in ind.attributes:
+                raise ValueError('Attribute "{0}" not found in individual "{1}".'.format(attr, ind.__repr__()))
+            row[attr] = ind.attributes[attr]
+
+        if self.job:
+            row['job'] = self.job
+        if self.note is not '':
+            row['note'] = self.note
+        if self.do_fitness:
+            row['fitness'] = ind.fitness
+        if self.do_genome:
+            row['genome'] = str(ind.genome)
+        
+        return row
+
 
 ##############################
-# Class PlotProbe
+# Class PopulationPlotProbe
 ##############################
 class PopulationPlotProbe:
     """
