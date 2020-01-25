@@ -8,11 +8,12 @@ import logging
 from pprint import pformat
 
 import toolz
-import functools
 
 from queue import PriorityQueue
 
 from dask.distributed import as_completed
+
+from leap import ops
 
 __all__ = ['Parallel']
 
@@ -68,8 +69,8 @@ class Parallel:
 
         TODO not a fan of returning tuple. Review the need for this.
 
-        Also, need to consider returning a lot more than just the fitness and individual, but maybe other
-        ancillary information.
+        Also, need to consider returning a lot more than just the fitness and
+        individual, but maybe other ancillary information.
 
         :param individual: to be evaluated
         :return: individual.fitness, individual
@@ -99,17 +100,21 @@ class Parallel:
 
         You will want to over-ride this in your own implementation.
 
+        The pattern for this implementation is that the expected output
+        should be a *single individual*, hence the pool(size=1) should be the
+        last pipeline operator.
+
+        TODO We can probably do a better job of making the pipeline to better
+        impose pre-requisites.
+
         :param population: the current pool of already evaluated individuals
         :return: newly created child
         """
         return toolz.pipe(population,
-                          smallLEAP.selection.tournament_select_generator,
-                          smallLEAP.reproduction.clone_generator,
-                          functools.partial(
-                              smallLEAP.reproduction.bit_flip_mutation_generator,
-                              probability=0.2),
-                          functools.partial(smallLEAP.reproduction.create_pool,
-                                            size=1))
+                          ops.random_selection,
+                          ops.clone,
+                          ops.mutate_bitflip,
+                          ops.pool(size=1)
 
     def check_if_evaluated(self, individual):
         """ Have an opportunity to handle individuals that have just been
