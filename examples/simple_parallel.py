@@ -196,7 +196,7 @@ if __name__ == '__main__':
                                    init_pop_size=args.init_pop_size,
                                    problem=my_max_ones, decoder=my_decoder)
 
-        logger.info('Final pop: %s', pformat(final_pop))
+        logger.info('Final pop: \n%s', pformat(final_pop))
     except Exception as e:
         logger.critical(str(e))
     finally:
