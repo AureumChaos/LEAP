@@ -72,9 +72,25 @@ class MyIndividual(core.Individual):
         # Used to uniquely identify this individual
         self.uuid = uuid.uuid4()
 
-    # def __repr__(self):
-    #     return " ".join([str(self.uuid), str(self.birth), str(self.fitness),
-    #                      "".join([str(x) for x in self.encoding.decode()])])
+    def __repr__(self):
+        return " ".join([str(self.uuid), str(self.birth), str(self.fitness),
+                         "".join([str(x) for x in self.genome])])
+
+    def is_viable(self):
+        """ This is used by Parallel to ensure that we are considering "viable"
+        individuals.
+
+        That is, an individual may have been returned from a worker as *not*
+        viable because its evaluation was interrupted by, say, doing a check-
+        point. In which case, we do not want to insert it into the pool.
+
+        TODO but ensure we have a mechanism in place to properly report and
+        otherwise handle such individuals.  (And better define what we mean by
+        "otherwise handle.")
+
+        :return: True
+        """
+        return True
 
     def evaluate(self):
         """ Evaluate this individual, but with some additional logging thrown
