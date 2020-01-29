@@ -129,6 +129,12 @@ def birth_brander():
     properly "branded" with a unique birth ID.  However, care must be made to
     ensure that the initial population is similarly branded.
 
+    Provides:
+
+    * brand_population() to brand an entire population all at once,
+    which is useful for branding initial populations.
+    * brand() for explicitly branding a single individual
+
     :param next_thing: preceding individual in the pipeline
     :return: branded individual
     """
@@ -139,8 +145,30 @@ def birth_brander():
     # the next individual in the population
     iterator = None
 
-    def do_birth_branding(next_thing):
+    def brand(individual):
+        """ brand the given individual
+        :param individual: to be branded
+        :return: branded individual
         """
+        if not hasattr(individual, "birth"):
+            # Only assign a birth ID if they don't already have one
+            individual.birth = next(num_births)
+        return individual
+
+    def brand_population(population):
+        """ We want to brand an entire population in one go
+
+        Usually used to brand an initial population is one shot.
+
+        :param population: to be branded
+        :return: branded population
+        """
+        return [brand(i) for i in population]
+
+    def do_birth_branding(next_thing):
+        """ This has the flexibility of being inserted in a pipeline such that
+        the preceding pipeline is a population or a generator that provides
+        an individual.  It'll flexibly handle either situation.
 
         :param next_thing: either the next individual in the pipeline or a population of individuals to be branded
         :return: branded individual
@@ -158,11 +186,11 @@ def birth_brander():
                     iterator = iter(next_thing)
                 next_thing = next(iterator)
 
-            if not hasattr(next_thing, "birth"):
-                # Only assign a birth ID if they don't already have one
-                next_thing.birth = next(num_births)
+            next_thing = brand(next_thing)
 
             yield next_thing
+
+    do_birth_branding.brand_population = brand_population
 
     return do_birth_branding
 
