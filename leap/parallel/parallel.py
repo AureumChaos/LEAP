@@ -187,7 +187,7 @@ class Parallel:
                                                            initializer,
                                                            problem, decoder)
 
-        logger.debug('parents: %s', pformat(parent_population))
+        logger.debug('parents: \n%s', pformat(parent_population))
 
         # farm out initial population to worker nodes for evaluation
         worker_futures = self.client.map(Parallel.evaluate, parent_population)
@@ -196,7 +196,7 @@ class Parallel:
 
         # grind through all the evaluated individuals until we've achieved
         # MAX_REPRODUCTIONS spawned offspring
-        for res in iterator:
+        for i, res in enumerate(iterator):
 
             x = res.result()
 
@@ -217,7 +217,7 @@ class Parallel:
                     # remove the least fit individual; unless it's weaker; if
                     # equal, then coin toss whether to replace them then
                     # insert the new guy
-                    logger.info('Pool full ... voting someone off the island')
+                    logger.debug('Pool full ... voting someone off the island')
                     weakest = self.current_population.get()
                     logger.debug('current weakest: %s', str(weakest))
                     if weakest[0] < x[0]:
@@ -242,7 +242,8 @@ class Parallel:
                     logger.debug('Inserting: %s', str(x))
                     self.current_population.put(x)
 
-                logger.info('>>> current population: \n%s\n',
+                logger.info('>>> %d current population: \n%s\n',
+                            i,
                             pformat(self.current_population.queue))
 
                 # Only create offspring if we have budget left for that,
@@ -260,11 +261,11 @@ class Parallel:
                     toolz.pluck(1, self.current_population.queue))
 
                 if len(scratch_pop) == 1:
-                    logger.info('spawning first child from pool')
+                    logger.debug('spawning first child from pool')
 
                 child = self.create_child(scratch_pop)
 
-                logger.info('new birth: %s', str(child))
+                logger.debug('new birth: %s', str(child))
 
                 # child[0] because the pipeline essentially returns a
                 # population of one, and so we just unpack that one kid and
