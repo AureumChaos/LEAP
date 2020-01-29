@@ -158,9 +158,7 @@ class Parallel:
                                                   decoder=decoder)
         # Just run the initial population through the birth ID brander to
         # ensure we start out with proper birth IDS for each of them.
-        branded_population = toolz.pipe(initial_population,
-                                        self.birth_brander,
-                                        ops.pool(size=len(initial_population)))
+        branded_population = self.birth_brander.brand_population(initial_population)
 
         return branded_population
 
@@ -244,7 +242,7 @@ class Parallel:
                     logger.debug('Inserting: %s', str(x))
                     self.current_population.put(x)
 
-                logger.info('>>> current population: %s\n',
+                logger.info('>>> current population: \n%s\n',
                             pformat(self.current_population.queue))
 
                 # Only create offspring if we have budget left for that,
@@ -278,7 +276,7 @@ class Parallel:
                 # birth budget, so let the pending evaluations finish.
                 pass
 
-        logger.info('final population: %s\n',
+        logger.info('final population: \n%s\n',
                     pformat(self.current_population.queue))
 
         # extract the individuals from inside the Queue and return that
