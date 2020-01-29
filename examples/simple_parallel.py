@@ -40,7 +40,7 @@ from leap import core
 from leap import ops
 from leap import binary_problems
 from leap import util
-import leap.parallel
+import leap.parallel.parallel
 
 # Create unique logger for this namespace
 logger = logging.getLogger(__name__)
@@ -167,12 +167,14 @@ if __name__ == '__main__':
 
         logger.info('Client: %s', client)
 
-        my_parallel = leap.parallel.Parallel(client, max_births=args.max_births,
-                                             pool_size=args.pool_size)
+        my_parallel = leap.parallel.parallel.Parallel(client,
+                                                      max_births=args.max_births,
+                                                      pool_size=args.pool_size)
 
         final_pop = my_parallel.do(MyIndividual,
+                                   initializer=core.create_binary_sequence(4),
                                    init_pop_size=args.init_pop_size,
-                                   problem=my_max_ones, encoding=my_decoder)
+                                   problem=my_max_ones, decoder=my_decoder)
 
         logger.info('Final pop: %s', pformat(final_pop))
     except Exception as e:
