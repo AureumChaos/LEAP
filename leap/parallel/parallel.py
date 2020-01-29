@@ -14,6 +14,7 @@ from queue import PriorityQueue
 from dask.distributed import as_completed
 
 from leap import ops
+from leap import util
 
 # Create unique logger for this namespace
 logger = logging.getLogger(__name__)
@@ -59,6 +60,9 @@ class Parallel:
         # current "pool" of individuals that always contains the fittest
         # individuals so far
         self.current_population = PriorityQueue(self.max_pool_size)
+
+        # We want to tag each individual with a unique birth ID
+        self.birth_brander = util.birth_brander()
 
     @classmethod
     def evaluate(cls, individual):
@@ -110,6 +114,7 @@ class Parallel:
         return toolz.pipe(population,
                           ops.random_selection,
                           ops.clone,
+                          self.birth_brander,
                           ops.mutate_bitflip,
                           ops.pool(size=1))
 
@@ -147,10 +152,17 @@ class Parallel:
         :return: The initial population to be sent in bulk to the workers for
         evaluation
         """
-        return class_individual.create_population(init_pop_size,
+        initial_population = class_individual.create_population(init_pop_size,
                                                   initialize=initializer,
                                                   problem=problem,
                                                   decoder=decoder)
+        # Just run the initial population through the birth ID brander to
+        # ensure we start out with proper birth IDS for each of them.
+        branded_population = toolz.pipe(initial_population,
+                                        self.birth_brander,
+                                        ops.pool(size=len(initial_population)))
+
+        return branded_population
 
     def do(self, class_individual, initializer, init_pop_size, problem, decoder):
         """ Update a pool of individuals from dask workers until a budget of
