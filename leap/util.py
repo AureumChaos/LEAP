@@ -5,6 +5,8 @@
     print_list : for pretty printing a list when pprint isn't sufficient.
 """
 import collections
+import itertools
+import inspect
 
 # ##############################
 # Function is_sequence
@@ -26,6 +28,17 @@ def is_sequence(obj):
     return isinstance(obj, collections.abc.Sequence)
 
 
+def is_iterable(obj):
+    """
+    :param obj: that we want to determine is a generator
+    :return: True if obj can use next(obj)
+    """
+    return inspect.isgenerator(obj) or inspect.isgeneratorfunction(obj)
+
+
+# ##############################
+# Function inc_generation
+# ##############################
 def inc_generation(context, callbacks=()):
     """ This tracks the current generation
 
@@ -74,6 +87,9 @@ def inc_generation(context, callbacks=()):
     return do_increment
 
 
+# ##############################
+# Function print_list
+# ##############################
 def print_list(l):
     """
     Return a string representation of a list.
@@ -94,6 +110,89 @@ def print_list(l):
     :return:
     """
     print('[' + ', '.join([x.__str__() for x in l]) + ']')
+
+
+# ##############################
+# Function birth_brander
+# ##############################
+def birth_brander():
+    """ This pipeline operator will add or update a "birth" attribute for
+    passing individuals.
+
+    If the individual already has a birth, just let it float by with the
+    original value.  If it doesn't, assign the individual the current birth
+    ID, and then increment the global, stored birth count.
+
+    We don't increment a birth ID in the ctor because that overall birth
+    count will bloat due to clone operations.  Inserting this operator into
+    the pipeline will ensure that each individual that passes through is
+    properly "branded" with a unique birth ID.  However, care must be made to
+    ensure that the initial population is similarly branded.
+
+    Provides:
+
+    * brand_population() to brand an entire population all at once,
+    which is useful for branding initial populations.
+    * brand() for explicitly branding a single individual
+
+    :param next_thing: preceding individual in the pipeline
+    :return: branded individual
+    """
+    # incremented with each birth
+    num_births = itertools.count()
+
+    # sometimes next_thing is a population, so we need this to track that
+    # the next individual in the population
+    iterator = None
+
+    def brand(individual):
+        """ brand the given individual
+        :param individual: to be branded
+        :return: branded individual
+        """
+        if not hasattr(individual, "birth"):
+            # Only assign a birth ID if they don't already have one
+            individual.birth = next(num_births)
+        return individual
+
+    def brand_population(population):
+        """ We want to brand an entire population in one go
+
+        Usually used to brand an initial population is one shot.
+
+        :param population: to be branded
+        :return: branded population
+        """
+        return [brand(i) for i in population]
+
+    def do_birth_branding(next_thing):
+        """ This has the flexibility of being inserted in a pipeline such that
+        the preceding pipeline is a population or a generator that provides
+        an individual.  It'll flexibly handle either situation.
+
+        :param next_thing: either the next individual in the pipeline or a population of individuals to be branded
+        :return: branded individual
+        """
+        nonlocal num_births
+        nonlocal iterator
+
+        while True:
+            if is_iterable(next_thing):
+                # We're being passed in a single individual in a pipeline
+                next_thing = next(next_thing)
+            else:
+                # We're being passed a sequence/population
+                if iterator is None:
+                    iterator = iter(next_thing)
+                next_thing = next(iterator)
+
+            next_thing = brand(next_thing)
+
+            yield next_thing
+
+    do_birth_branding.brand_population = brand_population
+
+    return do_birth_branding
 
 
 if __name__ == '__main__':
