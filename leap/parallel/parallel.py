@@ -136,18 +136,25 @@ class Parallel:
         return individual.fitness is not None
 
     def create_initial_population(self, class_individual, init_pop_size,
-                                  problem, encoding):
+                                  initializer,
+                                  problem, decoder):
         """ This can be over-ridden for, say, creating a population from a
         checkpoint.
 
+        :param class_individual: is Class of Individual to be replicated
+        :param init_pop_size: how large do we want the initial population to be?
+        :param initializer: mechanism for creating new individuals
+        :param problem: we are trying to solve
+        :param decoder: for decoding genome to meaningful values
         :return: The initial population to be sent in bulk to the workers for
         evaluation
         """
         return class_individual.create_population(init_pop_size,
+                                                  initialize=initializer,
                                                   problem=problem,
-                                                  encoding=encoding)
+                                                  decoder=decoder)
 
-    def do(self, class_individual, init_pop_size, problem, encoding):
+    def do(self, class_individual, initializer, init_pop_size, problem, decoder):
         """ Update a pool of individuals from dask workers until a budget of
         births is met, or some other stopping criteria.
 
@@ -156,12 +163,10 @@ class Parallel:
 
         :param class_individual: the class from which we will be creating
         individuals
-
+        :param initializer: to create individuals
         :param init_pop_size: is the size of the initial population
-
         :param problem: that we're trying to solve
-
-        :param encoding: how the individuals represent posed solutions for
+        :param decoder: how the individuals represent posed solutions for
         the problem
 
         :return: final population
@@ -171,7 +176,8 @@ class Parallel:
         # create initial population
         parent_population = self.create_initial_population(class_individual,
                                                            init_pop_size,
-                                                           problem, encoding)
+                                                           initializer,
+                                                           problem, decoder)
 
         logger.debug('parents: %s', pformat(parent_population))
 
