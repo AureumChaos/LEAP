@@ -15,8 +15,6 @@ from dask.distributed import as_completed
 
 from leap import ops
 
-__all__ = ['Parallel']
-
 # Create unique logger for this namespace
 logger = logging.getLogger(__name__)
 
@@ -39,8 +37,7 @@ DEFAULT_MAX_BIRTHS = 100
 
 class Parallel:
     """ Allows for concurrent, distributed fitness evaluations using a
-    steady-state approach.  Can be asynchronous depending on the dask Client
-    used.
+    steady-state approach.
     """
 
     def __init__(self, client, max_births, pool_size):
@@ -114,7 +111,8 @@ class Parallel:
                           ops.random_selection,
                           ops.clone,
                           ops.mutate_bitflip,
-                          ops.pool(size=1)
+                          ops.pool(size=1))
+
 
     def check_if_evaluated(self, individual):
         """ Have an opportunity to handle individuals that have just been
