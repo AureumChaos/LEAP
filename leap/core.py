@@ -176,6 +176,11 @@ class Individual:
     def evaluate(self):
         self.fitness = self.problem.evaluate(self.decode())
 
+        # Even though we've already *set* the fitness, it may be useful to also
+        # *return* it to give more options to the programmer for using the
+        # newly evaluated fitness.
+        return self.fitness
+
     def __iter__(self):
         """
         :raises: exception if self.genome is None
@@ -244,26 +249,26 @@ class Individual:
 # Abstract Base Class Decoder
 ##############################
 class Decoder(abc.ABC):
-    """Decoders in LEAP implement how solutions to a problem are represented.  Specifically, a 
-    :py:class:`~leap.core.Decoder` converts  an :py:class:`~leap.core.Individual`'s *genotype* (which is a format 
-    that can easily be manipulated by mutation and recombination operators) into a *phenotype* (which is a format 
+    """Decoders in LEAP implement how solutions to a problem are represented.  Specifically, a
+    :py:class:`~leap.core.Decoder` converts  an :py:class:`~leap.core.Individual`'s *genotype* (which is a format
+    that can easily be manipulated by mutation and recombination operators) into a *phenotype* (which is a format
     that can be fed directly into a  :py:class:`~leap.problem.Problem` object to obtain a fitness value).
 
     Genotypes and phenotypes can be of arbitrary type, from a simple list of numbers to a complex data structure.
-    Choosing a good genotypic representation and genotype-to-phenotype mapping for a given problem domain is a 
-    critical part of evolutionary algorithm design: the :py:class:`~leap.core.Decoder` object that an algorithm uses 
+    Choosing a good genotypic representation and genotype-to-phenotype mapping for a given problem domain is a
+    critical part of evolutionary algorithm design: the :py:class:`~leap.core.Decoder` object that an algorithm uses
     can have a big impact on the effectiveness of your metaheuristics.
 
-    In LEAP, a :py:class:`~leap.core.Decoder` is typically used by :py:class:`~leap.core.Individual` as an 
+    In LEAP, a :py:class:`~leap.core.Decoder` is typically used by :py:class:`~leap.core.Individual` as an
     intermediate step in calculating its own fitness.
 
-    For example, say that we want to use a binary-represented :py:class:`~leap.core.Individual` to solve a 
-    real-valued optimization problem, such as :py:class:`~leap.real_problems.SchwefelProblem`.  Here, the 
+    For example, say that we want to use a binary-represented :py:class:`~leap.core.Individual` to solve a
+    real-valued optimization problem, such as :py:class:`~leap.real_problems.SchwefelProblem`.  Here, the
     genotype is a vector of binary values, whereas the phenotype is its corresponding float vector.
-    
-    We can use a :py:class:`~leap.core.BinaryToIntDecoder` to express this mapping.  And when we initialize an 
+
+    We can use a :py:class:`~leap.core.BinaryToIntDecoder` to express this mapping.  And when we initialize an
     individual, we give it all three pieces of this information:
-    
+
     >>> from leap import core, real_problems
     >>> genome = [0, 1, 1, 0, 1, 0, 1, 1]
     >>> decoder = BinaryToRealDecoder((4, -5.12, 5.12), (4, -5.12, 5.12))  # Every 4 bits map to a float on (-5.12, 5.12)

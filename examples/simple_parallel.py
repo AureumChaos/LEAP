@@ -32,6 +32,7 @@ import socket
 import os
 import argparse
 import random
+import uuid
 from time import sleep
 
 from dask.distributed import Client, LocalCluster
@@ -67,6 +68,9 @@ class MyIndividual(core.Individual):
 
     def __init__(self, genome, decoder=None, problem=None):
         super().__init__(genome, decoder, problem)
+
+        # Used to uniquely identify this individual
+        self.uuid = uuid.uuid4()
 
     # def __repr__(self):
     #     return " ".join([str(self.uuid), str(self.birth), str(self.fitness),
