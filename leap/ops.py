@@ -285,8 +285,7 @@ def n_ary_crossover(next_individual, num_points=1):
 ##############################
 # Function mutate_gaussian
 ##############################
-@curry
-def mutate_gaussian(next_individual, std, expected=None, hard_bounds=(-np.inf, np.inf)):
+def mutate_gaussian(std, expected=None, hard_bounds=(-np.inf, np.inf)):
     """ mutate and return an individual with a real-valued representation
 
     TODO hard_bounds should also be able to take a sequence —Siggy
@@ -299,7 +298,7 @@ def mutate_gaussian(next_individual, std, expected=None, hard_bounds=(-np.inf, n
     :param hard_bounds: to clip for mutations; defaults to (- ∞, ∞)
     :return: a generator of mutated individuals.
     """
-    def add_gauss(x, std):
+    def add_gauss(x, std, probability):
         if random.random() < probability:
             return random.gauss(x, std)
         else:
@@ -308,26 +307,29 @@ def mutate_gaussian(next_individual, std, expected=None, hard_bounds=(-np.inf, n
     def clip(x):
         return max(hard_bounds[0], min(hard_bounds[1], x))
 
-    while True:
-        individual = next(next_individual)
+    def mutate(next_individual):
+        while True:
+            individual = next(next_individual)
 
-        # compute actual probability of mutation based on expected number of
-        # mutations and the genome length
-        if expected is None:
-            probability = 1.0
-        else:
-            probability = compute_expected_probability(expected, individual.genome)
+            # compute actual probability of mutation based on expected number of
+            # mutations and the genome length
+            if expected is None:
+                p = 1.0
+            else:
+                p = compute_expected_probability(expected, individual.genome)
 
-        if util.is_sequence(std):
-            # We're given a vector of "shadow standard deviations" so apply
-            # each sigma individually to each gene
-            individual.genome = [clip(add_gauss(x, s)) for x, s in zip(individual.genome, std)]
-        else:
-            individual.genome = [clip(add_gauss(x, std)) for x in individual.genome]
+            if util.is_sequence(std):
+                # We're given a vector of "shadow standard deviations" so apply
+                # each sigma individually to each gene
+                individual.genome = [clip(add_gauss(x, s, p)) for x, s in zip(individual.genome, std)]
+            else:
+                individual.genome = [clip(add_gauss(x, std, p)) for x in individual.genome]
 
-        individual.fitness = None # invalidate fitness since we have new genome
+            individual.fitness = None # invalidate fitness since we have new genome
 
-        yield individual
+            yield individual
+            
+    return mutate
 
 
 ##############################
