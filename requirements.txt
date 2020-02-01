@@ -5,6 +5,8 @@
 
 click
 coveralls
+dask
+distributed
 gym
 jupyter
 m2r
@@ -13,6 +15,7 @@ nbconvert
 nbformat
 networkx
 numpy
+pandas
 pytest
 pytest-cov
 python-coveralls
