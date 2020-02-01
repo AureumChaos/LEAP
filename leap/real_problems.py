@@ -112,12 +112,12 @@ class RastriginProblem(ScalarProblem):
 
         >>> phenome = [1.0/12, 0]
         >>> RastriginProblem().evaluate(phenome) # +doctest: ELLIPSIS
-        3.872969...
+        0.1409190406...
 
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness
         """
-        return self.a * len(phenome) + sum([x ** 2 + self.a * np.cos(2 * np.pi * x) for x in phenome])
+        return self.a * len(phenome) + sum([x ** 2 - self.a * np.cos(2 * np.pi * x) for x in phenome])
 
     def worse_than(self, first_fitness, second_fitness):
         """
