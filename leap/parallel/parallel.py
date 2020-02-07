@@ -111,7 +111,7 @@ class Parallel:
         :param population: the current pool of already evaluated individuals
         :return: newly created child
         """
-        return toolz.pipe(population,
+        return toolz.pipe(population, # rename to pool
                           ops.random_selection,
                           ops.clone,
                           self.birth_brander,
