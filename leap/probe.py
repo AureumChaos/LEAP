@@ -148,9 +148,8 @@ class AttributesCSVProbe(op.Operator):
     """
 
     def __init__(self, context, attributes=(), stream=sys.stdout, do_dataframe=False, best_only=False, header=True, do_fitness=False,
-                 do_genome=False, note='', job=None):
-        assert (stream is not None)
-        assert (hasattr(stream, 'write'))
+                 do_genome=False, notes={}, computed_columns={}, job=None):
+        assert ((stream is None) or hasattr(stream, 'write'))
         assert (len(attributes) >= 0)
         self.context = context
         self.stream = stream
@@ -159,7 +158,8 @@ class AttributesCSVProbe(op.Operator):
 
         self.do_fitness = do_fitness
         self.do_genome = do_genome
-        self.note = note
+        self.notes = notes
+        self.computed_columns = computed_columns
         self.job = job
         self.do_dataframe = do_dataframe
 
@@ -169,12 +169,14 @@ class AttributesCSVProbe(op.Operator):
         fieldnames = ['step'] + list(attributes)
         if job:
             fieldnames.append('job')
-        if note is not '':
-            fieldnames.append('note')
+        for name in notes.keys():
+            fieldnames.append(name)
         if do_fitness:
             fieldnames.append('fitness')
         if do_genome:
             fieldnames.append('genome')
+        for name in computed_columns.keys():
+            fieldnames.append(name)
 
         self.fieldnames = fieldnames
 
@@ -182,6 +184,7 @@ class AttributesCSVProbe(op.Operator):
             # We'll store rows of data as dicts in this list as we collect them
             self.data = []
 
+        self.writer = None
         if stream is not None:
             # We'll write rows of data to this stream as we collect them
             self.writer = csv.DictWriter(stream, fieldnames=fieldnames, lineterminator='\n')
@@ -190,6 +193,7 @@ class AttributesCSVProbe(op.Operator):
 
     @property
     def dataframe(self):
+        """Property for retrieving a Pandas DataFrame representation of the collected data."""
         if not self.do_dataframe:
             raise ValueError('Tried to retrieve a dataframe of results, but this ' + 
                              f'{type(AttributesCSVProbe).__name__} was initialized with dataframe=False.')
@@ -198,6 +202,8 @@ class AttributesCSVProbe(op.Operator):
         return pd.DataFrame(self.data, columns=self.fieldnames)
 
     def __call__(self, population):
+        """When called (i.e. as part of an operator pipeline), take a population of individuals and collect data 
+        from it."""
         assert (population is not None)
         assert ('leap' in self.context)
         assert ('generation' in self.context['leap'])
@@ -215,6 +221,7 @@ class AttributesCSVProbe(op.Operator):
         return population
 
     def get_row_dict(self, ind):
+        """Compute a full row of data from a given individual."""
         row = {'step': self.context['leap']['generation']}
 
         for attr in self.attributes:
@@ -224,13 +231,15 @@ class AttributesCSVProbe(op.Operator):
 
         if self.job:
             row['job'] = self.job
-        if self.note is not '':
-            row['note'] = self.note
+        for k, v in self.notes.items():
+            row[k] = v
         if self.do_fitness:
             row['fitness'] = ind.fitness
         if self.do_genome:
             row['genome'] = str(ind.genome)
-        
+        for k, f in self.computed_columns.items():
+            row[k] = f(row)
+
         return row
 
 

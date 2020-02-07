@@ -287,6 +287,10 @@ class Decoder(abc.ABC):
     But now :py:class:`~leap.core.Individual` also has everything it needs to evaluate its own fitness:
 
     >>> ind.evaluate()
+    836.4453949...
+
+    Calling `evaluate()` also has the side effect of setting the fitness attribute:
+    
     >>> ind.fitness
     836.4453949...
 
