@@ -8,7 +8,8 @@ from toolz import curry
 from leap import core
 
 
-def evaluate(individual):
+@curry
+def evaluate(individual, context=core.context):
     """ concurrently evaluate the given individual
 
     This is what's invoked on each dask worker.
@@ -41,7 +42,7 @@ def eval_population(population, client, context=core.context):
     :return: evaluated population
     """
     # farm out population to worker nodes for evaluation
-    worker_futures = self.client.map(evaluate, population)
+    worker_futures = self.client.map(evaluate(context=context), population)
 
     # now gather all the *completed* evaluations; note that some of the
     # evaluations may complete much earlier than others, which means those
