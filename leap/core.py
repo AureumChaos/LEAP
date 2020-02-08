@@ -22,7 +22,13 @@ from leap import util
 # intent is for certain operators and functions to add to and modify this
 # context.  Third party operators and functions will just add a new top-level
 # dedicated key.
-context = {'leap': {}}
+# context['leap'] is for storing general LEAP running state, such as current
+#    generation.
+# context['leap']['parallel'] is for storing leap.parallel running state
+# context['leap']['parallel']['non_viable'] accumulates counts of non-viable
+#    individuals during parallel.sync_eval_pool() and
+#    parallel.async_eval_pool() runs.
+context = {'leap': {'parallel': {'non_viable': 0}}}
 
 
 ##############################
@@ -290,7 +296,7 @@ class Decoder(abc.ABC):
     836.4453949...
 
     Calling `evaluate()` also has the side effect of setting the fitness attribute:
-    
+
     >>> ind.fitness
     836.4453949...
 
