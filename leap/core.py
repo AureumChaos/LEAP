@@ -128,9 +128,6 @@ class Individual:
         self.decoder = decoder
         self.fitness = None
 
-        # A dict to hold application-specific attributes
-        self.attributes = dict()
-
     @classmethod
     def create_population(cls, n, initialize, decoder, problem):
         """
