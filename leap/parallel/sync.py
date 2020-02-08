@@ -34,15 +34,37 @@ def sync_eval_pool(next_individual, client, size, context=core.context):
     def evaluate(individual):
         """ concurrently evaluate the given individual
 
+        This is what's invoked on each dask worker.
+
         :param individual: to be evaluated
         :return: evaluated individual
         """
         try:
             individual.evaluate()
         except Exception as e:
+            # Set fitness to NaN to indicate we *tried* to evaluate the
+            # individual; also save the associated exception so we can
+            # (hopefully) figure out what went wrong.
             individual.fitness = math.nan
+            individual.exception = e
+
+            # We track the number of such failures on the off chance that this
+            # might be useful.
+            context['leap']['parallel']['non_viable'] += 1
 
         return individual
 
     # First, accumulate individuals to be evaluated
     unevaluated_offspring = [next(next_individual) for _ in range(size)]
+
+    # farm out population to worker nodes for evaluation
+    worker_futures = self.client.map(evaluate, unevaluated_offspring)
+
+    # now gather all the *completed* evaluations; note that some of the
+    # evaluations may complete much earlier than others, which means those
+    # related computational resources will idle until the last offspring is
+    # evaluated.  If this is a problem, please consider using async_eval_pool,
+    # instead.
+    evaluated_offspring = client.gather(worker_futures)
+
+    return evaluated_offspring
