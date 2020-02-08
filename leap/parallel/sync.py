@@ -42,7 +42,7 @@ def eval_population(population, client, context=core.context):
     :return: evaluated population
     """
     # farm out population to worker nodes for evaluation
-    worker_futures = self.client.map(evaluate(context=context), population)
+    worker_futures = client.map(evaluate(context=context), population)
 
     # now gather all the *completed* evaluations; note that some of the
     # evaluations may complete much earlier than others, which means those
