@@ -26,7 +26,7 @@ from leap import util
 #    generation.
 # context['leap']['parallel'] is for storing leap.parallel running state
 # context['leap']['parallel']['non_viable'] accumulates counts of non-viable
-#    individuals during parallel.sync_eval_pool() and
+#    individuals during parallel.eval_pool() and
 #    parallel.async_eval_pool() runs.
 context = {'leap': {'parallel': {'non_viable': 0}}}
 
