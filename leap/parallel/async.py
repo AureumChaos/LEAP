@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """
-  This provides a synchronous fitness evaluation pipeline operator.
+  This provides an asynchronous steady-state fitness evaluation pipeline
+  operator.
 """
 from toolz import curry
+
+from dask.distributed import as_completed
 
 from leap import core
 
@@ -15,24 +18,20 @@ def eval_population(population, client, context=core.context):
     :param population: to be evaluated
     :param client: dask client
     :param context: for storing count of non-viable individuals
-    :return: evaluated population
+    :return: dask distributed iterator for futures
     """
     # farm out population to worker nodes for evaluation
     worker_futures = client.map(evaluate(context=context), population)
 
-    # now gather all the *completed* evaluations; note that some of the
-    # evaluations may complete much earlier than others, which means those
-    # related computational resources will idle until the last offspring is
-    # evaluated.  If this is a problem, please consider using async_eval_pool,
-    # instead.
-    evaluated_individuals = client.gather(worker_futures)
-
-    return evaluated_individuals
+    # We'll need this later to catch eval tasks as they complete, and to
+    # submit new tasks.
+    return as_completed(worker_futures)
 
 
 @curry
-def eval_pool(next_individual, client, size, context=core.context):
-    """ concurrently evaluate `size` individuals
+def eval_pool(next_individual, client, futures_iter, pool_size, num_births,
+              context=core.context):
+    """ Asynchronously evaluate `size` individuals
 
     This is similar to ops.pool() in that it's a "sink" for accumulating
     individuals by "pulling" individuals from upstream the pipeline via
@@ -50,14 +49,10 @@ def eval_pool(next_individual, client, size, context=core.context):
 
     :param next_individual: iterator/generator for individual provider
     :param client: dask client through which we submit individuals to be evaluated
-    :param size: how many individuals to evaluate simultaneously.
+    :param futures_iter: dask distributed iterator to futures of individuals
+        that are being evaluated or have finished evaluating
+    :param pool_size: how many evaluated individuals to keep
+    :param num_births: birth budget
     :param context: for storing count of non-viable individuals
     :return: the pool of evaluated individuals
     """
-    # First, accumulate individuals to be evaluated
-    unevaluated_offspring = [next(next_individual) for _ in range(size)]
-
-    evaluated_offspring = eval_population(unevaluated_offspring, client,
-                                          context)
-
-    return evaluated_offspring
