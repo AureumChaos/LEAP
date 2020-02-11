@@ -1,3 +1,8 @@
+"""
+Defines the abstract-base classes Problem, ScalarProblem,
+and FunctionProblem.
+
+"""
 from abc import ABC, abstractmethod
 
 

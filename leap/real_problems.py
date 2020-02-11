@@ -1,13 +1,12 @@
-"""This module contains a variety of classic real-valued optimization problems that frequently occur in research
-benchmarks.
+#!/usr/bin/env python3
+""" This module contains a variety of classic real-valued optimization
+problems that frequently occur in research benchmarks.
 
-It also contains helpers for translating, rotating, and visualizing them."""
-
-import random
+It also contains helpers for translating, rotating, and visualizing them.
+"""
 import warnings
 
 from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 from leap.problem import ScalarProblem
@@ -1024,14 +1023,14 @@ class MatrixTransformedProblem(ScalarProblem):
         We accomplish this by generating a random orthonormal basis for R^n and plugging the resulting matrix into
         :class:`~leap.real_problems.MatrixTransformedProblem`.
 
-        The classic algorithm we use here is based on the Gramm-Schmidt process: we first generate a set of random vectors, and 
+        The classic algorithm we use here is based on the Gramm-Schmidt process: we first generate a set of random vectors, and
         then convert them into an orthonormal basis.  This approach is described in Hansen and Ostermeier's original CMA-ES paper:
 
         "Completely derandomized self-adaptation in evolution strategies." *Evolutionary Computation* 9.2 (2001): 159-195.
 
         :param problem: the original :class:`~leap.real_problems.ScalarProblem` to apply the transform to.
         :param int dimensions: the number of elements each vector should have.
-        :param bool maximize: whether to maximize or minimize the resulting fitness function.  Defaults to whatever setting the 
+        :param bool maximize: whether to maximize or minimize the resulting fitness function.  Defaults to whatever setting the
             underlying problem uses.
 
         .. plot::
@@ -1158,7 +1157,7 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface', ax=None, granularity=No
        real_problems.plot_2d_problem(real_problems.RastriginProblem(), ax=plt.gca(), kind='contour', xlim=bounds, ylim=bounds)
 
     """
-    
+
     def call(phenome):
         return problem.evaluate(phenome)
 
@@ -1279,3 +1278,7 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None):
     xx, yy = np.meshgrid(x, y)
 
     return ax.contour(xx, yy, v_fun(xx, yy))
+
+
+if __name__ == '__main__':
+    pass
