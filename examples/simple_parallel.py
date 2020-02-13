@@ -41,7 +41,7 @@ from leap import core
 from leap import ops
 from leap import binary_problems
 from leap import util
-import leap.parallel.parallel
+import leap.distributed.parallel
 
 # Create unique logger for this namespace
 logger = logging.getLogger(__name__)
@@ -187,9 +187,9 @@ if __name__ == '__main__':
 
         logger.info('Client: %s', client)
 
-        my_parallel = leap.parallel.parallel.Parallel(client,
-                                                      max_births=args.max_births,
-                                                      pool_size=args.pool_size)
+        my_parallel = leap.distributed.parallel.Parallel(client,
+                                                         max_births=args.max_births,
+                                                         pool_size=args.pool_size)
 
         final_pop = my_parallel.do(MyIndividual,
                                    initializer=core.create_binary_sequence(4),
