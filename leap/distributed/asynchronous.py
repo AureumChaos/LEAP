@@ -174,9 +174,11 @@ def steady_state(client, births, init_pop_size, bag_size, individual_cls, initia
             logger.debug('created offspring: ')
             [logger.debug('%s', str(o.genome)), for o in offspring]
 
-            # Now asyncrhonously submit to dask
+            # Now asynchronously submit to dask
             as_completed_iter.add(
                 client.map(evaluate.evaluate(context=core.context),
                               offspring))
 
             birth_count.do_increment(len(offspring))
+
+    return bag
