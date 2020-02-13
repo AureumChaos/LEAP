@@ -7,7 +7,7 @@ from toolz import curry
 
 from leap import core
 
-from evaluate import evaluate
+from .evaluate import evaluate
 
 # Create unique logger for this namespace
 logger = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ def eval_pool(next_individual, client, size, context=core.context):
     If an exception is thrown while evaluating an individual, NaN is assigned as
     its fitness, individual.is_viable is set to False, and the associated
     exception is assigned to individual.exception as a post mortem aid; also
-    core.context['leap']['parallel']['non_viables'] count is incremented if you
+    core.context['leap']['distributed']['non_viables'] count is incremented if you
     want to track the number of non-viable individuals (i.e., those that have
     an exception thrown during evaluation); just remember to reset that between
     runs if that variable has been updated.

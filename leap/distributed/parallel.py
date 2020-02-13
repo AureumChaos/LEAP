@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-    LEAP sub-module supporting parallel evaluations using dask.
+    LEAP sub-module supporting distributed evaluations using dask.
 
 """
 import random

@@ -29,7 +29,7 @@ def evaluate(individual, context=core.context):
 
         # We track the number of such failures on the off chance that this
         # might be useful.
-        context['leap']['parallel']['non_viable'] += 1
+        context['leap']['distributed']['non_viable'] += 1
 
     return individual
 

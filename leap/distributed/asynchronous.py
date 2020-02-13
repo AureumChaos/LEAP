@@ -12,11 +12,11 @@ import random
 import logging
 from toolz import curry
 
-from dask.distributed import as_completed
+from dask.distributed import Client, as_completed
 
 from leap import core
 
-from evaluate import evaluate
+from .evaluate import evaluate
 
 # Create unique logger for this namespace
 logger = logging.getLogger(__name__)
@@ -53,7 +53,6 @@ def replace_if(new_individual, bag, index):
     with new_individual depending on which has higher fitness.
 
     :param new_individual: is a newly evaluated individual
-    :param second:
     :param bag: of already evaluated individuals
     :param index: of individual in bag to be compared against
     :return: None
@@ -66,31 +65,44 @@ def replace_if(new_individual, bag, index):
                      bag[index])
 
 
-def insert_into_bag(indivdidual, bag):
+def insert_into_bag(indivdidual, bag, max_size):
     """ Insert the given individual into the bag of evaluated individuals.
 
     Randomly select an individual in the bag, and the `individual` will
     replace the selected individual iff it has a better fitness.
 
+    Just insert individuals if the bag isn't at capacity yet
+
     :param indivdidual: that was just evaluated
     :param bag: of already evaluated individuals
+    :param max_size: of the bag
     :return: None
     """
-    rand_index = random.randrange(len(bag))
-    replace_if(indivdidual, rand_index, bag)
+    if len(bag) <= max_size:
+        logger.debug('bag not at capacity, so just inserting')
+        bag.append(indivdidual)
+    else:
+        rand_index = random.randrange(len(bag))
+        replace_if(indivdidual, bag, rand_index)
 
 
 
-def greedy_insert_into_bag(individual, bag):
+def greedy_insert_into_bag(individual, bag, max_size):
     """ Insert the given individual into the bag of evaluated individuals.
 
     This is greedy because we always compare the new `individual` with the
     current weakest in the bag.
 
+    Just insert individuals if the bag isn't at capacity yet
+
     :param individual: that was just evaluated
     :param bag: of already evaluated individuals
     :return: None
     """
-    # From https://stackoverflow.com/questions/2474015/getting-the-index-of-the-returned-max-or-min-item-using-max-min-on-a-list
-    index_min = min(range(len(bag)), key=bag.__getitem__)
-    replace_if(individual, bag, index_min)
+    if len(bag) <= max_size:
+        logger.debug('bag not at capacity, so just inserting')
+        bag.append(individual)
+    else:
+        # From https://stackoverflow.com/questions/2474015/getting-the-index-of-the-returned-max-or-min-item-using-max-min-on-a-list
+        index_min = min(range(len(bag)), key=bag.__getitem__)
+        replace_if(individual, bag, index_min)
