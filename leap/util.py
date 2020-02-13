@@ -90,7 +90,7 @@ def inc_generation(context, callbacks=()):
 # ##############################
 # Function inc_births
 # ##############################
-def inc_births(context, callbacks=()):
+def inc_births(context, start=0, callbacks=()):
     """ This tracks the current number of births
 
     The `context` is used to report the current births, though that
@@ -104,26 +104,28 @@ def inc_births(context, callbacks=()):
     >>> my_inc_births = inc_births()
 
     :param context: will set ['leap']['births'] to the incremented births
+    :param start: if we want to start counter at a higher value; e.g., take
+        into consideration births of an initial population
     :param callbacks: optional list of callback function to call when a
             birth numberis incremented
     :return: function for incrementing births
     """
-    curr_births  = 0
+    curr_births = start
     context = context
-    context['leap']['births'] = 0
+    context['leap']['births'] = start
     callbacks = callbacks
 
     def births():
         return curr_births
 
-    def do_increment():
+    def do_increment(size=1):
         nonlocal curr_births
         nonlocal context
         nonlocal callbacks
-        curr_births += 1
+        curr_births += size
 
         # Update the context
-        context['leap']['births'] = curr_births
+        context['leap']['births'] += size
 
         # Now echo the new generation to all the registered callbacks.
         # TODO There is probably a more pythonic way to do this
@@ -131,7 +133,20 @@ def inc_births(context, callbacks=()):
 
         return curr_births
 
+    def do_decrement():
+        # Sometimes we want to decrement, as is the case for compensating
+        # for non-viable individuals
+        nonlocal curr_births
+        nonlocal context
+        nonlocal callbacks
+        curr_births -= 1
+
+        # Update the context
+        context['leap']['births'] -= 1
+
+
     do_increment.births = births
+    do_increment.do_decrement = do_decrement
 
     return do_increment
 
