@@ -10,6 +10,7 @@
 """
 import random
 import logging
+import math
 from toolz import curry
 
 from dask.distributed import Client, as_completed
@@ -58,7 +59,13 @@ def replace_if(new_individual, bag, index):
     :param index: of individual in bag to be compared against
     :return: None
     """
-    if new_individual > bag[index]:
+    # If individual in the bag has a NaN, that means it's non-viable, and will
+    # *always lose*, even if the new individual is also a NaN.  (Thus assuring
+    # there is churn in the bag.
+    if bag[index].fitness == math.nan:
+        logger.debug('Replacing %s for %s due to non-viable individual', new_individual, bag[index])
+        bag[index] = new_individual
+    elif new_individual > bag[index]:
         logger.debug('Replaced %s with %s', new_individual, bag[index])
         bag[index] = new_individual
     else:
