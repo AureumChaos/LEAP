@@ -19,6 +19,7 @@ def evaluate(individual, context=core.context):
     """
     try:
         individual.evaluate()
+        individual.is_viable = True
     except Exception as e:
         # Set fitness to NaN to indicate we *tried* to evaluate the
         # individual; also save the associated exception so we can
