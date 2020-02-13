@@ -8,6 +8,7 @@ import collections
 import itertools
 import inspect
 
+
 # ##############################
 # Function is_sequence
 # ##############################
@@ -39,7 +40,7 @@ def is_iterable(obj):
 # ##############################
 # Function inc_generation
 # ##############################
-def inc_generation(context=core.context, callbacks=()):
+def inc_generation(context, callbacks=()):
     """ This tracks the current generation
 
     The `context` is used to report the current generation, though that
@@ -89,7 +90,7 @@ def inc_generation(context=core.context, callbacks=()):
 # ##############################
 # Function inc_births
 # ##############################
-def inc_births(context=core.context, callbacks=()):
+def inc_births(context, callbacks=()):
     """ This tracks the current number of births
 
     The `context` is used to report the current births, though that

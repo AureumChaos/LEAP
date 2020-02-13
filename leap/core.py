@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
     Classes related to individuals that represent posed solutions.
 
@@ -24,11 +25,11 @@ from leap import util
 # dedicated key.
 # context['leap'] is for storing general LEAP running state, such as current
 #    generation.
-# context['leap']['parallel'] is for storing leap.parallel running state
-# context['leap']['parallel']['non_viable'] accumulates counts of non-viable
-#    individuals during parallel.eval_pool() and
-#    parallel.async_eval_pool() runs.
-context = {'leap': {'parallel': {'non_viable': 0}}}
+# context['leap']['distributed'] is for storing leap.distributed running state
+# context['leap']['distributed']['non_viable'] accumulates counts of non-viable
+#    individuals during distributed.eval_pool() and
+#    distributed.async_eval_pool() runs.
+context = {'leap': {'distributed': {'non_viable': 0}}}
 
 
 ##############################
