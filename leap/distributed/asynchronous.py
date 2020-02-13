@@ -78,7 +78,7 @@ def insert_into_bag(indivdidual, bag, max_size):
     :param max_size: of the bag
     :return: None
     """
-    if len(bag) <= max_size:
+    if len(bag) < max_size:
         logger.debug('bag not at capacity, so just inserting')
         bag.append(indivdidual)
     else:
@@ -99,7 +99,7 @@ def greedy_insert_into_bag(individual, bag, max_size):
     :param bag: of already evaluated individuals
     :return: None
     """
-    if len(bag) <= max_size:
+    if len(bag) < max_size:
         logger.debug('bag not at capacity, so just inserting')
         bag.append(individual)
     else:
