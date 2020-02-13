@@ -15,6 +15,7 @@ from toolz import curry
 from dask.distributed import Client, as_completed
 
 from leap import core
+from leap import util
 
 from .evaluate import evaluate
 
@@ -106,3 +107,76 @@ def greedy_insert_into_bag(individual, bag, max_size):
         # From https://stackoverflow.com/questions/2474015/getting-the-index-of-the-returned-max-or-min-item-using-max-min-on-a-list
         index_min = min(range(len(bag)), key=bag.__getitem__)
         replace_if(individual, bag, index_min)
+
+
+def is_viable(individual):
+    """
+    evaluate.evaluate() will set an individual's fitness to NaN and the
+    attributes `is_viable` to False, and will assign any exception triggered
+    during the individuals evaluation to `exception`.  This just checks the
+    individual's `is_viable`; if it doesn't have one, this assumes it is viable.
+
+    :param individual:
+    :return: True if individual is viable
+    """
+    if hasattr(individual, 'is_viable'):
+        return individual.is_viable
+    else
+        return True
+
+
+def steady_state(client, births, init_pop_size, bag_size, individual_cls, initializer, decoder, problem, pipeline, count_nonviable=False):
+    """ Implements an asynchronous steady-state EA
+
+    :param client: Dask client that should already be set-up
+    :param births: how many births are we allowing?
+    :param init_pop_size: size of initial population
+    :param bag_size: how large should the bag be?
+    :param individual_cls: class prototype for Individual to be used
+    :param initializer: how to initialize genomes for the first random population
+    :param decoder: to to translate the genome into something the problem can understand
+    :param problem: to be solved
+    :param pipeline: for creating new offspring from the bag
+    :param count_nonviable: True if we want to count non-viable individuals towards the birth budget
+    :return: the bag containing the final individuals
+    """
+    initial_population = individual_cls.create_population(init_pop_size,
+                                                initialize=initializer,
+                                                decoder=decoder, problem=problem)
+
+    # fan out the entire initial population to dask workers
+    as_completed_iter = eval_population(initial_population, client=client)
+
+    # This is where we'll be putting evaluated individuals
+    bag = []
+
+    # Bookeeping for tracking the number of births
+    birth_count = util.inc_births(core.context, start=len(initial_population))
+
+    for i, evaluated_future in enumerate(as_completed_iter):
+
+        evaluated = evaluated_future.result()
+
+        logger.debug('%d evaluated: %s %s', i, str(evaluated.genome), str(evaluated.fitness))
+
+        if not count_nonviable and not is_viable(eval_population()):
+            # If we don't want non-viable individuals to count towards the
+            # birth budget, then we need to decrement the birth count that was
+            # incremented when it was created.
+            birth_count.do_decrement()
+
+        asynchronous.greedy_insert_into_bag(evaluated, bag, bag_size)
+
+        if birth_count.births() < births:
+            # Only create offspring if we have the budget for one
+            offspring = toolz.pipe(bag,*pipeline)
+
+            logger.debug('created offspring: ')
+            [logger.debug('%s', str(o.genome)), for o in offspring]
+
+            # Now asyncrhonously submit to dask
+            as_completed_iter.add(
+                client.map(evaluate.evaluate(context=core.context),
+                              offspring))
+
+            birth_count.do_increment(len(offspring))
