@@ -39,7 +39,7 @@ def is_iterable(obj):
 # ##############################
 # Function inc_generation
 # ##############################
-def inc_generation(context, callbacks=()):
+def inc_generation(context=core.context, callbacks=()):
     """ This tracks the current generation
 
     The `context` is used to report the current generation, though that
@@ -49,15 +49,13 @@ def inc_generation(context, callbacks=()):
     generation is incremented. The registered callback functions should have a signature f(int),
     where the int is the new generation.
 
-    TODO Should we make core.context the default?
-
     >>> from leap import core
-    >>> my_inc_generation = inc_generation(core.context)
+    >>> my_inc_generation = inc_generation(context)
 
     :param context: will set ['leap']['generation'] to the incremented generation
-    :param callbacks: optional list of callback function to call when a generation changes
-    generation is incremented
-    :return:
+    :param callbacks: optional list of callback function to call when a
+           generation is incremented
+    :return: function for incrementing generations
     """
     curr_generation  = 0
     context = context
@@ -85,6 +83,57 @@ def inc_generation(context, callbacks=()):
     do_increment.generation = generation
 
     return do_increment
+
+
+
+# ##############################
+# Function inc_births
+# ##############################
+def inc_births(context=core.context, callbacks=()):
+    """ This tracks the current number of births
+
+    The `context` is used to report the current births, though that
+    can also be given by inc_births.generation().
+
+    This will optionally call all the given callback functions whenever the
+    generation is incremented. The registered callback functions should have
+    a signature f(int), where the int is the new birth.
+
+    >>> from leap import core
+    >>> my_inc_births = inc_births()
+
+    :param context: will set ['leap']['births'] to the incremented births
+    :param callbacks: optional list of callback function to call when a
+            birth numberis incremented
+    :return: function for incrementing births
+    """
+    curr_births  = 0
+    context = context
+    context['leap']['births'] = 0
+    callbacks = callbacks
+
+    def births():
+        return curr_births
+
+    def do_increment():
+        nonlocal curr_births
+        nonlocal context
+        nonlocal callbacks
+        curr_births += 1
+
+        # Update the context
+        context['leap']['births'] = curr_births
+
+        # Now echo the new generation to all the registered callbacks.
+        # TODO There is probably a more pythonic way to do this
+        [f(curr_births) for f in callbacks]
+
+        return curr_births
+
+    do_increment.births = births
+
+    return do_increment
+
 
 
 # ##############################
