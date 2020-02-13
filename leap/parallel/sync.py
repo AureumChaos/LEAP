@@ -2,11 +2,25 @@
 """
   This provides a synchronous fitness evaluation pipeline operator.
 """
+import logging
 from toolz import curry
 
 from leap import core
 
 from evaluate import evaluate
+
+# Create unique logger for this namespace
+logger = logging.getLogger(__name__)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+console_handler.setFormatter(formatter)
+
+logger.addHandler(console_handler)
 
 
 def eval_population(population, client, context=core.context):
