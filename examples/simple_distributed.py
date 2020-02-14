@@ -28,21 +28,14 @@ optional arguments:
 """
 import logging
 from pprint import pformat
-import socket
-import os
 import argparse
-import random
-import uuid
-from time import sleep
 
 from dask.distributed import Client, LocalCluster
 
 from leap import core
 from leap import ops
 from leap import binary_problems
-from leap import util
 from leap.distributed import asynchronous
-from leap.distributed import evaluate
 
 # Create unique logger for this namespace
 logger = logging.getLogger(__name__)
