@@ -172,8 +172,8 @@ def steady_state(client, births, init_pop_size, bag_size,
     # This is where we'll be putting evaluated individuals
     bag = []
 
-    # Bookeeping for tracking the number of births
-    birth_counter = util.inc_births(core.context, start=len(initial_population))
+    # Bookkeeping for tracking the number of births
+    birth_counter = util.inc_births(context, start=len(initial_population))
 
     for i, evaluated_future in enumerate(as_completed_iter):
 
