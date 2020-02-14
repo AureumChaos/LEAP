@@ -134,8 +134,9 @@ def is_viable(individual):
         return True
 
 
-def steady_state(client, births, init_pop_size, bag_size, individual_cls,
+def steady_state(client, births, init_pop_size, bag_size,
                  initializer, decoder, problem, pipeline,
+                 individual_cls=core.Individual,
                  inserter=insert_into_bag, count_nonviable=False,
                  context=core.context):
     """ Implements an asynchronous steady-state EA
@@ -144,13 +145,14 @@ def steady_state(client, births, init_pop_size, bag_size, individual_cls,
     :param births: how many births are we allowing?
     :param init_pop_size: size of initial population
     :param bag_size: how large should the bag be?
-    :param individual_cls: class prototype for Individual to be used
     :param initializer: how to initialize genomes for the first random
            population
     :param decoder: to to translate the genome into something the problem can
            understand
     :param problem: to be solved
     :param pipeline: for creating new offspring from the bag
+    :param individual_cls: class prototype for Individual to be used; defaults
+           to core.Individual since rarely do we have to subclass this.
     :param inserter: function with signature (new_individual, bag, bagsize)
            used to insert newly evaluated individuals into the bag; default to
            insert_into_bag()
