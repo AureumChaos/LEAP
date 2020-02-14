@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
     Classes related to individuals that represent posed solutions.
 
@@ -22,7 +23,13 @@ from leap import util
 # intent is for certain operators and functions to add to and modify this
 # context.  Third party operators and functions will just add a new top-level
 # dedicated key.
-context = {'leap': {}}
+# context['leap'] is for storing general LEAP running state, such as current
+#    generation.
+# context['leap']['distributed'] is for storing leap.distributed running state
+# context['leap']['distributed']['non_viable'] accumulates counts of non-viable
+#    individuals during distributed.eval_pool() and
+#    distributed.async_eval_pool() runs.
+context = {'leap': {'distributed': {'non_viable': 0}}}
 
 
 ##############################
@@ -121,9 +128,6 @@ class Individual:
         self.problem = problem
         self.decoder = decoder
         self.fitness = None
-
-        # A dict to hold application-specific attributes
-        self.attributes = dict()
 
     @classmethod
     def create_population(cls, n, initialize, decoder, problem):
@@ -290,7 +294,7 @@ class Decoder(abc.ABC):
     836.4453949...
 
     Calling `evaluate()` also has the side effect of setting the fitness attribute:
-    
+
     >>> ind.fitness
     836.4453949...
 
