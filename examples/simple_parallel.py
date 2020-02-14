@@ -55,70 +55,6 @@ DEFAULT_NUM_WORKERS = 5
 DEFAULT_INIT_POP_SIZE = DEFAULT_NUM_WORKERS
 
 
-class MyIndividual(core.Individual):
-    """
-        Just over-riding class to add some pretty printing stuff.
-
-        TODO I should consider centrally defining this convenience class or
-        its functionality
-    """
-
-    # True if we want to save what host and process was used to evaluation an
-    # individual
-    save_eval_environment = False
-
-    def __init__(self, genome, decoder=None, problem=None):
-        super().__init__(genome, decoder, problem)
-
-        # Used to uniquely identify this individual
-        self.uuid = uuid.uuid4()
-
-    def __repr__(self):
-        return " ".join([str(self.uuid), str(self.birth), str(self.fitness),
-                         "".join([str(x) for x in self.genome])])
-
-    def is_viable(self):
-        """ This is used by Parallel to ensure that we are considering "viable"
-        individuals.
-
-        That is, an individual may have been returned from a worker as *not*
-        viable because its evaluation was interrupted by, say, doing a check-
-        point. In which case, we do not want to insert it into the pool.
-
-        TODO but ensure we have a mechanism in place to properly report and
-        otherwise handle such individuals.  (And better define what we mean by
-        "otherwise handle.")
-
-        :return: True
-        """
-        return True
-
-    def evaluate(self):
-        """ Evaluate this individual, but with some additional logging thrown
-        in.
-
-        :return: evaluated individual
-        """
-        result = super().evaluate()
-
-        # We sleep for a random number of seconds to test that we're actually
-        # working asynchronously.
-        sleep(random.randint(1, 6))
-
-        logger.info('on %s in process %s evaluated %s', socket.gethostname(),
-                    os.getpid(), str(self))
-
-        if MyIndividual.save_eval_environment:
-            with open(str(self.uuid) + '.csv', 'w') as save_file:
-                save_file.write(
-                    socket.gethostname() + ', ' + str(os.getpid()) + ', ' + str(
-                        self.birth) + ', ' +
-                    str(self.fitness) + ', ' + "".join(
-                        [str(x) for x in self.encoding.decode()]) + '\n')
-
-        return result
-
-
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
@@ -148,10 +84,6 @@ if __name__ == '__main__':
                              'non-local distribution of workers, such as on a '
                              'local '
                              'cluster')
-    parser.add_argument('--save', action='store_true',
-                        help='Save individuals to a log file named by their '
-                             'UUID that saves '
-                             'hostname and process ID during evaluation')
 
     args = parser.parse_args()
 
@@ -160,16 +92,9 @@ if __name__ == '__main__':
     else:
         logging.basicConfig(level=logging.INFO)
 
-    if args.save:
-        MyIndividual.save_eval_environment = True
-
     logger.info(
-        'workers: %s init pop size: %s max births: %s, pool size: %s, save: %s',
-        args.workers, args.init_pop_size, args.max_births, args.pool_size,
-        MyIndividual.save_eval_environment)
-
-    my_max_ones = binary_problems.MaxOnes()
-    my_decoder = core.IdentityDecoder()
+        'workers: %s init pop size: %s max births: %s, pool size: %s',
+        args.workers, args.init_pop_size, args.max_births, args.pool_size)
 
     try:
         if args.scheduler_file:
@@ -190,7 +115,6 @@ if __name__ == '__main__':
 
         final_pop = asynchronous.steady_state(client, births=9, init_pop_size=5,
                                               bag_size=3,
-                                              individual_cls=core.Individual,
                                               initializer=core.create_binary_sequence(
                                                   4),
                                               decoder=core.IdentityDecoder(),
