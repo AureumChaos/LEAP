@@ -51,7 +51,7 @@ DEFAULT_INIT_POP_SIZE = DEFAULT_NUM_WORKERS
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
-        description='Simple PEAL example of asynchronously distributing MAX '
+        description='Simple example of asynchronously distributing MAX '
                     'ONES problem to workers')
     parser.add_argument('--verbose', '-v', action='store_true',
                         help='Chatty output')
@@ -67,8 +67,8 @@ if __name__ == '__main__':
                              'at the very start of the runs')
     parser.add_argument('--max-births', '-m', type=int,
                         help='Maximum number of births before ending')
-    parser.add_argument('--pool-size', '-p', type=int,
-                        help='The size of the evaluated individuals pool')
+    parser.add_argument('--bag-size', '-b', type=int,
+                        help='The size of the evaluated individuals bag')
     parser.add_argument('--scheduler-file', '-f',
                         help='The scheduler file used to coordinate between '
                              'the scheduler '
@@ -86,8 +86,8 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO)
 
     logger.info(
-        'workers: %s init pop size: %s max births: %s, pool size: %s',
-        args.workers, args.init_pop_size, args.max_births, args.pool_size)
+        'workers: %s init pop size: %s max births: %s, bag size: %s',
+        args.workers, args.init_pop_size, args.max_births, args.bag_size)
 
     try:
         if args.scheduler_file:
