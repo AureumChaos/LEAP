@@ -68,7 +68,7 @@ def replace_if(new_individual, bag, index):
                      new_individual, bag[index])
         bag[index] = new_individual
     elif new_individual > bag[index]:
-        logger.debug('Replaced %s with %s', new_individual, bag[index])
+        logger.debug('Replaced %s with %s', bag[index], new_individual)
         bag[index] = new_individual
     else:
         logger.debug('%s < %s, so the latter stays in bag', new_individual,
@@ -135,7 +135,7 @@ def is_viable(individual):
 
 
 def steady_state(client, births, init_pop_size, bag_size,
-                 initializer, decoder, problem, pipeline,
+                 initializer, decoder, problem, offspring_pipeline,
                  individual_cls=core.Individual,
                  inserter=insert_into_bag, count_nonviable=False,
                  context=core.context):
@@ -150,11 +150,11 @@ def steady_state(client, births, init_pop_size, bag_size,
     :param decoder: to to translate the genome into something the problem can
            understand
     :param problem: to be solved
-    :param pipeline: for creating new offspring from the bag
+    :param offspring_pipeline: for creating new offspring from the bag
     :param individual_cls: class prototype for Individual to be used; defaults
            to core.Individual since rarely do we have to subclass this.
     :param inserter: function with signature (new_individual, bag, bagsize)
-           used to insert newly evaluated individuals into the bag; default to
+           used to insert newly evaluated individuals into the bag; defaults to
            insert_into_bag()
     :param count_nonviable: True if we want to count non-viable individuals
            towards the birth budget
@@ -193,7 +193,7 @@ def steady_state(client, births, init_pop_size, bag_size,
 
         if birth_counter.births() < births:
             # Only create offspring if we have the budget for one
-            offspring = toolz.pipe(bag, *pipeline)
+            offspring = toolz.pipe(bag, *offspring_pipeline)
 
             logger.debug('created offspring: ')
             [logger.debug('%s', str(o.genome)) for o in offspring]
