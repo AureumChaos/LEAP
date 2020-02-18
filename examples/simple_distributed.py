@@ -112,10 +112,11 @@ if __name__ == '__main__':
                                                   4),
                                               decoder=core.IdentityDecoder(),
                                               problem=binary_problems.MaxOnes(),
-                                              pipeline=[ops.random_selection,
-                                                        ops.clone,
-                                                        ops.mutate_bitflip,
-                                                        ops.pool(size=1)])
+                                              offspring_pipeline=[
+                                                  ops.random_selection,
+                                                  ops.clone,
+                                                  ops.mutate_bitflip,
+                                                  ops.pool(size=1)])
 
         logger.info('Final pop: \n%s', pformat(final_pop))
     except Exception as e:
