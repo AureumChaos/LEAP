@@ -96,3 +96,54 @@ class FunctionProblem(ScalarProblem):
 
     def evaluate(self, phenome):
         return self.fitness_function(phenome)
+
+
+##############################
+# Class ConstantProblem
+##############################
+class ConstantProblem(ScalarProblem):
+    """A flat landscape, where all phenotypes have the same fitness.
+
+    This is sometimes useful for sanity checks or as a control in certain kinds of research.
+    
+    .. math::
+    
+       f(\\vec{x}) = c
+       
+    :param float c: the fitness value to return for any input.
+    
+    .. plot::
+       :include-source:
+
+       from leap import real_problems
+       bounds = real_problems.ConstantProblem.bounds
+       real_problems.plot_2d_problem(real_problems.ConstantProblem(), xlim=bounds, ylim=bounds, granularity=0.025)
+
+    """
+
+    """Default bounds."""
+    bounds = (-1.0, 1.0)
+
+    def __init__(self, maximize=False, c=1.0):
+        super().__init__(maximize)
+        self.c = c
+
+
+    def evaluate(self, phenome):
+        """
+        Return a contant value for any input phenome:
+
+        >>> phenome = [0.5, 0.8, 1.5]
+        >>> ConstantProblem().evaluate(phenome)
+        1.0
+
+        >>> ConstantProblem(c=500.0).evaluate('foo bar')
+        500.0
+
+        :param phenome: real-valued vector to be evaluated
+        :return: 1.0, or the constant defined in the constructor
+        """
+        return self.c
+
+    def __str__(self):
+        return ConstantProblem.__name__

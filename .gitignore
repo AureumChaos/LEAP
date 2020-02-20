@@ -79,5 +79,6 @@ __MACOSX
 #vscode
 .vscode
 
-
+# dask
+dask-worker-space/
 
