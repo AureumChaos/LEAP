@@ -61,7 +61,7 @@ def replace_if(new_individual, bag, index):
     """
     # If individual in the bag has a NaN, that means it's non-viable, and will
     # *always lose*, even if the new individual is also a NaN.  (Thus assuring
-    # there is churn in the bag.
+    # there is churn in the bag.)
     if bag[index].fitness == math.nan:
         logger.debug('Replacing %s for %s due to non-viable individual', new_individual, bag[index])
         bag[index] = new_individual
