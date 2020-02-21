@@ -34,3 +34,18 @@ def evaluate(individual, context=core.context):
 
     return individual
 
+
+def is_viable(individual):
+    """
+    evaluate.evaluate() will set an individual's fitness to NaN and the
+    attributes `is_viable` to False, and will assign any exception triggered
+    during the individuals evaluation to `exception`.  This just checks the
+    individual's `is_viable`; if it doesn't have one, this assumes it is viable.
+
+    :param individual: to be checked if viable
+    :return: True if individual is viable
+    """
+    if hasattr(individual, 'is_viable'):
+        return individual.is_viable
+    else:
+        return True
