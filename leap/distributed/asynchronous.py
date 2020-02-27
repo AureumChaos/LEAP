@@ -18,6 +18,7 @@ from leap import core
 from leap import util
 
 from .evaluate import evaluate, is_viable
+from .individual import DistributedIndividual
 
 # Create unique logger for this namespace
 logger = logging.getLogger(__name__)
@@ -118,7 +119,7 @@ def greedy_insert_into_bag(individual, bag, max_size):
 
 def steady_state(client, births, init_pop_size, bag_size,
                  initializer, decoder, problem, offspring_pipeline,
-                 individual_cls=core.Individual,
+                 individual_cls=DistributedIndividual,
                  inserter=insert_into_bag, count_nonviable=False,
                  context=core.context):
     """ Implements an asynchronous steady-state EA
