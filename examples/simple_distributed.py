@@ -36,6 +36,7 @@ from leap import core
 from leap import ops
 from leap import binary_problems
 from leap.distributed import asynchronous
+from leap.distributed.logging import WorkerLoggerPlugin
 
 # Create unique logger for this namespace
 logger = logging.getLogger(__name__)
@@ -103,6 +104,8 @@ if __name__ == '__main__':
                                    silence_logs=logger.level)
             logger.info("Cluster: %s", cluster)
             client = Client(cluster)
+
+        client.register_worker_plugin(WorkerLoggerPlugin())
 
         logger.info('Client: %s', client)
 
