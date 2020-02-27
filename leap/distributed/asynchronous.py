@@ -10,16 +10,15 @@
 """
 import random
 import logging
-import math
-from toolz import curry
 import toolz
 
-from dask.distributed import Client, as_completed
+from dask.distributed import as_completed
 
 from leap import core
 from leap import util
 
-from .evaluate import evaluate
+from .evaluate import evaluate, is_viable
+from .individual import DistributedIndividual
 
 # Create unique logger for this namespace
 logger = logging.getLogger(__name__)
@@ -118,25 +117,9 @@ def greedy_insert_into_bag(individual, bag, max_size):
         replace_if(individual, bag, index_min)
 
 
-def is_viable(individual):
-    """
-    evaluate.evaluate() will set an individual's fitness to NaN and the
-    attributes `is_viable` to False, and will assign any exception triggered
-    during the individuals evaluation to `exception`.  This just checks the
-    individual's `is_viable`; if it doesn't have one, this assumes it is viable.
-
-    :param individual:
-    :return: True if individual is viable
-    """
-    if hasattr(individual, 'is_viable'):
-        return individual.is_viable
-    else:
-        return True
-
-
 def steady_state(client, births, init_pop_size, bag_size,
                  initializer, decoder, problem, offspring_pipeline,
-                 individual_cls=core.Individual,
+                 individual_cls=DistributedIndividual,
                  inserter=insert_into_bag, count_nonviable=False,
                  context=core.context):
     """ Implements an asynchronous steady-state EA

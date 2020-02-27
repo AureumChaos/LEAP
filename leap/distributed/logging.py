@@ -20,20 +20,37 @@ class EvaluatorLogFilter(logging.Filter):
 
     Cribbed from https://stackoverflow.com/questions/55584115/python-logging-how-to-track-hostname-in-logs
     """
-    def __init__(self, worker_id):
+    def __init__(self):
         super().__init__()
 
         self.hostname = platform.node()
-        self.worker_id = worker_id
         self.process_id = os.getpid()
 
 
     def filter(self, record):
         record.hostname = self.hostname
-        record.worker_id = self.worker_id
         record.process_id = self.process_id
 
         return True
+
+# We want the *same* logger used for all workers, so declare it here, and then
+# ensure that all the workers point to this one.
+logger = logging.getLogger(__name__)
+# create console handler and set level to debug
+ch = logging.StreamHandler()
+ch.addFilter(EvaluatorLogFilter())
+
+# create formatter
+formatter = logging.Formatter(
+    '%(asctime)s - %(hostname)s - %(process_id)s - %(levelname)s : %(message)s',
+    style='%')
+
+# add formatter to ch
+ch.setFormatter(formatter)
+
+# add ch to logger
+logger.addHandler(ch)
+
 
 
 class WorkerLoggerPlugin(WorkerPlugin):
@@ -63,33 +80,15 @@ class WorkerLoggerPlugin(WorkerPlugin):
     def setup_logger(self, worker):
         # We need to create and attach a logger _to each worker_ since
         # they'll be living in their own process/thread space.
-        worker.logger = logging.getLogger(__name__)
+        worker.logger = logger
 
         if self.verbose:
-            logging_level = logging.DEBUG
+            worker.logger.setLevel(logging.DEBUG)
         else:
-            logging_level = logging.INFO
+            worker.logger.setLevel(logging.INFO)
 
-        if self.verbose:
-            worker.logger.setLevel(logging_level)
-        else:
-            worker.logger.setLevel(logging_level)
 
-        # create console handler and set level to debug
-        ch = logging.StreamHandler()
-        ch.setLevel(logging_level)
-        ch.addFilter(EvaluatorLogFilter(worker.id))
 
-        # create formatter
-        formatter = logging.Formatter(
-            '%(asctime)s - %(hostname)s - %(worker_id)s - %(process_id) - %(levelname)s : %(message)s',
-            style='%')
-
-        # add formatter to ch
-        ch.setFormatter(formatter)
-
-        # add ch to logger
-        worker.logger.addHandler(ch)
 
 
     def setup(self, worker: dask.distributed.Worker):
@@ -102,10 +101,10 @@ class WorkerLoggerPlugin(WorkerPlugin):
             # Create an attach a logger that will echo the hostname and
             # unique dask worker id with each log message along with a timestamp
             self.setup_logger(worker)
-
-        worker.logger.info('worker setup')
+            worker.logger.info(f'worker setup for {worker.id}')
 
 
     def teardown(self, worker: dask.distributed.Worker):
-        worker.logger.info('Tearing down worker')
+        worker.logger.info(f'Tearing down worker {worker.id}')
+
 
