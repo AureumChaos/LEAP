@@ -23,7 +23,7 @@ def test_clone():
     assert original.fitness == cloned.fitness
     assert original.decoder == cloned.decoder
     assert original.problem == cloned.problem
-    assert original.attributes == cloned.attributes
+    assert original.__dict__ == cloned.__dict__
 
 
 

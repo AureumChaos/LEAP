@@ -23,7 +23,7 @@ def test_AttributesCSVProbe_1():
     attr = 'my_value'
     vals = ['GREEN', 15, 'BLUE', 72.81]
     for (ind, val) in zip(pop, vals):
-        ind.attributes[attr] = val
+        ind.__dict__[attr] = val
 
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
@@ -59,7 +59,7 @@ def test_AttributesCSVProbe_2():
              ('baz', [['a', 'b', 'c'], [1, 2, 3], [None, None, None], [0.1, 0.2, 0.3]])]
     for attr, vals in attrs:
         for (ind, val) in zip(pop, vals):
-            ind.attributes[attr] = val
+            ind.__dict__[attr] = val
 
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
@@ -93,7 +93,7 @@ def test_AttributesCSVProbe_3():
              ('baz', [['a', 'b', 'c'], [1, 2, 3], [None, None, None], [0.1, 0.2, 0.3]])]
     for attr, vals in attrs:
         for (ind, val) in zip(pop, vals):
-            ind.attributes[attr] = val
+            ind.__dict__[attr] = val
 
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
@@ -128,7 +128,7 @@ def test_AttributesCSVProbe_4():
              ('baz', [['a', 'b', 'c'], [1, 2, 3], [None, None, None], [0.1, 0.2, 0.3]])]
     for attr, vals in attrs:
         for (ind, val) in zip(pop, vals):
-            ind.attributes[attr] = val
+            ind.__dict__[attr] = val
 
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()

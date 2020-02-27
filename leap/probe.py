@@ -129,7 +129,7 @@ class AttributesCSVProbe(op.Operator):
     By default, the results are also written to `sys.stdout`.  You can pass any file object you like into the `stream` parameter.
     
     Another common use of this task is to record custom attributes that are stored on individuals in certain kinds of
-    experiments.  Here's how you would record the values of `ind.attributes['foo']` and `ind.attributes['bar']` for
+    experiments.  Here's how you would record the values of `ind.foo` and `ind.bar` for
     every individual in the population.  We write to a stream object this time to demonstrate how to use the probe 
     without a dataframe:
 
@@ -225,9 +225,9 @@ class AttributesCSVProbe(op.Operator):
         row = {'step': self.context['leap']['generation']}
 
         for attr in self.attributes:
-            if attr not in ind.attributes:
+            if attr not in ind.__dict__:
                 raise ValueError('Attribute "{0}" not found in individual "{1}".'.format(attr, ind.__repr__()))
-            row[attr] = ind.attributes[attr]
+            row[attr] = ind.__dict__[attr]
 
         if self.job:
             row['job'] = self.job
