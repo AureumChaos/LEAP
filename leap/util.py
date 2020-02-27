@@ -51,7 +51,7 @@ def inc_generation(context, callbacks=()):
     where the int is the new generation.
 
     >>> from leap import core
-    >>> my_inc_generation = inc_generation(context)
+    >>> my_inc_generation = inc_generation(core.context)
 
     :param context: will set ['leap']['generation'] to the incremented generation
     :param callbacks: optional list of callback function to call when a
@@ -101,7 +101,7 @@ def inc_births(context, start=0, callbacks=()):
     a signature f(int), where the int is the new birth.
 
     >>> from leap import core
-    >>> my_inc_births = inc_births()
+    >>> my_inc_births = inc_births(core.context)
 
     :param context: will set ['leap']['births'] to the incremented births
     :param start: if we want to start counter at a higher value; e.g., take
