@@ -3,7 +3,11 @@
     contains common evaluate() used in sync.eval_pool and async.eval_pool
 """
 import math
+import time
 from toolz import curry
+
+from dask.distributed import get_worker
+
 
 from leap import core
 
@@ -12,12 +16,32 @@ from leap import core
 def evaluate(individual, context=core.context):
     """ concurrently evaluate the given individual
 
-    This is what's invoked on each dask worker.
+    This is what's invoked on each dask worker to evaluate each individual.
+
+    We log the start and end times for evaluation.
+
+    An individual is viable if an exception is NOT thrown, else it is NOT a
+    viable individual.  If not viable, we increment the context['leap'][
+    'distributed']['non_viable'] count to track such instances.
+
+    This function sets:
+
+    individual.start_eval_time has the time() of when evaluation started.
+    individual.stop_eval_time has the time() of when evaluation finished.
+    individual.is_viable is True if viable, else False
+    individual.exception will be assigned any raised exceptions
+    individual.fitness will be NaN if not viable, else the calculated fitness
 
     :param individual: to be evaluated
     :return: evaluated individual
     """
     try:
+        worker = get_worker()
+
+        individual.start_eval_time = time.time()
+
+        if hasattr(worker, 'logger'):
+            worker.logger.info(f'Started evaluating {individual!s}')
         individual.evaluate()
         individual.is_viable = True
     except Exception as e:
@@ -31,6 +55,13 @@ def evaluate(individual, context=core.context):
         # We track the number of such failures on the off chance that this
         # might be useful.
         context['leap']['distributed']['non_viable'] += 1
+
+        if hasattr(worker, 'logger'):
+            worker.logger.debug(f'{e} raised for {individual!s}')
+    finally:
+        individual.stop_eval_time = time.time()
+        if hasattr(worker, 'logger'):
+            worker.logger.info(f'Evaluated {individual!s} in {individual.stop_eval_time - individual.start_eval_time} seconds')
 
     return individual
 
