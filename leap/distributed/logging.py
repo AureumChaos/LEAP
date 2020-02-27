@@ -109,3 +109,4 @@ class WorkerLoggerPlugin(WorkerPlugin):
     def teardown(self, worker: dask.distributed.Worker):
         worker.logger.info('Tearing down worker')
 
+
