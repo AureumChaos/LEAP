@@ -105,7 +105,7 @@ if __name__ == '__main__':
             logger.info("Cluster: %s", cluster)
             client = Client(cluster)
 
-        client.register_worker_plugin(WorkerLoggerPlugin())
+        client.register_worker_plugin(WorkerLoggerPlugin(verbose=args.verbose))
 
         logger.info('Client: %s', client)
 
