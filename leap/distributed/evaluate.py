@@ -41,7 +41,7 @@ def evaluate(individual, context=core.context):
         individual.start_eval_time = time.time()
 
         if hasattr(worker, 'logger'):
-            worker.logger.info(f'Started evaluating {individual!s}')
+            worker.logger.debug(f'Worker {worker.id} started evaluating {individual!s}')
         individual.evaluate()
         individual.is_viable = True
     except Exception as e:
@@ -57,11 +57,11 @@ def evaluate(individual, context=core.context):
         context['leap']['distributed']['non_viable'] += 1
 
         if hasattr(worker, 'logger'):
-            worker.logger.debug(f'{e} raised for {individual!s}')
+            worker.logger.warning(f'Worker {worker.id}: {e} raised for {individual!s}')
     finally:
         individual.stop_eval_time = time.time()
         if hasattr(worker, 'logger'):
-            worker.logger.info(f'Evaluated {individual!s} in {individual.stop_eval_time - individual.start_eval_time} seconds')
+            worker.logger.debug(f'Worker {worker.id} evaluated {individual!s} in {individual.stop_eval_time - individual.start_eval_time} seconds')
 
     return individual
 
