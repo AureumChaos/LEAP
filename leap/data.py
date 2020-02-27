@@ -18,7 +18,7 @@ def _build_test_pop():
              ('baz', [['a', 'b', 'c'], [1, 2, 3], [None, None, None], [0.1, 0.2, 0.3]])]
     for attr, vals in attrs:
         for (ind, val) in zip(pop, vals):
-            ind.attributes[attr] = val
+            ind.__dict__[attr] = val
 
     return pop
 
