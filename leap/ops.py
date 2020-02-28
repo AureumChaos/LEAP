@@ -6,6 +6,7 @@ traditional selection and reproduction strategies here.
 import abc
 import itertools
 import random
+from copy import copy
 
 import numpy as np
 import toolz
@@ -293,7 +294,7 @@ def mutate_gaussian(std, expected=None, hard_bounds=(-np.inf, np.inf)):
     :param next_individual: to be mutated
     :param std: standard deviation to be equally applied to all individuals; this
         can be a scalar value or a "shadow vector" of standard deviations
-    :param expected: the *expected* number of mutations per individual, on average.  If None, all genes will be 
+    :param expected: the *expected* number of mutations per individual, on average.  If None, all genes will be
         mutated.
     :param hard_bounds: to clip for mutations; defaults to (- ∞, ∞)
     :return: a generator of mutated individuals.
@@ -328,7 +329,7 @@ def mutate_gaussian(std, expected=None, hard_bounds=(-np.inf, np.inf)):
             individual.fitness = None # invalidate fitness since we have new genome
 
             yield individual
-            
+
     return mutate
 
 
@@ -406,16 +407,23 @@ def insertion_selection(offspring, parents):
     selection.  Each offspring is deterministically selected and a random
     parent is selected; if the offspring wins, then it replaces the parent.
 
+    Note that we make a _copy_ of the parents and have the offspring compete
+    with the parent copies so that users can optionally preserve the original
+    parents.  You may wish to do that, for example, if you want to analyze the
+    composition of the original parents and the modified copy.
+
     :param offspring: population to select from
-    :param parents: parents to potentially update with better offspring
+    :param parents: parents that are copied and which the copies are
+           potentially updated with better offspring
     :return: the updated parent population
     """
+    copied_parents = copy(parents)
     for child in offspring:
-        selected_parent_index = random.randrange(len(parents))
-        parents[selected_parent_index] = max(child,
-                                             parents[selected_parent_index])
+        selected_parent_index = random.randrange(len(copied_parents))
+        copied_parents[selected_parent_index] = max(child,
+                                             copied_parents[selected_parent_index])
 
-        return parents
+        return copied_parents
 
 
 
