@@ -66,9 +66,9 @@ if __name__ == '__main__':
                              'the same as the number of workers to ensure '
                              'that the worker pool is saturated '
                              'at the very start of the runs')
-    parser.add_argument('--max-births', '-m', type=int,
+    parser.add_argument('--max-births', '-m', type=int, default=100,
                         help='Maximum number of births before ending')
-    parser.add_argument('--bag-size', '-b', type=int,
+    parser.add_argument('--bag-size', '-b', type=int, default=5,
                         help='The size of the evaluated individuals bag')
     parser.add_argument('--scheduler-file', '-f',
                         help='The scheduler file used to coordinate between '
@@ -78,6 +78,8 @@ if __name__ == '__main__':
                              'non-local distribution of workers, such as on a '
                              'local '
                              'cluster')
+    parser.add_argument('--length', '-l', type=int, default=5,
+                        help='Genome length')
 
     args = parser.parse_args()
 
@@ -109,10 +111,10 @@ if __name__ == '__main__':
 
         logger.info('Client: %s', client)
 
-        final_pop = asynchronous.steady_state(client, births=9, init_pop_size=5,
-                                              bag_size=3,
+        final_pop = asynchronous.steady_state(client, births=args.max_births, init_pop_size=5,
+                                              bag_size=args.bag_size,
                                               initializer=core.create_binary_sequence(
-                                                  4),
+                                                  args.length),
                                               decoder=core.IdentityDecoder(),
                                               problem=binary_problems.MaxOnes(),
                                               offspring_pipeline=[
