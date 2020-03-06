@@ -8,7 +8,7 @@ import itertools
 import random
 from copy import copy
 
-import numpy as np
+import math
 import toolz
 from toolz import curry
 
@@ -286,7 +286,7 @@ def n_ary_crossover(next_individual, num_points=1):
 ##############################
 # Function mutate_gaussian
 ##############################
-def mutate_gaussian(std, expected=None, hard_bounds=(-np.inf, np.inf)):
+def mutate_gaussian(std, expected=None, hard_bounds=(-math.inf, math.inf)):
     """ mutate and return an individual with a real-valued representation
 
     TODO hard_bounds should also be able to take a sequence —Siggy
