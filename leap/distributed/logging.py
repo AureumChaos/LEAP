@@ -88,9 +88,6 @@ class WorkerLoggerPlugin(WorkerPlugin):
             worker.logger.setLevel(logging.INFO)
 
 
-
-
-
     def setup(self, worker: dask.distributed.Worker):
         """ This is invoked once for each worker on their startup. The
             scheduler will also ensure that all workers invoke this.

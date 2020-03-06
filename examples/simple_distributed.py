@@ -37,6 +37,7 @@ from leap import ops
 from leap import binary_problems
 from leap.distributed import asynchronous
 from leap.distributed.logging import WorkerLoggerPlugin
+from leap.distributed.probe import log_worker_location
 
 # Create unique logger for this namespace
 logger = logging.getLogger(__name__)
@@ -56,7 +57,9 @@ if __name__ == '__main__':
                     'ONES problem to workers')
     parser.add_argument('--verbose', '-v', action='store_true',
                         help='Chatty output')
-
+    parser.add_argument('--track-workers-file', '-t',
+                        help='Optional file to write CSV of what host and '
+                        'process ID was associated with each evaluation')
     parser.add_argument('--workers', '-w', type=int,
                         default=DEFAULT_NUM_WORKERS, help='How many workers?')
     parser.add_argument('--init-pop-size', '-s', type=int,
@@ -111,6 +114,12 @@ if __name__ == '__main__':
 
         logger.info('Client: %s', client)
 
+        if args.track_workers_file:
+            track_workers_stream = open(args.track_workers_file,'w')
+            track_workers_func = log_worker_location(track_workers_stream)
+        else:
+            track_workers_func = None
+
         final_pop = asynchronous.steady_state(client, births=args.max_births, init_pop_size=5,
                                               bag_size=args.bag_size,
                                               initializer=core.create_binary_sequence(
@@ -121,7 +130,8 @@ if __name__ == '__main__':
                                                   ops.random_selection,
                                                   ops.clone,
                                                   ops.mutate_bitflip,
-                                                  ops.pool(size=1)])
+                                                  ops.pool(size=1)],
+                                              evaluated_probe=track_workers_func)
 
         logger.info('Final pop: \n%s', pformat(final_pop))
     except Exception as e:

@@ -121,7 +121,8 @@ def steady_state(client, births, init_pop_size, bag_size,
                  initializer, decoder, problem, offspring_pipeline,
                  individual_cls=DistributedIndividual,
                  inserter=insert_into_bag, count_nonviable=False,
-                 context=core.context):
+                 context=core.context,
+                 evaluated_probe=None):
     """ Implements an asynchronous steady-state EA
 
     :param client: Dask client that should already be set-up
@@ -141,6 +142,9 @@ def steady_state(client, births, init_pop_size, bag_size,
            insert_into_bag()
     :param count_nonviable: True if we want to count non-viable individuals
            towards the birth budget
+    :param evaluated_probe: is a function taking an individual that is given
+           the next evaluated indivdual; can be used to print this individual
+           as it comes in
     :return: the bag containing the final individuals
     """
     initial_population = individual_cls.create_population(init_pop_size,
@@ -161,6 +165,13 @@ def steady_state(client, births, init_pop_size, bag_size,
     for i, evaluated_future in enumerate(as_completed_iter):
 
         evaluated = evaluated_future.result()
+
+        if evaluated_probe is not None:
+            # Give a chance to do something extra with the newly evaluated
+            # individual, which is *usually* a call to
+            # probe.log_worker_location, but can be anything function that
+            # accepts an individual as an argument
+            evaluated_probe(evaluated)
 
         logger.debug('%d evaluated: %s %s', i, str(evaluated.genome),
                      str(evaluated.fitness))
