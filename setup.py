@@ -1,9 +1,9 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='leap',
     version='0.1-pre',
-    packages=['leap'],
+    packages=find_packages(),
     url='https://github.com/AureumChaos/LEAP',
     license='Academic',
     author='Jeff Bassett, Eric Scott, Mark Coletti',
