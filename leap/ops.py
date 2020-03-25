@@ -371,6 +371,7 @@ def truncate(offspring, size, parents=None):
 ##############################
 # Function tournament
 ##############################
+@toolz.curry
 def tournament(population, k=2):
     """ Selects the best individual from k individuals randomly selected from
         the given population
