@@ -46,8 +46,8 @@ def create_binary_sequence(length):
 
     >>> from leap import core, binary_problems
     >>> population = Individual.create_population(10, core.create_binary_sequence(length=10),
-    ...                                           decoder=core.IdentityDecoder,
-    ...                                           problem=binary_problems.MaxOnes)
+    ...                                           decoder=core.IdentityDecoder(),
+    ...                                           problem=binary_problems.MaxOnes())
 
     """
     def create():
@@ -78,8 +78,8 @@ def create_real_vector(bounds):
     >>> from leap import core, real_problems
     >>> bounds = [(0, 1), (0, 1), (-1, 100)]
     >>> population = Individual.create_population(10, core.create_real_vector(bounds),
-    ...                                           decoder=core.IdentityDecoder,
-    ...                                           problem=real_problems.SpheroidProblem)
+    ...                                           decoder=core.IdentityDecoder(),
+    ...                                           problem=real_problems.SpheroidProblem())
 
     """
     def create():
@@ -123,6 +123,11 @@ class Individual:
         :param decoder: is a function or `callable` that converts a genome into a phenome.
         :param problem: is the `Problem` associated with this individual.
         """
+        # Type checking to avoid difficult-to-debug errors
+        if isinstance(decoder, type):
+            raise ValueError(f"Got the type '{decoder}' as a decoder, but expected an instance.")
+        if isinstance(problem, type):
+            raise ValueError(f"Got the type '{problem}' as a problem, but expected an instance.")
         # Core data
         self.genome = genome
         self.problem = problem
@@ -211,9 +216,9 @@ class Individual:
 
         >>> from leap import binary_problems
         >>> f = binary_problems.MaxOnes(maximize=True)
-        >>> ind_A = Individual([0, 0, 1, 0, 1], IdentityDecoder, problem=f)
+        >>> ind_A = Individual([0, 0, 1, 0, 1], IdentityDecoder(), problem=f)
         >>> ind_A.fitness = 2
-        >>> ind_B = Individual([1, 1, 1, 1, 1], IdentityDecoder, problem=f)
+        >>> ind_B = Individual([1, 1, 1, 1, 1], IdentityDecoder(), problem=f)
         >>> ind_B.fitness = 5
         >>> ind_A > ind_B
         False
@@ -224,9 +229,9 @@ class Individual:
         underlying `Problem`.
 
         >>> f = binary_problems.MaxOnes(maximize=False)
-        >>> ind_A = Individual([0, 0, 1, 0, 1], IdentityDecoder, problem=f)
+        >>> ind_A = Individual([0, 0, 1, 0, 1], IdentityDecoder(), problem=f)
         >>> ind_A.fitness = 2
-        >>> ind_B = Individual([1, 1, 1, 1, 1], IdentityDecoder, problem=f)
+        >>> ind_B = Individual([1, 1, 1, 1, 1], IdentityDecoder(), problem=f)
         >>> ind_B.fitness = 5
         >>> ind_A > ind_B
         True
@@ -455,10 +460,10 @@ class BinaryToRealDecoder(Decoder):
                            zip(self.lower_bounds, self.upper_bounds, cardinalities)]
 
     def decode(self, genome):
+        """Convert a list of binary values into a real-valued vector."""
         int_values = self.binary_to_int_decoder.decode(genome)
         values = [l + i * inc for l, i, inc in zip(self.lower_bounds, int_values, self.increments)]
         return values
-
-
+        
 if __name__ == '__main__':
     pass
