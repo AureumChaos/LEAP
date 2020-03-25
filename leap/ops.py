@@ -4,9 +4,10 @@ traditional selection and reproduction strategies here.
 """
 
 import abc
+from copy import copy
 import itertools
 import random
-from copy import copy
+from typing import Iterator, List, Tuple
 
 import math
 import toolz
@@ -19,7 +20,7 @@ from leap import util
 ##############################
 # Function compute_expected_probability
 ##############################
-def compute_expected_probability(expected, individual_genome):
+def compute_expected_probability(expected: float, individual_genome: List):
     """ Computed the probability of mutation based on the desired average
     expected mutation and genome length.
 
@@ -66,7 +67,7 @@ class Operator(abc.ABC):
 # evaluate operator
 ##############################
 @curry
-def evaluate(next_individual):
+def evaluate(next_individual: Iterator) -> Iterator:
     """ Evaluate and returns the next individual in the pipeline
 
     >>> from leap import core, binary_problems
@@ -95,7 +96,7 @@ def evaluate(next_individual):
 # clone operator
 ##############################
 @curry
-def clone(next_individual):
+def clone(next_individual: Iterator) -> Iterator:
     """ clones and returns the next individual in the pipeline
 
     >>> from leap import core
@@ -109,6 +110,7 @@ def clone(next_individual):
     :param next_individual: iterator for next individual to be cloned
     :return: copy of next_individual
     """
+    
     while True:
         individual = next(next_individual)
 
@@ -119,7 +121,7 @@ def clone(next_individual):
 # Function mutate_bitflip
 ##############################
 @curry
-def mutate_bitflip(next_individual, expected=1):
+def mutate_bitflip(next_individual: Iterator, expected: float = 1) -> Iterator:
     """ mutate and return an individual with a binary representation
 
     >>> from leap import core, binary_problems
@@ -157,7 +159,7 @@ def mutate_bitflip(next_individual, expected=1):
 # Function uniform_crossover
 ##############################
 @curry
-def uniform_crossover(next_individual, p_swap=0.5):
+def uniform_crossover(next_individual: Iterator, p_swap: float = 0.5) -> Iterator:
     """ Generator for recombining two individuals and passing them down the line.
 
     >>> from leap import core, binary_problems
@@ -211,7 +213,7 @@ def uniform_crossover(next_individual, p_swap=0.5):
 # Function n_ary_crossover
 ##############################
 @curry
-def n_ary_crossover(next_individual, num_points=1):
+def n_ary_crossover(next_individual: Iterator, num_points: int = 1) -> Iterator:
     """ Do crossover between individuals between N crossover points.
 
     1 < n < genome length - 1
@@ -286,7 +288,7 @@ def n_ary_crossover(next_individual, num_points=1):
 ##############################
 # Function mutate_gaussian
 ##############################
-def mutate_gaussian(std, expected=None, hard_bounds=(-math.inf, math.inf)):
+def mutate_gaussian(std: float, expected: float = None, hard_bounds: Tuple[float, float] = (-math.inf, math.inf)):
     """ mutate and return an individual with a real-valued representation
 
     TODO hard_bounds should also be able to take a sequence —Siggy
@@ -308,7 +310,7 @@ def mutate_gaussian(std, expected=None, hard_bounds=(-math.inf, math.inf)):
     def clip(x):
         return max(hard_bounds[0], min(hard_bounds[1], x))
 
-    def mutate(next_individual):
+    def mutate(next_individual: Iterator) -> Iterator:
         while True:
             individual = next(next_individual)
 
@@ -337,7 +339,7 @@ def mutate_gaussian(std, expected=None, hard_bounds=(-math.inf, math.inf)):
 # Function truncate
 ##############################
 @curry
-def truncate(offspring, size, parents=None):
+def truncate(offspring: List, size: int, parents: List = None) -> List:
     """ return the `size` best individuals from the given population
 
         This defaults to (mu, lambda) if `parents` is not given.
@@ -363,16 +365,16 @@ def truncate(offspring, size, parents=None):
         :return: truncated population
     """
     if parents is not None:
-        return toolz.itertoolz.topk(size, itertools.chain(offspring, parents))
+        return list(toolz.itertoolz.topk(size, itertools.chain(offspring, parents)))
     else:
-        return toolz.itertoolz.topk(size, offspring)
+        return list(toolz.itertoolz.topk(size, offspring))
 
 
 ##############################
 # Function tournament
 ##############################
 @toolz.curry
-def tournament(population, k=2):
+def tournament(population: List, k: int = 2) -> Iterator:
     """ Selects the best individual from k individuals randomly selected from
         the given population
 
@@ -401,7 +403,7 @@ def tournament(population, k=2):
 # Function insertion_selection
 ##############################
 @curry
-def insertion_selection(offspring, parents):
+def insertion_selection(offspring: List, parents: List) -> List:
     """ do exclusive selection between offspring and parents
 
     This is typically used for Ken De Jong's EV algorithm for survival
@@ -432,7 +434,7 @@ def insertion_selection(offspring, parents):
 # Function naive_cyclic_selection
 ##############################
 @curry
-def naive_cyclic_selection(population):
+def naive_cyclic_selection(population: List) -> Iterator:
     """ Deterministically returns individuals, and repeats the same sequence
     when exhausted.
 
@@ -459,7 +461,7 @@ def naive_cyclic_selection(population):
 # Function cyclic_selection
 ##############################
 @curry
-def cyclic_selection(population):
+def cyclic_selection(population: List) -> Iterator:
     """ Deterministically returns individuals in order, then shuffles the
     sequence, returns the individuals in that new order, and repeats this
     process.
@@ -490,7 +492,7 @@ def cyclic_selection(population):
 ##############################
 # Function random_selection
 ##############################
-def random_selection(population):
+def random_selection(population: List) -> Iterator:
     """ return a uniformly randomly selected individual from the population
 
     :param population: from which to select
@@ -504,7 +506,7 @@ def random_selection(population):
 # Function pool
 ##############################
 @curry
-def pool(next_individual, size):
+def pool(next_individual: Iterator, size: int) -> List:
     """ 'Sink' for creating `size` individuals from preceding pipeline source.
 
     Allows for "pooling" individuals to be processed by next pipeline
@@ -539,7 +541,7 @@ def migrate(context, topology, emigrant_selector, replacement_selector, migratio
     num_islands = topology.number_of_nodes()
     immigrants = [[] for i in range(num_islands)]
 
-    def do_migrate(population):
+    def do_migrate(population: List) -> List:
         current_subpop = context['leap']['subpopulation']
 
         # Immigration
