@@ -4,6 +4,7 @@ traditional selection and reproduction strategies here.
 """
 
 import abc
+import collections
 from copy import copy
 import itertools
 import random
@@ -15,20 +16,6 @@ from toolz import curry
 
 from leap.core import Individual
 from leap import util
-
-
-##############################
-# Function compute_expected_probability
-##############################
-def compute_expected_probability(expected: float, individual_genome: List):
-    """ Computed the probability of mutation based on the desired average
-    expected mutation and genome length.
-
-    :param expected: times individual is to be mutated on average
-    :param individual_genome: genome for which to compute the probability
-    :return: the corresponding probability of mutation
-    """
-    return 1.0 / len(individual_genome) * expected
 
 
 ##############################
@@ -64,9 +51,105 @@ class Operator(abc.ABC):
 
 
 ##############################
+# Decorators for type checking
+##############################
+def iteriter_op(f):
+    """This decorator wraps a function with runtime type checking to ensure that it always receives an iterator as its 
+    first argument, and that it returns an iterator.
+    
+    We use this to make debugging operator pipelines easier in EAs: if you accidentally hook up, say an operator that
+    outputs a list to an operator that expects an iterator, we'll throw an exception that pinpoints the issue.
+    
+    :param f function: the function to wrap
+    """
+    def typecheck_f(next_individual: Iterator, *args, **kwargs) -> Iterator:
+        if not isinstance(next_individual, collections.Iterator):
+            raise ValueError(f"Operator {f} received a {type(next_individual)} as input, but expected an iterator.")
+
+        result = f(next_individual, *args, **kwargs)
+
+        if not isinstance(result, collections.Iterator):
+            raise ValueError(f"Operator {f} produced a {type(result)} as output, but expected an iterator.")
+
+        return result
+
+    return typecheck_f
+
+
+def listlist_op(f):
+    """This decorator wraps a function with runtime type checking to ensure that it always receives a list as its 
+    first argument, and that it returns a list.
+    
+    We use this to make debugging operator pipelines easier in EAs: if you accidentally hook up, say an operator that
+    outputs an iterator to an operator that expects a list, we'll throw an exception that pinpoints the issue.
+    
+    :param f function: the function to wrap
+    """
+    def typecheck_f(population: List, *args, **kwargs) -> List:
+        if not isinstance(population, list):
+            raise ValueError(f"Operator {f} received a {type(population)} as input, but expected a list.")
+
+        result = f(population, *args, **kwargs)
+
+        if not isinstance(result, list):
+            raise ValueError(f"Operator {f} produced a {type(result)} as output, but expected a list.")
+
+        return result
+
+    return typecheck_f
+
+
+def listiter_op(f):
+    """This decorator wraps a function with runtime type checking to ensure that it always receives a list as its 
+    first argument, and that it returns an iterator.
+    
+    We use this to make debugging operator pipelines easier in EAs: if you accidentally hook up, say an operator that
+    outputs an iterator to an operator that expects a list, we'll throw an exception that pinpoints the issue.
+    
+    :param f function: the function to wrap
+    """
+    def typecheck_f(population: List, *args, **kwargs) -> Iterator:
+        if not isinstance(population, list):
+            raise ValueError(f"Operator {f} received a {type(population)} as input, but expected a list.")
+
+        result = f(population, *args, **kwargs)
+
+        if not isinstance(result, collections.Iterator):
+            raise ValueError(f"Operator {f} produced a {type(result)} as output, but expected an iterator.")
+
+        return result
+
+    return typecheck_f
+
+
+def iterlist_op(f):
+    """This decorator wraps a function with runtime type checking to ensure that it always receives an iterator as its 
+    first argument, and that it returns a list.
+    
+    We use this to make debugging operator pipelines easier in EAs: if you accidentally hook up, say an operator that
+    outputs a list to an operator that expects an iterator, we'll throw an exception that pinpoints the issue.
+    
+    :param f function: the function to wrap
+    """
+    def typecheck_f(next_individual: Iterator, *args, **kwargs) -> List:
+        if not isinstance(next_individual, collections.Iterator):
+            raise ValueError(f"Operator {f} received a {type(next_individual)} as input, but expected an iterator.")
+
+        result = f(next_individual, *args, **kwargs)
+
+        if not isinstance(result, list):
+            raise ValueError(f"Operator {f} produced a {type(result)} as output, but expected a list.")
+
+        return result
+
+    return typecheck_f
+
+
+##############################
 # evaluate operator
 ##############################
 @curry
+@iteriter_op
 def evaluate(next_individual: Iterator) -> Iterator:
     """ Evaluate and returns the next individual in the pipeline
 
@@ -96,6 +179,7 @@ def evaluate(next_individual: Iterator) -> Iterator:
 # clone operator
 ##############################
 @curry
+@iteriter_op
 def clone(next_individual: Iterator) -> Iterator:
     """ clones and returns the next individual in the pipeline
 
@@ -121,6 +205,7 @@ def clone(next_individual: Iterator) -> Iterator:
 # Function mutate_bitflip
 ##############################
 @curry
+@iteriter_op
 def mutate_bitflip(next_individual: Iterator, expected: float = 1) -> Iterator:
     """ mutate and return an individual with a binary representation
 
@@ -159,6 +244,7 @@ def mutate_bitflip(next_individual: Iterator, expected: float = 1) -> Iterator:
 # Function uniform_crossover
 ##############################
 @curry
+@iteriter_op
 def uniform_crossover(next_individual: Iterator, p_swap: float = 0.5) -> Iterator:
     """ Generator for recombining two individuals and passing them down the line.
 
@@ -213,6 +299,7 @@ def uniform_crossover(next_individual: Iterator, p_swap: float = 0.5) -> Iterato
 # Function n_ary_crossover
 ##############################
 @curry
+@iteriter_op
 def n_ary_crossover(next_individual: Iterator, num_points: int = 1) -> Iterator:
     """ Do crossover between individuals between N crossover points.
 
@@ -339,6 +426,7 @@ def mutate_gaussian(std: float, expected: float = None, hard_bounds: Tuple[float
 # Function truncate
 ##############################
 @curry
+@listlist_op
 def truncate(offspring: List, size: int, parents: List = None) -> List:
     """ return the `size` best individuals from the given population
 
@@ -373,7 +461,8 @@ def truncate(offspring: List, size: int, parents: List = None) -> List:
 ##############################
 # Function tournament
 ##############################
-@toolz.curry
+@curry
+@listiter_op
 def tournament(population: List, k: int = 2) -> Iterator:
     """ Selects the best individual from k individuals randomly selected from
         the given population
@@ -403,6 +492,7 @@ def tournament(population: List, k: int = 2) -> Iterator:
 # Function insertion_selection
 ##############################
 @curry
+@listlist_op
 def insertion_selection(offspring: List, parents: List) -> List:
     """ do exclusive selection between offspring and parents
 
@@ -434,6 +524,7 @@ def insertion_selection(offspring: List, parents: List) -> List:
 # Function naive_cyclic_selection
 ##############################
 @curry
+@listiter_op
 def naive_cyclic_selection(population: List) -> Iterator:
     """ Deterministically returns individuals, and repeats the same sequence
     when exhausted.
@@ -461,6 +552,7 @@ def naive_cyclic_selection(population: List) -> Iterator:
 # Function cyclic_selection
 ##############################
 @curry
+@listiter_op
 def cyclic_selection(population: List) -> Iterator:
     """ Deterministically returns individuals in order, then shuffles the
     sequence, returns the individuals in that new order, and repeats this
@@ -492,6 +584,7 @@ def cyclic_selection(population: List) -> Iterator:
 ##############################
 # Function random_selection
 ##############################
+@listiter_op
 def random_selection(population: List) -> Iterator:
     """ return a uniformly randomly selected individual from the population
 
@@ -506,6 +599,7 @@ def random_selection(population: List) -> Iterator:
 # Function pool
 ##############################
 @curry
+@iterlist_op
 def pool(next_individual: Iterator, size: int) -> List:
     """ 'Sink' for creating `size` individuals from preceding pipeline source.
 
@@ -541,6 +635,7 @@ def migrate(context, topology, emigrant_selector, replacement_selector, migratio
     num_islands = topology.number_of_nodes()
     immigrants = [[] for i in range(num_islands)]
 
+    @listlist_op
     def do_migrate(population: List) -> List:
         current_subpop = context['leap']['subpopulation']
 
@@ -567,3 +662,17 @@ def migrate(context, topology, emigrant_selector, replacement_selector, migratio
         return population
 
     return do_migrate
+
+
+##############################
+# Helper Functions
+##############################
+def compute_expected_probability(expected: float, individual_genome: List) -> float:
+    """ Computed the probability of mutation based on the desired average
+    expected mutation and genome length.
+
+    :param expected: times individual is to be mutated on average
+    :param individual_genome: genome for which to compute the probability
+    :return: the corresponding probability of mutation
+    """
+    return 1.0 / len(individual_genome) * expected
