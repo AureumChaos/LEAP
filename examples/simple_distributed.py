@@ -111,7 +111,8 @@ if __name__ == '__main__':
 
         logger.info('Client: %s', client)
 
-        final_pop = asynchronous.steady_state(client, births=args.max_births, init_pop_size=5,
+        final_pop = asynchronous.steady_state(client, births=args.max_births,
+                                              init_pop_size=args.init_pop_size,
                                               bag_size=args.bag_size,
                                               initializer=core.create_binary_sequence(
                                                   args.length),
