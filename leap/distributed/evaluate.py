@@ -4,6 +4,8 @@
 """
 import math
 import time
+import platform
+import os
 from toolz import curry
 
 from dask.distributed import get_worker
@@ -31,6 +33,9 @@ def evaluate(individual, context=core.context):
     individual.is_viable is True if viable, else False
     individual.exception will be assigned any raised exceptions
     individual.fitness will be NaN if not viable, else the calculated fitness
+    individual.hostname is the name of the host on which this individual was
+         evaluated
+    individual.pid is the process ID associated with evaluating the individual
 
     :param individual: to be evaluated
     :return: evaluated individual
@@ -60,6 +65,8 @@ def evaluate(individual, context=core.context):
             worker.logger.warning(f'Worker {worker.id}: {e} raised for {individual!s}')
     finally:
         individual.stop_eval_time = time.time()
+        individual.hostname = platform.node()
+        individual.pid = os.getpid()
         if hasattr(worker, 'logger'):
             worker.logger.debug(f'Worker {worker.id} evaluated {individual!s} in {individual.stop_eval_time - individual.start_eval_time} seconds')
 

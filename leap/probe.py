@@ -18,7 +18,7 @@ from leap import ops as op
 ##############################
 @curry
 def print_probe(population, probe, stream=sys.stdout, prefix=''):
-    """ pipeline operator for printing the given populaiton
+    """ pipeline operator for printing the given population
 
     :param population:
     :param context:
@@ -127,10 +127,10 @@ class AttributesCSVProbe(op.Operator):
     0   100        4  [0, 1, 1, 1, 1]
 
     By default, the results are also written to `sys.stdout`.  You can pass any file object you like into the `stream` parameter.
-    
+
     Another common use of this task is to record custom attributes that are stored on individuals in certain kinds of
     experiments.  Here's how you would record the values of `ind.foo` and `ind.bar` for
-    every individual in the population.  We write to a stream object this time to demonstrate how to use the probe 
+    every individual in the population.  We write to a stream object this time to demonstrate how to use the probe
     without a dataframe:
 
     >>> import io
@@ -195,14 +195,14 @@ class AttributesCSVProbe(op.Operator):
     def dataframe(self):
         """Property for retrieving a Pandas DataFrame representation of the collected data."""
         if not self.do_dataframe:
-            raise ValueError('Tried to retrieve a dataframe of results, but this ' + 
+            raise ValueError('Tried to retrieve a dataframe of results, but this ' +
                              f'{type(AttributesCSVProbe).__name__} was initialized with dataframe=False.')
-        # We create the DataFrame on demand because it's inefficient to append to a DataFrame, 
+        # We create the DataFrame on demand because it's inefficient to append to a DataFrame,
         # so we only want to create it after we are done generating data.
         return pd.DataFrame(self.data, columns=self.fieldnames)
 
     def __call__(self, population):
-        """When called (i.e. as part of an operator pipeline), take a population of individuals and collect data 
+        """When called (i.e. as part of an operator pipeline), take a population of individuals and collect data
         from it."""
         assert (population is not None)
         assert ('leap' in self.context)
