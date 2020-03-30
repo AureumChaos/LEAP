@@ -12,6 +12,9 @@ def log_worker_location(stream=sys.stdout, header=True):
     to track what machine and process was used to evaluate a given
     individual
 
+    Suitable for being passed as the `evaluated_probe` argument for
+    leap.distributed.asynchronous.steady_state().
+
     :param stream: to which we want to write the machine details
     :param header: True if we want a header for the CSV file
     :return: a function for recording where individuals are evaluated
