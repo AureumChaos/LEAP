@@ -164,10 +164,10 @@ The LEAP development roadmap is as follows:
         - ~~use with Jupyter notebooks~~
     - ~~documentation outline/stubs for ReadTheDocs~~
 1. Minimally Viable Product -- tentative release in February
-    - distributed / parallel fitness evaluations
-        - distribute local cores vs. distributed cluster nodes
-        - synchronous vs. asynchronous evaluations
-    - variable-length genomes
+    - ~~distributed / parallel fitness evaluations~~
+        - ~~distribute local cores vs. distributed cluster nodes~~
+        - ~~synchronous vs. asynchronous evaluations~~
+    - ~~variable-length genomes~~
     - parsimony pressure
     - multi-objective optimization
     - minimally complete documentation
