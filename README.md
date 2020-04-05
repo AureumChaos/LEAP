@@ -163,7 +163,7 @@ The LEAP development roadmap is as follows:
         - ~~basic run-time visualizations~~
         - ~~use with Jupyter notebooks~~
     - ~~documentation outline/stubs for ReadTheDocs~~
-1. Minimally Viable Product -- tentative release in February
+1. Minimally Viable Product -- tentative release in June 2020
     - ~~distributed / parallel fitness evaluations~~
         - ~~distribute local cores vs. distributed cluster nodes~~
         - ~~synchronous vs. asynchronous evaluations~~
