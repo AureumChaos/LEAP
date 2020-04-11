@@ -8,6 +8,7 @@ import collections
 from copy import copy
 import itertools
 import random
+from statistics import mean
 from typing import Iterator, List, Tuple
 
 import math
@@ -633,11 +634,13 @@ def pool(next_individual: Iterator, size: int) -> List:
 def migrate(context, topology, emigrant_selector, replacement_selector, migration_gap):
 
     num_islands = topology.number_of_nodes()
+
+    # We wrap a closure around some persistent state to keep trag of immigrants as the move between populations
     immigrants = [[] for i in range(num_islands)]
 
     @listlist_op
     def do_migrate(population: List) -> List:
-        current_subpop = context['leap']['subpopulation']
+        current_subpop = context['leap']['current_subpopulation']
 
         # Immigration
         for imm in immigrants[current_subpop]:
@@ -662,6 +665,60 @@ def migrate(context, topology, emigrant_selector, replacement_selector, migratio
         return population
 
     return do_migrate
+
+
+##############################
+# Fitness evaluation for cooperative coevolution
+##############################
+def concat_combine(evaluators):
+    """Combine a list of individuals by concatenating their genomes."""
+    # Clone one of the evaluators so we can use its problem and decoder later
+    combined_ind = evaluators[0].clone()
+    
+    genomes = [ind.genome for ind in evaluators]
+    combined_ind.genome = list(itertools.chain(*genomes)) # Concatenate
+    return combined_ind
+
+
+@curry
+@iteriter_op
+def coop_evaluate(next_individual: Iterator, context, num_evaluators, evaluator_selector, combine=concat_combine) -> Iterator:
+    while True:
+        current_ind = next(next_individual)
+        
+        # Pull references to all subpopulations from the context object
+        subpopulations = context['leap']['subpopulations']
+        current_subpop = context['leap']['current_subpopulation']
+        
+        # Create iterators that select individuals from each subpopulation
+        selectors = [evaluator_selector(subpop) for subpop in subpopulations]
+        
+        fitnesses = []
+        for i in range(num_evaluators):
+            combined_ind = build_combined_solution(current_ind, subpopulations, current_subpop, selectors, combine)
+            fitnesses.append(combined_ind.evaluate())
+            
+        current_ind.fitness = mean(fitnesses)
+        
+        yield current_ind
+        
+        
+def build_combined_solution(current_ind, subpopulations, current_subpop, selectors, combine):
+    evaluators = []
+    for i in range(len(subpopulations)):
+        if i != current_subpop:
+            # Select a fellow evaluator from the other subpopulations
+            ind = next(selectors[i])
+            assert(hasattr(ind, 'genome'))  # Make sure we actually got something with a genome back
+            evaluators.append(ind)
+        else:
+            # Stick this subpop's individual in as-is
+            evaluators.append(current_ind)
+
+    assert(len(evaluators) == len(subpopulations))
+    return combine(evaluators)
+
+
 
 
 ##############################

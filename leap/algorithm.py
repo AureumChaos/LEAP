@@ -2,7 +2,7 @@ import random
 
 from toolz import pipe
 
-from leap import core, util
+from leap import core, util, ops
 
 
 ##############################
@@ -102,7 +102,7 @@ def generational_ea(generations, pop_size, individual_cls, initialize, decoder, 
 # Function multi_population_ea
 ##############################
 def multi_population_ea(generations, num_populations, pop_size, individual_cls, initialize, decoder, problem, shared_pipeline,
-                        subpop_pipelines=None):
+                        subpop_pipelines=None, context=core.context, evaluate=core.Individual.evaluate_population):
     """
     An EA that maintains multiple (interacting) subpopulations, i.e. for implementing island models.
 
@@ -185,12 +185,14 @@ def multi_population_ea(generations, num_populations, pop_size, individual_cls, 
     # Initialize populations of pop_size individuals of the same type as individual_cls
     pops = [individual_cls.create_population(pop_size, initialize=initialize, decoder=decoder, problem=problem)
             for _ in range(num_populations)]
-
     # Evaluate initial population
-    pops = [core.Individual.evaluate_population(p) for p in pops]
+    pops = [evaluate(p) for p in pops]
+    # Include a reference to the populations in the context object.
+    # This allows operators to see all of the subpopulations.
+    context['leap']['subpopulations'] = pops
 
-    # Set up a generation counter that records the current generation to core.context
-    generation_counter = util.inc_generation(context=core.context)
+    # Set up a generation counter that records the current generation to the context
+    generation_counter = util.inc_generation(context=context)
 
     # Output the best individual in the initial population
     bsf = [max(p) for p in pops]
@@ -199,9 +201,11 @@ def multi_population_ea(generations, num_populations, pop_size, individual_cls, 
     while generation_counter.generation() < generations:
         # Execute each population serially
         for i, parents in enumerate(pops):
-            core.context['leap']['subpopulation'] = i
+            # Indicate the subpopulation we are currently executing in the context object.
+            # This allows operators to know which subpopulation the are working with.
+            context['leap']['current_subpopulation'] = i
             # Execute the operators to create a new offspring population
-            operators = list(shared_pipeline) + list(subpop_pipelines[i]) if subpop_pipelines else []
+            operators = list(shared_pipeline) + (list(subpop_pipelines[i]) if subpop_pipelines else [])
             offspring = pipe(parents, *operators)
 
             if max(offspring) > bsf[i]:  # Update the best-so-far individual
