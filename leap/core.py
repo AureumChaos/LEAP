@@ -418,28 +418,15 @@ class BinaryToIntDecoder(Decoder):
 
 
 ##############################
-# Class BinaryToRealDecoder
+# Class BinaryToRealDecoderCommon
 ##############################
-class BinaryToRealDecoder(Decoder):
+class BinaryToRealDecoderCommon(Decoder):
+    """
+        Common implementation for binary to real decoders.
+
+
+    """
     def __init__(self, *segments):
-        """ This returns a function that will convert a binary representation into a corresponding
-            real-value vector.  The segments are a collection of tuples that indicate how many bits
-            per segment, and the corresponding real-value bounds for that segment.
-
-        :param segments: is a sequence of tuples of the form (number of bits, minimum, maximum) values
-        :return: a function for real-value phenome decoding of a sequence of binary digits
-
-        For example, if we construct the decoder
-
-        >>> d = BinaryToRealDecoder((4, -5.12, 5.12),(4, -5.12, 5.12))
-
-        then it will look for a genome of length 8, with the first 4 bits mapped to the first phenotypic value, and the
-        last 4 bits making up the second.  The traits have a minimum value of -5.12 (corresponding to 0000) and a
-        maximum of 5.12 (corresponding to 1111):
-
-        >>> d.decode([0, 0, 0, 0, 1, 1, 1, 1])
-        [-5.12, 5.12]
-        """
         super().__init__()
 
         # Verify that segments have the correct dimensionality
@@ -449,12 +436,13 @@ class BinaryToRealDecoder(Decoder):
                                  f"but segment {i} is '{seg}'.'")
 
         # first we want to create an _int_ encoder since we'll be using that to do the first pass
-        len_segments = list(pluck(0, segments))  # snip out just the binary segment lengths from the set of tuples
+        self.len_segments = list(pluck(0, segments))  # snip out just the binary segment lengths from the set of tuples
 
-        cardinalities = [2 ** i for i in len_segments]  # how many possible values per segment
+        cardinalities = [2 ** i for i in self.len_segments]  # how many possible values per segment
 
         # We will use this function to first decode to integers
-        self.binary_to_int_decoder = BinaryToIntDecoder(*len_segments)
+        # This is assigned in the sub-classes
+        self.binary_to_int_decoder = None
 
         # Now get the corresponding real value ranges
         self.lower_bounds = list(pluck(1, segments))
@@ -465,11 +453,43 @@ class BinaryToRealDecoder(Decoder):
         self.increments = [(upper - lower) / (cardinalities - 1) for lower, upper, cardinalities in
                            zip(self.lower_bounds, self.upper_bounds, cardinalities)]
 
+
     def decode(self, genome):
         """Convert a list of binary values into a real-valued vector."""
         int_values = self.binary_to_int_decoder.decode(genome)
         values = [l + i * inc for l, i, inc in zip(self.lower_bounds, int_values, self.increments)]
         return values
+
+
+##############################
+# Class BinaryToRealDecoder
+##############################
+class BinaryToRealDecoder(BinaryToRealDecoderCommon):
+    def __init__(self, *segments):
+        """ This returns a function that will convert a binary representation
+        into a corresponding real-value vector.  The segments are a
+        collection of tuples that indicate how many bits per segment, and the
+        corresponding real-value bounds for that segment.
+
+        :param segments: is a sequence of tuples of the form (number of bits,
+        minimum, maximum) values :return: a function for real-value phenome
+        decoding of a sequence of binary digits
+
+        For example, if we construct the decoder
+        then it will look for a genome of length 8, with the first 4 bits
+        mapped to the first phenotypic value, and the last 4 bits making up
+        the second.  The traits have a minimum value of -5.12 (corresponding
+        to 0000) and a maximum of 5.12 (corresponding to 1111):
+
+        >>> d = BinaryToRealDecoder((4, -5.12, 5.12),(4, -5.12, 5.12))
+        >>> d.decode([0, 0, 0, 0, 1, 1, 1, 1])
+        [-5.12, 5.12]
+        """
+        super().__init__(*segments)
+
+        # We will use this function to first decode to integers
+        self.binary_to_int_decoder = BinaryToIntDecoder(*self.len_segments)
+
 
 
 ##############################
@@ -517,10 +537,34 @@ class BinaryToIntGreyDecoder(BinaryToIntDecoder):
         return gray_encoded_values
 
 
-
 ##############################
 # Class BinaryToRealGreyDecoder
 ##############################
+class BinaryToRealGreyDecoder(BinaryToRealDecoderCommon):
+    def __init__(self, *segments):
+        """ This returns a function that will convert a binary representation
+        into a corresponding real-value vector.  The segments are a
+        collection of tuples that indicate how many bits per segment, and the
+        corresponding real-value bounds for that segment.
+
+        :param segments: is a sequence of tuples of the form (number of bits,
+        minimum, maximum) values :return: a function for real-value phenome
+        decoding of a sequence of binary digits
+
+        For example, if we construct the decoder then it will look for
+        a genome of length 8, with the first 4 bits mapped to the first
+        phenotypic value, and the last 4 bits making up the second.  The
+        traits have a minimum value of -5.12 (corresponding to 0000) and a
+        maximum of 5.12 (corresponding to 1111):
+
+        >>> d = BinaryToRealGreyDecoder((4, -5.12, 5.12),(4, -5.12, 5.12))
+        >>> d.decode([0, 0, 0, 0, 1, 1, 1, 1])
+        [-5.12, 1.706666666666666]
+        """
+        super().__init__(*segments)
+
+        # We will use this function to first decode to integers
+        self.binary_to_int_decoder = BinaryToIntGreyDecoder(*self.len_segments)
 
 
 if __name__ == '__main__':
