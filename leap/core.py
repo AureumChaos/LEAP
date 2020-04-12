@@ -321,6 +321,9 @@ class IdentityDecoder(Decoder):
     """A decoder that maps a genome to itself.  This acts as a 'direct' or 'phenotypic' encoding:
     Use this when your genotype and phenotype are the same thing."""
 
+    def __init__(self):
+        super().__init__()
+
     def decode(self, genome):
         """:return: the input `genome`.
 
@@ -361,6 +364,7 @@ class BinaryToIntDecoder(Decoder):
         >>> d.decode([0,0,0,0,1,1,1])
         [0, 7]
         """
+        super().__init__()
         self.segments = segments
 
     def decode(self, genome):
@@ -436,6 +440,8 @@ class BinaryToRealDecoder(Decoder):
         >>> d.decode([0, 0, 0, 0, 1, 1, 1, 1])
         [-5.12, 5.12]
         """
+        super().__init__()
+
         # Verify that segments have the correct dimensionality
         for i, seg in enumerate(segments):
             if len(seg) != 3:
@@ -464,6 +470,58 @@ class BinaryToRealDecoder(Decoder):
         int_values = self.binary_to_int_decoder.decode(genome)
         values = [l + i * inc for l, i, inc in zip(self.lower_bounds, int_values, self.increments)]
         return values
-        
+
+
+##############################
+# Class BinaryToIntGreyDecoder
+##############################
+class BinaryToIntGreyDecoder(BinaryToIntDecoder):
+    """ This performs Gray encoding when converting from binary strings.
+
+        See also:
+        https://en.wikipedia.org/wiki/Gray_code#Converting_to_and_from_Gray_code
+
+        For example, a grey encoded Boolean representation of [1, 8, 4] can
+        be decoded like this:
+
+        >>> d = BinaryToIntGreyDecoder(4, 4, 4)
+        >>> d.decode([0,0,0,1, 1, 1, 0, 0, 0, 1, 1, 0])
+        [1, 8, 4]
+    """
+    def __init__(self, *segments):
+        super().__init__(*segments)
+
+    @staticmethod
+    def __gray_encode(num):
+        """
+        https://en.wikipedia.org/wiki/Gray_code#Converting_to_and_from_Gray_code
+
+        :param value: integer value to be gray encoded
+        :return: gray encoded integer
+        """
+        mask = num >> 1
+
+        while mask != 0:
+            num = num ^ mask
+            mask = mask >> 1
+
+        return num
+
+    def decode(self, genome):
+        # First decode the integers from the binary representation using
+        # regular binary decoding.
+        values = super().decode(genome)
+
+        gray_encoded_values = [BinaryToIntGreyDecoder.__gray_encode(v) for v in values]
+
+        return gray_encoded_values
+
+
+
+##############################
+# Class BinaryToRealGreyDecoder
+##############################
+
+
 if __name__ == '__main__':
     pass
