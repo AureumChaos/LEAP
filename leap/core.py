@@ -18,7 +18,6 @@ from toolz.itertoolz import pluck
 
 from leap import util
 
-
 # This defines a global context that is a dictionary of dictionaries.  The
 # intent is for certain operators and functions to add to and modify this
 # context.  Third party operators and functions will just add a new top-level
@@ -50,6 +49,7 @@ def create_binary_sequence(length):
     ...                                           problem=binary_problems.MaxOnes())
 
     """
+
     def create():
         return [random.choice([0, 1]) for _ in range(length)]
 
@@ -82,6 +82,7 @@ def create_real_vector(bounds):
     ...                                           problem=real_problems.SpheroidProblem())
 
     """
+
     def create():
         return [random.uniform(min_, max_) for min_, max_ in bounds]
 
@@ -125,9 +126,11 @@ class Individual:
         """
         # Type checking to avoid difficult-to-debug errors
         if isinstance(decoder, type):
-            raise ValueError(f"Got the type '{decoder}' as a decoder, but expected an instance.")
+            raise ValueError(
+                f"Got the type '{decoder}' as a decoder, but expected an instance.")
         if isinstance(problem, type):
-            raise ValueError(f"Got the type '{problem}' as a problem, but expected an instance.")
+            raise ValueError(
+                f"Got the type '{problem}' as a problem, but expected an instance.")
         # Core data
         self.genome = genome
         self.problem = problem
@@ -147,7 +150,8 @@ class Individual:
         """
         # genomes = initialize(n)
         # assert(len(genomes) == n)
-        return [cls(genome=initialize(), decoder=decoder, problem=problem) for _ in range(n)]
+        return [cls(genome=initialize(), decoder=decoder, problem=problem) for _
+                in range(n)]
 
     @classmethod
     def evaluate_population(cls, population):
@@ -424,40 +428,60 @@ class BinaryToRealDecoderCommon(Decoder):
     """
         Common implementation for binary to real decoders.
 
-
+        The base classes BinaryToRealDecoder and BinaryToRealGreyDecoder differ
+        by just the underlying binary to integer decoder.  Most all the rest
+        of the binary integer to real-value decoding is the same, hence this
+        class.
     """
+
     def __init__(self, *segments):
+        """
+        :param segments: is a sequence of tuples of the form (number of bits,
+        minimum, maximum) values
+
+        :return: a function for real-value phenome decoding of a sequence of
+        binary digits
+        """
         super().__init__()
 
         # Verify that segments have the correct dimensionality
         for i, seg in enumerate(segments):
             if len(seg) != 3:
-                raise ValueError("Each segment must be a have exactly three elements (num_bits, min, max), " +
+                raise ValueError("Each segment must be a have exactly three "
+                                 "elements (num_bits, min, max), " +
                                  f"but segment {i} is '{seg}'.'")
 
-        # first we want to create an _int_ encoder since we'll be using that to do the first pass
-        self.len_segments = list(pluck(0, segments))  # snip out just the binary segment lengths from the set of tuples
+        # first we want to create an _int_ encoder since we'll be using that
+        # to do the first pass
 
-        cardinalities = [2 ** i for i in self.len_segments]  # how many possible values per segment
+        # snip out just the binary segment lengths from the set of tuples;
+        # we save this for the subclasses for their binary to integer decoders
+        self.len_segments = list(pluck(0, segments))
 
-        # We will use this function to first decode to integers
-        # This is assigned in the sub-classes
+        # how many possible values per segment
+        cardinalities = [2 ** i for i in self.len_segments]
+
+        # We will use this function to first decode to integers.
+        # This is assigned in the sub-classes depending on whether we want to
+        # use grey encoding or not to convert from binary to integer sequences.
         self.binary_to_int_decoder = None
 
         # Now get the corresponding real value ranges
         self.lower_bounds = list(pluck(1, segments))
         self.upper_bounds = list(pluck(2, segments))
 
-        # This corresponds to the amount each binary value is multiplied by to get the final real value (plus the lower
-        # bound offset, of course)
-        self.increments = [(upper - lower) / (cardinalities - 1) for lower, upper, cardinalities in
-                           zip(self.lower_bounds, self.upper_bounds, cardinalities)]
-
+        # This corresponds to the amount each binary value is multiplied by
+        # to get the final real value (plus the lower bound offset, of course)
+        self.increments = [(upper - lower) / (cardinalities - 1) for
+                           lower, upper, cardinalities in
+                           zip(self.lower_bounds, self.upper_bounds,
+                               cardinalities)]
 
     def decode(self, genome):
         """Convert a list of binary values into a real-valued vector."""
         int_values = self.binary_to_int_decoder.decode(genome)
-        values = [l + i * inc for l, i, inc in zip(self.lower_bounds, int_values, self.increments)]
+        values = [l + i * inc for l, i, inc in
+                  zip(self.lower_bounds, int_values, self.increments)]
         return values
 
 
@@ -472,8 +496,10 @@ class BinaryToRealDecoder(BinaryToRealDecoderCommon):
         corresponding real-value bounds for that segment.
 
         :param segments: is a sequence of tuples of the form (number of bits,
-        minimum, maximum) values :return: a function for real-value phenome
-        decoding of a sequence of binary digits
+        minimum, maximum) values
+
+        :return: a function for real-value phenome decoding of a sequence of
+        binary digits
 
         For example, if we construct the decoder
         then it will look for a genome of length 8, with the first 4 bits
@@ -489,7 +515,6 @@ class BinaryToRealDecoder(BinaryToRealDecoderCommon):
 
         # We will use this function to first decode to integers
         self.binary_to_int_decoder = BinaryToIntDecoder(*self.len_segments)
-
 
 
 ##############################
@@ -508,6 +533,7 @@ class BinaryToIntGreyDecoder(BinaryToIntDecoder):
         >>> d.decode([0,0,0,1, 1, 1, 0, 0, 0, 1, 1, 0])
         [1, 8, 4]
     """
+
     def __init__(self, *segments):
         super().__init__(*segments)
 
@@ -532,7 +558,8 @@ class BinaryToIntGreyDecoder(BinaryToIntDecoder):
         # regular binary decoding.
         values = super().decode(genome)
 
-        gray_encoded_values = [BinaryToIntGreyDecoder.__gray_encode(v) for v in values]
+        gray_encoded_values = [BinaryToIntGreyDecoder.__gray_encode(v) for v in
+                               values]
 
         return gray_encoded_values
 
