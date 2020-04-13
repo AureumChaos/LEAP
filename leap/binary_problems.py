@@ -1,6 +1,8 @@
 """
     A set of standard EA problems that rely on a binary-representation
 """
+from PIL import Image, ImageOps
+
 from leap.problem import ScalarProblem
 from leap import core
 
@@ -33,3 +35,28 @@ class MaxOnes(ScalarProblem):
         5
         """
         return phenome.count(1)
+
+
+##############################
+# Class ImageProblem
+##############################
+class ImageProblem(ScalarProblem):
+    """A variation on `max_ones` that uses an external image file to define a binary target pattern."""
+    
+    def __init__(self, path, maximize=True, size=(100, 100)):
+        super().__init__(maximize)
+        self.size = size
+        self.img = ImageProblem._process_image(path, size)
+        self.flat_img = np.ndarray.flatten(np.array(self.img))
+        
+    @staticmethod
+    def _process_image(path, size):
+        """Load an image and convert it to black-and-white."""
+        x = Image.open(path)
+        x = ImageOps.fit(x, size)
+        return x.convert('1')
+    
+    def evaluate(self, phenome):
+        assert(len(phenome) == len(self.flat_img)), f"Bad genome length: got {len(phenome)}, expected {len(self.flat_img)}"
+        diff = np.logical_not(phenome ^ self.flat_img)
+        return sum(diff)
