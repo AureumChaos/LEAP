@@ -55,12 +55,14 @@ if __name__ == '__main__':
     l = 2
     pop_size = 10
     ea = multi_population_ea(generations=1000, num_populations=topology.number_of_nodes(), pop_size=pop_size,
+                             problem=problem,  # Fitness function
+
+                             # Representation
                              individual_cls=core.Individual,
-
-                             decoder=core.IdentityDecoder(),
-                             problem=problem,
                              initialize=core.create_real_vector(bounds=[problem.bounds] * l),
+                             decoder=core.IdentityDecoder(),
 
+                             # Operator pipeline
                              shared_pipeline=[
                                  ops.tournament,
                                  ops.clone,
