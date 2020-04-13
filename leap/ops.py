@@ -1,17 +1,20 @@
-""" Module for fundamental evolutionary operators.  You'll find many
-traditional selection and reproduction strategies here.
+"""Fundamental evolutionary operators.
 
+This module provides many of the most important functions that we string together to
+create EAs out of operator pipelines. You'll find many traditional selection and reproduction 
+strategies here, as well as components for classic algorithms like island models
+and cooperative coevolution.
 """
-
 import abc
 import collections
 from copy import copy
+import csv
 import itertools
+import math
 import random
 from statistics import mean
-from typing import Iterator, List, Tuple
+from typing import Iterator, List, Tuple, Callable
 
-import math
 import toolz
 from toolz import curry
 
@@ -174,6 +177,24 @@ def evaluate(next_individual: Iterator) -> Iterator:
         individual.evaluate()
 
         yield individual
+
+
+##############################
+# const_evaluate operator
+##############################
+@curry
+@listlist_op
+def const_evaluate(population: List, value) -> List:
+    """An evaluator that assigns a constant fitness to every individual.
+    
+    This is useful for algorithms that need to assign an arbitrary initial 
+    fitness value before using their normal evaluation method.  Some forms of
+    cooperative coevolution are an eample.
+    """
+    for ind in population:
+        ind.fitness = value
+        
+    return population
 
 
 ##############################
@@ -668,57 +689,92 @@ def migrate(context, topology, emigrant_selector, replacement_selector, migratio
 
 
 ##############################
-# Fitness evaluation for cooperative coevolution
+# coop_evaluate function
 ##############################
-def concat_combine(evaluators):
+def concat_combine(collaborators):
     """Combine a list of individuals by concatenating their genomes."""
     # Clone one of the evaluators so we can use its problem and decoder later
-    combined_ind = evaluators[0].clone()
+    combined_ind = collaborators[0].clone()
     
-    genomes = [ind.genome for ind in evaluators]
+    genomes = [ind.genome for ind in collaborators]
     combined_ind.genome = list(itertools.chain(*genomes)) # Concatenate
     return combined_ind
 
 
-@curry
-@iteriter_op
-def coop_evaluate(next_individual: Iterator, context, num_evaluators, evaluator_selector, combine=concat_combine) -> Iterator:
-    while True:
-        current_ind = next(next_individual)
+def coop_evaluate(context, num_trials, collaborator_selector, log_stream=None, combine=concat_combine) -> Callable:
+    """Return an operator that performs cooperative coevolutionary fitness evaluation on a subpopulation.
+    
+    """
+    # First we break the collaboration logic down into a couple of nested functions
+    def choose_collaborators(current_ind, subpopulations, current_subpop, selectors):
+        """Choose collaborators from the subpopulations."""
+        collaborators = []
+        for i in range(len(subpopulations)):
+            if i != current_subpop:
+                # Select a fellow collaborator from the other subpopulations
+                ind = next(selectors[i])
+                assert(hasattr(ind, 'genome'))  # Make sure we actually got something with a genome back
+                collaborators.append(ind)
+            else:
+                # Stick this subpop's individual in as-is
+                collaborators.append(current_ind)
+
+        assert(len(collaborators) == len(subpopulations))
+        return collaborators
+
+    def log_trial(writer, collaborators, combined_ind, trial_id):
+        """Record information about a batch of collaborators to a CSV writer."""
+        for i, collab in enumerate(collaborators):
+            writer.writerow({'generation': context['leap']['generation'],
+                             'subpopulation': context['leap']['current_subpopulation'],
+                             'individual_type': 'Collaborator',
+                             'collaborator_subpopulation': i,
+                             'genome': collab.genome,
+                             'fitness': collab.fitness })
         
-        # Pull references to all subpopulations from the context object
-        subpopulations = context['leap']['subpopulations']
-        current_subpop = context['leap']['current_subpopulation']
-        
-        # Create iterators that select individuals from each subpopulation
-        selectors = [evaluator_selector(subpop) for subpop in subpopulations]
-        
-        fitnesses = []
-        for i in range(num_evaluators):
-            combined_ind = build_combined_solution(current_ind, subpopulations, current_subpop, selectors, combine)
-            fitnesses.append(combined_ind.evaluate())
+        writer.writerow({'generation': context['leap']['generation'],
+                         'subpopulation': context['leap']['current_subpopulation'],
+                         'individual_type': 'Combined Individual',
+                         'collaborator_subpopulation': None,
+                         'genome': combined_ind.genome,
+                         'fitness': combined_ind.fitness })
+
+    # Set up the CSV writier
+    if log_stream is not None:
+        writer = csv.DictWriter(log_stream, fieldnames=['generation', 'subpopulation', 'individual_type', 'collaborator_subpopulation', 'genome', 'fitness'])
+        # We print the header at construction time
+        writer.writeheader()
+
+    # Finally, create the evaluation operator itself
+    @iteriter_op
+    def operator(next_individual: Iterator) -> Iterator:
+        """The nested function to be returned by this closure: an operator that 
+        performs cooperative coevolutionary evaluation"""
+        while True:
+            current_ind = next(next_individual)
             
-        current_ind.fitness = mean(fitnesses)
-        
-        yield current_ind
-        
-        
-def build_combined_solution(current_ind, subpopulations, current_subpop, selectors, combine):
-    evaluators = []
-    for i in range(len(subpopulations)):
-        if i != current_subpop:
-            # Select a fellow evaluator from the other subpopulations
-            ind = next(selectors[i])
-            assert(hasattr(ind, 'genome'))  # Make sure we actually got something with a genome back
-            evaluators.append(ind)
-        else:
-            # Stick this subpop's individual in as-is
-            evaluators.append(current_ind)
+            # Pull references to all subpopulations from the context object
+            subpopulations = context['leap']['subpopulations']
+            current_subpop = context['leap']['current_subpopulation']
+            
+            # Create iterators that select individuals from each subpopulation
+            selectors = [collaborator_selector(subpop) for subpop in subpopulations]
+            
+            fitnesses = []
+            for i in range(num_trials):
+                collaborators = choose_collaborators(current_ind, subpopulations, current_subpop, selectors)
+                combined_ind = concat_combine(collaborators)
+                fitness = combined_ind.evaluate()
+                if log_stream is not None:
+                    log_trial(writer, collaborators, combined_ind, i)
 
-    assert(len(evaluators) == len(subpopulations))
-    return combine(evaluators)
+                fitnesses.append(fitness)
+                
+            current_ind.fitness = mean(fitnesses)
+            
+            yield current_ind
 
-
+    return operator
 
 
 ##############################

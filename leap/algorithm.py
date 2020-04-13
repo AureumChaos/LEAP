@@ -102,7 +102,7 @@ def generational_ea(generations, pop_size, individual_cls, initialize, decoder, 
 # Function multi_population_ea
 ##############################
 def multi_population_ea(generations, num_populations, pop_size, individual_cls, initialize, decoder, problem, shared_pipeline,
-                        subpop_pipelines=None, context=core.context, evaluate=core.Individual.evaluate_population):
+                        subpop_pipelines=None, context=core.context, init_evaluate=core.Individual.evaluate_population):
     """
     An EA that maintains multiple (interacting) subpopulations, i.e. for implementing island models.
 
@@ -185,11 +185,11 @@ def multi_population_ea(generations, num_populations, pop_size, individual_cls, 
     # Initialize populations of pop_size individuals of the same type as individual_cls
     pops = [individual_cls.create_population(pop_size, initialize=initialize, decoder=decoder, problem=problem)
             for _ in range(num_populations)]
-    # Evaluate initial population
-    pops = [evaluate(p) for p in pops]
     # Include a reference to the populations in the context object.
     # This allows operators to see all of the subpopulations.
     context['leap']['subpopulations'] = pops
+    # Evaluate initial population
+    pops = [evaluate(p) for p in pops]
 
     # Set up a generation counter that records the current generation to the context
     generation_counter = util.inc_generation(context=context)
