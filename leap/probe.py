@@ -280,11 +280,13 @@ class PopulationPlotProbe:
         l = 10
         pop_size = 10
         ea = generational_ea(generations=100, pop_size=pop_size,
-                             individual_cls=core.Individual,
-
-                             decoder=core.IdentityDecoder(),
                              problem=real_problems.SpheroidProblem(maximize=False),
-                             initialize=core.create_real_vector(bounds=[[-5.12, 5.12]] * l),
+
+                             representation=core.Representation(
+                                individual_cls=core.Individual,
+                                decoder=core.IdentityDecoder(),
+                                initialize=core.create_real_vector(bounds=[[-5.12, 5.12]] * l)
+                             ),
 
                              pipeline=[
                                  plot_probe,  # Insert the probe into the pipeline like so

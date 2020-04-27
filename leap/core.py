@@ -255,6 +255,21 @@ class Individual:
 
 
 ##############################
+# Class Representation
+##############################
+class Representation():
+    """A `Representation` is a simple data structure that wraps the components needed to define, initialize, and 
+    decode individuals.
+    
+    This just serves as some syntactic sugar when we are specifying algorithms---so that representation-related 
+    components are grouped together and clearly labeled `Representation`."""
+    def __init__(self, decoder, initialize, individual_cls=Individual):
+        self.decoder = decoder
+        self.initialize = initialize
+        self.individual_cls = individual_cls
+
+
+##############################
 # Abstract Base Class Decoder
 ##############################
 class Decoder(abc.ABC):

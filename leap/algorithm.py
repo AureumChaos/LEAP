@@ -8,7 +8,7 @@ from leap import core, util, ops
 ##############################
 # Function generational_ea
 ##############################
-def generational_ea(generations, pop_size, individual_cls, initialize, decoder, problem, pipeline):
+def generational_ea(generations, pop_size, representation, problem, pipeline):
     """
     This function provides an evolutionary algorithm with a generational population model.
 
@@ -42,19 +42,22 @@ def generational_ea(generations, pop_size, individual_cls, initialize, decoder, 
     >>> l = 10  # The length of the genome
     >>> pop_size = 5
     >>> ea = generational_ea(generations=100, pop_size=pop_size,
-    ...                      individual_cls=core.Individual, # Use the standard Individual as the prototype for the population
+    ...                      problem=binary_problems.MaxOnes(),      # Solve a MaxOnes Boolean optimization problem
     ...
-    ...                      decoder=core.IdentityDecoder(),          # Genotype and phenotype are the same for this task
-    ...                      problem=binary_problems.MaxOnes(),       # Solve a MaxOnes Boolean optimization problem
-    ...                      initialize=core.create_binary_sequence(length=10),  # Initial genomes are random binary sequences
+    ...                      representation=core.Representation(
+    ...                          individual_cls=core.Individual,     # Use the standard Individual as the prototype for the population
+    ...                          decoder=core.IdentityDecoder(),     # Genotype and phenotype are the same for this task
+    ...                          initialize=core.create_binary_sequence(length=10)  # Initial genomes are random binary sequences
+    ...                      ),
     ...
     ...                      # The operator pipeline
-    ...                      pipeline=[ops.tournament,                     # Select parents via tournament selection
-    ...                                ops.clone,                          # Copy them (just to be safe)
-    ...                                ops.mutate_bitflip,                 # Basic mutation: defaults to a 1/L mutation rate
-    ...                                ops.uniform_crossover(p_swap=0.4),  # Crossover with a 40% chance of swapping each gene
-    ...                                ops.evaluate,                       # Evaluate fitness
-    ...                                ops.pool(size=pop_size)             # Collect offspring into a new population
+    ...                      pipeline=[
+    ...                          ops.tournament,                     # Select parents via tournament selection
+    ...                          ops.clone,                          # Copy them (just to be safe)
+    ...                          ops.mutate_bitflip,                 # Basic mutation: defaults to a 1/L mutation rate
+    ...                          ops.uniform_crossover(p_swap=0.4),  # Crossover with a 40% chance of swapping each gene
+    ...                          ops.evaluate,                       # Evaluate fitness
+    ...                          ops.pool(size=pop_size)             # Collect offspring into a new population
     ...                      ])
     >>> ea # doctest:+ELLIPSIS
     <generator ...>
@@ -72,7 +75,10 @@ def generational_ea(generations, pop_size, individual_cls, initialize, decoder, 
     individual at each subsequent generation.
     """
     # Initialize a population of pop_size individuals of the same type as individual_cls
-    parents = individual_cls.create_population(pop_size, initialize=initialize, decoder=decoder, problem=problem)
+    parents = representation.individual_cls.create_population(pop_size,
+                                                              initialize=representation.initialize,
+                                                              decoder=representation.decoder,
+                                                              problem=problem)
 
     # Evaluate initial population
     parents = core.Individual.evaluate_population(parents)
@@ -101,7 +107,7 @@ def generational_ea(generations, pop_size, individual_cls, initialize, decoder, 
 ##############################
 # Function multi_population_ea
 ##############################
-def multi_population_ea(generations, num_populations, pop_size, individual_cls, initialize, decoder, problem, shared_pipeline,
+def multi_population_ea(generations, num_populations, pop_size, problem, representation, shared_pipeline,
                         subpop_pipelines=None, context=core.context, init_evaluate=core.Individual.evaluate_population):
     """
     An EA that maintains multiple (interacting) subpopulations, i.e. for implementing island models.
@@ -143,11 +149,13 @@ def multi_population_ea(generations, num_populations, pop_size, individual_cls, 
     >>> l = 2  # Length of the genome
     >>> pop_size = 10
     >>> ea = multi_population_ea(generations=1000, num_populations=topology.number_of_nodes(), pop_size=pop_size,
-    ...                         individual_cls=core.Individual,
-    ...
-    ...                         decoder=core.IdentityDecoder(),
     ...                         problem=problem,
-    ...                         initialize=core.create_real_vector(bounds=[problem.bounds] * l),
+    ...
+    ...                         representation=core.Representation(
+    ...                             individual_cls=core.Individual,
+    ...                             decoder=core.IdentityDecoder(),
+    ...                             initialize=core.create_real_vector(bounds=[problem.bounds] * l)
+    ...                             ),
     ...
     ...                         shared_pipeline=[
     ...                             ops.tournament,
@@ -183,13 +191,13 @@ def multi_population_ea(generations, num_populations, pop_size, individual_cls, 
 
     """
     # Initialize populations of pop_size individuals of the same type as individual_cls
-    pops = [individual_cls.create_population(pop_size, initialize=initialize, decoder=decoder, problem=problem)
+    pops = [representation.individual_cls.create_population(pop_size, initialize=representation.initialize, decoder=representation.decoder, problem=problem)
             for _ in range(num_populations)]
     # Include a reference to the populations in the context object.
     # This allows operators to see all of the subpopulations.
     context['leap']['subpopulations'] = pops
     # Evaluate initial population
-    pops = [evaluate(p) for p in pops]
+    pops = [init_evaluate(p) for p in pops]
 
     # Set up a generation counter that records the current generation to the context
     generation_counter = util.inc_generation(context=context)
