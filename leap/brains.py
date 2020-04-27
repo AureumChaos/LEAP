@@ -129,7 +129,6 @@ class BrainProblem(real_problems.ScalarProblem):
                     break
             observations.append(run_observations)
             rewards.append(run_rewards)
-        self.environment.close()
         return self.behavior_fitness(observations, rewards)
 
 

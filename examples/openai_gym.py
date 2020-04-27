@@ -1,7 +1,10 @@
+"""This example uses a Pitt-approach rule system to evolve agent controllers for the problems 
+in the OpenAI Gym problem set."""
 import sys
 
 import click
 import gym
+from matplotlib import pyplot as plt
 import numpy as np
 
 from leap import brains, core, real_problems, probe, ops
@@ -10,6 +13,8 @@ from leap.algorithm import generational_ea
 
 @click.group()
 def cli():
+    """This LEAP example application uses a Pitt-approach rule system to evolve agent controllers for
+    the problems in the OpenAI Gym problem set."""
     pass
 
 
@@ -71,35 +76,38 @@ def evolve_pitt(runs, steps, env, evals, pop_size, num_rules, mutate_prob, mutat
 
     with open(output, 'w') as genomes_file:
         file_probe = probe.AttributesCSVProbe(core.context, stream=genomes_file, do_fitness=True, do_genome=True)
+        plt.figure()
+        plt.ylabel("Fitness")
+        plt.xlabel("Generations")
+        plt.title("Best-of-Generation Fitness")
+        fitness_viz_probe = probe.PopulationPlotProbe(core.context, ylim=(0, 1), xlim=(0, 1), modulo=1, ax=plt.gca())
         ea = generational_ea(generations=evals, pop_size=pop_size,
-                             individual_cls=core.Individual,  # Use the standard Individual as the population prototype.
-
-                             # Decode genomes into Pitt-style rules
-                             decoder=brains.PittRulesDecoder(
-                                 input_space=environment.observation_space,
-                                 output_space=environment.action_space,
-                                 priority_metric=brains.PittRulesBrain.PriorityMetric.RULE_ORDER,
-                                 num_memory_registers=0
-                             ),
                              # Solve a problem that executes agents in the environment and obtains fitness from it
                              problem=brains.BrainProblem(runs, steps, environment, brains.reward_fitness),
 
-                             # Initialized genomes are random real-valued vectors.
-                             initialize=core.create_real_vector(
-                                 # Initialize each element between 0 and 1.
-                                 bounds=([[-0.0, 1.0]] * (num_inputs*2 + num_outputs)) * num_rules
+                             representation=core.Representation(
+                                decoder=brains.PittRulesDecoder(  # Decode genomes into Pitt-style rules
+                                    input_space=environment.observation_space,
+                                    output_space=environment.action_space,
+                                    priority_metric=brains.PittRulesBrain.PriorityMetric.RULE_ORDER,
+                                    num_memory_registers=0
+                                ),
+
+                                initialize=core.create_real_vector( # Initialized genomes are random real-valued vectors.
+                                    # Initialize each element between 0 and 1.
+                                    bounds=([[-0.0, 1.0]] * (num_inputs*2 + num_outputs)) * num_rules
+                                )
                              ),
 
                              # The operator pipeline.
                              pipeline=[
                                  ops.tournament,
                                  ops.clone,
-                                 # Apply Gaussian mutation to each gene with a certain probability.
                                  ops.mutate_gaussian(std=mutate_std, hard_bounds=(0, 1)),
                                  ops.evaluate,
-                                 #file_probe,
                                  ops.pool(size=pop_size),
-                                 stdout_probe
+                                 stdout_probe,
+                                 fitness_viz_probe
                              ])
         list(ea)
 
