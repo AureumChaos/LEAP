@@ -20,7 +20,10 @@ def log_worker_location(stream=sys.stdout, header=True):
     :return: a function for recording where individuals are evaluated
     """
     stream = stream
-    writer = csv.DictWriter(stream, fieldnames=['hostname', 'pid', 'uuid', 'birth_id', 'fitness'])
+    writer = csv.DictWriter(stream,
+                            fieldnames=['hostname', 'pid', 'uuid', 'birth_id',
+                                        'start_eval_time', 'stop_eval_time',
+                                        'fitness'])
 
     if header:
         writer.writeheader()
@@ -37,11 +40,13 @@ def log_worker_location(stream=sys.stdout, header=True):
         nonlocal stream
         nonlocal writer
 
-        writer.writerow({'hostname' : individual.hostname,
-                         'pid' : individual.pid,
-                         'uuid' : individual.uuid,
-                         'birth_id' : individual.birth_id,
-                         'fitness' : individual.fitness})
+        writer.writerow({'hostname': individual.hostname,
+                         'pid': individual.pid,
+                         'uuid': individual.uuid,
+                         'birth_id': individual.birth_id,
+                         'start_eval_time': individual.start_eval_time,
+                         'stop_eval_time': individual.stop_eval_time,
+                         'fitness': individual.fitness})
         # On some systems, such as Summit, we need to force a flush else there
         # will be no output until the very end of the run.
         stream.flush()
