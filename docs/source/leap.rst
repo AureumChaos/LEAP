@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
 
    leap.contrib
+   leap.distributed
 
 Submodules
 ----------
