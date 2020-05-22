@@ -689,10 +689,13 @@ def migrate(context, topology, emigrant_selector, replacement_selector, migratio
 
 
 ##############################
-# coop_evaluate function
+# Class coop_evaluate
 ##############################
 def concat_combine(collaborators):
-    """Combine a list of individuals by concatenating their genomes."""
+    """Combine a list of individuals by concatenating their genomes.
+    
+    You can choose whether this or some other function is used for combining collaborators
+    by passing it into the `CooperativeEvaluate` constructor."""
     # Clone one of the evaluators so we can use its problem and decoder later
     combined_ind = collaborators[0].clone()
     
@@ -701,12 +704,53 @@ def concat_combine(collaborators):
     return combined_ind
 
 
-def coop_evaluate(context, num_trials, collaborator_selector, log_stream=None, combine=concat_combine) -> Callable:
-    """Return an operator that performs cooperative coevolutionary fitness evaluation on a subpopulation.
+class CooperativeEvaluate(Operator):
+    """A simple, non-parallel implementation of cooperative coevolutionary fitness evaluation.
     
+    :param context: the algorithm's state context.  Used to access subpopulation information.
     """
-    # First we break the collaboration logic down into a couple of nested functions
-    def choose_collaborators(current_ind, subpopulations, current_subpop, selectors):
+    def __init__(self, context, num_trials, collaborator_selector, log_stream=None, combine=concat_combine):
+        self.context = context
+        self.num_trials = num_trials
+        self.collaborator_selector = collaborator_selector
+        self.combine = combine
+
+        # Set up the CSV writier
+        if log_stream is not None:
+            self.log_writer = csv.DictWriter(log_stream, fieldnames=['generation', 'subpopulation', 'individual_type', 'collaborator_subpopulation', 'genome', 'fitness'])
+            # We print the header at construction time
+            self.log_writer.writeheader()
+
+    def __call__(self, next_individual: Iterator) -> Iterator:
+        """Execute the evaluation operator on a subpopulation."""
+        while True:
+            current_ind = next(next_individual)
+            
+            # Pull references to all subpopulations from the context object
+            subpopulations = self.context['leap']['subpopulations']
+            current_subpop = self.context['leap']['current_subpopulation']
+            
+            # Create iterators that select individuals from each subpopulation
+            selectors = [self.collaborator_selector(subpop) for subpop in subpopulations]
+            
+            # Choose collaborators and evaulate
+            fitnesses = []
+            for i in range(self.num_trials):
+                collaborators = self._choose_collaborators(current_ind, subpopulations, current_subpop, selectors)
+                combined_ind = self.combine(collaborators)
+                fitness = combined_ind.evaluate()
+                # Optionally write out data about the collaborations
+                if self.log_writer is not None:
+                    self._log_trial(self.log_writer, self.context, collaborators, combined_ind, i)
+
+                fitnesses.append(fitness)
+                
+            current_ind.fitness = mean(fitnesses)
+            
+            yield current_ind
+
+    @staticmethod
+    def _choose_collaborators(current_ind, subpopulations, current_subpop, selectors):
         """Choose collaborators from the subpopulations."""
         collaborators = []
         for i in range(len(subpopulations)):
@@ -722,7 +766,8 @@ def coop_evaluate(context, num_trials, collaborator_selector, log_stream=None, c
         assert(len(collaborators) == len(subpopulations))
         return collaborators
 
-    def log_trial(writer, collaborators, combined_ind, trial_id):
+    @staticmethod
+    def _log_trial(writer, context, collaborators, combined_ind, trial_id):
         """Record information about a batch of collaborators to a CSV writer."""
         for i, collab in enumerate(collaborators):
             writer.writerow({'generation': context['leap']['generation'],
@@ -738,43 +783,6 @@ def coop_evaluate(context, num_trials, collaborator_selector, log_stream=None, c
                          'collaborator_subpopulation': None,
                          'genome': combined_ind.genome,
                          'fitness': combined_ind.fitness })
-
-    # Set up the CSV writier
-    if log_stream is not None:
-        writer = csv.DictWriter(log_stream, fieldnames=['generation', 'subpopulation', 'individual_type', 'collaborator_subpopulation', 'genome', 'fitness'])
-        # We print the header at construction time
-        writer.writeheader()
-
-    # Finally, create the evaluation operator itself
-    @iteriter_op
-    def operator(next_individual: Iterator) -> Iterator:
-        """The nested function to be returned by this closure: an operator that 
-        performs cooperative coevolutionary evaluation"""
-        while True:
-            current_ind = next(next_individual)
-            
-            # Pull references to all subpopulations from the context object
-            subpopulations = context['leap']['subpopulations']
-            current_subpop = context['leap']['current_subpopulation']
-            
-            # Create iterators that select individuals from each subpopulation
-            selectors = [collaborator_selector(subpop) for subpop in subpopulations]
-            
-            fitnesses = []
-            for i in range(num_trials):
-                collaborators = choose_collaborators(current_ind, subpopulations, current_subpop, selectors)
-                combined_ind = concat_combine(collaborators)
-                fitness = combined_ind.evaluate()
-                if log_stream is not None:
-                    log_trial(writer, collaborators, combined_ind, i)
-
-                fitnesses.append(fitness)
-                
-            current_ind.fitness = mean(fitnesses)
-            
-            yield current_ind
-
-    return operator
 
 
 ##############################
