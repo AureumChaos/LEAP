@@ -7,8 +7,7 @@
 """
 from leap import core, util, ops
 from toolz import pipe
-mport
-random
+import random
 
 
 ##############################
