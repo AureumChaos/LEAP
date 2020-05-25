@@ -1,3 +1,7 @@
+"""
+    Provides a very high-level convenience function for a very general EA,
+    ea_solve().
+"""
 from matplotlib import pyplot as plt
 
 from leap import core, ops, probe, problem
@@ -6,16 +10,23 @@ from leap.algorithm import generational_ea
 
 def ea_solve(function, bounds, generations=100, pop_size=2,
              mutation_std=1.0, maximize=False, viz=False, viz_ylim=(0, 1)):
-    """Provides a simple, top-level interfact that optimizes a real-valued function using a simple generational EA.
+    """Provides a simple, top-level interfact that optimizes a real-valued
+    function using a simple generational EA.
 
-    :param function: the function to optimize; should take lists of real numbers as input and return a float fitness value
-    :param [(float, float)] bounds: a list of (min, max) bounds to define the search space
+    :param function: the function to optimize; should take lists of real
+    numbers as input and return a float fitness value
+
+    :param [(float, float)] bounds: a list of (min, max) bounds to define the
+    search space
+
     :param int generations: the number of generations to run for
     :param int pop_size: the population size
     :param float mutation_std: the width of the mutation distribution
     :param bool maximize: whether to maximize the function (else minimize)
     :param bool viz: whether to display a live best-of-generation plot
-    :param (float, float) viz_ylim: initial bounds to use of the plots vertical axis
+
+    :param (float, float) viz_ylim: initial bounds to use of the plots
+    vertical axis
 
     >>> from leap import simple
     >>> ea_solve(sum, bounds=[(0, 1)]*5) # doctest:+ELLIPSIS
