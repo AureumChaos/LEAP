@@ -105,7 +105,8 @@ class FunctionProblem(ScalarProblem):
 class ConstantProblem(ScalarProblem):
     """A flat landscape, where all phenotypes have the same fitness.
 
-    This is sometimes useful for sanity checks or as a control in certain kinds of research.
+    This is sometimes useful for sanity checks or as a control in certain
+    kinds of research.
 
     .. math::
 
