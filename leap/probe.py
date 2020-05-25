@@ -70,7 +70,8 @@ class FitnessStatsCSVProbe(op.Operator):
         self.context = context
         self.bsf_ind = None
         if header:
-            stream.write('step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness\n')
+            stream.write(
+                'step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness\n')
 
     def __call__(self, population):
         assert (population is not None)
@@ -164,7 +165,8 @@ class AttributesCSVProbe(op.Operator):
         self.do_dataframe = do_dataframe
 
         if (not do_dataframe) and stream is None:
-            raise ValueError("Both 'stream'=None and 'do_dataframe'=False, but at least one must be enabled.")
+            raise ValueError(
+                "Both 'stream'=None and 'do_dataframe'=False, but at least one must be enabled.")
 
         fieldnames = ['step'] + list(attributes)
         if job:
@@ -187,7 +189,8 @@ class AttributesCSVProbe(op.Operator):
         self.writer = None
         if stream is not None:
             # We'll write rows of data to this stream as we collect them
-            self.writer = csv.DictWriter(stream, fieldnames=fieldnames, lineterminator='\n')
+            self.writer = csv.DictWriter(
+                stream, fieldnames=fieldnames, lineterminator='\n')
             if header:
                 self.writer.writeheader()
 
@@ -226,7 +229,9 @@ class AttributesCSVProbe(op.Operator):
 
         for attr in self.attributes:
             if attr not in ind.__dict__:
-                raise ValueError('Attribute "{0}" not found in individual "{1}".'.format(attr, ind.__repr__()))
+                raise ValueError(
+                    'Attribute "{0}" not found in individual "{1}".'.format(
+                        attr, ind.__repr__()))
             row[attr] = ind.__dict__[attr]
 
         if self.job:
@@ -306,7 +311,8 @@ class PopulationPlotProbe:
 
     """
 
-    def __init__(self, context, ax=None, f=lambda x: best_of_gen(x).fitness, xlim=(0, 100), ylim=(0, 1), modulo=1):
+    def __init__(self, context, ax=None, f=lambda x: best_of_gen(
+            x).fitness, xlim=(0, 100), ylim=(0, 1), modulo=1):
 
         if ax is None:
             ax = plt.subplot(111)
@@ -422,7 +428,7 @@ class PlotTrajectoryProbe:
                 return contours.evaluate([x, y])
 
             if granularity is None:
-                granularity = (contours.bounds[1] - contours.bounds[0])/50.
+                granularity = (contours.bounds[1] - contours.bounds[0]) / 50.
             x = np.arange(xlim[0], xlim[1], granularity)
             y = np.arange(ylim[0], ylim[1], granularity)
             xx, yy = np.meshgrid(x, y)

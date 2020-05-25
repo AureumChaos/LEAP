@@ -213,7 +213,7 @@ class PittRulesBrain(Brain):
         assert (rules is not None)
         assert (len(rules) > 0)
         assert (
-                    priority_metric in PittRulesBrain.PriorityMetric.__members__.values())
+            priority_metric in PittRulesBrain.PriorityMetric.__members__.values())
 
         self.input_space = input_space
         self.num_inputs = int(np.prod(input_space.shape))

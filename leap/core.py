@@ -262,11 +262,12 @@ class Individual:
 # Class Representation
 ##############################
 class Representation():
-    """A `Representation` is a simple data structure that wraps the components needed to define, initialize, and 
+    """A `Representation` is a simple data structure that wraps the components needed to define, initialize, and
     decode individuals.
-    
-    This just serves as some syntactic sugar when we are specifying algorithms---so that representation-related 
+
+    This just serves as some syntactic sugar when we are specifying algorithms---so that representation-related
     components are grouped together and clearly labeled `Representation`."""
+
     def __init__(self, decoder, initialize, individual_cls=Individual):
         self.decoder = decoder
         self.initialize = initialize
@@ -402,7 +403,8 @@ class BinaryToIntDecoder(Decoder):
         """
 
         # TODO the laborious string conversion approach could be replaced with something more elegant;
-        # but this was a copy-n-paste job from some of my code from elsewhere that I knew worked.
+        # but this was a copy-n-paste job from some of my code from elsewhere
+        # that I knew worked.
 
         values = []
         offset = 0  # how far are we into the binary sequence

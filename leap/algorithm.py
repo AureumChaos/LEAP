@@ -5,12 +5,10 @@
     * generational_ea() for a typical generational model
     * multi_population_ea() for invoking an EA using sub-populations
 """
+from leap import core, util, ops
+from toolz import pipe
 mport
 random
-
-from toolz import pipe
-
-from leap import core, util, ops
 
 
 ##############################
@@ -266,7 +264,7 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
             context['leap']['current_subpopulation'] = i
             # Execute the operators to create a new offspring population
             operators = list(shared_pipeline) + \
-                        (list(subpop_pipelines[i]) if subpop_pipelines else [])
+                (list(subpop_pipelines[i]) if subpop_pipelines else [])
             offspring = pipe(parents, *operators)
 
             if max(offspring) > bsf[i]:  # Update the best-so-far individual

@@ -67,7 +67,8 @@ class ScalarProblem(Problem):
         """
 
         # TODO If we accidentally pass an Individual in as first_ or second_fitness,
-        # TODO then this can result in an infinite loop.  Add some error handling for this.
+        # TODO then this can result in an infinite loop.  Add some error
+        # handling for this.
         if self.maximize:
             return first_fitness < second_fitness
         else:
@@ -105,13 +106,13 @@ class ConstantProblem(ScalarProblem):
     """A flat landscape, where all phenotypes have the same fitness.
 
     This is sometimes useful for sanity checks or as a control in certain kinds of research.
-    
+
     .. math::
-    
+
        f(\\vec{x}) = c
-       
+
     :param float c: the fitness value to return for any input.
-    
+
     .. plot::
        :include-source:
 
@@ -127,7 +128,6 @@ class ConstantProblem(ScalarProblem):
     def __init__(self, maximize=False, c=1.0):
         super().__init__(maximize)
         self.c = c
-
 
     def evaluate(self, phenome):
         """

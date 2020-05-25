@@ -7,8 +7,10 @@ from leap import ops as op
 def _build_test_pop():
     """Construct a synthetic population for illustrating example operations."""
     pop = [core.Individual([1, 0, 1, 1, 0], core.IdentityDecoder(), binary_problems.MaxOnes()),
-           core.Individual([0, 0, 1, 0, 0], core.IdentityDecoder(), binary_problems.MaxOnes()),
-           core.Individual([0, 1, 1, 1, 1], core.IdentityDecoder(), binary_problems.MaxOnes()),
+           core.Individual([0, 0, 1, 0, 0], core.IdentityDecoder(),
+                           binary_problems.MaxOnes()),
+           core.Individual([0, 1, 1, 1, 1], core.IdentityDecoder(),
+                           binary_problems.MaxOnes()),
            core.Individual([1, 0, 0, 0, 1], core.IdentityDecoder(), binary_problems.MaxOnes())]
     pop = core.Individual.evaluate_population(pop)
 

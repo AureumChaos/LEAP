@@ -1,7 +1,7 @@
 """Fundamental evolutionary operators.
 
 This module provides many of the most important functions that we string together to
-create EAs out of operator pipelines. You'll find many traditional selection and reproduction 
+create EAs out of operator pipelines. You'll find many traditional selection and reproduction
 strategies here, as well as components for classic algorithms like island models
 and cooperative coevolution.
 """
@@ -58,22 +58,24 @@ class Operator(abc.ABC):
 # Decorators for type checking
 ##############################
 def iteriter_op(f):
-    """This decorator wraps a function with runtime type checking to ensure that it always receives an iterator as its 
+    """This decorator wraps a function with runtime type checking to ensure that it always receives an iterator as its
     first argument, and that it returns an iterator.
-    
+
     We use this to make debugging operator pipelines easier in EAs: if you accidentally hook up, say an operator that
     outputs a list to an operator that expects an iterator, we'll throw an exception that pinpoints the issue.
-    
+
     :param f function: the function to wrap
     """
     def typecheck_f(next_individual: Iterator, *args, **kwargs) -> Iterator:
         if not isinstance(next_individual, collections.Iterator):
-            raise ValueError(f"Operator {f} received a {type(next_individual)} as input, but expected an iterator.")
+            raise ValueError(
+                f"Operator {f} received a {type(next_individual)} as input, but expected an iterator.")
 
         result = f(next_individual, *args, **kwargs)
 
         if not isinstance(result, collections.Iterator):
-            raise ValueError(f"Operator {f} produced a {type(result)} as output, but expected an iterator.")
+            raise ValueError(
+                f"Operator {f} produced a {type(result)} as output, but expected an iterator.")
 
         return result
 
@@ -81,22 +83,24 @@ def iteriter_op(f):
 
 
 def listlist_op(f):
-    """This decorator wraps a function with runtime type checking to ensure that it always receives a list as its 
+    """This decorator wraps a function with runtime type checking to ensure that it always receives a list as its
     first argument, and that it returns a list.
-    
+
     We use this to make debugging operator pipelines easier in EAs: if you accidentally hook up, say an operator that
     outputs an iterator to an operator that expects a list, we'll throw an exception that pinpoints the issue.
-    
+
     :param f function: the function to wrap
     """
     def typecheck_f(population: List, *args, **kwargs) -> List:
         if not isinstance(population, list):
-            raise ValueError(f"Operator {f} received a {type(population)} as input, but expected a list.")
+            raise ValueError(
+                f"Operator {f} received a {type(population)} as input, but expected a list.")
 
         result = f(population, *args, **kwargs)
 
         if not isinstance(result, list):
-            raise ValueError(f"Operator {f} produced a {type(result)} as output, but expected a list.")
+            raise ValueError(
+                f"Operator {f} produced a {type(result)} as output, but expected a list.")
 
         return result
 
@@ -104,22 +108,24 @@ def listlist_op(f):
 
 
 def listiter_op(f):
-    """This decorator wraps a function with runtime type checking to ensure that it always receives a list as its 
+    """This decorator wraps a function with runtime type checking to ensure that it always receives a list as its
     first argument, and that it returns an iterator.
-    
+
     We use this to make debugging operator pipelines easier in EAs: if you accidentally hook up, say an operator that
     outputs an iterator to an operator that expects a list, we'll throw an exception that pinpoints the issue.
-    
+
     :param f function: the function to wrap
     """
     def typecheck_f(population: List, *args, **kwargs) -> Iterator:
         if not isinstance(population, list):
-            raise ValueError(f"Operator {f} received a {type(population)} as input, but expected a list.")
+            raise ValueError(
+                f"Operator {f} received a {type(population)} as input, but expected a list.")
 
         result = f(population, *args, **kwargs)
 
         if not isinstance(result, collections.Iterator):
-            raise ValueError(f"Operator {f} produced a {type(result)} as output, but expected an iterator.")
+            raise ValueError(
+                f"Operator {f} produced a {type(result)} as output, but expected an iterator.")
 
         return result
 
@@ -127,22 +133,24 @@ def listiter_op(f):
 
 
 def iterlist_op(f):
-    """This decorator wraps a function with runtime type checking to ensure that it always receives an iterator as its 
+    """This decorator wraps a function with runtime type checking to ensure that it always receives an iterator as its
     first argument, and that it returns a list.
-    
+
     We use this to make debugging operator pipelines easier in EAs: if you accidentally hook up, say an operator that
     outputs a list to an operator that expects an iterator, we'll throw an exception that pinpoints the issue.
-    
+
     :param f function: the function to wrap
     """
     def typecheck_f(next_individual: Iterator, *args, **kwargs) -> List:
         if not isinstance(next_individual, collections.Iterator):
-            raise ValueError(f"Operator {f} received a {type(next_individual)} as input, but expected an iterator.")
+            raise ValueError(
+                f"Operator {f} received a {type(next_individual)} as input, but expected an iterator.")
 
         result = f(next_individual, *args, **kwargs)
 
         if not isinstance(result, list):
-            raise ValueError(f"Operator {f} produced a {type(result)} as output, but expected a list.")
+            raise ValueError(
+                f"Operator {f} produced a {type(result)} as output, but expected a list.")
 
         return result
 
@@ -186,14 +194,14 @@ def evaluate(next_individual: Iterator) -> Iterator:
 @listlist_op
 def const_evaluate(population: List, value) -> List:
     """An evaluator that assigns a constant fitness to every individual.
-    
-    This is useful for algorithms that need to assign an arbitrary initial 
+
+    This is useful for algorithms that need to assign an arbitrary initial
     fitness value before using their normal evaluation method.  Some forms of
     cooperative coevolution are an eample.
     """
     for ind in population:
         ind.fitness = value
-        
+
     return population
 
 
@@ -216,7 +224,7 @@ def clone(next_individual: Iterator) -> Iterator:
     :param next_individual: iterator for next individual to be cloned
     :return: copy of next_individual
     """
-    
+
     while True:
         individual = next(next_individual)
 
@@ -257,7 +265,7 @@ def mutate_bitflip(next_individual: Iterator, expected: float = 1) -> Iterator:
 
         individual.genome = [flip(gene) for gene in individual.genome]
 
-        individual.fitness = None # invalidate fitness since we have new genome
+        individual.fitness = None  # invalidate fitness since we have new genome
 
         yield individual
 
@@ -267,7 +275,8 @@ def mutate_bitflip(next_individual: Iterator, expected: float = 1) -> Iterator:
 ##############################
 @curry
 @iteriter_op
-def uniform_crossover(next_individual: Iterator, p_swap: float = 0.5) -> Iterator:
+def uniform_crossover(next_individual: Iterator,
+                      p_swap: float = 0.5) -> Iterator:
     """ Generator for recombining two individuals and passing them down the line.
 
     >>> from leap import core, binary_problems
@@ -299,7 +308,8 @@ def uniform_crossover(next_individual: Iterator, p_swap: float = 0.5) -> Iterato
         """
         if len(ind1.genome) != len(ind2.genome):
             # TODO what about variable length genomes?
-            raise RuntimeError('genomes must be same length for uniform crossover')
+            raise RuntimeError(
+                'genomes must be same length for uniform crossover')
 
         for i in range(len(ind1.genome)):
             if random.random() < p_swap:
@@ -322,7 +332,8 @@ def uniform_crossover(next_individual: Iterator, p_swap: float = 0.5) -> Iterato
 ##############################
 @curry
 @iteriter_op
-def n_ary_crossover(next_individual: Iterator, num_points: int = 1) -> Iterator:
+def n_ary_crossover(next_individual: Iterator,
+                    num_points: int = 1) -> Iterator:
     """ Do crossover between individuals between N crossover points.
 
     1 < n < genome length - 1
@@ -349,8 +360,8 @@ def n_ary_crossover(next_individual: Iterator, num_points: int = 1) -> Iterator:
         """
         pp = list(range(0, genome_size))  # See De Jong, EC, pg 145
 
-        xpts = [pp.pop(random.randrange(len(pp))) for i in range(num_points)]
-        xpts.sort()
+        xpts = sorted([pp.pop(random.randrange(len(pp)))
+                       for i in range(num_points)])
         xpts = [0] + xpts + [genome_size]  # Add start and end
 
         return xpts
@@ -360,7 +371,8 @@ def n_ary_crossover(next_individual: Iterator, num_points: int = 1) -> Iterator:
         if len(child1.genome) != len(child2.genome):
             raise RuntimeError('Invalid length for n_ary_crossover')
         elif len(child1.genome) < num_points + 1:
-            raise RuntimeError('Invalid number of crossover points for n_ary_crossover')
+            raise RuntimeError(
+                'Invalid number of crossover points for n_ary_crossover')
 
         children = [child1, child2]
         genome1 = child1.genome[0:0]  # empty sequence - maintain type
@@ -397,7 +409,8 @@ def n_ary_crossover(next_individual: Iterator, num_points: int = 1) -> Iterator:
 ##############################
 # Function mutate_gaussian
 ##############################
-def mutate_gaussian(std: float, expected: float = None, hard_bounds: Tuple[float, float] = (-math.inf, math.inf)):
+def mutate_gaussian(std: float, expected: float = None,
+                    hard_bounds: Tuple[float, float] = (-math.inf, math.inf)):
     """ mutate and return an individual with a real-valued representation
 
     TODO hard_bounds should also be able to take a sequence —Siggy
@@ -433,11 +446,16 @@ def mutate_gaussian(std: float, expected: float = None, hard_bounds: Tuple[float
             if util.is_sequence(std):
                 # We're given a vector of "shadow standard deviations" so apply
                 # each sigma individually to each gene
-                individual.genome = [clip(add_gauss(x, s, p)) for x, s in zip(individual.genome, std)]
+                individual.genome = [
+                    clip(
+                        add_gauss(
+                            x, s, p)) for x, s in zip(
+                        individual.genome, std)]
             else:
-                individual.genome = [clip(add_gauss(x, std, p)) for x in individual.genome]
+                individual.genome = [clip(add_gauss(x, std, p))
+                                     for x in individual.genome]
 
-            individual.fitness = None # invalidate fitness since we have new genome
+            individual.fitness = None  # invalidate fitness since we have new genome
 
             yield individual
 
@@ -475,7 +493,8 @@ def truncate(offspring: List, size: int, parents: List = None) -> List:
         :return: truncated population
     """
     if parents is not None:
-        return list(toolz.itertoolz.topk(size, itertools.chain(offspring, parents)))
+        return list(toolz.itertoolz.topk(
+            size, itertools.chain(offspring, parents)))
     else:
         return list(toolz.itertoolz.topk(size, offspring))
 
@@ -536,10 +555,9 @@ def insertion_selection(offspring: List, parents: List) -> List:
     for child in offspring:
         selected_parent_index = random.randrange(len(copied_parents))
         copied_parents[selected_parent_index] = max(child,
-                                             copied_parents[selected_parent_index])
+                                                    copied_parents[selected_parent_index])
 
         return copied_parents
-
 
 
 ##############################
@@ -597,10 +615,11 @@ def cyclic_selection(population: List) -> Iterator:
         yield individual
         saved.append(individual)
     while saved:
-        # randomize the sequence between cycles to remove this source of sample bias
+        # randomize the sequence between cycles to remove this source of sample
+        # bias
         random.shuffle(saved)
         for individual in saved:
-              yield individual
+            yield individual
 
 
 ##############################
@@ -652,11 +671,13 @@ def pool(next_individual: Iterator, size: int) -> List:
 ##############################
 # Function migrate
 ##############################
-def migrate(context, topology, emigrant_selector, replacement_selector, migration_gap):
+def migrate(context, topology, emigrant_selector,
+            replacement_selector, migration_gap):
 
     num_islands = topology.number_of_nodes()
 
-    # We wrap a closure around some persistent state to keep trag of immigrants as the move between populations
+    # We wrap a closure around some persistent state to keep trag of
+    # immigrants as the move between populations
     immigrants = [[] for i in range(num_islands)]
 
     @listlist_op
@@ -668,7 +689,9 @@ def migrate(context, topology, emigrant_selector, replacement_selector, migratio
             # Compete for a place in the new population
             contestant = next(replacement_selector(population))
             if imm > contestant:
-                # FIXME This is fishy!  What if there are two copies of contestant?  What if contestant.__eq()__ is not properly implemented?
+                # FIXME This is fishy!  What if there are two copies of
+                # contestant?  What if contestant.__eq()__ is not properly
+                # implemented?
                 population.remove(contestant)
                 population.append(imm)
 
@@ -676,12 +699,17 @@ def migrate(context, topology, emigrant_selector, replacement_selector, migratio
 
         # Emigration
         if context['leap']['generation'] % migration_gap == 0:
-            sponsor = next(emigrant_selector(population))  # Choose an emigrant individual
-            emi = next(emigrant_selector(population)).clone()  # Clone it and copy fitness
+            # Choose an emigrant individual
+            sponsor = next(emigrant_selector(population))
+            # Clone it and copy fitness
+            emi = next(emigrant_selector(population)).clone()
             emi.fitness = sponsor.fitness
-            neighbors = topology.neighbors(current_subpop)  # Get neighboring islands
-            dest = random.choice(list(neighbors))  # Randomly select a neighboring island
-            immigrants[dest].append(emi)  # Add the emigrant to its immigration list
+            neighbors = topology.neighbors(
+                current_subpop)  # Get neighboring islands
+            # Randomly select a neighboring island
+            dest = random.choice(list(neighbors))
+            # Add the emigrant to its immigration list
+            immigrants[dest].append(emi)
 
         return population
 
@@ -693,23 +721,25 @@ def migrate(context, topology, emigrant_selector, replacement_selector, migratio
 ##############################
 def concat_combine(collaborators):
     """Combine a list of individuals by concatenating their genomes.
-    
+
     You can choose whether this or some other function is used for combining collaborators
     by passing it into the `CooperativeEvaluate` constructor."""
     # Clone one of the evaluators so we can use its problem and decoder later
     combined_ind = collaborators[0].clone()
-    
+
     genomes = [ind.genome for ind in collaborators]
-    combined_ind.genome = list(itertools.chain(*genomes)) # Concatenate
+    combined_ind.genome = list(itertools.chain(*genomes))  # Concatenate
     return combined_ind
 
 
 class CooperativeEvaluate(Operator):
     """A simple, non-parallel implementation of cooperative coevolutionary fitness evaluation.
-    
+
     :param context: the algorithm's state context.  Used to access subpopulation information.
     """
-    def __init__(self, context, num_trials, collaborator_selector, log_stream=None, combine=concat_combine):
+
+    def __init__(self, context, num_trials, collaborator_selector,
+                 log_stream=None, combine=concat_combine):
         self.context = context
         self.num_trials = num_trials
         self.collaborator_selector = collaborator_selector
@@ -717,7 +747,15 @@ class CooperativeEvaluate(Operator):
 
         # Set up the CSV writier
         if log_stream is not None:
-            self.log_writer = csv.DictWriter(log_stream, fieldnames=['generation', 'subpopulation', 'individual_type', 'collaborator_subpopulation', 'genome', 'fitness'])
+            self.log_writer = csv.DictWriter(
+                log_stream,
+                fieldnames=[
+                    'generation',
+                    'subpopulation',
+                    'individual_type',
+                    'collaborator_subpopulation',
+                    'genome',
+                    'fitness'])
             # We print the header at construction time
             self.log_writer.writeheader()
 
@@ -725,39 +763,48 @@ class CooperativeEvaluate(Operator):
         """Execute the evaluation operator on a subpopulation."""
         while True:
             current_ind = next(next_individual)
-            
+
             # Pull references to all subpopulations from the context object
             subpopulations = self.context['leap']['subpopulations']
             current_subpop = self.context['leap']['current_subpopulation']
-            
+
             # Create iterators that select individuals from each subpopulation
-            selectors = [self.collaborator_selector(subpop) for subpop in subpopulations]
-            
+            selectors = [self.collaborator_selector(
+                subpop) for subpop in subpopulations]
+
             # Choose collaborators and evaulate
             fitnesses = []
             for i in range(self.num_trials):
-                collaborators = self._choose_collaborators(current_ind, subpopulations, current_subpop, selectors)
+                collaborators = self._choose_collaborators(
+                    current_ind, subpopulations, current_subpop, selectors)
                 combined_ind = self.combine(collaborators)
                 fitness = combined_ind.evaluate()
                 # Optionally write out data about the collaborations
                 if self.log_writer is not None:
-                    self._log_trial(self.log_writer, self.context, collaborators, combined_ind, i)
+                    self._log_trial(
+                        self.log_writer,
+                        self.context,
+                        collaborators,
+                        combined_ind,
+                        i)
 
                 fitnesses.append(fitness)
-                
+
             current_ind.fitness = mean(fitnesses)
-            
+
             yield current_ind
 
     @staticmethod
-    def _choose_collaborators(current_ind, subpopulations, current_subpop, selectors):
+    def _choose_collaborators(
+            current_ind, subpopulations, current_subpop, selectors):
         """Choose collaborators from the subpopulations."""
         collaborators = []
         for i in range(len(subpopulations)):
             if i != current_subpop:
                 # Select a fellow collaborator from the other subpopulations
                 ind = next(selectors[i])
-                assert(hasattr(ind, 'genome'))  # Make sure we actually got something with a genome back
+                # Make sure we actually got something with a genome back
+                assert(hasattr(ind, 'genome'))
                 collaborators.append(ind)
             else:
                 # Stick this subpop's individual in as-is
@@ -775,20 +822,21 @@ class CooperativeEvaluate(Operator):
                              'individual_type': 'Collaborator',
                              'collaborator_subpopulation': i,
                              'genome': collab.genome,
-                             'fitness': collab.fitness })
-        
+                             'fitness': collab.fitness})
+
         writer.writerow({'generation': context['leap']['generation'],
                          'subpopulation': context['leap']['current_subpopulation'],
                          'individual_type': 'Combined Individual',
                          'collaborator_subpopulation': None,
                          'genome': combined_ind.genome,
-                         'fitness': combined_ind.fitness })
+                         'fitness': combined_ind.fitness})
 
 
 ##############################
 # Helper Functions
 ##############################
-def compute_expected_probability(expected: float, individual_genome: List) -> float:
+def compute_expected_probability(
+        expected: float, individual_genome: List) -> float:
     """ Computed the probability of mutation based on the desired average
     expected mutation and genome length.
 

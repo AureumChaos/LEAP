@@ -58,7 +58,7 @@ def inc_generation(context, callbacks=()):
            generation is incremented
     :return: function for incrementing generations
     """
-    curr_generation  = 0
+    curr_generation = 0
     context = context
     context['leap']['generation'] = 0
     callbacks = callbacks
@@ -84,7 +84,6 @@ def inc_generation(context, callbacks=()):
     do_increment.generation = generation
 
     return do_increment
-
 
 
 # ##############################
@@ -144,12 +143,10 @@ def inc_births(context, start=0, callbacks=()):
         # Update the context
         context['leap']['births'] -= 1
 
-
     do_increment.births = births
     do_increment.do_decrement = do_decrement
 
     return do_increment
-
 
 
 # ##############################

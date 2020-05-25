@@ -37,7 +37,8 @@ class SpheroidProblem(ScalarProblem):
     """ Standard bounds for a spheroid functions solution."""
     bounds = (-5.12, 5.12)
 
-    # TODO See if we get an error if we try to add a constructor that doesn't set maximize
+    # TODO See if we get an error if we try to add a constructor that doesn't
+    # set maximize
 
     def __init__(self, maximize=False):
         super().__init__(maximize)
@@ -100,7 +101,8 @@ class RastriginProblem(ScalarProblem):
     """ Standard bounds."""
     bounds = (-5.12, 5.12)
 
-    # TODO See if we get an error if we try to add a constructor that doesn't set maximize
+    # TODO See if we get an error if we try to add a constructor that doesn't
+    # set maximize
 
     def __init__(self, a=1.0, maximize=False):
         super().__init__(maximize)
@@ -117,7 +119,9 @@ class RastriginProblem(ScalarProblem):
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness
         """
-        return self.a * len(phenome) + sum([x ** 2 - self.a * np.cos(2 * np.pi * x) for x in phenome])
+        return self.a * \
+            len(phenome) + sum([x ** 2 - self.a *
+                                np.cos(2 * np.pi * x) for x in phenome])
 
     def worse_than(self, first_fitness, second_fitness):
         """
@@ -161,7 +165,8 @@ class RosenbrockProblem(ScalarProblem):
     """ Standard bounds."""
     bounds = (-2.048, 2.048)
 
-    # TODO See if we get an error if we try to add a constructor that doesn't set maximize
+    # TODO See if we get an error if we try to add a constructor that doesn't
+    # set maximize
 
     def __init__(self, maximize=False):
         super().__init__(maximize)
@@ -229,7 +234,8 @@ class StepProblem(ScalarProblem):
     """ Standard bounds."""
     bounds = (-5.12, 5.12)
 
-    # TODO See if we get an error if we try to add a constructor that doesn't set maximize
+    # TODO See if we get an error if we try to add a constructor that doesn't
+    # set maximize
 
     def __init__(self, maximize=True):
         super().__init__(maximize)
@@ -289,7 +295,8 @@ class NoisyQuarticProblem(ScalarProblem):
     """ Standard bounds."""
     bounds = (-1.28, 1.28)
 
-    # TODO See if we get an error if we try to add a constructor that doesn't set maximize
+    # TODO See if we get an error if we try to add a constructor that doesn't
+    # set maximize
 
     def __init__(self, maximize=False):
         super().__init__(maximize)
@@ -376,7 +383,8 @@ class ShekelProblem(ScalarProblem):
     points = np.array([[-32, -16, 0, 16, 32] * 5,
                        [-32] * 5 + [-16] * 5 + [0] * 5 + [16] * 5 + [32] * 5])
 
-    # TODO See if we get an error if we try to add a constructor that doesn't set maximize
+    # TODO See if we get an error if we try to add a constructor that doesn't
+    # set maximize
 
     def __init__(self, k=500, c=np.arange(1, 26), maximize=False):
         super().__init__(maximize)
@@ -393,7 +401,8 @@ class ShekelProblem(ScalarProblem):
         assert (len(phenome) == 2)
 
         def f(j):
-            return self.c[j] + (phenome[0] - self.points[0][j]) ** 6 + (phenome[1] - self.points[1][j]) ** 6
+            return self.c[j] + (phenome[0] - self.points[0][j]
+                                ) ** 6 + (phenome[1] - self.points[1][j]) ** 6
 
         return 1 / (1 / self.k + np.sum([1 / f(j) for j in range(25)]))
 
@@ -509,7 +518,8 @@ class AckleyProblem(ScalarProblem):
         """
         phenome = np.array(phenome)
         d = len(phenome)
-        t1 = -self.a * np.exp(-self.b * np.sqrt(1.0 / d * np.sum(np.power(phenome, 2))))
+        t1 = -self.a * np.exp(-self.b * np.sqrt(1.0 /
+                                                d * np.sum(np.power(phenome, 2))))
         t2 = np.exp(1.0 / d * np.sum(np.cos(self.c * phenome)))
         return t1 - t2 + self.a + np.e
 
@@ -563,7 +573,8 @@ class WeierstrassProblem(ScalarProblem):
             t1 = 0
             t2 = 0
             for k in range(self.kmax):
-                t1 += self.a ** k * np.cos(2 * np.pi * (self.b ** k) * (x + 0.5))
+                t1 += self.a ** k * \
+                    np.cos(2 * np.pi * (self.b ** k) * (x + 0.5))
                 t2 += self.a ** k * np.cos(np.pi * (self.b ** k))
             result += t1 - (d + 1) * t2
         return result
@@ -625,12 +636,14 @@ class LangermannProblem(ScalarProblem):
         self.a = np.array(a)
 
         if not np.isscalar(m):
-            raise ValueError(f"Got value of {m} for 'm', but must be a scalar.")
+            raise ValueError(
+                f"Got value of {m} for 'm', but must be a scalar.")
         if len(self.c.shape) != 1:
             raise ValueError(f"Got a value of shape {self.c.shape} for 'c', "
                              f"but it must be one-dimensional with length {m}.")
-        if len(self.a.shape) !=2 or self.a.shape[0] != m:
-            raise ValueError(f"Got a value of shape {self.a.shape} for 'a', but must be a {m}xd matrix.")
+        if len(self.a.shape) != 2 or self.a.shape[0] != m:
+            raise ValueError(
+                f"Got a value of shape {self.a.shape} for 'a', but must be a {m}xd matrix.")
 
     def evaluate(self, phenome):
         """
@@ -642,11 +655,12 @@ class LangermannProblem(ScalarProblem):
         assert (phenome is not None)
         phenome = np.array(phenome)
         if len(phenome) != self.a.shape[1]:
-            raise ValueError(f"Received an {len(phenome)}-dimensional phenome, but this is a {self.a.shape[1]}-dimensional Langerman function.")
+            raise ValueError(
+                f"Received an {len(phenome)}-dimensional phenome, but this is a {self.a.shape[1]}-dimensional Langerman function.")
         result = 0
         for i in range(self.m):
             result -= self.c[i] * np.exp(-1.0 / np.pi * np.sum((phenome - self.a[i]) ** 2)) \
-                      * np.cos(np.pi * np.sum((phenome - self.a[i]) ** 2))
+                * np.cos(np.pi * np.sum((phenome - self.a[i]) ** 2))
         return result
 
     def __str__(self):
@@ -709,8 +723,9 @@ class LunacekProblem(ScalarProblem):
         self.mu_1 = mu_1
 
         # s and mu_2 are automatically inferred if not given
-        self.s = s if s is not None else 1 - 1.0/(2*np.sqrt(N + 20) - 8.2)
-        self.mu_2 = mu_2 if mu_2 is not None else -np.sqrt((mu_1**2 - d)/self.s)
+        self.s = s if s is not None else 1 - 1.0 / (2 * np.sqrt(N + 20) - 8.2)
+        self.mu_2 = mu_2 if mu_2 is not None else - \
+            np.sqrt((mu_1**2 - d) / self.s)
 
     def evaluate(self, phenome):
         """
@@ -721,11 +736,13 @@ class LunacekProblem(ScalarProblem):
         """
         assert(phenome is not None)
         if len(phenome) != self.N:
-            warnings.warn(f"Phenome has length {len(phenome)}, but this function expected {self.N}-dimensional input.")
+            warnings.warn(
+                f"Phenome has length {len(phenome)}, but this function expected {self.N}-dimensional input.")
         phenome = np.array(phenome)
         sphere1 = np.sum((phenome - self.mu_1)**2)
-        sphere2 = self.d * len(phenome) + self.s*np.sum((phenome - self.mu_2)**2)
-        sinusoid = 10*np.sum(1-np.cos(2*np.pi*(phenome - self.mu_1)))
+        sphere2 = self.d * len(phenome) + self.s * \
+            np.sum((phenome - self.mu_2)**2)
+        sinusoid = 10 * np.sum(1 - np.cos(2 * np.pi * (phenome - self.mu_1)))
         return min(sphere1, sphere2) + sinusoid
 
     def __str__(self):
@@ -772,7 +789,8 @@ class SchwefelProblem(ScalarProblem):
         """
         assert(phenome is not None)
         phenome = np.array(phenome)
-        return np.sum(-phenome * np.sin(np.sqrt(np.abs(phenome)))) + self.alpha * len(phenome)
+        return np.sum(-phenome * np.sin(np.sqrt(np.abs(phenome)))
+                      ) + self.alpha * len(phenome)
 
     def __str__(self):
         return SchwefelProblem.__name__
@@ -823,7 +841,8 @@ class CosineFamilyProblem(ScalarProblem):
 
     bounds = (0, 1)
 
-    def __init__(self, alpha, global_optima_counts, local_optima_counts, maximize=False):
+    def __init__(self, alpha, global_optima_counts,
+                 local_optima_counts, maximize=False):
         super().__init__(maximize)
         self.alpha = alpha
         self.dimensions = len(global_optima_counts)
@@ -840,10 +859,13 @@ class CosineFamilyProblem(ScalarProblem):
         """
         phenome = np.array(phenome)
         term1 = -np.cos((self.global_optima_counts - 1) * 2 * np.pi * phenome)
-        term2 = - self.alpha * np.cos((self.global_optima_counts - 1) * 2 * np.pi * self.local_optima_counts * phenome)
+        term2 = - self.alpha * \
+            np.cos((self.global_optima_counts - 1) * 2 *
+                   np.pi * self.local_optima_counts * phenome)
         value = np.sum(term1 + term2) / (2 * self.dimensions)
         # We modify the original function to make it a maximization problem
-        # and so that the global optima are scaled to always have a fitness of 1
+        # and so that the global optima are scaled to always have a fitness of
+        # 1
         return -2 / (self.alpha + 1) * value
 
     def __str__(self):
@@ -929,7 +951,8 @@ class TranslatedProblem(ScalarProblem):
         assert (len(phenome) == len(self.offset)), \
             f"Tried to evalute a {len(phenome)}-D genome in a {len(self.offset)}-D fitness function."
         # Substract the offset so that we are moving the origin *to* the offset.
-        # This way we can think of it as offsetting the fitness function, rather than the input points.
+        # This way we can think of it as offsetting the fitness function,
+        # rather than the input points.
         new_phenome = np.array(phenome) - self.offset
         return self.problem.evaluate(new_phenome)
 
@@ -942,6 +965,7 @@ class TranslatedProblem(ScalarProblem):
 ################################
 class ScaledProblem(ScalarProblem):
     """ Scale the search space of a fitness function up or down."""
+
     def __init__(self, problem, new_bounds, maximize=None):
         if maximize is None:
             maximize = problem.maximize
@@ -955,8 +979,8 @@ class ScaledProblem(ScalarProblem):
 
     def evaluate(self, phenome):
         phenome = np.array(phenome)
-        transformed_phenome = self.old_bounds[0] + (phenome - self.bounds[0])/(self.bounds[1] - self.bounds[0])\
-                                                   * (self.old_bounds[1] - self.old_bounds[0])
+        transformed_phenome = self.old_bounds[0] + (phenome - self.bounds[0]) / (self.bounds[1] - self.bounds[0])\
+            * (self.old_bounds[1] - self.old_bounds[0])
         assert(len(transformed_phenome) == len(phenome))
         return self.problem.evaluate(transformed_phenome)
 
@@ -1061,13 +1085,18 @@ class MatrixTransformedProblem(ScalarProblem):
         matrix = np.random.normal(size=[dimensions, dimensions])
         for i, row in enumerate(matrix):
             previous_rows = matrix[0:i, :]
-            matrix[i, :] = row - sum([np.dot(row, prev) * prev for prev in previous_rows])
+            matrix[i, :] = row - \
+                sum([np.dot(row, prev) * prev for prev in previous_rows])
             matrix[i, :] = row / np.linalg.norm(row)
 
         # Any vector in the resulting matrix will be of unit length
-        assert (round(np.linalg.norm(matrix[0]), 5) == 1.0), f"A column in the transformation matrix has a norm of {np.linalg.norm(matrix[0])}, but it should always be approximately 1.0."
+        assert (
+            round(
+                np.linalg.norm(
+                    matrix[0]), 5) == 1.0), f"A column in the transformation matrix has a norm of {np.linalg.norm(matrix[0])}, but it should always be approximately 1.0."
         # Any pair of vectors will be linearly independent
-        assert (abs(round(np.dot(matrix[0], matrix[1]), 5)) == 0.0), f"A pair of columns in the transformation matrix has dot product of {round(np.dot(matrix[0], matrix[1]), 5)}, but it should always be approximately 0.0."
+        assert (abs(round(np.dot(matrix[0], matrix[1]), 5)) ==
+                0.0), f"A pair of columns in the transformation matrix has dot product of {round(np.dot(matrix[0], matrix[1]), 5)}, but it should always be approximately 0.0."
 
         return cls(problem, matrix, maximize)
 
@@ -1112,7 +1141,8 @@ class MatrixTransformedProblem(ScalarProblem):
 ##############################
 # Function plot_2d_problem
 ##############################
-def plot_2d_problem(problem, xlim, ylim, kind='surface', ax=None, granularity=None):
+def plot_2d_problem(problem, xlim, ylim, kind='surface',
+                    ax=None, granularity=None):
     """
     Convenience function for plotting a :class:`~leap.problem.Problem` that accepts 2-D real-valued phenomes and produces a 1-D scalar fitness output.
 
@@ -1164,10 +1194,10 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface', ax=None, granularity=No
 
     if granularity is None:
         if hasattr(problem, 'bounds'):
-            granularity = (problem.bounds[1] - problem.bounds[0])/50.
+            granularity = (problem.bounds[1] - problem.bounds[0]) / 50.
         else:
             raise ValueError(f"Problem {problem} has no 'bounds' attribute, so we couldn't set the granularity " +
-                              "automatically.  You'll need to specify the granularity to plot the problem.")
+                             "automatically.  You'll need to specify the granularity to plot the problem.")
 
     if kind == 'surface':
         return plot_2d_function(call, xlim, ylim, granularity, ax)
