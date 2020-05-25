@@ -46,7 +46,8 @@ def evaluate(individual, context=core.context):
         individual.start_eval_time = time.time()
 
         if hasattr(worker, 'logger'):
-            worker.logger.debug(f'Worker {worker.id} started evaluating {individual!s}')
+            worker.logger.debug(
+                f'Worker {worker.id} started evaluating {individual!s}')
         individual.evaluate()
         individual.is_viable = True
     except Exception as e:
@@ -54,7 +55,7 @@ def evaluate(individual, context=core.context):
         # individual; also save the associated exception so we can
         # (hopefully) figure out what went wrong.
         individual.fitness = math.nan
-        individual.is_viable = False # TODO maybe the NaN is sufficient?
+        individual.is_viable = False  # TODO maybe the NaN is sufficient?
         individual.exception = e
 
         # We track the number of such failures on the off chance that this
@@ -62,13 +63,17 @@ def evaluate(individual, context=core.context):
         context['leap']['distributed']['non_viable'] += 1
 
         if hasattr(worker, 'logger'):
-            worker.logger.warning(f'Worker {worker.id}: {e} raised for {individual!s}')
+            worker.logger.warning(
+                f'Worker {worker.id}: {e} raised for {individual!s}')
     finally:
         individual.stop_eval_time = time.time()
         individual.hostname = platform.node()
         individual.pid = os.getpid()
         if hasattr(worker, 'logger'):
-            worker.logger.debug(f'Worker {worker.id} evaluated {individual!s} in {individual.stop_eval_time - individual.start_eval_time} seconds')
+            worker.logger.debug(
+                f'Worker {worker.id} evaluated {individual!s} in '
+                f'{individual.stop_eval_time - individual.start_eval_time} '
+                f'seconds')
 
     return individual
 
