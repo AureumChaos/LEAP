@@ -1139,8 +1139,8 @@ class MatrixTransformedProblem(ScalarProblem):
         # Any pair of vectors will be linearly independent
         assert (abs(round(np.dot(matrix[0], matrix[1]), 5)) ==
                 0.0), f"A pair of columns in the transformation matrix has " \
-                      f"dot product of {round(np.dot(matrix[0], matrix[1]),
-        5)}, but it should always be approximately 0.0. "
+                      f"dot product of {round(np.dot(matrix[0], matrix[1]),5)},"\
+                      f" but it should always be approximately 0.0. "
 
         return cls(problem, matrix, maximize)
 
