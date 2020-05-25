@@ -58,7 +58,7 @@ def inc_generation(context, callbacks=()):
            generation is incremented
     :return: function for incrementing generations
     """
-    curr_generation  = 0
+    curr_generation = 0
     context = context
     context['leap']['generation'] = 0
     callbacks = callbacks
@@ -84,7 +84,6 @@ def inc_generation(context, callbacks=()):
     do_increment.generation = generation
 
     return do_increment
-
 
 
 # ##############################
@@ -144,12 +143,10 @@ def inc_births(context, start=0, callbacks=()):
         # Update the context
         context['leap']['births'] -= 1
 
-
     do_increment.births = births
     do_increment.do_decrement = do_decrement
 
     return do_increment
-
 
 
 # ##############################
@@ -166,7 +163,8 @@ def print_list(l):
     >>> print_list(l)
     [[0, 1, 2], [3, 4, 5]]
 
-    As opposed to the standard printing mechanism, which calls __repr__() on the elements to produce
+    As opposed to the standard printing mechanism, which calls __repr__() on
+    the elements to produce
 
     >>> print(l)
     [Individual([0, 1, 2], None, None), Individual([3, 4, 5], None, None)]

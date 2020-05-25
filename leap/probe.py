@@ -1,7 +1,5 @@
-"""
-  Probes are pipeline operators to instrument state that passes through the pipeline
-  such as populations or individuals.
-"""
+"""Probes are pipeline operators to instrument state that passes through the
+pipeline such as populations or individuals. """
 import csv
 import sys
 
@@ -70,7 +68,8 @@ class FitnessStatsCSVProbe(op.Operator):
         self.context = context
         self.bsf_ind = None
         if header:
-            stream.write('step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness\n')
+            stream.write(
+                'step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness\n')
 
     def __call__(self, population):
         assert (population is not None)
@@ -98,20 +97,28 @@ class FitnessStatsCSVProbe(op.Operator):
 ##############################
 class AttributesCSVProbe(op.Operator):
     """
-    An operator that records the specified attributes for all the individuals (or just the best individual) in
-    `population` in CSV-format to the specified stream.
+    An operator that records the specified attributes for all the individuals
+    (or just the best individual) in `population` in CSV-format to the
+    specified stream.
 
     :param population: list of individuals to take measurements from
     :param context: an optional context
-    :param attributes: list of attribute names to record, as found in individuals' `attributes` field
-    :return: `(population, context)`, unmodified (this allows you to place probes directly in an operator pipeline)
 
-    Individuals contain some build-in attributes (namely fitness, genome), and also a `dict` of additional custom
-    attributes called, well, `attributes`.  This class allows you to log all of the above.
+    :param attributes: list of attribute names to record, as found in
+    individuals' `attributes` field
 
-    Most often, you will want to record only the best individual in the population at each step, and you'll just want
-    to know its fitness and genome.  You can do this with this class's boolean flags.  For example, here's how you'd
-    record the best individual's fitness and genome to a dataframe:
+    :return: `(population, context)`, unmodified (this allows you to place
+    probes directly in an operator pipeline)
+
+    Individuals contain some build-in attributes (namely fitness, genome),
+    and also a `dict` of additional custom attributes called, well,
+    `attributes`.  This class allows you to log all of the above.
+
+    Most often, you will want to record only the best individual in the
+    population at each step, and you'll just want to know its fitness and
+    genome.  You can do this with this class's boolean flags.  For example,
+    here's how you'd record the best individual's fitness and genome to a
+    dataframe:
 
     >>> from leap import core
     >>> from leap.data import test_population
@@ -126,12 +133,14 @@ class AttributesCSVProbe(op.Operator):
        step  fitness           genome
     0   100        4  [0, 1, 1, 1, 1]
 
-    By default, the results are also written to `sys.stdout`.  You can pass any file object you like into the `stream` parameter.
+    By default, the results are also written to `sys.stdout`.  You can pass
+    any file object you like into the `stream` parameter.
 
-    Another common use of this task is to record custom attributes that are stored on individuals in certain kinds of
-    experiments.  Here's how you would record the values of `ind.foo` and `ind.bar` for
-    every individual in the population.  We write to a stream object this time to demonstrate how to use the probe
-    without a dataframe:
+    Another common use of this task is to record custom attributes that are
+    stored on individuals in certain kinds of experiments.  Here's how you
+    would record the values of `ind.foo` and `ind.bar` for every individual
+    in the population.  We write to a stream object this time to demonstrate
+    how to use the probe without a dataframe:
 
     >>> import io
     >>> stream = io.StringIO()
@@ -164,7 +173,8 @@ class AttributesCSVProbe(op.Operator):
         self.do_dataframe = do_dataframe
 
         if (not do_dataframe) and stream is None:
-            raise ValueError("Both 'stream'=None and 'do_dataframe'=False, but at least one must be enabled.")
+            raise ValueError(
+                "Both 'stream'=None and 'do_dataframe'=False, but at least one must be enabled.")
 
         fieldnames = ['step'] + list(attributes)
         if job:
@@ -187,13 +197,15 @@ class AttributesCSVProbe(op.Operator):
         self.writer = None
         if stream is not None:
             # We'll write rows of data to this stream as we collect them
-            self.writer = csv.DictWriter(stream, fieldnames=fieldnames, lineterminator='\n')
+            self.writer = csv.DictWriter(
+                stream, fieldnames=fieldnames, lineterminator='\n')
             if header:
                 self.writer.writeheader()
 
     @property
     def dataframe(self):
-        """Property for retrieving a Pandas DataFrame representation of the collected data."""
+        """Property for retrieving a Pandas DataFrame representation of the
+        collected data. """
         if not self.do_dataframe:
             raise ValueError('Tried to retrieve a dataframe of results, but this ' +
                              f'{type(AttributesCSVProbe).__name__} was initialized with dataframe=False.')
@@ -202,8 +214,8 @@ class AttributesCSVProbe(op.Operator):
         return pd.DataFrame(self.data, columns=self.fieldnames)
 
     def __call__(self, population):
-        """When called (i.e. as part of an operator pipeline), take a population of individuals and collect data
-        from it."""
+        """When called (i.e. as part of an operator pipeline), take a
+        population of individuals and collect data from it. """
         assert (population is not None)
         assert ('leap' in self.context)
         assert ('generation' in self.context['leap'])
@@ -226,7 +238,9 @@ class AttributesCSVProbe(op.Operator):
 
         for attr in self.attributes:
             if attr not in ind.__dict__:
-                raise ValueError('Attribute "{0}" not found in individual "{1}".'.format(attr, ind.__repr__()))
+                raise ValueError(
+                    'Attribute "{0}" not found in individual "{1}".'.format(
+                        attr, ind.__repr__()))
             row[attr] = ind.__dict__[attr]
 
         if self.job:
@@ -248,18 +262,26 @@ class AttributesCSVProbe(op.Operator):
 ##############################
 class PopulationPlotProbe:
     """
-    Measure and plot a population's fitness trajectory (or some other scalar value).
+    Measure and plot a population's fitness trajectory (or some other scalar
+    value).
 
-    :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will be created).
-    :param function f: a function that takes a population and returns a `float` value to plot on the y-axis (the default
-        function plots the best-of-generation individual's fitness).
+    :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
+    be created).
+
+    :param function f: a function that takes a population and returns a
+    `float` value to plot on the y-axis (the default function plots the
+    best-of-generation individual's fitness).
+
     :param xlim: Bounds of the horizontal axis.
     :type xlim: (float, float)
     :param ylim: Bounds of the vertical axis.
     :type ylim: (float, float)
-    :param int modulo: take and plot a measurement every `modulo` steps (default 1).
 
-    Attach this probe to matplotlib :class:`Axes` and then insert it into an EA's operator pipeline.
+    :param int modulo: take and plot a measurement every `modulo` steps (
+    default 1).
+
+    Attach this probe to matplotlib :class:`Axes` and then insert it into an
+    EA's operator pipeline.
 
     .. plot::
        :include-source:
@@ -300,13 +322,15 @@ class PopulationPlotProbe:
 
 
 
-    To get a live-updated plot that words like a real-time video of the EA's progress, use this probe in conjunction
-    with the `%matplotlib notebook` magic for Jupyter Notebook (as opposed to `%matplotlib inline`, which only
-    allows static plots).
+    To get a live-updated plot that words like a real-time video of the EA's
+    progress, use this probe in conjunction with the `%matplotlib notebook`
+    magic for Jupyter Notebook (as opposed to `%matplotlib inline`,
+    which only allows static plots).
 
     """
 
-    def __init__(self, context, ax=None, f=lambda x: best_of_gen(x).fitness, xlim=(0, 100), ylim=(0, 1), modulo=1):
+    def __init__(self, context, ax=None, f=lambda x: best_of_gen(
+            x).fitness, xlim=(0, 100), ylim=(0, 1), modulo=1):
 
         if ax is None:
             ax = plt.subplot(111)
@@ -355,22 +379,32 @@ class PopulationPlotProbe:
 ##############################
 class PlotTrajectoryProbe:
     """
-    Measure and plot a scatterplot of the populations' location in a 2-D phenotype space.
+    Measure and plot a scatterplot of the populations' location in a 2-D
+    phenotype space.
 
-    :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will be created).
+    :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
+    be created).
+
     :param xlim: Bounds of the horizontal axis.
     :type xlim: (float, float)
     :param ylim: Bounds of the vertical axis.
     :type ylim: (float, float)
-    :param ~leap.problem.Problem contours: a problem defining a 2-D fitness function (this will be used to draw fitness
-        contours in the background of the scatterplot).
-    :param float granularity: (Optional) spacing of the grid to sample points along while drawing the fitness contours.
-         If none is given, then the granularity will default to 1/50th of the range of the function's `bounds`
-         attribute.
-    :param int modulo: take and plot a measurement every `modulo` steps (default 1).
 
-    Attach this probe to matplotlib :class:`Axes` and then insert it into an EA's operator pipeline to get a live
-    fitness plot that updates every `modulo` steps.
+    :param ~leap.problem.Problem contours: a problem defining a 2-D fitness
+    function (this will be used to draw fitness contours in the background of
+    the scatterplot).
+
+    :param float granularity: (Optional) spacing of the grid to sample points
+    along while drawing the fitness contours. If none is given, then the
+    granularity will default to 1/50th of the range of the function's
+    `bounds` attribute.
+
+    :param int modulo: take and plot a measurement every `modulo` steps (
+    default 1).
+
+    Attach this probe to matplotlib :class:`Axes` and then insert it into an
+    EA's operator pipeline to get a live fitness plot that updates every
+    `modulo` steps.
 
     .. plot::
        :include-source:
@@ -422,7 +456,7 @@ class PlotTrajectoryProbe:
                 return contours.evaluate([x, y])
 
             if granularity is None:
-                granularity = (contours.bounds[1] - contours.bounds[0])/50.
+                granularity = (contours.bounds[1] - contours.bounds[0]) / 50.
             x = np.arange(xlim[0], xlim[1], granularity)
             y = np.arange(ylim[0], ylim[1], granularity)
             xx, yy = np.meshgrid(x, y)
