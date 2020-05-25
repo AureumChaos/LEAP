@@ -1,10 +1,9 @@
 """Fundamental evolutionary operators.
 
-This module provides many of the most important functions that we string together to
-create EAs out of operator pipelines. You'll find many traditional selection and reproduction
-strategies here, as well as components for classic algorithms like island models
-and cooperative coevolution.
-"""
+This module provides many of the most important functions that we string
+together to create EAs out of operator pipelines. You'll find many
+traditional selection and reproduction strategies here, as well as components
+for classic algorithms like island models and cooperative coevolution. """
 import abc
 import collections
 from copy import copy
@@ -26,21 +25,26 @@ from leap import util
 # Class Operator
 ##############################
 class Operator(abc.ABC):
-    """Abstract base class that documents the interface for operators in a LEAP pipeline.
+    """Abstract base class that documents the interface for operators in a
+    LEAP pipeline.
 
-    LEAP treats operators as functions of two arguments: the population, and a "context" `dict` that may be used in
-    some algorithms to maintain some global state or parameters independent of the population.
+    LEAP treats operators as functions of two arguments: the population,
+    and a "context" `dict` that may be used in some algorithms to maintain
+    some global state or parameters independent of the population.
 
     TODO The above description is outdated. --Siggy
 
-    You can inherit from this class to define operators as classes.  Classes support operators that take extra arguments
-    at construction time (such as a mutation rate) and maintain some internal private state, and they allow certain
-    special patterns (such as multi-function operators).
+    You can inherit from this class to define operators as classes.  Classes
+    support operators that take extra arguments at construction time (such as
+    a mutation rate) and maintain some internal private state, and they allow
+    certain special patterns (such as multi-function operators).
 
-    But inheriting from this class is optional.  LEAP can treat any `callable` object that takes two parameters as an
-    operator.  You may define your custom operators as closures (which also allow for construction-time arguments and
-    internal state), as simple functions (when no additional arguments are necessary), or as curried functions (i.e.
-    with the help of `toolz.curry(...)`.
+    But inheriting from this class is optional.  LEAP can treat any
+    `callable` object that takes two parameters as an operator.  You may
+    define your custom operators as closures (which also allow for
+    construction-time arguments and internal state), as simple functions (
+    when no additional arguments are necessary), or as curried functions (
+    i.e. with the help of `toolz.curry(...)`.
 
     """
 
@@ -58,11 +62,14 @@ class Operator(abc.ABC):
 # Decorators for type checking
 ##############################
 def iteriter_op(f):
-    """This decorator wraps a function with runtime type checking to ensure that it always receives an iterator as its
-    first argument, and that it returns an iterator.
+    """This decorator wraps a function with runtime type checking to ensure
+    that it always receives an iterator as its first argument, and that it
+    returns an iterator.
 
-    We use this to make debugging operator pipelines easier in EAs: if you accidentally hook up, say an operator that
-    outputs a list to an operator that expects an iterator, we'll throw an exception that pinpoints the issue.
+    We use this to make debugging operator pipelines easier in EAs: if you
+    accidentally hook up, say an operator that outputs a list to an operator
+    that expects an iterator, we'll throw an exception that pinpoints the
+    issue.
 
     :param f function: the function to wrap
     """
@@ -83,11 +90,14 @@ def iteriter_op(f):
 
 
 def listlist_op(f):
-    """This decorator wraps a function with runtime type checking to ensure that it always receives a list as its
-    first argument, and that it returns a list.
+    """This decorator wraps a function with runtime type checking to ensure
+    that it always receives a list as its first argument, and that it returns
+    a list.
 
-    We use this to make debugging operator pipelines easier in EAs: if you accidentally hook up, say an operator that
-    outputs an iterator to an operator that expects a list, we'll throw an exception that pinpoints the issue.
+    We use this to make debugging operator pipelines easier in EAs: if you
+    accidentally hook up, say an operator that outputs an iterator to an
+    operator that expects a list, we'll throw an exception that pinpoints the
+    issue.
 
     :param f function: the function to wrap
     """
@@ -108,11 +118,14 @@ def listlist_op(f):
 
 
 def listiter_op(f):
-    """This decorator wraps a function with runtime type checking to ensure that it always receives a list as its
-    first argument, and that it returns an iterator.
+    """This decorator wraps a function with runtime type checking to ensure
+    that it always receives a list as its first argument, and that it returns
+    an iterator.
 
-    We use this to make debugging operator pipelines easier in EAs: if you accidentally hook up, say an operator that
-    outputs an iterator to an operator that expects a list, we'll throw an exception that pinpoints the issue.
+    We use this to make debugging operator pipelines easier in EAs: if you
+    accidentally hook up, say an operator that outputs an iterator to an
+    operator that expects a list, we'll throw an exception that pinpoints the
+    issue.
 
     :param f function: the function to wrap
     """
@@ -133,11 +146,14 @@ def listiter_op(f):
 
 
 def iterlist_op(f):
-    """This decorator wraps a function with runtime type checking to ensure that it always receives an iterator as its
-    first argument, and that it returns a list.
+    """This decorator wraps a function with runtime type checking to ensure
+    that it always receives an iterator as its first argument, and that it
+    returns a list.
 
-    We use this to make debugging operator pipelines easier in EAs: if you accidentally hook up, say an operator that
-    outputs a list to an operator that expects an iterator, we'll throw an exception that pinpoints the issue.
+    We use this to make debugging operator pipelines easier in EAs: if you
+    accidentally hook up, say an operator that outputs a list to an operator
+    that expects an iterator, we'll throw an exception that pinpoints the
+    issue.
 
     :param f function: the function to wrap
     """
@@ -174,7 +190,10 @@ def evaluate(next_individual: Iterator) -> Iterator:
     >>> evaluated_ind = next(evaluate(iter([ind])))
 
     :param next_individual: iterator pointing to next individual to be evaluated
-    :param kwargs: contains optional context state to pass down the pipeline in context dictionaries
+
+    :param kwargs: contains optional context state to pass down the pipeline
+    in context dictionaries
+
     :return: the evaluated individual
     """
     while True:
@@ -418,8 +437,10 @@ def mutate_gaussian(std: float, expected: float = None,
     :param next_individual: to be mutated
     :param std: standard deviation to be equally applied to all individuals; this
         can be a scalar value or a "shadow vector" of standard deviations
-    :param expected: the *expected* number of mutations per individual, on average.  If None, all genes will be
-        mutated.
+
+    :param expected: the *expected* number of mutations per individual,
+    on average.  If None, all genes will be mutated.
+
     :param hard_bounds: to clip for mutations; defaults to (- ∞, ∞)
     :return: a generator of mutated individuals.
     """
@@ -478,7 +499,8 @@ def truncate(offspring: List, size: int, parents: List = None) -> List:
         ...        core.Individual([1, 1, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
         ...        core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())]
 
-        We need to evaluate them to get their fitness to sort them for truncation.
+        We need to evaluate them to get their fitness to sort them for
+        truncation.
 
         >>> pop = core.Individual.evaluate_population(pop)
 
@@ -512,14 +534,18 @@ def tournament(population: List, k: int = 2) -> Iterator:
         >>> pop = [core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
         ...        core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())]
 
-        We need to evaluate them to get their fitness to sort them for truncation.
+        We need to evaluate them to get their fitness to sort them for
+        truncation.
 
         >>> pop = core.Individual.evaluate_population(pop)
 
         >>> best = tournament(pop)
 
         :param population: from which to select
-        :param k: are randomly drawn from which to choose the best; by default this is 2 for binary tournament selection
+
+        :param k: are randomly drawn from which to choose the best; by
+        default this is 2 for binary tournament selection
+
         :return: the best of k individuals drawn from population
     """
     while True:
@@ -722,8 +748,8 @@ def migrate(context, topology, emigrant_selector,
 def concat_combine(collaborators):
     """Combine a list of individuals by concatenating their genomes.
 
-    You can choose whether this or some other function is used for combining collaborators
-    by passing it into the `CooperativeEvaluate` constructor."""
+    You can choose whether this or some other function is used for combining
+    collaborators by passing it into the `CooperativeEvaluate` constructor. """
     # Clone one of the evaluators so we can use its problem and decoder later
     combined_ind = collaborators[0].clone()
 
@@ -733,9 +759,11 @@ def concat_combine(collaborators):
 
 
 class CooperativeEvaluate(Operator):
-    """A simple, non-parallel implementation of cooperative coevolutionary fitness evaluation.
+    """A simple, non-parallel implementation of cooperative coevolutionary
+    fitness evaluation.
 
-    :param context: the algorithm's state context.  Used to access subpopulation information.
+    :param context: the algorithm's state context.  Used to access
+    subpopulation information.
     """
 
     def __init__(self, context, num_trials, collaborator_selector,
