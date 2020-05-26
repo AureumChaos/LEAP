@@ -393,11 +393,13 @@ class PlotTrajectoryProbe:
 
         pop_size = 100
         ea = generational_ea(generations=20, pop_size=pop_size,
-                             individual_cls=core.Individual,
-
-                             decoder=core.IdentityDecoder(),
                              problem=problem,
-                             initialize=core.create_real_vector(bounds=[[0.4, 0.6]] * 2),
+
+                             representation=core.Representation(
+                                individual_cls=core.Individual,
+                                initialize=core.create_real_vector(bounds=[[0.4, 0.6]] * 2),
+                                decoder=core.IdentityDecoder()
+                             ),
 
                              pipeline=[
                                  trajectory_probe,  # Insert the probe into the pipeline like so

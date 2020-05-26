@@ -532,7 +532,7 @@ class WeierstrassProblem(ScalarProblem):
 
     :param int kmax: number of terms to carry the Fourier sum out to
     :param float a: amplitude parameter of the cosine terms
-    param float b: wavenumber (frequency) parameter of the cosine terms
+    :param float b: wavenumber (frequency) parameter of the cosine terms
     :param bool maximize: the function is maximized if `True`, else minimized.
 
     .. plot::
@@ -776,6 +776,41 @@ class SchwefelProblem(ScalarProblem):
 
     def __str__(self):
         return SchwefelProblem.__name__
+
+
+##############################
+# Class GaussianProblem
+##############################
+class GaussianProblem(ScalarProblem):
+    """
+    A multidimensional Gaussian function, defined by
+
+    .. math::
+       A\\exp\\left - \\sum_i^n \\frac{x_}{w})^2 \\right)
+
+    :param float width: the width parameter :math:`w`
+    :param float height: the height parameter :math:`A`
+
+    .. plot::
+       :include-source:
+
+       from leap import real_problems
+       bounds = real_problems.GaussianProblem.bounds  # Some typical bounds
+       problem = real_problems.GaussianProblem(width=1, height=1)
+       real_problems.plot_2d_problem(, xlim=bounds, ylim=bounds, granularity=10)
+    """
+    bounds = (-3, 3)
+
+    def __init__(self, width=1, height=1):
+        assert(width > 0)
+        self.width = 1
+        self.height = 1
+
+    def evaluate(self, phenome):
+        assert(phenome is not None)
+        phenome = np.array(phenome)
+
+        return self.height * np.exp(-np.sum(np.power(phenome/self.width, 2)))
 
 
 ##############################

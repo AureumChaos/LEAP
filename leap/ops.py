@@ -705,7 +705,9 @@ def concat_combine(collaborators):
 
 
 class CooperativeEvaluate(Operator):
-    """A simple, non-parallel implementation of cooperative coevolutionary fitness evaluation.
+    """Cooperative coevolutionary fitness evaluation.
+
+    This a relatively simple, non-parallel implementation.
     
     :param context: the algorithm's state context.  Used to access subpopulation information.
     """
