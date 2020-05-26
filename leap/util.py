@@ -195,7 +195,7 @@ def birth_brander():
     Provides:
 
     * brand_population() to brand an entire population all at once,
-    which is useful for branding initial populations.
+        which is useful for branding initial populations.
     * brand() for explicitly branding a single individual
 
     :param next_thing: preceding individual in the pipeline

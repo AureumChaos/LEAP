@@ -103,12 +103,11 @@ class AttributesCSVProbe(op.Operator):
 
     :param population: list of individuals to take measurements from
     :param context: an optional context
-
     :param attributes: list of attribute names to record, as found in
-    individuals' `attributes` field
+        individuals' `attributes` field
 
     :return: `(population, context)`, unmodified (this allows you to place
-    probes directly in an operator pipeline)
+        probes directly in an operator pipeline)
 
     Individuals contain some build-in attributes (namely fitness, genome),
     and also a `dict` of additional custom attributes called, well,
@@ -266,19 +265,16 @@ class PopulationPlotProbe:
     value).
 
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
-    be created).
-
+        be created).
     :param function f: a function that takes a population and returns a
-    `float` value to plot on the y-axis (the default function plots the
-    best-of-generation individual's fitness).
-
+        `float` value to plot on the y-axis (the default function plots the
+        best-of-generation individual's fitness).
     :param xlim: Bounds of the horizontal axis.
     :type xlim: (float, float)
     :param ylim: Bounds of the vertical axis.
     :type ylim: (float, float)
-
     :param int modulo: take and plot a measurement every `modulo` steps (
-    default 1).
+        default 1).
 
     Attach this probe to matplotlib :class:`Axes` and then insert it into an
     EA's operator pipeline.
@@ -383,24 +379,20 @@ class PlotTrajectoryProbe:
     phenotype space.
 
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
-    be created).
-
+        be created).
     :param xlim: Bounds of the horizontal axis.
     :type xlim: (float, float)
     :param ylim: Bounds of the vertical axis.
     :type ylim: (float, float)
-
     :param ~leap.problem.Problem contours: a problem defining a 2-D fitness
-    function (this will be used to draw fitness contours in the background of
-    the scatterplot).
-
+        function (this will be used to draw fitness contours in the background of
+        the scatterplot).
     :param float granularity: (Optional) spacing of the grid to sample points
-    along while drawing the fitness contours. If none is given, then the
-    granularity will default to 1/50th of the range of the function's
-    `bounds` attribute.
-
+        along while drawing the fitness contours. If none is given, then the
+        granularity will default to 1/50th of the range of the function's
+        `bounds` attribute.
     :param int modulo: take and plot a measurement every `modulo` steps (
-    default 1).
+        default 1).
 
     Attach this probe to matplotlib :class:`Axes` and then insert it into an
     EA's operator pipeline to get a live fitness plot that updates every

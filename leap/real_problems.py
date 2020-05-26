@@ -721,10 +721,10 @@ class LunacekProblem(ScalarProblem):
     :param float mu_1: offset of the first spheroid
 
     :param float mu_2: offset of the second spheroid (if `None`, this will be
-    calculated automatically)
+        calculated automatically)
 
     :param float s: scale parameter for the second spheroid (if `None`,
-    this will be calculated automatically)
+        this will be calculated automatically)
 
     :param bool maximize: the function is maximized if `True`, else minimized.
 
@@ -788,7 +788,7 @@ class SchwefelProblem(ScalarProblem):
         f(\\mathbf{x}) = \\sum_{i=1}^d\\left(-x_i \\cdot\\sin\\left(\\sqrt{\\|x_i\\|} \\right)\\right) + \\alpha \\cdot d
 
     :param float alpha: fitness offset (the default value ensures that the
-    global optimum has zero fitness)
+        global optimum has zero fitness)
 
     :param bool maximize: the function is maximized if `True`, else minimized.
 
@@ -826,10 +826,10 @@ class SchwefelProblem(ScalarProblem):
 ##############################
 class GaussianProblem(ScalarProblem):
     """
-    A multidimensional Gaussian function, defined by
+    A multidimensional, isotropic Gaussian function, defined by
 
     .. math::
-       A\\exp\\left - \\sum_i^n \\frac{x_}{w})^2 \\right)
+       A\\exp\\left( - \\sum_i^n \\left(\\frac{x_i}{w}\\right)^2 \\right)
 
     :param float width: the width parameter :math:`w`
     :param float height: the height parameter :math:`A`
@@ -840,7 +840,7 @@ class GaussianProblem(ScalarProblem):
        from leap import real_problems
        bounds = real_problems.GaussianProblem.bounds  # Some typical bounds
        problem = real_problems.GaussianProblem(width=1, height=1)
-       real_problems.plot_2d_problem(, xlim=bounds, ylim=bounds, granularity=10)
+       real_problems.plot_2d_problem(problem, xlim=bounds, ylim=bounds, granularity=0.1)
     """
     bounds = (-3, 3)
 
@@ -879,10 +879,10 @@ class CosineFamilyProblem(ScalarProblem):
     :param float alpha: parameter that controls the depth of the local optima.
 
     :param [int] global_optima_counts: list of integers indicating the number
-    of global optima for each dimension.
+        of global optima for each dimension.
 
     :param [int] local_optima_counts: list of integers indicated the number
-    of local optima for each dimension.
+        of local optima for each dimension.
 
     :param maximize: the function is maximized if `True`, else minimized.
 
@@ -1069,7 +1069,7 @@ class MatrixTransformedProblem(ScalarProblem):
     :param matrix: an nxn matrix, where n is the genome length.
 
     :returns: a function that first applies -matrix to the input,
-    then applies fun to the transformed input.
+        then applies fun to the transformed input.
 
     For example, here we manually construct a 2x2 rotation matrix and apply
     it to the :class:`~leap.real_problems.RosenbrockProblem` function:
@@ -1231,7 +1231,7 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
     accepts 2-D real-valued phenomes and produces a 1-D scalar fitness output.
 
     :param ~leap.problem.Problem fun: The :class:`~leap.problem.Problem` to
-    plot.
+        plot.
 
     :param xlim: Bounds of the horizontal axes.
     :type xlim: (float, float)
@@ -1241,11 +1241,11 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
     :type kind: str
 
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
-    be created).
+        be created).
 
     :param float granularity: Spacing of the grid to sample points along. If
-    none is given, then the granularity will default to 1/50th of the range
-    of the function's `bounds` attribute.
+        none is given, then the granularity will default to 1/50th of the range
+        of the function's `bounds` attribute.
 
 
     The difference between this and :meth:`plot_2d_function` is that this
@@ -1367,7 +1367,7 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None):
     :type ylim: (float, float)
 
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
-    be created).
+        be created).
 
     :param float granularity: Spacing of the grid to sample points along.
 

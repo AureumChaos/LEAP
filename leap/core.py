@@ -41,7 +41,7 @@ def create_binary_sequence(length):
     :param length: how many genes?
 
     :return: a function that, when called, generates a binary vector of given
-    length
+        length
 
     E.g., can be used for `Individual.create_population`
 
@@ -72,7 +72,7 @@ def create_real_vector(bounds):
     TODO Allow either a single tuple or a sequence of tuples for bounds. —Siggy
 
     :param bounds: a list of (min, max) values bounding the uniform sampline
-    of each element
+        of each element
 
     :return: A function that, when called, generates a random genome.
 
@@ -126,11 +126,11 @@ class Individual:
         True
 
         :param genome: is the genome representing the solution.  This can be
-        any arbitrary type that your mutation operators, probes, etc.,
-        know how to read and manipulate---a list, class, etc.
+            any arbitrary type that your mutation operators, probes, etc.,
+            know how to read and manipulate---a list, class, etc.
 
         :param decoder: is a function or `callable` that converts a genome
-        into a phenome.
+            into a phenome.
 
         :param problem: is the `Problem` associated with this individual.
         """
@@ -400,10 +400,10 @@ class BinaryToIntDecoder(Decoder):
         into a corresponding int-value vector.
 
         :param segments: is a sequence of integer that determine how the
-        binary sequence is to be broken up into chunks for interpretation
+            binary sequence is to be broken up into chunks for interpretation
 
         :return: a function for real-value phenome decoding of a sequence of
-        binary digits
+            binary digits
 
         The `segments` parameter indicates the number of (genome) bits per (
         phenome) dimension.  For example, if we construct the decoder
@@ -428,7 +428,7 @@ class BinaryToIntDecoder(Decoder):
         :param genome: a list of 0s and 1s representing a Boolean genome
 
         :return: a corresponding list of ints representing the integer-vector
-        phenome
+            phenome
 
         For example, a Boolean representation of [1, 12, 5] can be decoded
         like this:
@@ -490,10 +490,10 @@ class BinaryToRealDecoderCommon(Decoder):
     def __init__(self, *segments):
         """
         :param segments: is a sequence of tuples of the form (number of bits,
-        minimum, maximum) values
+            minimum, maximum) values
 
         :return: a function for real-value phenome decoding of a sequence of
-        binary digits
+            binary digits
         """
         super().__init__()
 
@@ -549,10 +549,10 @@ class BinaryToRealDecoder(BinaryToRealDecoderCommon):
         corresponding real-value bounds for that segment.
 
         :param segments: is a sequence of tuples of the form (number of bits,
-        minimum, maximum) values
+            minimum, maximum) values
 
         :return: a function for real-value phenome decoding of a sequence of
-        binary digits
+            binary digits
 
         For example, if we construct the decoder
         then it will look for a genome of length 8, with the first 4 bits
@@ -628,8 +628,8 @@ class BinaryToRealGreyDecoder(BinaryToRealDecoderCommon):
         corresponding real-value bounds for that segment.
 
         :param segments: is a sequence of tuples of the form (number of bits,
-        minimum, maximum) values :return: a function for real-value phenome
-        decoding of a sequence of binary digits
+            minimum, maximum) values :return: a function for real-value phenome
+            decoding of a sequence of binary digits
 
         For example, if we construct the decoder then it will look for
         a genome of length 8, with the first 4 bits mapped to the first

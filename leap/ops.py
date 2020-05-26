@@ -439,7 +439,7 @@ def mutate_gaussian(std: float, expected: float = None,
         can be a scalar value or a "shadow vector" of standard deviations
 
     :param expected: the *expected* number of mutations per individual,
-    on average.  If None, all genes will be mutated.
+        on average.  If None, all genes will be mutated.
 
     :param hard_bounds: to clip for mutations; defaults to (- ∞, ∞)
     :return: a generator of mutated individuals.
@@ -763,7 +763,7 @@ class CooperativeEvaluate(Operator):
     fitness evaluation.
 
     :param context: the algorithm's state context.  Used to access
-    subpopulation information.
+        subpopulation information.
     """
 
     def __init__(self, context, num_trials, collaborator_selector,

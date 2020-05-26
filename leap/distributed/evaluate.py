@@ -34,7 +34,7 @@ def evaluate(individual, context=core.context):
     individual.exception will be assigned any raised exceptions
     individual.fitness will be NaN if not viable, else the calculated fitness
     individual.hostname is the name of the host on which this individual was
-         evaluated
+    evaluated
     individual.pid is the process ID associated with evaluating the individual
 
     :param individual: to be evaluated

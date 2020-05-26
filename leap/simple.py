@@ -14,10 +14,10 @@ def ea_solve(function, bounds, generations=100, pop_size=2,
     function using a simple generational EA.
 
     :param function: the function to optimize; should take lists of real
-    numbers as input and return a float fitness value
+        numbers as input and return a float fitness value
 
     :param [(float, float)] bounds: a list of (min, max) bounds to define the
-    search space
+        search space
 
     :param int generations: the number of generations to run for
     :param int pop_size: the population size
@@ -26,7 +26,7 @@ def ea_solve(function, bounds, generations=100, pop_size=2,
     :param bool viz: whether to display a live best-of-generation plot
 
     :param (float, float) viz_ylim: initial bounds to use of the plots
-    vertical axis
+        vertical axis
 
     >>> from leap import simple
     >>> ea_solve(sum, bounds=[(0, 1)]*5) # doctest:+ELLIPSIS

@@ -33,9 +33,8 @@ class RandomBrain(Brain):
     A trivial 'brain' that samples a random value from its output space.
 
     :param input_space: space of possible inputs (ignored)
-
     :param output_space: the space of possible actions to sample from,
-    satisfying the `Space` interface used by OpenAI Gym
+        satisfying the `Space` interface used by OpenAI Gym
     """
 
     def __init__(self, input_space, output_space):
@@ -75,10 +74,8 @@ class KeyboardBrain(Brain):
     keyboard.
 
     :param input_space: space of possible inputs (ignored)
-
     :param output_space: the space of possible actions to sample from,
-    satisfying the `Space` interface used by OpenAI Gym
-
+        satisfying the `Space` interface used by OpenAI Gym
     :param keymap: `dict` mapping keys to elements of the output space
     """
 
@@ -172,12 +169,10 @@ class PittRulesBrain(Brain):
     :param input_space: an OpenAI-gym-style space defining the inputs
     :param output_space: an OpenAI-gym-style space defining the outputs
     :param init_memory: a list of initial values for the memory registers
-
     :param rules: a list of rules, each of the form `[ c1 c1'  c2 c2' ... cn
-    cn'  a1 ... am m1 ... mr]`
-
+        cn'  a1 ... am m1 ... mr]`
     :param priority_metric: the rule prioritization strategy used to resolve
-    conflicts
+        conflicts
 
     Rulesets are lists of rules.  Rules are lists of the form `[ c1 c1'  c2
     c2' ... cn cn'  a1 ... am m1 ... mr]`, where `(cx, cx')` are are the min

@@ -33,24 +33,19 @@ def generational_ea(generations, pop_size, representation, problem, pipeline):
 
     :param int generations: The number of generations to run the algorithm for.
     :param int pop_size: Size of the initial population
-
     :param class individual_cls: class representing the (sub)type of
-    `Individual` the population should be generated from
-
+        `Individual` the population should be generated from
     :param `Decoder` decoder: the Decoder that should be used to convert
-    individual genomes into phenomes
-
+        individual genomes into phenomes
     :param `Problem` problem: the Problem that should be used to evaluate
-    individuals' fitness
-
+        individuals' fitness
     :param initialize: a function that creates a new genome every time it is
-    called
-
+        called
     :param list pipeline: a list of operators that are applied (in order) to
-    create the offspring population at each generation
+        create the offspring population at each generation
 
     :return: a generator of `(int, individual_cls)` pairs representing the
-    best individual at each generation.
+        best individual at each generation.
 
     The intent behind this kind of EA interface is to allow the complete
     configuration of a basic evolutionary algorithm to be defined in a clean
@@ -149,27 +144,21 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
     :param int generations: The number of generations to run the algorithm for.
     :param int num_populations: The number of separate populations to maintain.
     :param int pop_size: Size of the initial population
-
     :param class individual_cls: class representing the (sub)type of
-    `Individual` the population should be generated from
-
+        `Individual` the population should be generated from
     :param `Decoder` decoder: the Decoder that should be used to convert
-    individual genomes into phenomes
-
+        individual genomes into phenomes
     :param `Problem` problem: the Problem that should be used to evaluate
-    individuals' fitness
-
+        individuals' fitness
     :param initialize: a function that creates a new genome every time it is called
-
     :param list shared_pipeline: a list of operators that every population
-    will uses to create the offspring population at each generation
-
+        will uses to create the offspring population at each generation
     :param list subpop_pipelines: a list of population-specific operator
-    lists, the ith of which will only be applied to the ith population (after
-    the `shared_pipeline`).  Ignored if `None`.
+        lists, the ith of which will only be applied to the ith population (after
+        the `shared_pipeline`).  Ignored if `None`.
 
     :return: a generator of `(int, [individual_cls])` pairs representing the
-    best individual in each population at each generation.
+        best individual in each population at each generation.
 
     To turn a multi-population EA into an island model, use the
     :py:function:`~leap.ops.migrate` operator in the shared pipeline.  This
