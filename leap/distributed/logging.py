@@ -20,18 +20,19 @@ class EvaluatorLogFilter(logging.Filter):
 
     Cribbed from https://stackoverflow.com/questions/55584115/python-logging-how-to-track-hostname-in-logs
     """
+
     def __init__(self):
         super().__init__()
 
         self.hostname = platform.node()
         self.process_id = os.getpid()
 
-
     def filter(self, record):
         record.hostname = self.hostname
         record.process_id = self.process_id
 
         return True
+
 
 # We want the *same* logger used for all workers, so declare it here, and then
 # ensure that all the workers point to this one.
@@ -52,7 +53,6 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 
-
 class WorkerLoggerPlugin(WorkerPlugin):
     """
         This dask worker plugin adds a logger for each worker that reports
@@ -68,6 +68,7 @@ class WorkerLoggerPlugin(WorkerPlugin):
         worker = get_worker()
         worker.logger.info('This is a log message')
     """
+
     def __init__(self, verbose=False, *args, **kwargs):
         """
         :param verbose: is True if you want DEBUG level output
@@ -87,7 +88,6 @@ class WorkerLoggerPlugin(WorkerPlugin):
         else:
             worker.logger.setLevel(logging.INFO)
 
-
     def setup(self, worker: dask.distributed.Worker):
         """ This is invoked once for each worker on their startup. The
             scheduler will also ensure that all workers invoke this.
@@ -96,12 +96,10 @@ class WorkerLoggerPlugin(WorkerPlugin):
             worker.logger.warning('already has a logger')
         else:
             # Create an attach a logger that will echo the hostname and
-            # unique dask worker id with each log message along with a timestamp
+            # unique dask worker id with each log message along with a
+            # timestamp
             self.setup_logger(worker)
             worker.logger.info(f'worker setup for {worker.id}')
 
-
     def teardown(self, worker: dask.distributed.Worker):
         worker.logger.info(f'Tearing down worker {worker.id}')
-
-

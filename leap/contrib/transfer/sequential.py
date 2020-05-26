@@ -1,3 +1,13 @@
+"""
+    Provides:
+
+    ABC Repertoire
+
+    class PopulationSeedingRepertoire
+
+    initialize_seeded()
+"""
+
 import abc
 import csv
 
@@ -18,7 +28,8 @@ class PopulationSeedingRepertoire:
         assert(algorithm is not None)
         if repfile:
             with open(repfile, 'r') as f:
-                self.repertoire = list(csv.reader(f, quoting=csv.QUOTE_NONNUMERIC))
+                self.repertoire = list(csv.reader(
+                    f, quoting=csv.QUOTE_NONNUMERIC))
         else:
             self.repertoire = []
         self.initialize = initialize
@@ -29,9 +40,15 @@ class PopulationSeedingRepertoire:
         assert(len(problems) >= 0)
         assert(problem_kwargs is None or len(problem_kwargs) == len(problems))
         if problem_kwargs is None:
-            problem_kwargs = [{}]*len(problems)
-        results = [self.algorithm(p, self.initialize, **problem_kwargs[i]) for i, p in enumerate(problems)]
-        results = [list(ea) for ea in results]  # Execute each algorithm sequentially
+            problem_kwargs = [{}] * len(problems)
+        results = [
+            self.algorithm(
+                p,
+                self.initialize,
+                **problem_kwargs[i]) for i,
+            p in enumerate(problems)]
+        # Execute each algorithm sequentially
+        results = [list(ea) for ea in results]
         assert(len(results) == len(problems))
         for r in results:
             last_step, last_ind = r[-1]
@@ -48,7 +65,8 @@ class PopulationSeedingRepertoire:
 
 def initialize_seeded(initialize, seed_pop):
     """A population initializer that injects a fixed list of seed individuals
-    into the population, and fills the remaining space with newly generated individuals.
+    into the population, and fills the remaining space with newly generated
+    individuals.
 
     >>> from leap import core
     >>> random_init = core.create_real_vector(bounds=[[0, 0]] * 2)
@@ -72,6 +90,3 @@ def initialize_seeded(initialize, seed_pop):
             return initialize()
 
     return create
-
-
-

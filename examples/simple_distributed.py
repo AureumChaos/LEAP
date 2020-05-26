@@ -115,12 +115,13 @@ if __name__ == '__main__':
         logger.info('Client: %s', client)
 
         if args.track_workers_file:
-            track_workers_stream = open(args.track_workers_file,'w')
+            track_workers_stream = open(args.track_workers_file, 'w')
             track_workers_func = log_worker_location(track_workers_stream)
         else:
             track_workers_func = None
 
-        final_pop = asynchronous.steady_state(client, births=args.max_births, init_pop_size=5,
+        final_pop = asynchronous.steady_state(client, births=args.max_births,
+                                              init_pop_size=5,
                                               bag_size=args.bag_size,
                                               initializer=core.create_binary_sequence(
                                                   args.length),

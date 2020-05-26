@@ -39,7 +39,9 @@ def create_binary_sequence(length):
     A closure for initializing a binary sequences for binary genomes.
 
     :param length: how many genes?
-    :return: a function that, when called, generates a binary vector of given length
+
+    :return: a function that, when called, generates a binary vector of given
+    length
 
     E.g., can be used for `Individual.create_population`
 
@@ -69,7 +71,9 @@ def create_real_vector(bounds):
 
     TODO Allow either a single tuple or a sequence of tuples for bounds. —Siggy
 
-    :param bounds: a list of (min, max) values bounding the uniform sampline of each element
+    :param bounds: a list of (min, max) values bounding the uniform sampline
+    of each element
+
     :return: A function that, when called, generates a random genome.
 
 
@@ -97,10 +101,12 @@ class Individual:
     """
         Represents a single solution to a `Problem`.
 
-        We represent an `Individual` by a `genome`, a `fitness`, and an optional dict of `attributes`.
+        We represent an `Individual` by a `genome`, a `fitness`, and an
+        optional dict of `attributes`.
 
-        `Individual` also maintains a reference to the `Problem` it will be evaluated on, and an `decoder`, which
-        defines how genomes are converted into phenomes for fitness evaluation.
+        `Individual` also maintains a reference to the `Problem` it will be
+        evaluated on, and an `decoder`, which defines how genomes are
+        converted into phenomes for fitness evaluation.
     """
 
     def __init__(self, genome, decoder=None, problem=None):
@@ -119,9 +125,13 @@ class Individual:
         >>> ind.fitness is None
         True
 
-        :param genome: is the genome representing the solution.  This can be any arbitrary type that your mutation
-            operators, probes, etc., know how to read and manipulate---a list, class, etc.
-        :param decoder: is a function or `callable` that converts a genome into a phenome.
+        :param genome: is the genome representing the solution.  This can be
+        any arbitrary type that your mutation operators, probes, etc.,
+        know how to read and manipulate---a list, class, etc.
+
+        :param decoder: is a function or `callable` that converts a genome
+        into a phenome.
+
         :param problem: is the `Problem` associated with this individual.
         """
         # Type checking to avoid difficult-to-debug errors
@@ -140,7 +150,8 @@ class Individual:
     @classmethod
     def create_population(cls, n, initialize, decoder, problem):
         """
-        A convenience method for initializing a population of the appropriate subtype.
+        A convenience method for initializing a population of the appropriate
+        subtype.
 
         :param n: The size of the population to generate
         :param initialize: A function f(m) that initializes a genome
@@ -155,7 +166,8 @@ class Individual:
 
     @classmethod
     def evaluate_population(cls, population):
-        """ Convenience function for bulk serial evaluation of a given population
+        """ Convenience function for bulk serial evaluation of a given
+        population
 
         :param population: to be evaluated
         :return: evaluated population
@@ -166,10 +178,12 @@ class Individual:
         return population
 
     def clone(self):
-        """Create a 'clone' of this `Individual`, copying the genome, but not fitness.
+        """Create a 'clone' of this `Individual`, copying the genome, but not
+        fitness.
 
-        A deep copy of the genome will be created, so if your `Individual` has a custom genome type, it's important
-        that it implements the `__deepcopy__()` method.
+        A deep copy of the genome will be created, so if your `Individual`
+        has a custom genome type, it's important that it implements the
+        `__deepcopy__()` method.
 
         >>> from leap import binary_problems
         >>> ind = Individual([0, 1, 1, 0], IdentityDecoder(), binary_problems.MaxOnes())
@@ -215,8 +229,9 @@ class Individual:
 
     def __lt__(self, other):
         """
-        Because `Individual`s know about their `Problem`, the know how to compare themselves
-        to one another.  One individual is better than another if and only if it is greater than the other:
+        Because `Individual`s know about their `Problem`, the know how to
+        compare themselves to one another.  One individual is better than
+        another if and only if it is greater than the other:
 
         >>> from leap import binary_problems
         >>> f = binary_problems.MaxOnes(maximize=True)
@@ -228,9 +243,10 @@ class Individual:
         False
 
 
-        Use care when writing selection operators! When comparing `Individuals`, `>` always means "better than."
-        The `>` function may indicate maximization, minimization, Pareto dominance, etc.: it all depends on the
-        underlying `Problem`.
+        Use care when writing selection operators! When comparing
+        `Individuals`, `>` always means "better than." The `>` function may
+        indicate maximization, minimization, Pareto dominance, etc.: it all
+        depends on the underlying `Problem`.
 
         >>> f = binary_problems.MaxOnes(maximize=False)
         >>> ind_A = Individual([0, 0, 1, 0, 1], IdentityDecoder(), problem=f)
@@ -262,11 +278,13 @@ class Individual:
 # Class Representation
 ##############################
 class Representation():
-    """A `Representation` is a simple data structure that wraps the components needed to define, initialize, and 
-    decode individuals.
-    
-    This just serves as some syntactic sugar when we are specifying algorithms---so that representation-related 
-    components are grouped together and clearly labeled `Representation`."""
+    """A `Representation` is a simple data structure that wraps the
+    components needed to define, initialize, and decode individuals.
+
+    This just serves as some syntactic sugar when we are specifying
+    algorithms---so that representation-related components are grouped
+    together and clearly labeled `Representation`. """
+
     def __init__(self, decoder, initialize, individual_cls=Individual):
         self.decoder = decoder
         self.initialize = initialize
@@ -277,25 +295,33 @@ class Representation():
 # Abstract Base Class Decoder
 ##############################
 class Decoder(abc.ABC):
-    """Decoders in LEAP implement how solutions to a problem are represented.  Specifically, a
-    :py:class:`~leap.core.Decoder` converts  an :py:class:`~leap.core.Individual`'s *genotype* (which is a format
-    that can easily be manipulated by mutation and recombination operators) into a *phenotype* (which is a format
-    that can be fed directly into a  :py:class:`~leap.problem.Problem` object to obtain a fitness value).
+    """Decoders in LEAP implement how solutions to a problem are represented.
+     Specifically, a :py:class:`~leap.core.Decoder` converts  an
+     :py:class:`~leap.core.Individual`'s *genotype* (which is a format that
+     can easily be manipulated by mutation and recombination operators) into
+     a *phenotype* (which is a format that can be fed directly into a
+     :py:class:`~leap.problem.Problem` object to obtain a fitness value).
 
-    Genotypes and phenotypes can be of arbitrary type, from a simple list of numbers to a complex data structure.
-    Choosing a good genotypic representation and genotype-to-phenotype mapping for a given problem domain is a
-    critical part of evolutionary algorithm design: the :py:class:`~leap.core.Decoder` object that an algorithm uses
-    can have a big impact on the effectiveness of your metaheuristics.
+    Genotypes and phenotypes can be of arbitrary type, from a simple list of
+    numbers to a complex data structure. Choosing a good genotypic
+    representation and genotype-to-phenotype mapping for a given problem
+    domain is a critical part of evolutionary algorithm design: the
+    :py:class:`~leap.core.Decoder` object that an algorithm uses can have a
+    big impact on the effectiveness of your metaheuristics.
 
-    In LEAP, a :py:class:`~leap.core.Decoder` is typically used by :py:class:`~leap.core.Individual` as an
-    intermediate step in calculating its own fitness.
+    In LEAP, a :py:class:`~leap.core.Decoder` is typically used by
+    :py:class:`~leap.core.Individual` as an intermediate step in calculating
+    its own fitness.
 
-    For example, say that we want to use a binary-represented :py:class:`~leap.core.Individual` to solve a
-    real-valued optimization problem, such as :py:class:`~leap.real_problems.SchwefelProblem`.  Here, the
-    genotype is a vector of binary values, whereas the phenotype is its corresponding float vector.
+    For example, say that we want to use a binary-represented
+    :py:class:`~leap.core.Individual` to solve a real-valued optimization
+    problem, such as :py:class:`~leap.real_problems.SchwefelProblem`.  Here,
+    the genotype is a vector of binary values, whereas the phenotype is its
+    corresponding float vector.
 
-    We can use a :py:class:`~leap.core.BinaryToIntDecoder` to express this mapping.  And when we initialize an
-    individual, we give it all three pieces of this information:
+    We can use a :py:class:`~leap.core.BinaryToIntDecoder` to express this
+    mapping.  And when we initialize an individual, we give it all three
+    pieces of this information:
 
     >>> from leap import core, real_problems
     >>> genome = [0, 1, 1, 0, 1, 0, 1, 1]
@@ -307,17 +333,20 @@ class Decoder(abc.ABC):
     >>> ind.decode()
     [-1.024, 2.389333333333333]
 
-    This call is just a wrapper for the :py:class:`~leap.core.Decoder`, which has the same output:
+    This call is just a wrapper for the :py:class:`~leap.core.Decoder`,
+    which has the same output:
 
     >>> decoder.decode(genome)
     [-1.024, 2.389333333333333]
 
-    But now :py:class:`~leap.core.Individual` also has everything it needs to evaluate its own fitness:
+    But now :py:class:`~leap.core.Individual` also has everything it needs to
+    evaluate its own fitness:
 
     >>> ind.evaluate()
     836.4453949...
 
-    Calling `evaluate()` also has the side effect of setting the fitness attribute:
+    Calling `evaluate()` also has the side effect of setting the fitness
+    attribute:
 
     >>> ind.fitness
     836.4453949...
@@ -337,8 +366,9 @@ class Decoder(abc.ABC):
 # Class IdentityDecoder
 ##############################
 class IdentityDecoder(Decoder):
-    """A decoder that maps a genome to itself.  This acts as a 'direct' or 'phenotypic' encoding:
-    Use this when your genotype and phenotype are the same thing."""
+    """A decoder that maps a genome to itself.  This acts as a 'direct' or
+    'phenotypic' encoding: Use this when your genotype and phenotype are the
+    same thing. """
 
     def __init__(self):
         super().__init__()
@@ -362,23 +392,27 @@ class IdentityDecoder(Decoder):
 # Class BinaryToIntDecoder
 ##############################
 class BinaryToIntDecoder(Decoder):
-    """A decoder that converts a Boolean-vector genome into an integer-vector phenome."""
+    """A decoder that converts a Boolean-vector genome into an integer-vector
+    phenome. """
 
     def __init__(self, *segments):
-        """Constructs a decoder that will convert a binary representation into a corresponding
-            int-value vector.
+        """Constructs a decoder that will convert a binary representation
+        into a corresponding int-value vector.
 
-        :param segments: is a sequence of integer that determine how the binary sequence is to be
-                         broken up into chunks for interpretation
-        :return: a function for real-value phenome decoding of a sequence of binary digits
+        :param segments: is a sequence of integer that determine how the
+        binary sequence is to be broken up into chunks for interpretation
 
-        The `segments` parameter indicates the number of (genome) bits per (phenome) dimension.  For example, if we
-        construct the decoder
+        :return: a function for real-value phenome decoding of a sequence of
+        binary digits
+
+        The `segments` parameter indicates the number of (genome) bits per (
+        phenome) dimension.  For example, if we construct the decoder
 
         >>> d = BinaryToIntDecoder(4, 3)
 
-        then it will look for a genome of length 7, with the first 4 bits mapped to the first phenotypic value, and the
-        last 3 bits making up the second:
+        then it will look for a genome of length 7, with the first 4 bits
+        mapped to the first phenotypic value, and the last 3 bits making up
+        the second:
 
         >>> d.decode([0,0,0,0,1,1,1])
         [0, 7]
@@ -388,21 +422,25 @@ class BinaryToIntDecoder(Decoder):
 
     def decode(self, genome):
         """
-        Converts a Boolean genome to an integer-vector phenome by interpreting each segment of the genome as
-        low-endian binary number.
+        Converts a Boolean genome to an integer-vector phenome by
+        interpreting each segment of the genome as low-endian binary number.
 
         :param genome: a list of 0s and 1s representing a Boolean genome
-        :return: a corresponding list of ints representing the integer-vector phenome
 
-        For example, a Boolean representation of [1, 12, 5] can be decoded like this:
+        :return: a corresponding list of ints representing the integer-vector
+        phenome
+
+        For example, a Boolean representation of [1, 12, 5] can be decoded
+        like this:
 
         >>> d = BinaryToIntDecoder(4, 4, 4)
         >>> d.decode([0,0,0,1, 1, 1, 0, 0, 0, 1, 1, 0])
         [1, 12, 6]
         """
 
-        # TODO the laborious string conversion approach could be replaced with something more elegant;
-        # but this was a copy-n-paste job from some of my code from elsewhere that I knew worked.
+        # TODO the laborious string conversion approach could be replaced
+        #  with something more elegant; but this was a copy-n-paste job from
+        #  some of my code from elsewhere that I knew worked.
 
         values = []
         offset = 0  # how far are we into the binary sequence
