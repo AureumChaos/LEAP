@@ -71,8 +71,8 @@ if __name__ == '__main__':
                              'at the very start of the runs')
     parser.add_argument('--max-births', '-m', type=int, default=100,
                         help='Maximum number of births before ending')
-    parser.add_argument('--bag-size', '-b', type=int, default=5,
-                        help='The size of the evaluated individuals bag')
+    parser.add_argument('--pop-size', '-b', type=int, default=5,
+                        help='The size of the evaluated individuals pop')
     parser.add_argument('--scheduler-file', '-f',
                         help='The scheduler file used to coordinate between '
                              'the scheduler '
@@ -92,8 +92,8 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO)
 
     logger.info(
-        'workers: %s init pop size: %s max births: %s, bag size: %s',
-        args.workers, args.init_pop_size, args.max_births, args.bag_size)
+        'workers: %s init pop size: %s max births: %s, pop size: %s',
+        args.workers, args.init_pop_size, args.max_births, args.pop_size)
 
     try:
         if args.scheduler_file:
@@ -122,7 +122,7 @@ if __name__ == '__main__':
 
         final_pop = asynchronous.steady_state(client, births=args.max_births,
                                               init_pop_size=5,
-                                              bag_size=args.bag_size,
+                                              pop_size=args.pop_size,
                                               initializer=core.create_binary_sequence(
                                                   args.length),
                                               decoder=core.IdentityDecoder(),

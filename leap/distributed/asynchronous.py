@@ -3,9 +3,8 @@
   This provides an asynchronous steady-state fitness evaluation pipeline
   operator.
 
-  A common feature here is a "bag" of evaluated individuals that is
-  asynchronously updated via dask.  (We would use "pool instead of "bag",
-  but "pool" is already in use as ops.pool().)
+  A common feature here is a population of evaluated individuals that is
+  asynchronously updated via dask.
 
 """
 import random
@@ -33,7 +32,9 @@ console_handler.setFormatter(formatter)
 
 logger.addHandler(console_handler)
 
-
+##############################
+# function eval_population
+##############################
 def eval_population(population, client, context=core.context):
     """ Concurrently evaluate all the individuals in the given population
 
@@ -50,102 +51,115 @@ def eval_population(population, client, context=core.context):
     return as_completed(worker_futures)
 
 
-def replace_if(new_individual, bag, index):
-    """ Convenience function for possibly replacing bag[index] individual
+##############################
+# function replace_if
+##############################
+def replace_if(new_individual, pop, index):
+    """ Convenience function for possibly replacing pop[index] individual
     with new_individual depending on which has higher fitness.
 
     :param new_individual: is a newly evaluated individual
-    :param bag: of already evaluated individuals
-    :param index: of individual in bag to be compared against
+    :param pop: of already evaluated individuals
+    :param index: of individual in pop to be compared against
     :return: None
     """
-    # If individual in the bag is not viable, it will *always lose*, even if
+    # If individual in the pop is not viable, it will *always lose*, even if
     # the new individual is also not viable.  (Thus assuring there is churn
-    # in the bag.
-    if not is_viable(bag[index]):
+    # in the pop.
+    if not is_viable(pop[index]):
         logger.debug('Replacing %s for %s due to non-viable individual',
-                     new_individual, bag[index])
-        bag[index] = new_individual
-    elif new_individual > bag[index]:
-        logger.debug('Replaced %s with %s', bag[index], new_individual)
-        bag[index] = new_individual
+                     new_individual, pop[index])
+        pop[index] = new_individual
+    elif new_individual > pop[index]:
+        logger.debug('Replaced %s with %s', pop[index], new_individual)
+        pop[index] = new_individual
     else:
-        logger.debug('%s < %s, so the latter stays in bag', new_individual,
-                     bag[index])
+        logger.debug('%s < %s, so the latter stays in pop', new_individual,
+                     pop[index])
 
 
-def insert_into_bag(indivdidual, bag, max_size):
-    """ Insert the given individual into the bag of evaluated individuals.
+##############################
+# function insert_into_pop
+##############################
+def insert_into_pop(indivdidual, pop, max_size):
+    """ Insert the given individual into the pop of evaluated individuals.
 
-    Randomly select an individual in the bag, and the `individual` will
+    Randomly select an individual in the pop, and the `individual` will
     replace the selected individual iff it has a better fitness.
 
-    Just insert individuals if the bag isn't at capacity yet
+    Just insert individuals if the pop isn't at capacity yet
 
     :param indivdidual: that was just evaluated
-    :param bag: of already evaluated individuals
-    :param max_size: of the bag
+    :param pop: of already evaluated individuals
+    :param max_size: of the pop
     :return: None
     """
-    if len(bag) < max_size:
-        logger.debug('bag not at capacity, so just inserting')
-        bag.append(indivdidual)
+    if len(pop) < max_size:
+        logger.debug('pop not at capacity, so just inserting')
+        pop.append(indivdidual)
     else:
-        rand_index = random.randrange(len(bag))
-        replace_if(indivdidual, bag, rand_index)
+        rand_index = random.randrange(len(pop))
+        replace_if(indivdidual, pop, rand_index)
 
 
-def greedy_insert_into_bag(individual, bag, max_size):
-    """ Insert the given individual into the bag of evaluated individuals.
+##############################
+# function greedy_insert_into_pop
+##############################
+def greedy_insert_into_pop(individual, pop, max_size):
+    """ Insert the given individual into the pop of evaluated individuals.
 
     This is greedy because we always compare the new `individual` with the
-    current weakest in the bag.
+    current weakest in the pop.
 
-    Just insert individuals if the bag isn't at capacity yet
+    Just insert individuals if the pop isn't at capacity yet
 
     :param individual: that was just evaluated
-    :param bag: of already evaluated individuals
+    :param pop: of already evaluated individuals
     :return: None
     """
-    if len(bag) < max_size:
-        logger.debug('bag not at capacity, so just inserting')
-        bag.append(individual)
+    if len(pop) < max_size:
+        logger.debug('pop not at capacity, so just inserting')
+        pop.append(individual)
     else:
         # From https://stackoverflow.com/questions/2474015/getting-the-index
         # -of-the-returned-max-or-min-item-using-max-min-on-a-list
-        index_min = min(range(len(bag)), key=bag.__getitem__)
-        replace_if(individual, bag, index_min)
+        index_min = min(range(len(pop)), key=pop.__getitem__)
+        replace_if(individual, pop, index_min)
 
 
-def steady_state(client, births, init_pop_size, bag_size,
+##############################
+# function steady_state
+##############################
+def steady_state(client, births, init_pop_size, pop_size,
                  initializer, decoder, problem, offspring_pipeline,
                  individual_cls=DistributedIndividual,
-                 inserter=greedy_insert_into_bag, count_nonviable=False,
+                 inserter=greedy_insert_into_pop, count_nonviable=False,
                  context=core.context,
                  evaluated_probe=None):
     """ Implements an asynchronous steady-state EA
 
     :param client: Dask client that should already be set-up
     :param births: how many births are we allowing?
-    :param init_pop_size: size of initial population
-    :param bag_size: how large should the bag be?
+    :param init_pop_size: size of initial population sent directly to workers
+           at start
+    :param pop_size: how large should the population be?
     :param initializer: how to initialize genomes for the first random
            population
     :param decoder: to to translate the genome into something the problem can
            understand
     :param problem: to be solved
-    :param offspring_pipeline: for creating new offspring from the bag
+    :param offspring_pipeline: for creating new offspring from the pop
     :param individual_cls: class prototype for Individual to be used; defaults
            to core.Individual since rarely do we have to subclass this.
-    :param inserter: function with signature (new_individual, bag, bagsize)
-           used to insert newly evaluated individuals into the bag; defaults to
-           insert_into_bag()
+    :param inserter: function with signature (new_individual, pop, popsize)
+           used to insert newly evaluated individuals into the population;
+           defaults to insert_into_pop()
     :param count_nonviable: True if we want to count non-viable individuals
            towards the birth budget
     :param evaluated_probe: is a function taking an individual that is given
-           the next evaluated indivdual; can be used to print this individual
+           the next evaluated individual; can be used to print this individual
            as it comes in
-    :return: the bag containing the final individuals
+    :return: the population containing the final individuals
     """
     initial_population = individual_cls.create_population(init_pop_size,
                                                           initialize=initializer,
@@ -157,7 +171,7 @@ def steady_state(client, births, init_pop_size, bag_size,
                                         context=context)
 
     # This is where we'll be putting evaluated individuals
-    bag = []
+    pop = []
 
     # Bookkeeping for tracking the number of births
     birth_counter = util.inc_births(context, start=len(initial_population))
@@ -183,11 +197,11 @@ def steady_state(client, births, init_pop_size, bag_size,
             # was broken in some way.
             birth_counter()
 
-        inserter(evaluated, bag, bag_size)
+        inserter(evaluated, pop, pop_size)
 
         if birth_counter.births() < births:
             # Only create offspring if we have the budget for one
-            offspring = toolz.pipe(bag, *offspring_pipeline)
+            offspring = toolz.pipe(pop, *offspring_pipeline)
 
             logger.debug('created offspring: ')
             [logger.debug('%s', str(o.genome)) for o in offspring]
@@ -199,4 +213,4 @@ def steady_state(client, births, init_pop_size, bag_size,
 
             birth_counter(len(offspring))
 
-    return bag
+    return pop
