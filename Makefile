@@ -52,7 +52,7 @@ setup:
 test:
 	# Default options are configured in pytest.ini
 	# Skip jupyter tests, because they only work if the kernel is configured manually
-	py.test -m "not jupyter"  
+	py.test -m "not jupyter"
 
 test-fast:
 	py.test -m "not system and not jupyter"
@@ -67,6 +67,10 @@ kernel:
 test-jupyter:
 	# Won't work unless you have a 'LEAP_venv' kernel
 	py.test -m jupyter
+
+pep8:
+	# Check for PEP8 compliance in source directories
+	flake8 leap examples
 
 clean:
 	cd docs && make clean
