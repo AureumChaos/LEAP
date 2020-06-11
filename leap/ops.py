@@ -76,13 +76,15 @@ def iteriter_op(f):
     def typecheck_f(next_individual: Iterator, *args, **kwargs) -> Iterator:
         if not isinstance(next_individual, collections.Iterator):
             raise ValueError(
-                f"Operator {f} received a {type(next_individual)} as input, but expected an iterator.")
+                f"Operator {f} received a {type(next_individual)} as input, "
+                f"but expected an iterator.")
 
         result = f(next_individual, *args, **kwargs)
 
         if not isinstance(result, collections.Iterator):
             raise ValueError(
-                f"Operator {f} produced a {type(result)} as output, but expected an iterator.")
+                f"Operator {f} produced a {type(result)} as output, but "
+                f"expected an iterator.")
 
         return result
 
@@ -104,13 +106,15 @@ def listlist_op(f):
     def typecheck_f(population: List, *args, **kwargs) -> List:
         if not isinstance(population, list):
             raise ValueError(
-                f"Operator {f} received a {type(population)} as input, but expected a list.")
+                f"Operator {f} received a {type(population)} as input, but "
+                f"expected a list.")
 
         result = f(population, *args, **kwargs)
 
         if not isinstance(result, list):
             raise ValueError(
-                f"Operator {f} produced a {type(result)} as output, but expected a list.")
+                f"Operator {f} produced a {type(result)} as output, but "
+                f"expected a list.")
 
         return result
 
@@ -132,13 +136,15 @@ def listiter_op(f):
     def typecheck_f(population: List, *args, **kwargs) -> Iterator:
         if not isinstance(population, list):
             raise ValueError(
-                f"Operator {f} received a {type(population)} as input, but expected a list.")
+                f"Operator {f} received a {type(population)} as input, but "
+                f"expected a list.")
 
         result = f(population, *args, **kwargs)
 
         if not isinstance(result, collections.Iterator):
             raise ValueError(
-                f"Operator {f} produced a {type(result)} as output, but expected an iterator.")
+                f"Operator {f} produced a {type(result)} as output, but "
+                f"expected an iterator.")
 
         return result
 
@@ -160,13 +166,15 @@ def iterlist_op(f):
     def typecheck_f(next_individual: Iterator, *args, **kwargs) -> List:
         if not isinstance(next_individual, collections.Iterator):
             raise ValueError(
-                f"Operator {f} received a {type(next_individual)} as input, but expected an iterator.")
+                f"Operator {f} received a {type(next_individual)} as input, "
+                f"but expected an iterator.")
 
         result = f(next_individual, *args, **kwargs)
 
         if not isinstance(result, list):
             raise ValueError(
-                f"Operator {f} produced a {type(result)} as output, but expected a list.")
+                f"Operator {f} produced a {type(result)} as output, "
+                f"but expected a list.")
 
         return result
 
@@ -197,8 +205,9 @@ def evaluate(next_individual: Iterator) -> Iterator:
     :return: the evaluated individual
     """
     while True:
-        # "combined" means combining any args, kwargs passed in to this function with those passed in from upstream
-        # in the pipeline.
+        # "combined" means combining any args, kwargs passed in to this
+        # function with those passed in from upstream in the pipeline.
+
         # individual, pipe_args, pipe_kwargs = next(next_individual)
         individual = next(next_individual)
         individual.evaluate()
@@ -277,9 +286,9 @@ def mutate_bitflip(next_individual: Iterator, expected: float = 1) -> Iterator:
     while True:
         individual = next(next_individual)
 
-        # Given the average expected number of mutations, calculate the probability
-        # for flipping each bit.  This calculation must be made each time given
-        # that we may be dealing with dynamic lengths.
+        # Given the average expected number of mutations, calculate the
+        # probability for flipping each bit.  This calculation must be made
+        # each time given that we may be dealing with dynamic lengths.
         probability = compute_expected_probability(expected, individual.genome)
 
         individual.genome = [flip(gene) for gene in individual.genome]
@@ -296,7 +305,8 @@ def mutate_bitflip(next_individual: Iterator, expected: float = 1) -> Iterator:
 @iteriter_op
 def uniform_crossover(next_individual: Iterator,
                       p_swap: float = 0.5) -> Iterator:
-    """ Generator for recombining two individuals and passing them down the line.
+    """ Generator for recombining two individuals and passing them down the
+    line.
 
     >>> from leap import core, binary_problems
 
@@ -435,8 +445,9 @@ def mutate_gaussian(std: float, expected: float = None,
     TODO hard_bounds should also be able to take a sequence —Siggy
 
     :param next_individual: to be mutated
-    :param std: standard deviation to be equally applied to all individuals; this
-        can be a scalar value or a "shadow vector" of standard deviations
+
+    :param std: standard deviation to be equally applied to all individuals;
+        this can be a scalar value or a "shadow vector" of standard deviations
 
     :param expected: the *expected* number of mutations per individual,
         on average.  If None, all genes will be mutated.
@@ -475,8 +486,8 @@ def mutate_gaussian(std: float, expected: float = None,
             else:
                 individual.genome = [clip(add_gauss(x, std, p))
                                      for x in individual.genome]
-
-            individual.fitness = None  # invalidate fitness since we have new genome
+            # invalidate fitness since we have new genome
+            individual.fitness = None
 
             yield individual
 

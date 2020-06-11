@@ -271,7 +271,8 @@ class Individual:
         return self.genome.__str__()
 
     def __repr__(self):
-        return f"{type(self).__name__}({self.genome.__repr__()}, {self.decoder.__repr__()}, {self.problem.__repr__()})"
+        return f"{type(self).__name__}({self.genome.__repr__()}, " \
+               f"{self.decoder.__repr__()}, {self.problem.__repr__()})"
 
 
 ##############################

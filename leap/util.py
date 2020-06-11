@@ -47,13 +47,15 @@ def inc_generation(context, callbacks=()):
     can also be given by inc_generation.generation().
 
     This will optionally call all the given callback functions whenever the
-    generation is incremented. The registered callback functions should have a signature f(int),
-    where the int is the new generation.
+    generation is incremented. The registered callback functions should have
+    a signature f(int), where the int is the new generation.
 
     >>> from leap import core
     >>> my_inc_generation = inc_generation(core.context)
 
-    :param context: will set ['leap']['generation'] to the incremented generation
+    :param context: will set ['leap']['generation'] to the incremented
+    generation
+
     :param callbacks: optional list of callback function to call when a
            generation is incremented
     :return: function for incrementing generations

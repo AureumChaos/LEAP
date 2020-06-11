@@ -60,6 +60,7 @@ class ImageProblem(ScalarProblem):
 
     def evaluate(self, phenome):
         assert (len(phenome) == len(self.flat_img)
-                ), f"Bad genome length: got {len(phenome)}, expected {len(self.flat_img)}"
+                ), f"Bad genome length: got {len(phenome)}, expected " \
+                   f"{len(self.flat_img)} "
         diff = np.logical_not(phenome ^ self.flat_img)
         return sum(diff)

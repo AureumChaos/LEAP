@@ -54,16 +54,19 @@ def eval_pool(next_individual, client, size, context=core.context):
     these individuals are concurrently evaluated via a map/reduce approach. We
     use dask to implement this evaluation mechanism.
 
-    If an exception is thrown while evaluating an individual, NaN is assigned as
-    its fitness, individual.is_viable is set to False, and the associated
+    If an exception is thrown while evaluating an individual, NaN is assigned
+    as its fitness, individual.is_viable is set to False, and the associated
     exception is assigned to individual.exception as a post mortem aid; also
-    core.context['leap']['distributed']['non_viables'] count is incremented if you
-    want to track the number of non-viable individuals (i.e., those that have
-    an exception thrown during evaluation); just remember to reset that between
-    runs if that variable has been updated.
+    core.context['leap']['distributed']['non_viables'] count is incremented
+    if you want to track the number of non-viable individuals (i.e.,
+    those that have an exception thrown during evaluation); just remember to
+    reset that between runs if that variable has been updated.
 
     :param next_individual: iterator/generator for individual provider
-    :param client: dask client through which we submit individuals to be evaluated
+
+    :param client: dask client through which we submit individuals to be
+    evaluated
+
     :param size: how many individuals to evaluate simultaneously.
     :param context: for storing count of non-viable individuals
     :return: the pool of evaluated individuals

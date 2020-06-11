@@ -384,9 +384,11 @@ class PlotTrajectoryProbe:
     :type xlim: (float, float)
     :param ylim: Bounds of the vertical axis.
     :type ylim: (float, float)
+
     :param ~leap.problem.Problem contours: a problem defining a 2-D fitness
-        function (this will be used to draw fitness contours in the background of
-        the scatterplot).
+    function (this will be used to draw fitness contours in the background of
+    the scatterplot).
+
     :param float granularity: (Optional) spacing of the grid to sample points
         along while drawing the fitness contours. If none is given, then the
         granularity will default to 1/50th of the range of the function's
@@ -440,7 +442,8 @@ class PlotTrajectoryProbe:
 
     """
 
-    def __init__(self, context, ax=None, xlim=(-5.12, 5.12), ylim=(-5.12, 5.12), contours=None, granularity=None,
+    def __init__(self, context, ax=None, xlim=(-5.12, 5.12), ylim=(-5.12, 5.12),
+                 contours=None, granularity=None,
                  modulo=1):
         if ax is None:
             ax = plt.subplot(111)

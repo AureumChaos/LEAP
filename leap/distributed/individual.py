@@ -37,4 +37,5 @@ class DistributedIndividual(Individual):
         self.exception = None
 
     def __str__(self):
-        return f'{self.uuid} birth: {self.birth_id} fitness: {self.fitness!s} genome: {self.genome!s} '
+        return f'{self.uuid} birth: {self.birth_id} fitness: {self.fitness!s} ' \
+               f'genome: {self.genome!s} '

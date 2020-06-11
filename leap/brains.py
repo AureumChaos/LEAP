@@ -207,8 +207,8 @@ class PittRulesBrain(Brain):
         assert (output_space is not None)
         assert (rules is not None)
         assert (len(rules) > 0)
-        assert (
-            priority_metric in PittRulesBrain.PriorityMetric.__members__.values())
+        assert (priority_metric in \
+                PittRulesBrain.PriorityMetric.__members__.values())
 
         self.input_space = input_space
         self.num_inputs = int(np.prod(input_space.shape))
@@ -242,8 +242,9 @@ class PittRulesBrain(Brain):
         for (r, rule) in enumerate(self.rules):
             match_score = 0
             for c in range(len(all_input)):  # Loop through all conditions
-                diff1 = rule[c * 2] - all_input[
-                    c]  # TODO Normalize this, in case the possible ranges differ greatly
+                # TODO Normalize this, in case the possible ranges
+                # differ greatly
+                diff1 = rule[c * 2] - all_input[c]
                 diff2 = rule[c * 2 + 1] - all_input[c]
                 if diff1 * diff2 <= 0:  # Check sign
                     diff = 0  # Within the range
@@ -366,7 +367,8 @@ class PittRulesDecoder(core.Decoder):
     def decode(self, genome):
         assert (genome is not None)
         assert (len(genome) > 0)
-        rule_length = self.num_inputs * 2 + self.num_outputs + self.num_memory_registers
+        rule_length = self.num_inputs * 2 + \
+                      self.num_outputs + self.num_memory_registers
         assert (len(genome) % rule_length == 0)
         rules = np.reshape(genome, (-1, rule_length))
         return PittRulesBrain(self.input_space, self.output_space, rules,
