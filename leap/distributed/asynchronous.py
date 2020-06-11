@@ -120,7 +120,7 @@ def greedy_insert_into_bag(individual, bag, max_size):
 def steady_state(client, births, init_pop_size, bag_size,
                  initializer, decoder, problem, offspring_pipeline,
                  individual_cls=DistributedIndividual,
-                 inserter=insert_into_bag, count_nonviable=False,
+                 inserter=greedy_insert_into_bag, count_nonviable=False,
                  context=core.context,
                  evaluated_probe=None):
     """ Implements an asynchronous steady-state EA
