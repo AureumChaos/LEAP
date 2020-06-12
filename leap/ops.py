@@ -74,14 +74,14 @@ def iteriter_op(f):
     :param f function: the function to wrap
     """
     def typecheck_f(next_individual: Iterator, *args, **kwargs) -> Iterator:
-        if not isinstance(next_individual, collections.Iterator):
+        if not isinstance(next_individual, collections.abc.Iterator):
             raise ValueError(
                 f"Operator {f} received a {type(next_individual)} as input, "
                 f"but expected an iterator.")
 
         result = f(next_individual, *args, **kwargs)
 
-        if not isinstance(result, collections.Iterator):
+        if not isinstance(result, collections.abc.Iterator):
             raise ValueError(
                 f"Operator {f} produced a {type(result)} as output, but "
                 f"expected an iterator.")
@@ -141,7 +141,7 @@ def listiter_op(f):
 
         result = f(population, *args, **kwargs)
 
-        if not isinstance(result, collections.Iterator):
+        if not isinstance(result, collections.abc.Iterator):
             raise ValueError(
                 f"Operator {f} produced a {type(result)} as output, but "
                 f"expected an iterator.")
@@ -164,7 +164,7 @@ def iterlist_op(f):
     :param f function: the function to wrap
     """
     def typecheck_f(next_individual: Iterator, *args, **kwargs) -> List:
-        if not isinstance(next_individual, collections.Iterator):
+        if not isinstance(next_individual, collections.abc.Iterator):
             raise ValueError(
                 f"Operator {f} received a {type(next_individual)} as input, "
                 f"but expected an iterator.")
