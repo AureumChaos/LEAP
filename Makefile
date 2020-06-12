@@ -49,6 +49,10 @@ setup:
 	pip install -r requirements_freeze.txt
 	python setup.py develop
 
+dist:
+	pip install setuptools wheel
+	python setup.py sdist bdist_wheel
+
 test:
 	# Default options are configured in pytest.ini
 	# Skip jupyter tests, because they only work if the kernel is configured manually
