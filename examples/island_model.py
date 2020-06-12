@@ -78,10 +78,11 @@ if __name__ == '__main__':
                              problem=problem,  # Fitness function
 
                              # Representation
-                             individual_cls=core.Individual,
-                             initialize=core.create_real_vector(
-                                 bounds=[problem.bounds] * l),
-                             decoder=core.IdentityDecoder(),
+                             representation=core.Representation(
+                                individual_cls=core.Individual,
+                                initialize=core.create_real_vector(bounds=[problem.bounds] * l),
+                                decoder=core.IdentityDecoder()
+                             ),
 
                              # Operator pipeline
                              shared_pipeline=[

@@ -32,10 +32,10 @@ if __name__ == '__main__':
                                      ops.tournament,
                                      ops.clone,
                                      ops.mutate_bitflip(expected=1),
-                                     ops.coop_evaluate(context=core.context,
-                                                       num_trials=1,
-                                                       collaborator_selector=ops.random_selection,
-                                                       log_stream=log_stream),
+                                     ops.CooperativeEvaluate(context=core.context,
+                                                             num_trials=1,
+                                                             collaborator_selector=ops.random_selection,
+                                                             log_stream=log_stream),
                                      ops.pool(size=pop_size)
                                  ])
 
