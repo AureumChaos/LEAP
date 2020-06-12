@@ -84,6 +84,14 @@ leap.real\_problems module
    :undoc-members:
    :show-inheritance:
 
+leap.simple module
+------------------
+
+.. automodule:: leap.simple
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 leap.util module
 ----------------
 

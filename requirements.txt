@@ -16,6 +16,7 @@ nbformat
 networkx
 numpy
 pandas
+Pillow
 pytest
 pytest-cov
 python-coveralls

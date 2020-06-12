@@ -844,8 +844,9 @@ class GaussianProblem(ScalarProblem):
     """
     bounds = (-3, 3)
 
-    def __init__(self, width=1, height=1):
+    def __init__(self, width=1, height=1, maximize=True):
         assert(width > 0)
+        super().__init__(maximize)
         self.width = 1
         self.height = 1
 
