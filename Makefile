@@ -6,7 +6,8 @@ help:
 	@echo "#	make venv			Create a virtual environment"
 	@echo "#	source venv/bin/activate	Activate it"
 	@echo \#
-	@echo "#	make setup			Install LEAP & dependencies"
+	@echo "#	make setup			Install LEAP & minimal dependencies"
+	@echo "#	make depend			Install test/optional dependencies"
 	@echo "#	make doc			Build docs (in docs/build/html/)"
 	@echo "#	make dist			Create package (i.e. for PyPI)"
 	@echo \#
@@ -32,12 +33,14 @@ venv:
 doc:
         # The apidoc call is long because we need to tell it to
         # use the venv's version of sphinx-build
-	sphinx-apidoc -f -o docs/source/ leap/ SPHINXBUILD='python $(shell which sphinx-build)'
+	sphinx-apidoc -f -o docs/source/ leap_ec/ SPHINXBUILD='python $(shell which sphinx-build)'
 	cd docs && make html
 
 setup:
-	pip install -r requirements_freeze.txt
 	python setup.py develop
+
+depend:
+	pip install -r requirements_freeze.txt
 
 dist:
 	pip install setuptools wheel

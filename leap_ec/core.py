@@ -16,7 +16,7 @@ import random
 from toolz import curry
 from toolz.itertoolz import pluck
 
-from leap import util
+from leap_ec import util
 
 # This defines a global context that is a dictionary of dictionaries.  The
 # intent is for certain operators and functions to add to and modify this
@@ -45,7 +45,7 @@ def create_binary_sequence(length):
 
     E.g., can be used for `Individual.create_population`
 
-    >>> from leap import core, binary_problems
+    >>> from leap_ec import core, binary_problems
     >>> population = Individual.create_population(10, core.create_binary_sequence(length=10),
     ...                                           decoder=core.IdentityDecoder(),
     ...                                           problem=binary_problems.MaxOnes())
@@ -79,7 +79,7 @@ def create_real_vector(bounds):
 
     E.g., can be used for `Individual.create_population()`
 
-    >>> from leap import core, real_problems
+    >>> from leap_ec import core, real_problems
     >>> bounds = [(0, 1), (0, 1), (-1, 100)]
     >>> population = Individual.create_population(10, core.create_real_vector(bounds),
     ...                                           decoder=core.IdentityDecoder(),
@@ -115,7 +115,7 @@ class Individual:
 
         We also require `Individual`s to maintain a reference to the `Problem`:
 
-        >>> from leap import binary_problems
+        >>> from leap_ec import binary_problems
         >>> ind = Individual([0, 0, 1, 0, 1], decoder=IdentityDecoder(), problem=binary_problems.MaxOnes())
         >>> ind.genome
         [0, 0, 1, 0, 1]
@@ -185,7 +185,7 @@ class Individual:
         has a custom genome type, it's important that it implements the
         `__deepcopy__()` method.
 
-        >>> from leap import binary_problems
+        >>> from leap_ec import binary_problems
         >>> ind = Individual([0, 1, 1, 0], IdentityDecoder(), binary_problems.MaxOnes())
         >>>
         """
@@ -233,7 +233,7 @@ class Individual:
         compare themselves to one another.  One individual is better than
         another if and only if it is greater than the other:
 
-        >>> from leap import binary_problems
+        >>> from leap_ec import binary_problems
         >>> f = binary_problems.MaxOnes(maximize=True)
         >>> ind_A = Individual([0, 0, 1, 0, 1], IdentityDecoder(), problem=f)
         >>> ind_A.fitness = 2
@@ -324,7 +324,7 @@ class Decoder(abc.ABC):
     mapping.  And when we initialize an individual, we give it all three
     pieces of this information:
 
-    >>> from leap import core, real_problems
+    >>> from leap_ec import core, real_problems
     >>> genome = [0, 1, 1, 0, 1, 0, 1, 1]
     >>> decoder = BinaryToRealDecoder((4, -5.12, 5.12), (4, -5.12, 5.12))  # Every 4 bits map to a float on (-5.12, 5.12)
     >>> ind = core.Individual(genome, decoder=decoder, problem=real_problems.SchwefelProblem())

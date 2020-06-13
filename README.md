@@ -60,8 +60,8 @@ Here's an example that applies a genetic algorithm variant to solve the MaxOnes 
 bitflip mutation, uniform crossover, and binary tournament selection:
 
 ```Python
-from leap.algorithm import generational_ea
-from leap import core, ops, binary_problems
+from leap_ec.algorithm import generational_ea
+from leap_ec import core, ops, binary_problems
 l = 10  # The length of the genome
 pop_size = 5
 ea = generational_ea(generations=100, pop_size=pop_size,

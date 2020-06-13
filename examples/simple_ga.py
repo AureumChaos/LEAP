@@ -6,10 +6,10 @@
     didactic purposes. """
 from toolz import pipe
 
-from leap import core
-from leap import ops
-from leap import binary_problems
-from leap import util
+from leap_ec import core
+from leap_ec import ops
+from leap_ec import binary_problems
+from leap_ec import util
 
 
 def print_population(population, generation):

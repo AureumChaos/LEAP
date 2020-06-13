@@ -6,8 +6,8 @@
 import numpy as np
 
 
-from leap import core, ops, binary_problems
-from leap.algorithm import multi_population_ea
+from leap_ec import core, ops, binary_problems
+from leap_ec.algorithm import multi_population_ea
 
 import networkx as nx
 

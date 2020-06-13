@@ -7,8 +7,8 @@ import sys
 from matplotlib import pyplot as plt
 import networkx as nx
 
-from leap import core, ops, probe, real_problems
-from leap.algorithm import multi_population_ea
+from leap_ec import core, ops, probe, real_problems
+from leap_ec.algorithm import multi_population_ea
 
 
 ##############################

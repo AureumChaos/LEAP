@@ -5,8 +5,8 @@
 """
 import io
 
-from leap.probe import *
-from leap import core, data, ops
+from leap_ec.probe import *
+from leap_ec import core, data, ops
 
 
 ##############################

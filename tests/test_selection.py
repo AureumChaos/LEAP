@@ -3,9 +3,9 @@
 """
 import itertools
 
-from leap import core
-from leap import ops
-from leap import binary_problems
+from leap_ec import core
+from leap_ec import ops
+from leap_ec import binary_problems
 
 
 def test_naive_cyclic_selection():

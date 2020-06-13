@@ -4,7 +4,7 @@
     function.
 """
 
-from leap.simple import ea_solve
+from leap_ec.simple import ea_solve
 
 
 def function(values):

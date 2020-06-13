@@ -2,7 +2,7 @@ import collections
 
 import pytest
 
-from leap import ops
+from leap_ec import ops
 
 
 ##############################

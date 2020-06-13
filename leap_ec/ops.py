@@ -17,8 +17,8 @@ from typing import Iterator, List, Tuple, Callable
 import toolz
 from toolz import curry
 
-from leap.core import Individual
-from leap import util
+from leap_ec.core import Individual
+from leap_ec import util
 
 
 ##############################
@@ -189,7 +189,7 @@ def iterlist_op(f):
 def evaluate(next_individual: Iterator) -> Iterator:
     """ Evaluate and returns the next individual in the pipeline
 
-    >>> from leap import core, binary_problems
+    >>> from leap_ec import core, binary_problems
 
     We need to specify the decoder and problem so that evaluation is possible.
 
@@ -241,7 +241,7 @@ def const_evaluate(population: List, value) -> List:
 def clone(next_individual: Iterator) -> Iterator:
     """ clones and returns the next individual in the pipeline
 
-    >>> from leap import core
+    >>> from leap_ec import core
 
     Create a common decoder and problem for individuals.
 
@@ -267,7 +267,7 @@ def clone(next_individual: Iterator) -> Iterator:
 def mutate_bitflip(next_individual: Iterator, expected: float = 1) -> Iterator:
     """ mutate and return an individual with a binary representation
 
-    >>> from leap import core, binary_problems
+    >>> from leap_ec import core, binary_problems
 
     >>> original = Individual([1,1])
 
@@ -308,7 +308,7 @@ def uniform_crossover(next_individual: Iterator,
     """ Generator for recombining two individuals and passing them down the
     line.
 
-    >>> from leap import core, binary_problems
+    >>> from leap_ec import core, binary_problems
 
     >>> first = Individual([0,0])
     >>> second = Individual([1,1])
@@ -369,7 +369,7 @@ def n_ary_crossover(next_individual: Iterator,
 
     We also assume that the passed in individuals are *clones* of parents.
 
-    >>> from leap import core, binary_problems
+    >>> from leap_ec import core, binary_problems
 
     >>> first = Individual([0,0])
     >>> second = Individual([1,1])
@@ -504,7 +504,7 @@ def truncate(offspring: List, size: int, parents: List = None) -> List:
 
         This defaults to (mu, lambda) if `parents` is not given.
 
-        >>> from leap import core, ops, binary_problems
+        >>> from leap_ec import core, ops, binary_problems
         >>> pop = [core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
         ...        core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
         ...        core.Individual([1, 1, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
@@ -541,7 +541,7 @@ def tournament(population: List, k: int = 2) -> Iterator:
     """ Selects the best individual from k individuals randomly selected from
         the given population
 
-        >>> from leap import core, ops, binary_problems
+        >>> from leap_ec import core, ops, binary_problems
         >>> pop = [core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
         ...        core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())]
 
@@ -609,7 +609,7 @@ def naive_cyclic_selection(population: List) -> Iterator:
     This is "naive" because it doesn't shuffle the population between complete
     tours to minimize bias.
 
-    >>> from leap import core, ops
+    >>> from leap_ec import core, ops
 
     >>> pop = [core.Individual([0, 0]),
     ...        core.Individual([0, 1])]
@@ -635,7 +635,7 @@ def cyclic_selection(population: List) -> Iterator:
     sequence, returns the individuals in that new order, and repeats this
     process.
 
-    >>> from leap import core, ops
+    >>> from leap_ec import core, ops
 
     >>> pop = [core.Individual([0, 0]),
     ...        core.Individual([0, 1])]
@@ -686,7 +686,7 @@ def pool(next_individual: Iterator, size: int) -> List:
     selection and birth operators, but could also be used to, say, "pool"
     individuals to be passed to an EDA as a training set.
 
-    >>> from leap import core, ops
+    >>> from leap_ec import core, ops
 
     >>> pop = [core.Individual([0, 0]),
     ...        core.Individual([0, 1])]

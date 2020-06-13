@@ -10,7 +10,7 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
-from leap.problem import ScalarProblem
+from leap_ec.problem import ScalarProblem
 
 
 ##############################
@@ -29,7 +29,7 @@ class SpheroidProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real_problems
+       from leap_ec import real_problems
        bounds = real_problems.SpheroidProblem.bounds  # Contains traditional bounds
        real_problems.plot_2d_problem(real_problems.SpheroidProblem(), xlim=bounds, ylim=bounds, granularity=0.025)
 
@@ -93,7 +93,7 @@ class RastriginProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real_problems
+       from leap_ec import real_problems
        bounds = real_problems.RastriginProblem.bounds  # Contains traditional bounds
        real_problems.plot_2d_problem(real_problems.RastriginProblem(), xlim=bounds, ylim=bounds, granularity=0.025)
 
@@ -159,7 +159,7 @@ class RosenbrockProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real_problems
+       from leap_ec import real_problems
        bounds = real_problems.RosenbrockProblem.bounds  # Contains traditional bounds
        real_problems.plot_2d_problem(real_problems.RosenbrockProblem(), xlim=bounds, ylim=bounds, granularity=0.025)
 
@@ -228,7 +228,7 @@ class StepProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real_problems
+       from leap_ec import real_problems
        bounds = real_problems.StepProblem.bounds  # Contains traditional bounds
        real_problems.plot_2d_problem(real_problems.StepProblem(), xlim=bounds, ylim=bounds, granularity=0.025)
 
@@ -289,7 +289,7 @@ class NoisyQuarticProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real_problems
+       from leap_ec import real_problems
        bounds = real_problems.NoisyQuarticProblem.bounds  # Contains traditional bounds
        real_problems.plot_2d_problem(real_problems.NoisyQuarticProblem(), xlim=bounds, ylim=bounds, granularity=0.025)
 
@@ -374,7 +374,7 @@ class ShekelProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real_problems
+       from leap_ec import real_problems
        bounds = real_problems.ShekelProblem.bounds  # Contains traditional bounds
        real_problems.plot_2d_problem(real_problems.ShekelProblem(), xlim=bounds, ylim=bounds, granularity=0.9)
 
@@ -445,7 +445,7 @@ class GriewankProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real_problems
+       from leap_ec import real_problems
        bounds = real_problems.GriewankProblem.bounds  # Contains traditional bounds
        real_problems.plot_2d_problem(real_problems.GriewankProblem(), xlim=bounds, ylim=bounds, granularity=10)
 
@@ -453,7 +453,7 @@ class GriewankProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real_problems
+       from leap_ec import real_problems
        bounds = [-50, 50]
        real_problems.plot_2d_problem(real_problems.GriewankProblem(), xlim=bounds, ylim=bounds, granularity=1)
     """
@@ -499,7 +499,7 @@ class AckleyProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real_problems
+       from leap_ec import real_problems
        import math
        problem = real_problems.AckleyProblem(a=20, b=0.2, c=2*math.pi)
        bounds = real_problems.AckleyProblem.bounds  # Contains traditional bounds
@@ -556,7 +556,7 @@ class WeierstrassProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real_problems
+       from leap_ec import real_problems
        bounds = real_problems.WeierstrassProblem.bounds  # Contains traditional bounds
        real_problems.plot_2d_problem(real_problems.WeierstrassProblem(), xlim=bounds, ylim=bounds, granularity=0.01)
     """
@@ -625,7 +625,7 @@ class LangermannProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real_problems
+       from leap_ec import real_problems
        bounds = real_problems.LangermannProblem.bounds  # Contains traditional bounds
        real_problems.plot_2d_problem(real_problems.LangermannProblem(), xlim=bounds, ylim=bounds, granularity=0.2)
     """
@@ -731,7 +731,7 @@ class LunacekProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real_problems
+       from leap_ec import real_problems
        bounds = real_problems.LunacekProblem.bounds  # Contains traditional bounds
        real_problems.plot_2d_problem(real_problems.LunacekProblem(N=2), xlim=bounds, ylim=bounds, granularity=0.1)
     """
@@ -795,7 +795,7 @@ class SchwefelProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real_problems
+       from leap_ec import real_problems
        bounds = real_problems.SchwefelProblem.bounds  # Contains traditional bounds
        real_problems.plot_2d_problem(real_problems.SchwefelProblem(), xlim=bounds, ylim=bounds, granularity=10)
     """
@@ -837,7 +837,7 @@ class GaussianProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real_problems
+       from leap_ec import real_problems
        bounds = real_problems.GaussianProblem.bounds  # Some typical bounds
        problem = real_problems.GaussianProblem(width=1, height=1)
        real_problems.plot_2d_problem(problem, xlim=bounds, ylim=bounds, granularity=0.1)
@@ -890,7 +890,7 @@ class CosineFamilyProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real_problems
+       from leap_ec import real_problems
        problem = real_problems.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
        bounds = real_problems.CosineFamilyProblem.bounds  # Contains traditional bounds
        real_problems.plot_2d_problem(problem, xlim=bounds, ylim=bounds, granularity=0.025)
@@ -900,7 +900,7 @@ class CosineFamilyProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real_problems
+       from leap_ec import real_problems
        problem = real_problems.CosineFamilyProblem(alpha=3.0, global_optima_counts=[4, 2], local_optima_counts=[2, 2])
        bounds = real_problems.CosineFamilyProblem.bounds  # Contains traditional bounds
        real_problems.plot_2d_problem(problem, xlim=bounds, ylim=bounds, granularity=0.025)
@@ -953,7 +953,7 @@ class TranslatedProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real_problems
+       from leap_ec import real_problems
 
        original_problem = real_problems.SpheroidProblem()
        offset = [-1.0, -2.5]
@@ -993,7 +993,7 @@ class TranslatedProblem(ScalarProblem):
         .. plot::
            :include-source:
 
-           from leap import real_problems
+           from leap_ec import real_problems
 
            original_problem = real_problems.RastriginProblem()
            bounds = real_problems.RastriginProblem.bounds  # Contains traditional bounds
@@ -1078,7 +1078,7 @@ class MatrixTransformedProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap import real_problems
+       from leap_ec import real_problems
 
        original_problem = real_problems.RosenbrockProblem()
        theta = np.pi/2
@@ -1136,7 +1136,7 @@ class MatrixTransformedProblem(ScalarProblem):
         .. plot::
            :include-source:
 
-           from leap import real_problems
+           from leap_ec import real_problems
 
            original_problem = real_problems.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 3], local_optima_counts=[2, 3])
 
@@ -1187,7 +1187,7 @@ class MatrixTransformedProblem(ScalarProblem):
         For example, consider a sphere function whose global optimum is
         situated at (0, 1):
 
-        >>> from leap import real_problems
+        >>> from leap_ec import real_problems
         >>> s = real_problems.TranslatedProblem(real_problems.SpheroidProblem(), offset=[0, 1])
         >>> round(s.evaluate([0, 1]), 5)
         0
@@ -1257,7 +1257,7 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
     .. plot::
        :include-source:
 
-       from leap import real_problems
+       from leap_ec import real_problems
        problem = real_problems.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
        real_problems.plot_2d_problem(problem, xlim=(0, 1), ylim=(0, 1), granularity=0.025);
 
@@ -1269,7 +1269,7 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
        :include-source:
 
        from matplotlib import pyplot as plt
-       from leap import real_problems
+       from leap_ec import real_problems
 
        fig = plt.figure(figsize=(12, 4))
        bounds=real_problems.RastriginProblem.bounds  # Contains default bounds
@@ -1327,7 +1327,7 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None):
        import numpy as np
        from scipy import linalg
 
-       from leap import real_problems
+       from leap_ec import real_problems
 
        def sinc_hd(phenome):
            r = linalg.norm(phenome)
@@ -1381,7 +1381,7 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None):
        import numpy as np
        from scipy import linalg
 
-       from leap import real_problems
+       from leap_ec import real_problems
 
        def sinc_hd(phenome):
            r = linalg.norm(phenome)

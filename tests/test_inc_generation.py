@@ -2,7 +2,7 @@
     Unit tests for inc_generation()
 """
 
-from leap import core, util
+from leap_ec import core, util
 
 
 def test_inc_generation():

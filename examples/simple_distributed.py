@@ -32,12 +32,12 @@ import argparse
 
 from dask.distributed import Client, LocalCluster
 
-from leap import core
-from leap import ops
-from leap import binary_problems
-from leap.distributed import asynchronous
-from leap.distributed.logging import WorkerLoggerPlugin
-from leap.distributed.probe import log_worker_location
+from leap_ec import core
+from leap_ec import ops
+from leap_ec import binary_problems
+from leap_ec.distributed import asynchronous
+from leap_ec.distributed.logging import WorkerLoggerPlugin
+from leap_ec.distributed.probe import log_worker_location
 
 # Create unique logger for this namespace
 logger = logging.getLogger(__name__)
