@@ -7,6 +7,7 @@ click
 coveralls
 dask
 distributed
+flake8
 gym
 jupyter
 m2r
