@@ -10,54 +10,42 @@ LEAP is a general purpose Evolutionary Computation package that combines readabl
 optimization algorithms with powerful <!-- distribution and --> visualization features.
 
 
-<!-- ## Install with Pip -->
+## Simple Example
 
-<!-- `pip install leap` -->
-
-
-
-## Installing from Source
-
-To get started with LEAP, clone the repo:
-
-```
-git clone https://github.com/AureumChaos/LEAP.git
-```
-
-and optionally set up a Python virtual environment to isolate its dependencies (this is recommended, but you can typically skip it):
+Get the stable version of LEAP with
 
 ```bash
-python -m venv ./venv
-source venv/bin/activate
+pip install leap_ec
 ```
 
-Now you can use the Makefile to setup the dependencies and install LEAP as a package.
+The easiest way to use an evolutionary algorithm in LEAP is to use the 
+`leap_ec.simple` package, which contains simple interfaces for pre-built
+algorithms:
 
-```bash
-make setup
+```Python
+from leap_ec.simple import ea_solve
+
+def f(x):
+    """A real-valued function to optimized."""
+    return sum(x)**2
+
+ea_solve(f, bounds=[[-1, 1]]*5, maximize=True)
 ```
 
-All done!  You can now `import leap` in your projects.
+## Metaheuristic Algorithm Example
 
-Or you can run one of the demo applications from the `example/` directory
+The next-easiest way to use LEAP is to configure a custom algorithm via one 
+of the metaheuristic functions in the `leap_ec.algorithms`.  These 
+interfaces allow you to customize the various operators, representations, 
+and other components that go into a modern evolutionary algorithm.
 
-```bash
-python example/island_models.py
-```
+LEAP's signature is its operator pipeline, which uses a simple list of 
+functional operators to concisely express a metaheuristic algorithm's 
+configuration as high-level code.
 
-![Demo of LEAP running a 3-population island model on a real-valued optimization problem.](_static/island_model_animation.gif)
-*Demo of LEAP running a 3-population island model on a real-valued optimization problem.*
-
-## Basic Usage
-
-LEAP's signature is its operator pipeline, which uses a simple list of functional operators to concisely express a
-metaheuristic algorithm's configuration as high-level code.
-
-The easiest way to build an EA with LEAP is to use one of the built-in high-level metaheuristics (like 
-`generational_ea`) and pass in the operators and components that you want.
-
-Here's an example that applies a genetic algorithm variant to solve the MaxOnes optimization problem.  It uses 
-bitflip mutation, uniform crossover, and binary tournament selection:
+Here's an example that applies a genetic algorithm variant to solve the 
+`MaxOnes` optimization problem.  It uses bitflip mutation, uniform crossover, 
+and binary tournament selection:
 
 ```Python
 from leap_ec.algorithm import generational_ea
@@ -66,21 +54,50 @@ l = 10  # The length of the genome
 pop_size = 5
 ea = generational_ea(generations=100, pop_size=pop_size,
                      individual_cls=core.Individual, # Use the standard Individual as the prototype for the population
+                     
+                     representation=core.Representation(
+                        decoder=core.IdentityDecoder(),          # Genotype and phenotype are the same for this task
+                        problem=binary_problems.MaxOnes(),       # Solve a MaxOnes Boolean optimization problem
+                        initialize=core.create_binary_sequence(length=10)  # Initial genomes are random binary sequences
+                     )
 
-                    decoder=core.IdentityDecoder(),          # Genotype and phenotype are the same for this task
-                    problem=binary_problems.MaxOnes(),       # Solve a MaxOnes Boolean optimization problem
-                    initialize=core.create_binary_sequence(length=10),  # Initial genomes are random binary sequences
-
-                    # The operator pipeline
-                    pipeline=[ops.tournament,                     # Select parents via tournament selection
-                            ops.clone,                          # Copy them (just to be safe)
-                            ops.mutate_bitflip,                 # Basic mutation: defaults to a 1/L mutation rate
-                            ops.uniform_crossover(p_swap=0.4),  # Crossover with a 40% chance of swapping each gene
-                            ops.evaluate,                       # Evaluate fitness
-                            ops.pool(size=pop_size)             # Collect offspring into a new population
-                    ])
+                     # The operator pipeline
+                     pipeline=[ops.tournament,                     # Select parents via tournament selection
+                               ops.clone,                          # Copy them (just to be safe)
+                               ops.mutate_bitflip,                 # Basic mutation: defaults to a 1/L mutation rate
+                               ops.uniform_crossover(p_swap=0.4),  # Crossover with a 40% chance of swapping each gene
+                               ops.evaluate,                       # Evaluate fitness
+                               ops.pool(size=pop_size)             # Collect offspring into a new population
+                     ])
 
 print(list(ea))
+```
+
+## Examples
+
+A number of LEAP demo applications are found in the the `example/` directory of the github repository:
+
+```bash
+git clone https://github.com/AureumChaos/LEAP.git
+python LEAP/example/island_models.py
+```
+
+![Demo of LEAP running a 3-population island model on a real-valued optimization problem.](_static/island_model_animation.gif)
+*Demo of LEAP running a 3-population island model on a real-valued optimization problem.*
+
+
+## Installing from Source
+
+To install a source distribution of LEAP, clone the repo:
+
+```
+git clone https://github.com/AureumChaos/LEAP.git
+```
+
+And use the Makefile to install the package:
+
+```bash
+make setup
 ```
 
 
@@ -111,8 +128,6 @@ make test-slow
 ```
 
 respectively.
-
-The output will look something like this:
 
 ![pytest output example](_static/pytest_output.png)
 
