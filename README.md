@@ -9,6 +9,7 @@
 LEAP is a general purpose Evolutionary Computation package that combines readable and easy-to-use syntax for search and
 optimization algorithms with powerful <!-- distribution and --> visualization features.
 
+# Examples
 
 ## Simple Example
 
@@ -29,7 +30,7 @@ def f(x):
     """A real-valued function to optimized."""
     return sum(x)**2
 
-ea_solve(f, bounds=[[-1, 1]]*5, maximize=True)
+ea_solve(f, bounds=[(-5.12, 5.12) for _ in range(5)], maximize=True)
 ```
 
 ## Metaheuristic Algorithm Example
@@ -50,14 +51,12 @@ and binary tournament selection:
 ```Python
 from leap_ec.algorithm import generational_ea
 from leap_ec import core, ops, binary_problems
-l = 10  # The length of the genome
 pop_size = 5
 ea = generational_ea(generations=100, pop_size=pop_size,
-                     individual_cls=core.Individual, # Use the standard Individual as the prototype for the population
+                     problem=binary_problems.MaxOnes(),             # Solve a MaxOnes Boolean optimization problem
                      
                      representation=core.Representation(
-                        decoder=core.IdentityDecoder(),          # Genotype and phenotype are the same for this task
-                        problem=binary_problems.MaxOnes(),       # Solve a MaxOnes Boolean optimization problem
+                        decoder=core.IdentityDecoder(),             # Genotype and phenotype are the same for this task
                         initialize=core.create_binary_sequence(length=10)  # Initial genomes are random binary sequences
                      )
 
@@ -73,7 +72,7 @@ ea = generational_ea(generations=100, pop_size=pop_size,
 print(list(ea))
 ```
 
-## Examples
+## More Examples
 
 A number of LEAP demo applications are found in the the `example/` directory of the github repository:
 
@@ -86,7 +85,21 @@ python LEAP/example/island_models.py
 *Demo of LEAP running a 3-population island model on a real-valued optimization problem.*
 
 
-## Installing from Source
+# Documentation
+
+The stable version of LEAP's full documentation is over at [ReadTheDocs](https://leap_gmu.readthedocs.io/).
+
+If you want to build a fresh set of docs for yourself, you can do so after running `make setup`:
+
+```
+make doc
+```
+
+This will create HTML documentation in the `docs/build/html/` directory.  It might take a while the first time,
+since building the docs involves generating some plots and executing some example algorithms.
+
+
+# Installing from Source
 
 To install a source distribution of LEAP, clone the repo:
 
@@ -99,20 +112,6 @@ And use the Makefile to install the package:
 ```bash
 make setup
 ```
-
-
-## Documentation
-
-The stable version of LEAP's full documentation is over at [ReadTheDocs](https://leap_gmu.readthedocs.io/).
-
-If you want to build a fresh set of docs for yourself, you can do so after running `make setup`:
-
-```
-make doc
-```
-
-This will create HTML documentation in the `docs/build/html/` directory.  It might take a while the first time,
-since building the docs involves generating some plots and executing some example algorithms.
 
 ## Run the Test Suite
 
@@ -130,6 +129,8 @@ make test-slow
 respectively.
 
 ![pytest output example](_static/pytest_output.png)
+
+
 
 
 ## Roadmap
