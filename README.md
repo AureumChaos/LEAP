@@ -11,7 +11,9 @@ optimization algorithms with powerful distribution and visualization features.
 
 LEAP's signature is its operator pipeline, which uses a simple list of 
 functional operators to concisely express a metaheuristic algorithm's 
-configuration as high-level code.
+configuration as high-level code.  Adding metrics, visualization, or 
+special features (like distribution, coevolution, or island migrations)
+is often as simple as adding operators into the pipeline.
 
 
 # Using LEAP
@@ -41,9 +43,10 @@ ea_solve(f, bounds=[(-5.12, 5.12) for _ in range(5)], maximize=True)
 ## Genetic Algorithm Example
 
 The next-easiest way to use LEAP is to configure a custom algorithm via one 
-of the metaheuristic functions in the `leap_ec.algorithms`.  These 
-interfaces allow you to customize the various operators, representations, 
-and other components that go into a modern evolutionary algorithm.
+of the metaheuristic functions in the `leap_ec.algorithms` package.  These 
+interfaces off you a flexible way to customize the various operators, 
+representations, and other components that go into a modern evolutionary 
+algorithm.
 
 Here's an example that applies a genetic algorithm variant to solve the 
 `MaxOnes` optimization problem.  It uses bitflip mutation, uniform crossover, 
@@ -59,7 +62,7 @@ ea = generational_ea(generations=100, pop_size=pop_size,
                      representation=core.Representation(
                         decoder=core.IdentityDecoder(),             # Genotype and phenotype are the same for this task
                         initialize=core.create_binary_sequence(length=10)  # Initial genomes are random binary sequences
-                     )
+                     ),
 
                      # The operator pipeline
                      pipeline=[ops.tournament,                     # Select parents via tournament selection
@@ -70,7 +73,9 @@ ea = generational_ea(generations=100, pop_size=pop_size,
                                ops.pool(size=pop_size)             # Collect offspring into a new population
                      ])
 
-print(list(ea))
+print('Generation, Best_Individual')
+for i, best in ea:
+    print(f"{i}, {best}")
 ```
 
 ## More Examples
