@@ -7,7 +7,12 @@
 [![Documentation Status](https://readthedocs.org/projects/leap-gmu/badge/?version=latest)](https://leap-gmu.readthedocs.io/en/latest/?badge=latest)
 
 LEAP is a general purpose Evolutionary Computation package that combines readable and easy-to-use syntax for search and
-optimization algorithms with powerful <!-- distribution and --> visualization features.
+optimization algorithms with powerful distribution and visualization features.
+
+LEAP's signature is its operator pipeline, which uses a simple list of 
+functional operators to concisely express a metaheuristic algorithm's 
+configuration as high-level code.
+
 
 # Examples
 
@@ -39,10 +44,6 @@ The next-easiest way to use LEAP is to configure a custom algorithm via one
 of the metaheuristic functions in the `leap_ec.algorithms`.  These 
 interfaces allow you to customize the various operators, representations, 
 and other components that go into a modern evolutionary algorithm.
-
-LEAP's signature is its operator pipeline, which uses a simple list of 
-functional operators to concisely express a metaheuristic algorithm's 
-configuration as high-level code.
 
 Here's an example that applies a genetic algorithm variant to solve the 
 `MaxOnes` optimization problem.  It uses bitflip mutation, uniform crossover, 
