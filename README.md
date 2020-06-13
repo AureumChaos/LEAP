@@ -16,13 +16,13 @@ configuration as high-level code.
 
 # Using LEAP
 
-## Simple Example
-
-Get the stable version of LEAP with
+Get the stable version of LEAP from the Python package index with
 
 ```bash
 pip install leap_ec
 ```
+
+## Simple Example
 
 The easiest way to use an evolutionary algorithm in LEAP is to use the 
 `leap_ec.simple` package, which contains simple interfaces for pre-built
