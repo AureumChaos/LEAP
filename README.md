@@ -14,7 +14,7 @@ functional operators to concisely express a metaheuristic algorithm's
 configuration as high-level code.
 
 
-# Examples
+# Using LEAP
 
 ## Simple Example
 
