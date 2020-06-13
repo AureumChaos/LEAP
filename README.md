@@ -38,7 +38,7 @@ def f(x):
 ea_solve(f, bounds=[(-5.12, 5.12) for _ in range(5)], maximize=True)
 ```
 
-## Metaheuristic Algorithm Example
+## Genetic Algorithm Example
 
 The next-easiest way to use LEAP is to configure a custom algorithm via one 
 of the metaheuristic functions in the `leap_ec.algorithms`.  These 
