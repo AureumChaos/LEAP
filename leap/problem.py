@@ -3,6 +3,8 @@ Defines the abstract-base classes Problem, ScalarProblem,
 and FunctionProblem.
 
 """
+from math import nan
+import random
 from abc import ABC, abstractmethod
 
 
@@ -65,6 +67,19 @@ class ScalarProblem(Problem):
 
             :return: true if the first individual is less fit than the second
         """
+        # NaN is assigned if the individual is non-viable, which can happen if
+        # an exception is thrown during evaluation. We consider NaN fitnesses to
+        # always be the worse possible with regards to ordering.
+        if first_fitness is nan and second_fitness is nan:
+
+        if first_fitness is nan:
+            if second_fitness is nan:
+                # both are nan, so to reduce bias, flip a coin to consider
+                # that one the worst.
+                return random.choice([True, False])
+            # Doesn't matter how awful second_fitness is, nan will already be
+            # considered worse.
+            return True
 
         # TODO If we accidentally pass an Individual in as first_ or second_fitness,
         # TODO then this can result in an infinite loop.  Add some error
