@@ -2,10 +2,10 @@
     Unit tests for cloning
 """
 from math import nan
-from leap import core
-from leap import binary_problems
-from leap import ops
-from leap import problem
+from leap_ec import core
+from leap_ec import binary_problems
+from leap_ec import ops
+from leap_ec import problem
 
 
 def test_simple_evaluate():
