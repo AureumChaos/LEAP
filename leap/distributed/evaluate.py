@@ -1,15 +1,13 @@
-#!/usr/bin/env python#
+#!/usr/bin/env python
 """
     contains common evaluate() used in sync.eval_pool and async.eval_pool
 """
-import math
 import time
 import platform
 import os
 from toolz import curry
 
 from dask.distributed import get_worker
-
 
 from leap import core
 
