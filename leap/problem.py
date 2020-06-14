@@ -62,24 +62,27 @@ class ScalarProblem(Problem):
         """
             Used in Individual.__lt__().
 
-            By default returns first.fitness < second.fitness.  Please
-            over-ride if this does not hold for your problem.
+            By default returns first_fitness < second_fitness if a maximization
+            problem, else first_fitness > second_fitness if a minimization
+            problem.  Please over-ride if this does not hold for your problem.
 
             :return: true if the first individual is less fit than the second
         """
         # NaN is assigned if the individual is non-viable, which can happen if
         # an exception is thrown during evaluation. We consider NaN fitnesses to
         # always be the worse possible with regards to ordering.
-        if first_fitness is nan and second_fitness is nan:
-
         if first_fitness is nan:
             if second_fitness is nan:
-                # both are nan, so to reduce bias, flip a coin to consider
-                # that one the worst.
+                # both are nan, so to reduce bias flip a coin to arbitrarily
+                # select one that is worst.
                 return random.choice([True, False])
             # Doesn't matter how awful second_fitness is, nan will already be
             # considered worse.
             return True
+        elif second_fitness is nan:
+            # No matter how awful the first_fitness is, if it's not a NaN the
+            # NaN will always be worse
+            return False
 
         # TODO If we accidentally pass an Individual in as first_ or second_fitness,
         # TODO then this can result in an infinite loop.  Add some error
@@ -98,6 +101,10 @@ class ScalarProblem(Problem):
 
             :return: true if the first individual is equal to the second
         """
+        if first_fitness is nan and second_fitness is nan:
+            return True
+
+        # TODO Should we consider (abs(first_fitness-second_fitness) < epsilon)
         return first_fitness == second_fitness
 
 
