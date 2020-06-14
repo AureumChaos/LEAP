@@ -3,27 +3,20 @@ help:
 	@echo \# LEAP Makefile
 	@echo \#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
 	@echo \#
-	@echo \# First build a virtual environment:
+	@echo "#	make venv			Create a virtual environment"
+	@echo "#	source venv/bin/activate	Activate it"
 	@echo \#
-	@echo \#\	make venv
+	@echo "#	make setup			Install LEAP & minimal dependencies"
+	@echo "#	make depend			Install test/optional dependencies"
+	@echo "#	make doc			Build docs (in docs/build/html/)"
+	@echo "#	make dist			Create package (i.e. for PyPI)"
 	@echo \#
-	@echo \# Then activate it:
-	@echo \#
-	@echo \#\	source venv/bin/activate
-	@echo \#
-	@echo \# Then setup the environment:
-	@echo \#
-	@echo \#\	make setup
-	@echo \#
-	@echo \# And run tests and build docs:
-	@echo \#
-	@echo \#\	make test
-	@echo \#\	make doc
-	@echo \#
-	@echo \# Or just run the fast (or slow) test suite:
-	@echo \#
-	@echo \#\	make test-fast
-	@echo \#\	make test-slow
+	@echo "#	make pep8			Check for PEP8 compliance"
+	@echo "#	make test			Run fast and slow test suites"
+	@echo "#	make test-fast			Run fast test suite"
+	@echo "#	make test-slow			Run slow test suite"
+	@echo "#	make kernel			Setup Jupyter for tests"
+	@echo "#	make test-jupyter		Test the Jupyter examples"
 	@echo \#
 	@echo \#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
 	@echo
@@ -35,27 +28,46 @@ venv:
 	@echo Built virtual environment in ./venv
 	@echo Run \'source venv/bin/activate\' to activate it!
 
-.PHONY: setup test doc clean
+.PHONY: doc setup test test-fast test-slow kernel test-jupyter clean
 
 doc:
         # The apidoc call is long because we need to tell it to
         # use the venv's version of sphinx-build
-	sphinx-apidoc -f -o docs/source/ src/ SPHINXBUILD='python $(shell which sphinx-build)'
+	sphinx-apidoc -f -o docs/source/ leap_ec/ SPHINXBUILD='python $(shell which sphinx-build)'
 	cd docs && make html
 
 setup:
-	pip install -r requirements.txt
-	python -m ipykernel install --user --name="LEAP_venv"
 	python setup.py develop
 
+depend:
+	pip install -r requirements_freeze.txt
+
+dist:
+	pip install setuptools wheel
+	python setup.py sdist bdist_wheel
+
 test:
-	py.test  # Default options are configured in pytest.ini
+	# Default options are configured in pytest.ini
+	# Skip jupyter tests, because they only work if the kernel is configured manually
+	python -m pytest -m "not jupyter"
 
 test-fast:
-	py.test -m "not system"
+	python -m pytest -m "not system and not jupyter"
 
 test-slow:
-	py.test -m system
+	python -m pytest -m system
+
+kernel:
+	# Setup a kernel for Jupyter with the name test-jupyter uses to find it
+	python -m ipykernel install --user --name="LEAP_venv"
+
+test-jupyter:
+	# Won't work unless you have a 'LEAP_venv' kernel
+	python -m pytest -m jupyter
+
+pep8:
+	# Check for PEP8 compliance in source directories
+	flake8 leap examples
 
 clean:
 	cd docs && make clean

@@ -9,7 +9,7 @@ docker-nom/build/
 \#*\#
 .\#*
 venv/
-src/LEAP.egg-info/
+*.egg-info/
 docs/build/
 .coverage
 htmlcov/
@@ -76,5 +76,6 @@ __MACOSX
 #vscode
 .vscode
 
-
+# dask
+dask-worker-space/
 
