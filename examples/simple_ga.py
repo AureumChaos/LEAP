@@ -10,6 +10,7 @@ from leap_ec import core
 from leap_ec import ops
 from leap_ec import binary_problems
 from leap_ec import util
+from leap_ec import probe
 
 
 def print_population(population, generation):
@@ -47,7 +48,9 @@ if __name__ == '__main__':
         offspring = pipe(parents,
                          ops.tournament,
                          ops.clone,
+                         probe.print_individual(prefix='before mutation: '),
                          ops.mutate_bitflip,
+                         probe.print_individual(prefix='after mutation: '),
                          ops.uniform_crossover,
                          ops.evaluate,
                          ops.pool(size=len(parents)))  # accumulate offspring
