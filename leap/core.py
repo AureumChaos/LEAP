@@ -8,6 +8,7 @@
     (because sometimes you have a super simple situation that doesn't require
     explicitly couching your problem in a Problem subclass.)
 """
+from math import nan
 import abc
 from copy import deepcopy
 from functools import total_ordering
