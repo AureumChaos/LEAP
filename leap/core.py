@@ -8,6 +8,7 @@
     (because sometimes you have a super simple situation that doesn't require
     explicitly couching your problem in a Problem subclass.)
 """
+from math import nan
 import abc
 from copy import deepcopy
 from functools import total_ordering
@@ -201,7 +202,31 @@ class Individual:
         return self.decoder.decode(self.genome)
 
     def evaluate(self):
-        self.fitness = self.problem.evaluate(self.decode())
+        """ determine this individual's fitness
+
+        This is done by outsourcing the fitness evaluation to the associated
+        Problem object since it "knows" what is good or bad for a given
+        phenome.
+
+        Note that if an exception is thrown during evaluation, the fitness is
+        set to NaN and self.is_viable to False; also, the returned exception is
+        assigned to self.exception for possible later inspection.  If the
+        individual was successfully evaluated, self.is_viable is set to true.
+        nan fitness values will figure into comparing individuals in that nan
+        will always be considered worse than non-nan fitness values.
+
+        :see also: ScalarProblem.worse_than
+
+        :return: the calculated fitness
+        """
+        try:
+            self.fitness = self.problem.evaluate(self.decode())
+            self.is_viable = True # we were able to evaluate
+        except Exception as e:
+            self.fitness = nan
+            self.exception = e
+            self.is_viable = False # we could not complete an eval
+
 
         # Even though we've already *set* the fitness, it may be useful to also
         # *return* it to give more options to the programmer for using the
