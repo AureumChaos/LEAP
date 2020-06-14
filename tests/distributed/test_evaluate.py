@@ -5,7 +5,9 @@ from leap import core
 from leap import binary_problems
 from leap.distributed.evaluate import evaluate
 
+# FIXME unable to use this standard import for Client, and I don't know why
 from dask.distributed import Client
+
 
 def test_good_eval():
     """
