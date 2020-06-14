@@ -48,6 +48,7 @@ if __name__ == '__main__':
         offspring = pipe(parents,
                          ops.tournament,
                          ops.clone,
+                         # these are optional probes to demonstrate their use
                          probe.print_individual(prefix='before mutation: '),
                          ops.mutate_bitflip,
                          probe.print_individual(prefix='after mutation: '),
