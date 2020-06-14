@@ -6,10 +6,10 @@
 """
 from toolz import pipe
 
-from leap import core
-from leap import ops
-from leap import real_problems
-from leap import util
+from leap_ec import core
+from leap_ec import ops
+from leap_ec import real_problems
+from leap_ec import util
 
 
 BROOD_SIZE = 3  # how many offspring each parent will reproduce

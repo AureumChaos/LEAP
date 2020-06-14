@@ -1,6 +1,6 @@
 """A module for synthetic data that we use in test and examples."""
 
-from leap import core, binary_problems
+from leap_ec import core, binary_problems
 
 def _build_test_pop():
     """Construct a synthetic population for illustrating example operations."""

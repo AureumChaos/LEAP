@@ -13,8 +13,8 @@ import toolz
 
 from dask.distributed import as_completed
 
-from leap import core
-from leap import util
+from leap_ec import core
+from leap_ec import util
 
 from .evaluate import evaluate, is_viable
 from .individual import DistributedIndividual

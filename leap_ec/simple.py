@@ -4,8 +4,8 @@
 """
 from matplotlib import pyplot as plt
 
-from leap import core, ops, probe, problem
-from leap.algorithm import generational_ea
+from leap_ec import core, ops, probe, problem
+from leap_ec.algorithm import generational_ea
 
 
 def ea_solve(function, bounds, generations=100, pop_size=2,
@@ -28,7 +28,7 @@ def ea_solve(function, bounds, generations=100, pop_size=2,
     :param (float, float) viz_ylim: initial bounds to use of the plots
         vertical axis
 
-    >>> from leap import simple
+    >>> from leap_ec import simple
     >>> ea_solve(sum, bounds=[(0, 1)]*5) # doctest:+ELLIPSIS
     generation, bsf
     0, ...

@@ -13,7 +13,7 @@ import time
 
 import numpy as np
 
-from leap import core, real_problems
+from leap_ec import core, real_problems
 
 
 ##############################

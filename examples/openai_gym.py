@@ -7,8 +7,8 @@ import gym
 from matplotlib import pyplot as plt
 import numpy as np
 
-from leap import brains, core, real_problems, probe, ops
-from leap.algorithm import generational_ea
+from leap_ec import brains, core, real_problems, probe, ops
+from leap_ec.algorithm import generational_ea
 
 
 @click.group()

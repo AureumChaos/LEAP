@@ -3,8 +3,8 @@
 """
 from PIL import Image, ImageOps
 
-from leap.problem import ScalarProblem
-from leap import core
+from leap_ec.problem import ScalarProblem
+from leap_ec import core
 
 
 ##############################

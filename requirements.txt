@@ -1,5 +1,8 @@
 # This is our manually-curated lists of requirements, which we have not pinned down to specific versions.
 #
+# This is more complete than the install_requires list used by setup.py for the package (which only contains
+# the bare minimal dependencies required by LEAP's core features).
+#
 # We periodically run 'pip freeze' on this to generate requirements_freeze.txt, which pins dependencies to
 # versions that are known to be compatible with LEAP.
 
@@ -7,15 +10,16 @@ click
 coveralls
 dask
 distributed
+flake8
 gym
 jupyter
-m2r
 matplotlib
 nbconvert
 nbformat
 networkx
 numpy
 pandas
+Pillow
 pytest
 pytest-cov
 python-coveralls

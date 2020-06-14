@@ -3,29 +3,20 @@ help:
 	@echo \# LEAP Makefile
 	@echo \#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
 	@echo \#
-	@echo \# Optionally set up a virtual environment first:
+	@echo "#	make venv			Create a virtual environment"
+	@echo "#	source venv/bin/activate	Activate it"
 	@echo \#
-	@echo \#\	make venv
-	@echo \#\	source venv/bin/activate
+	@echo "#	make setup			Install LEAP & minimal dependencies"
+	@echo "#	make depend			Install test/optional dependencies"
+	@echo "#	make doc			Build docs (in docs/build/html/)"
+	@echo "#	make dist			Create package (i.e. for PyPI)"
 	@echo \#
-	@echo \# Then install the LEAP package to your environment:
-	@echo \#
-	@echo \#\	make setup
-	@echo \#
-	@echo \# Run tests, build docs:
-	@echo \#
-	@echo \#\	make test
-	@echo \#\	make doc
-	@echo \#
-	@echo \# If you want, you can just run the fast \(or slow\) test suite:
-	@echo \#
-	@echo \#\	make test-fast
-	@echo \#\	make test-slow
-	@echo \#
-	@echo \# Test the Jupyter examples after installing a kernel:
-	@echo \#
-	@echo \#\	make kernel
-	@echo \#\	make test-jupyter
+	@echo "#	make pep8			Check for PEP8 compliance"
+	@echo "#	make test			Run fast and slow test suites"
+	@echo "#	make test-fast			Run fast test suite"
+	@echo "#	make test-slow			Run slow test suite"
+	@echo "#	make kernel			Setup Jupyter for tests"
+	@echo "#	make test-jupyter		Test the Jupyter examples"
 	@echo \#
 	@echo \#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
 	@echo
@@ -42,12 +33,18 @@ venv:
 doc:
         # The apidoc call is long because we need to tell it to
         # use the venv's version of sphinx-build
-	sphinx-apidoc -f -o docs/source/ leap/ SPHINXBUILD='python $(shell which sphinx-build)'
+	sphinx-apidoc -f -o docs/source/ leap_ec/ SPHINXBUILD='python $(shell which sphinx-build)'
 	cd docs && make html
 
 setup:
-	pip install -r requirements_freeze.txt
 	python setup.py develop
+
+depend:
+	pip install -r requirements_freeze.txt
+
+dist:
+	pip install setuptools wheel
+	python setup.py sdist bdist_wheel
 
 test:
 	# Default options are configured in pytest.ini

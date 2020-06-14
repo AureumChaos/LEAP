@@ -68,7 +68,7 @@ def initialize_seeded(initialize, seed_pop):
     into the population, and fills the remaining space with newly generated
     individuals.
 
-    >>> from leap import core
+    >>> from leap_ec import core
     >>> random_init = core.create_real_vector(bounds=[[0, 0]] * 2)
     >>> init = initialize_seeded(random_init, [[5.0, 5.0], [4.5, -6]])
     >>> [init() for _ in range(5)]

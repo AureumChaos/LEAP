@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from toolz import curry
 
-from leap import ops as op
+from leap_ec import ops as op
 
 
 ##############################
@@ -119,8 +119,8 @@ class AttributesCSVProbe(op.Operator):
     here's how you'd record the best individual's fitness and genome to a
     dataframe:
 
-    >>> from leap import core
-    >>> from leap.data import test_population
+    >>> from leap_ec import core
+    >>> from leap_ec.data import test_population
     >>> probe = AttributesCSVProbe(core.context, do_dataframe=True, best_only=True, do_fitness=True, do_genome=True)
     >>> core.context['leap']['generation'] = 100
     >>> probe(test_population) == test_population
@@ -283,8 +283,8 @@ class PopulationPlotProbe:
        :include-source:
 
         import matplotlib.pyplot as plt
-        from leap import core
-        from leap.probe import PopulationPlotProbe
+        from leap_ec import core
+        from leap_ec.probe import PopulationPlotProbe
 
 
         plt.figure()  # Setup a figure to plot to
@@ -292,8 +292,8 @@ class PopulationPlotProbe:
 
 
         # Create an algorithm that contains the probe in the operator pipeline
-        from leap import ops, real_problems
-        from leap.algorithm import generational_ea
+        from leap_ec import ops, real_problems
+        from leap_ec.algorithm import generational_ea
 
         l = 10
         pop_size = 10
@@ -404,9 +404,9 @@ class PlotTrajectoryProbe:
        :include-source:
 
         import matplotlib.pyplot as plt
-        from leap.probe import PlotTrajectoryProbe
-        from leap.algorithm import generational_ea
-        from leap import core, ops, real_problems
+        from leap_ec.probe import PlotTrajectoryProbe
+        from leap_ec.algorithm import generational_ea
+        from leap_ec import core, ops, real_problems
 
         # The fitness landscape
         problem = real_problems.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
@@ -507,8 +507,8 @@ def best_of_gen(population):
     :param population: a list of individuals
     :param context: optional `dict` of auxiliary state (ignored)
 
-    >>> from leap import core, ops
-    >>> from leap.data import test_population
+    >>> from leap_ec import core, ops
+    >>> from leap_ec.data import test_population
     >>> print(best_of_gen(test_population))
     [0, 1, 1, 1, 1]
     """

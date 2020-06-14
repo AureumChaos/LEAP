@@ -36,6 +36,14 @@ leap.distributed.logging module
    :undoc-members:
    :show-inheritance:
 
+leap.distributed.probe module
+-----------------------------
+
+.. automodule:: leap.distributed.probe
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 leap.distributed.synchronous module
 -----------------------------------
 

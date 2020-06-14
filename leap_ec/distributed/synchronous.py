@@ -5,7 +5,7 @@
 import logging
 from toolz import curry
 
-from leap import core
+from leap_ec import core
 
 from .evaluate import evaluate
 

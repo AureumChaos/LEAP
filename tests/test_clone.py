@@ -1,9 +1,9 @@
 """
     Unit tests for cloning
 """
-from leap import core
-from leap import binary_problems
-from leap import ops
+from leap_ec import core
+from leap_ec import binary_problems
+from leap_ec import ops
 
 
 def test_clone():

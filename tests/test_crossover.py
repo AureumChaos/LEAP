@@ -5,8 +5,8 @@ import itertools
 
 import pytest
 
-from leap import core
-from leap import ops
+from leap_ec import core
+from leap_ec import ops
 
 
 def test_uniform_crossover():

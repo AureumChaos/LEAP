@@ -50,7 +50,7 @@ def inc_generation(context, callbacks=()):
     generation is incremented. The registered callback functions should have
     a signature f(int), where the int is the new generation.
 
-    >>> from leap import core
+    >>> from leap_ec import core
     >>> my_inc_generation = inc_generation(core.context)
 
     :param context: will set ['leap']['generation'] to the incremented
@@ -101,7 +101,7 @@ def inc_births(context, start=0, callbacks=()):
     generation is incremented. The registered callback functions should have
     a signature f(int), where the int is the new birth.
 
-    >>> from leap import core
+    >>> from leap_ec import core
     >>> my_inc_births = inc_births(core.context)
 
     :param context: will set ['leap']['births'] to the incremented births
@@ -160,7 +160,7 @@ def print_list(l):
 
     This uses __str__() to resolve the elements of the list:
 
-    >>> from leap.core import Individual
+    >>> from leap_ec.core import Individual
     >>> l = [Individual([0, 1, 2]), Individual([3, 4, 5])]
     >>> print_list(l)
     [[0, 1, 2], [3, 4, 5]]

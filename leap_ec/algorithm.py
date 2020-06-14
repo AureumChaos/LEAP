@@ -5,7 +5,7 @@
     * generational_ea() for a typical generational model
     * multi_population_ea() for invoking an EA using sub-populations
 """
-from leap import core, util, ops
+from leap_ec import core, util, ops
 from toolz import pipe
 import random
 
@@ -55,7 +55,7 @@ def generational_ea(generations, pop_size, representation, problem, pipeline):
     basic (mu, lambda)-style EA looks like (that is, an EA that throws away
     the parents at each generation in favor of their offspring):
 
-    >>> from leap import core, ops, binary_problems
+    >>> from leap_ec import core, ops, binary_problems
     >>> l = 10  # The length of the genome
     >>> pop_size = 5
     >>> ea = generational_ea(generations=100, pop_size=pop_size,
@@ -170,8 +170,8 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
     real-vector representation:
 
     >>> import networkx as nx
-    >>> from leap.algorithm import multi_population_ea
-    >>> from leap import ops, real_problems
+    >>> from leap_ec.algorithm import multi_population_ea
+    >>> from leap_ec import ops, real_problems
     >>>
     >>> topology = nx.complete_graph(4)
     >>> nx.draw(topology)

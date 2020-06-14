@@ -9,7 +9,7 @@ from toolz import curry
 
 from dask.distributed import get_worker
 
-from leap import core
+from leap_ec import core
 
 
 @curry
