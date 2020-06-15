@@ -131,6 +131,7 @@ def greedy_insert_into_pop(individual, pop, max_size):
 # function steady_state
 ##############################
 def steady_state(client, births, init_pop_size, pop_size,
+                 representation,
                  initializer, decoder, problem, offspring_pipeline,
                  individual_cls=DistributedIndividual,
                  inserter=greedy_insert_into_pop, count_nonviable=False,
@@ -161,9 +162,7 @@ def steady_state(client, births, init_pop_size, pop_size,
            as it comes in
     :return: the population containing the final individuals
     """
-    initial_population = individual_cls.create_population(init_pop_size,
-                                                          initialize=initializer,
-                                                          decoder=decoder,
+    initial_population = representation.create_population(init_pop_size,
                                                           problem=problem)
 
     # fan out the entire initial population to dask workers

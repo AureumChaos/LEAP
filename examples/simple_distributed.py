@@ -38,6 +38,7 @@ from leap_ec import binary_problems
 from leap_ec.distributed import asynchronous
 from leap_ec.distributed.logging import WorkerLoggerPlugin
 from leap_ec.distributed.probe import log_worker_location
+from leap_ec.distributed.individual import DistributedIndividual
 
 # Create unique logger for this namespace
 logger = logging.getLogger(__name__)
@@ -123,9 +124,11 @@ if __name__ == '__main__':
         final_pop = asynchronous.steady_state(client, births=args.max_births,
                                               init_pop_size=5,
                                               pop_size=args.pop_size,
-                                              initializer=core.create_binary_sequence(
-                                                  args.length),
-                                              decoder=core.IdentityDecoder(),
+                                              representation=core.Representation(
+                                                  decoder=core.IdentityDecoder(),
+                                                  initialize=core.create_binary_sequence(
+                                                      args.length),
+                                                  individual_cls=DistributedIndividual),
                                               problem=binary_problems.MaxOnes(),
                                               offspring_pipeline=[
                                                   ops.random_selection,
