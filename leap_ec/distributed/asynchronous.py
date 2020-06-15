@@ -131,8 +131,8 @@ def greedy_insert_into_pop(individual, pop, max_size):
 # function steady_state
 ##############################
 def steady_state(client, births, init_pop_size, pop_size,
-                 initializer, decoder, problem, offspring_pipeline,
-                 individual_cls=DistributedIndividual,
+                 representation,
+                 problem, offspring_pipeline,
                  inserter=greedy_insert_into_pop, count_nonviable=False,
                  context=core.context,
                  evaluated_probe=None):
@@ -143,27 +143,20 @@ def steady_state(client, births, init_pop_size, pop_size,
     :param init_pop_size: size of initial population sent directly to workers
            at start
     :param pop_size: how large should the population be?
-    :param initializer: how to initialize genomes for the first random
-           population
-    :param decoder: to to translate the genome into something the problem can
-           understand
+    :param representation: of the individuals
     :param problem: to be solved
     :param offspring_pipeline: for creating new offspring from the pop
-    :param individual_cls: class prototype for Individual to be used; defaults
-           to core.Individual since rarely do we have to subclass this.
     :param inserter: function with signature (new_individual, pop, popsize)
            used to insert newly evaluated individuals into the population;
-           defaults to insert_into_pop()
+           defaults to greedy_insert_into_pop()
     :param count_nonviable: True if we want to count non-viable individuals
            towards the birth budget
     :param evaluated_probe: is a function taking an individual that is given
-           the next evaluated individual; can be used to print this individual
-           as it comes in
+           the next evaluated individual; can be used to print newly evaluated
+            individuals
     :return: the population containing the final individuals
     """
-    initial_population = individual_cls.create_population(init_pop_size,
-                                                          initialize=initializer,
-                                                          decoder=decoder,
+    initial_population = representation.create_population(init_pop_size,
                                                           problem=problem)
 
     # fan out the entire initial population to dask workers
