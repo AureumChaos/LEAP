@@ -33,10 +33,7 @@ def generational_ea(generations, pop_size, representation, problem, pipeline):
 
     :param int generations: The number of generations to run the algorithm for.
     :param int pop_size: Size of the initial population
-    :param class individual_cls: class representing the (sub)type of
-        `Individual` the population should be generated from
-    :param `Decoder` decoder: the Decoder that should be used to convert
-        individual genomes into phenomes
+    :param representation: How the problem is represented in individuals
     :param `Problem` problem: the Problem that should be used to evaluate
         individuals' fitness
     :param initialize: a function that creates a new genome every time it is
@@ -94,10 +91,7 @@ def generational_ea(generations, pop_size, representation, problem, pipeline):
     """
     # Initialize a population of pop_size individuals of the same type as
     # individual_cls
-    parents = representation.individual_cls.create_population(pop_size,
-                                                              initialize=representation.initialize,
-                                                              decoder=representation.decoder,
-                                                              problem=problem)
+    parents = representation.create_population(pop_size, problem=problem)
 
     # Evaluate initial population
     parents = core.Individual.evaluate_population(parents)
@@ -224,10 +218,7 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
     """
     # Initialize populations of pop_size individuals of the same type as
     # individual_cls
-    pops = [representation.individual_cls.create_population(pop_size,
-                                                            initialize=representation.initialize,
-                                                            decoder=representation.decoder,
-                                                            problem=problem)
+    pops = [representation.create_population(pop_size, problem=problem)
             for _ in range(num_populations)]
     # Include a reference to the populations in the context object.
     # This allows operators to see all of the subpopulations.
