@@ -61,6 +61,12 @@ if __name__ == '__main__':
     parser.add_argument('--track-workers-file', '-t',
                         help='Optional file to write CSV of what host and '
                         'process ID was associated with each evaluation')
+    parser.add_argument('--track-pop-file',
+                        help='Optional CSV file to take regular interval'
+                        ' snapshots of the population ever --update-intervals')
+    parser.add_argument('--update-intervals', type=int, default=5,
+                        help='If using --track-pop-file, how many births before'
+                             ' writing an update to the specified file')
     parser.add_argument('--workers', '-w', type=int,
                         default=DEFAULT_NUM_WORKERS, help='How many workers?')
     parser.add_argument('--init-pop-size', '-s', type=int,

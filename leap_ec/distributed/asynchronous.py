@@ -133,9 +133,11 @@ def greedy_insert_into_pop(individual, pop, max_size):
 def steady_state(client, births, init_pop_size, pop_size,
                  representation,
                  problem, offspring_pipeline,
-                 inserter=greedy_insert_into_pop, count_nonviable=False,
+                 inserter=greedy_insert_into_pop,
+                 count_nonviable=False,
                  context=core.context,
-                 evaluated_probe=None):
+                 evaluated_probe=None,
+                 pop_probe=None):
     """ Implements an asynchronous steady-state EA
 
     :param client: Dask client that should already be set-up
@@ -154,6 +156,8 @@ def steady_state(client, births, init_pop_size, pop_size,
     :param evaluated_probe: is a function taking an individual that is given
            the next evaluated individual; can be used to print newly evaluated
             individuals
+    :param pop_probe: is an optional function that writes a snapshot of the
+           population to a CSV formatted stream ever N births
     :return: the population containing the final individuals
     """
     initial_population = representation.create_population(init_pop_size,
@@ -191,6 +195,9 @@ def steady_state(client, births, init_pop_size, pop_size,
             birth_counter()
 
         inserter(evaluated, pop, pop_size)
+
+        if pop_probe is not None:
+            pop_probe(pop)
 
         if birth_counter.births() < births:
             # Only create offspring if we have the budget for one
