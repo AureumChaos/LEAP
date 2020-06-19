@@ -162,7 +162,10 @@ if __name__ == '__main__':
     except Exception as e:
         logger.critical(str(e))
     finally:
-        client.close()
+        if client is not None:
+            # Because an exception could have been thrown such that client does
+            # not exist.
+            client.close()
 
         if track_workers_func is not None:
             track_workers_stream.close()
