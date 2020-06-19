@@ -176,7 +176,7 @@ def steady_state(client, births, init_pop_size, pop_size,
         if evaluated_probe is not None:
             # Give a chance to do something extra with the newly evaluated
             # individual, which is *usually* a call to
-            # probe.log_worker_location, but can be anything function that
+            # probe.log_worker_location, but can be any function that
             # accepts an individual as an argument
             evaluated_probe(evaluated)
 
