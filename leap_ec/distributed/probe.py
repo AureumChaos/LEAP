@@ -54,13 +54,13 @@ def log_worker_location(stream=sys.stdout, header=True):
     return write_record
 
 
-def log_pop(update_interval, stream=sys.stdout, header=True)
-    """ Regularly update a CSV formatted stream with snapshots of the given 
+def log_pop(update_interval, stream=sys.stdout, header=True):
+    """ Regularly update a CSV formatted stream with snapshots of the given
     population.
-    
-    This is useful for asynchronous.steady_state() to regularly probe the 
+
+    This is useful for asynchronous.steady_state() to regularly probe the
     regularly updated population.
-    
+
     :param update_interval: how often should we write a row?
     :param stream: open stream to which to write rows
     :param header: True if we want a header for the CSV file
@@ -87,7 +87,7 @@ def log_pop(update_interval, stream=sys.stdout, header=True)
         nonlocal interval
         nonlocal update_interval
 
-        if update_interval % interval == 0:
+        if interval % update_interval == 0:
             for individual in population:
                 writer.writerow({'interval': interval,
                                  'uuid': individual.uuid,
@@ -99,5 +99,7 @@ def log_pop(update_interval, stream=sys.stdout, header=True)
         # On some systems, such as Summit, we need to force a flush else there
         # will be no output until the very end of the run.
         stream.flush()
+
+        interval += 1
 
     return write_pop_update
