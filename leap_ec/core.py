@@ -316,6 +316,18 @@ class Representation():
         self.initialize = initialize
         self.individual_cls = individual_cls
 
+    def create_population(self, pop_size, problem):
+        """ make a new population
+
+        :param pop_size: how many individuals should be in the population
+        :param problem: to be solved
+        :return: a population of `individual_cls` individuals
+        """
+        return self.individual_cls.create_population(pop_size,
+                                                     initialize=self.initialize,
+                                                     decoder=self.decoder,
+                                                     problem=problem)
+
 
 ##############################
 # Abstract Base Class Decoder

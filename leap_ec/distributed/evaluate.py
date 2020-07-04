@@ -57,7 +57,7 @@ def evaluate(individual, context=core.context):
 
         if hasattr(worker, 'logger'):
             worker.logger.warning(
-                f'Worker {worker.id}: {e} raised for {individual!s}')
+                f'Worker {worker.id}: {individual.exception!s} raised for {individual!s}')
 
     individual.stop_eval_time = time.time()
     individual.hostname = platform.node()

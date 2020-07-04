@@ -37,7 +37,8 @@ from leap_ec import ops
 from leap_ec import binary_problems
 from leap_ec.distributed import asynchronous
 from leap_ec.distributed.logging import WorkerLoggerPlugin
-from leap_ec.distributed.probe import log_worker_location
+from leap_ec.distributed.probe import log_worker_location, log_pop
+from leap_ec.distributed.individual import DistributedIndividual
 
 # Create unique logger for this namespace
 logger = logging.getLogger(__name__)
@@ -49,6 +50,8 @@ DEFAULT_NUM_WORKERS = 5
 # number of workers so that we saturate the worker pool right out of the gate.
 DEFAULT_INIT_POP_SIZE = DEFAULT_NUM_WORKERS
 
+# Default number of births to update --track-pop-file
+DEFAULT_UPDATE_INTERVAL = 5
 
 if __name__ == '__main__':
 
@@ -60,6 +63,13 @@ if __name__ == '__main__':
     parser.add_argument('--track-workers-file', '-t',
                         help='Optional file to write CSV of what host and '
                         'process ID was associated with each evaluation')
+    parser.add_argument('--track-pop-file',
+                        help='Optional CSV file to take regular interval'
+                        ' snapshots of the population ever --update-intervals')
+    parser.add_argument('--update-interval', type=int,
+                        default=DEFAULT_UPDATE_INTERVAL,
+                        help='If using --track-pop-file, how many births before'
+                             ' writing an update to the specified file')
     parser.add_argument('--workers', '-w', type=int,
                         default=DEFAULT_NUM_WORKERS, help='How many workers?')
     parser.add_argument('--init-pop-size', '-s', type=int,
@@ -120,24 +130,46 @@ if __name__ == '__main__':
         else:
             track_workers_func = None
 
-        final_pop = asynchronous.steady_state(client, births=args.max_births,
+        if args.track_pop_file is not None:
+            track_pop_stream = open(args.track_pop_file, 'w')
+            track_pop_func = log_pop(args.update_interval, track_pop_stream)
+        else:
+            track_pop_func = None
+
+        final_pop = asynchronous.steady_state(client, # dask client
+                                              births=args.max_births,
                                               init_pop_size=5,
                                               pop_size=args.pop_size,
-                                              initializer=core.create_binary_sequence(
-                                                  args.length),
-                                              decoder=core.IdentityDecoder(),
+
+                                              representation=core.Representation(
+                                                  decoder=core.IdentityDecoder(),
+                                                  initialize=core.create_binary_sequence(
+                                                      args.length),
+                                                  individual_cls=DistributedIndividual),
+
                                               problem=binary_problems.MaxOnes(),
+
                                               offspring_pipeline=[
                                                   ops.random_selection,
                                                   ops.clone,
                                                   ops.mutate_bitflip,
                                                   ops.pool(size=1)],
-                                              evaluated_probe=track_workers_func)
+
+                                              evaluated_probe=track_workers_func,
+                                              pop_probe=track_pop_func)
 
         logger.info('Final pop: \n%s', pformat(final_pop))
     except Exception as e:
         logger.critical(str(e))
     finally:
-        client.close()
+        if client is not None:
+            # Because an exception could have been thrown such that client does
+            # not exist.
+            client.close()
+
+        if track_workers_func is not None:
+            track_workers_stream.close()
+        if track_pop_func is not None:
+            track_pop_stream.close()
 
     logger.info('Done.')
