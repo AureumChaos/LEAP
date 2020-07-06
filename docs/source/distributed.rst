@@ -18,12 +18,11 @@ Components
 `leap_ec.distributed.synchronous` provides two components to implement synchronous
 individual parallel evaluations.
 
-* `leap_ec.distributed.synchronous.eval_population`
+:leap_ec.distributed.synchronous.eval_population:
     which evaluates an entire population in parallel, and returns the evaluated population
-* `leap_ec.distributed.synchronous.eval_pool`
-    is a pipeline operator that
-    will collect offspring and then evaluate them all at once in parallel; the
-    evaluated offspring are returned
+:leap_ec.distributed.synchronous.eval_pool:
+    is a pipeline operator that will collect offspring and then evaluate them all
+    at once in parallel; the evaluated offspring are returned
 
 Example
 ^^^^^^^
@@ -134,7 +133,7 @@ Example
 
     print(f'Final pop: \n{pformat(final_pop)}')
 
-The above example is quite different from the synchronous code given earlier.  Unlinke,
+The above example is quite different from the synchronous code given earlier.  Unlike,
 with the synchronous code, the asynchronous code does provide a monolithic function
 entry point, `asynchronous.steady_state()`.  The first thing to note is that
 by nature this EA has a birth budget, not a generation budget, and which is set
