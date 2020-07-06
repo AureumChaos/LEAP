@@ -1,9 +1,11 @@
 Distributed LEAP
 ================
 LEAP supports synchronous and asynchronous distributed concurrent fitness evaluations that
-can significantly speed-up runs.  LEAP uses `dask https://dask.org/`_, which
+can significantly speed-up runs.  LEAP uses dask_, which
 is a popular distributed processing python package, to implement
 parallel fitness evaluations, and which allows easy scaling from laptops to supercomputers.
+
+.. _dask https://dask.org/
 
 Synchronous fitness evaluations
 -------------------------------
@@ -26,7 +28,7 @@ newly evaluated individuals into the population -- it doesn't wait until all
 the individuals have finished evaluating before proceeding.  More specifically,
 LEAP implements an asynchronous steady-state evolutionary algorithm (ASEA).
 
-.. figure:: \_static/asea.png
+.. figure:: _static/asea.png
 
     Algorithm 1: Asynchronous steady-state evolutionary algorithm concurrently
     updates a population as individuals are evaluated.
