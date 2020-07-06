@@ -1,11 +1,9 @@
 Distributed LEAP
 ================
 LEAP supports synchronous and asynchronous distributed concurrent fitness evaluations that
-can significantly speed-up runs.  LEAP uses dask_, which
+can significantly speed-up runs.  LEAP uses dask (`https://dask.org/`), which
 is a popular distributed processing python package, to implement
 parallel fitness evaluations, and which allows easy scaling from laptops to supercomputers.
-
-.. _dask https://dask.org/
 
 Synchronous fitness evaluations
 -------------------------------
@@ -20,9 +18,10 @@ Components
 `leap_ec.distributed.synchronous` provides two components to implement synchronous
 individual parallel evaluations.
 
-* `leap_ec.distributed.synchronous.eval_population`, which evaluates an entire
-    population in parallel, and returns the evaluated population
-* `leap_ec.distributed.synchronous.eval_pool`, is an pipeline operator that
+* `leap_ec.distributed.synchronous.eval_population`
+    which evaluates an entire population in parallel, and returns the evaluated population
+* `leap_ec.distributed.synchronous.eval_pool`
+    is an pipeline operator that
     will collect offspring and then evaluate them all at once in parallel; the
     evaluated offspring are returned
 
@@ -34,7 +33,7 @@ fitness evaluation in LEAP.
 .. literalinclude:: ../../examples/simple_sync_distributed.py
     :linenos:
     :language: python
-    :start-after: 4
+    :lines: 5-42
 
 This example of a basic genetic algorithm that solves the MAX ONES problem
 does not use a provided monolithic entry point, such as found with
@@ -70,7 +69,7 @@ LEAP implements an asynchronous steady-state evolutionary algorithm (ASEA).
     Algorithm 1: Asynchronous steady-state evolutionary algorithm concurrently
     updates a population as individuals are evaluated. (Mark Coletti, Eric Scott,
     Jeffry K. Bassett. **Library for Evolutionary Algorithms in Python (LEAP)**.
-    Genetic and Evolutionary Computation Conference, 2020. Cancun, MX. (To be
+    Genetic and Evolutionary Computation Conference, 2020. Cancun, MX. To be
     printed.)
 
 Algorithm 1 shows the details of how an ASEA works.  Newly evaluated individuals
