@@ -31,16 +31,21 @@ LEAP implements an asynchronous steady-state evolutionary algorithm (ASEA).
 .. figure:: _static/asea.png
 
     Algorithm 1: Asynchronous steady-state evolutionary algorithm concurrently
-    updates a population as individuals are evaluated.
+    updates a population as individuals are evaluated. (Mark Coletti, Eric Scott,
+    Jeffry K. Bassett. **Library for Evolutionary Algorithms in Python (LEAP)**.
+    Genetic and Evolutionary Computation Conference, 2020. Cancun, MX. (To be
+    printed.)
 
 Algorithm 1 shows the details of how an ASEA works.  Newly evaluated individuals
-are inserted into the population, which now leaves a computing resource free.
+are inserted into the population, which then leaves a computing resource available.
 Offspring are created from one or more selected parents, and are then assigned
 to that computing resource, thus assuring minimal idle time between evaluations.
 This is particularly important within HPC contexts, as it is often the case that
 such resources are costly, and therefore there is an implicit need to minimize
 wasting such resources.  By contrast, a synchronous distributed approach risks
-idling computing resources
+wasting computing resources because computing resources that finish evaluating
+individuals before the last individual is evaluated will idle until the next
+generation.
 
 Examples
 ^^^^^^^^
