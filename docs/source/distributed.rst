@@ -87,6 +87,56 @@ wasting computing resources because computing resources that finish evaluating
 individuals before the last individual is evaluated will idle until the next
 generation.
 
+Example
+^^^^^^^
+
+.. code-block:: Python
+    :linenos:
+
+    from pprint import pformat
+
+    from dask.distributed import Client, LocalCluster
+
+    from leap_ec import core
+    from leap_ec import ops
+    from leap_ec import binary_problems
+    from leap_ec.distributed import asynchronous
+    from leap_ec.distributed.probe import log_worker_location, log_pop
+    from leap_ec.distributed.individual import DistributedIndividual
+
+    MAX_BIRTHS = 500
+    INIT_POP_SIZE = 20
+    POP_SIZE = 20
+
+    with Client(scheduler_file='scheduler.json') as client:
+        final_pop = asynchronous.steady_state(client, # dask client
+                                      births=MAX_BIRTHS,
+                                      init_pop_size=INIT_POP_SIZE,
+                                      pop_size=POP_SIZE,
+
+                                      representation=core.Representation(
+                                          decoder=core.IdentityDecoder(),
+                                          initialize=core.create_binary_sequence(
+                                              args.length),
+                                          individual_cls=DistributedIndividual),
+
+                                      problem=binary_problems.MaxOnes(),
+
+                                      offspring_pipeline=[
+                                          ops.random_selection,
+                                          ops.clone,
+                                          ops.mutate_bitflip,
+                                          ops.pool(size=1)],
+
+                                      evaluated_probe=track_workers_func,
+                                      pop_probe=track_pop_func)
+
+    print(f'Final pop: \n{pformat(final_pop)}')
+
+The above example is quite different from the synchronous code given earlier.  Unlinke,
+with the synchronous code, the asynchronous code does provide a monolithic function
+entry point, `asynchronous.steady_state()`.
+
 Separate Examples
 ^^^^^^^^^^^^^^^^^
 There is also a jupyter notebook walkthrough for the asynchronous implementation,
