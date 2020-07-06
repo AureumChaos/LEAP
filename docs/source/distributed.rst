@@ -107,6 +107,7 @@ Example
     MAX_BIRTHS = 500
     INIT_POP_SIZE = 20
     POP_SIZE = 20
+    GENOME_LENGTH = 5
 
     with Client(scheduler_file='scheduler.json') as client:
         final_pop = asynchronous.steady_state(client, # dask client
@@ -117,7 +118,7 @@ Example
                                       representation=core.Representation(
                                           decoder=core.IdentityDecoder(),
                                           initialize=core.create_binary_sequence(
-                                              args.length),
+                                              GENOME_LENGTH),
                                           individual_cls=DistributedIndividual),
 
                                       problem=binary_problems.MaxOnes(),
@@ -135,7 +136,57 @@ Example
 
 The above example is quite different from the synchronous code given earlier.  Unlinke,
 with the synchronous code, the asynchronous code does provide a monolithic function
-entry point, `asynchronous.steady_state()`.
+entry point, `asynchronous.steady_state()`.  The first thing to note is that
+by nature this EA has a birth budget, not a generation budget, and which is set
+to 500 in `MAX_BIRTHS`, and passed in via the `births` parameter.  We also need
+to know the size of the initial population, which is given in `init_pop_size`.
+And, of course, we need the size of the population that is perpetually updated
+during the lifetime of the run, and which is passed in via the `pop_size`
+parameter.
+
+The `representation` parameter we have seen before in the other monolithic
+functions, such as `generational_ea`, which encapsulates the mechanisms for
+making an individual and how the individual's state is stored.  In this case,
+because it's the MAX ONES problem, we use the `IdentityDecoder` because we want
+to use the raw bits as is, and we specify a factory function for creating
+binary sequences GENOME_LENGTH in size; and, lastly, we override the default
+class with a new class, `DistributedIndividual`, that contains some additional
+bookkeeping useful for an ASEA, and is described later.
+
+Also noteworthy is that the `Client` has a `scheduler_file` specified, which
+indicates that a dask scheduler and one or more dask workers have already been
+started and are awaiting tasking to evaluate individuals.
+
+
+DistributedIndividual
+^^^^^^^^^^^^^^^^^^^^^
+`DistributedIndividual` is a subclass of `Individual` that contains some additional
+state that may be useful for distributed fitness evaluations.
+
+:uuid: is UUID assigned to that individual upon creation
+:birth_id: is a unique, monotonically increasing integer assigned to each
+    indidividual on creation, and denotes its birth order
+:start_eval_time: is when evaluation began for this individul; it's set in
+    `distributed.evaluate.evaluate()` and is in `time_t` format.
+:stop_eval_time: when evaluation completed in `time_t` format.
+
+`is_viable` and `exception` are set as with the base class, `core.Individual`.
+
+.. note:: The `uuid` is useful if one wanted to save, say, a model or some other
+    state in a file; using the `uuid` in the file name will make it easier to associate
+    the file with a given individual later during a run's post mortem analysis.
+
+.. note:: The `start_eval_time` and `end_eval_time` can be useful for checking
+    whether individuals that take less time to evaluate come to dominate the
+    population, which can be important in ASEA parameter tuning.  E.g., initially
+    the population will come to be dominated by individuals that evaluated quickly
+    even if they represent inferior solutions; however, eventually, better solutions
+    that take longer to evaluate will come to dominate the population; so, if
+    one observes that shorter solutions still dominate the population, then
+    increasing the `max_births` should be considered, if feasible, to allow time
+    for solutions that need longer to evaluate time to make a representative
+    presence in the population.
+
 
 Separate Examples
 ^^^^^^^^^^^^^^^^^
