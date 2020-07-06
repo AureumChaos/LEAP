@@ -21,7 +21,7 @@ individual parallel evaluations.
 * `leap_ec.distributed.synchronous.eval_population`
     which evaluates an entire population in parallel, and returns the evaluated population
 * `leap_ec.distributed.synchronous.eval_pool`
-    is an pipeline operator that
+    is a pipeline operator that
     will collect offspring and then evaluate them all at once in parallel; the
     evaluated offspring are returned
 
@@ -72,7 +72,7 @@ LEAP implements an asynchronous steady-state evolutionary algorithm (ASEA).
 
     Algorithm 1: Asynchronous steady-state evolutionary algorithm concurrently
     updates a population as individuals are evaluated. (Mark Coletti, Eric Scott,
-    Jeffry K. Bassett. **Library for Evolutionary Algorithms in Python (LEAP)**.
+    Jeffrey K. Bassett. **Library for Evolutionary Algorithms in Python (LEAP)**.
     Genetic and Evolutionary Computation Conference, 2020. Cancun, MX. To be
     printed.)
 
@@ -80,7 +80,7 @@ Algorithm 1 shows the details of how an ASEA works.  Newly evaluated individuals
 are inserted into the population, which then leaves a computing resource available.
 Offspring are created from one or more selected parents, and are then assigned
 to that computing resource, thus assuring minimal idle time between evaluations.
-This is particularly important within HPC contexts, as it is often the case that
+This is particularly important within HPC contexts as it is often the case that
 such resources are costly, and therefore there is an implicit need to minimize
 wasting such resources.  By contrast, a synchronous distributed approach risks
 wasting computing resources because computing resources that finish evaluating
