@@ -15,11 +15,48 @@ the calling process waits until all the evaluations are done.  This is particula
 suited for by-generation approaches where offspring are evaluated in a
 batch, and progress in the EA only proceeds when all individuals have been evaluated.
 
-Examples
-^^^^^^^^
+Components
+^^^^^^^^^^
+`leap_ec.distributed.synchronous` provides two components to implement synchronous
+individual parallel evaluations.
+
+* `leap_ec.distributed.synchronous.eval_population`, which evaluates an entire
+    population in parallel, and returns the evaluated population
+* `leap_ec.distributed.synchronous.eval_pool`, is an pipeline operator that
+    will collect offspring and then evaluate them all at once in parallel; the
+    evaluated offspring are returned
+
+Example
+^^^^^^^
+The following shows a simple example of how to use the synchronous parallel
+fitness evaluation in LEAP.
+
+.. literalinclude:: ../../examples/simple_sync_distributed.py
+    :linenos:
+    :language: python
+    :start-after: 4
+
+This example of a basic genetic algorithm that solves the MAX ONES problem
+does not use a provided monolithic entry point, such as found with
+`ea_solve()` or `generational_ea()` but, instead, directly uses LEAP's pipeline
+architecture.  Here, we create a simple `dask` `Client` that uses the default
+local cores to do the parallel evaluations.  The first step is to create the
+initial random population, and then distribute those to dask workers for evaluation
+via `synchronous.eval_population()`, and which returns a set of fully evaluated
+parents.  The `for` loop supports the number of generations we want, and provides
+a sequence of pipeline operators to create offspring from selected parents.  For
+concurrently evaluating newly created offspring, we use `synchronous.eval_pool`,
+which is just a variant of the `leap_ec.ops.pool` operator that relies on `dask`
+to evaluate individuals in parallel.
+
+
+
+Separate Examples
+^^^^^^^^^^^^^^^^^
 
 There is a jupyter notebook that walks through a synchronous implementation in
-`examples/simple_sync_distributed.ipynb`.
+`examples/simple_sync_distributed.ipynb`.  The above example can also be found
+at `examples/simple_sync_distributed.py`.
 
 Asynchronous fitness evaluations
 --------------------------------
@@ -47,8 +84,8 @@ wasting computing resources because computing resources that finish evaluating
 individuals before the last individual is evaluated will idle until the next
 generation.
 
-Examples
-^^^^^^^^
+Separate Examples
+^^^^^^^^^^^^^^^^^
 There is also a jupyter notebook walkthrough for the asynchronous implementation,
 `examples/simple_async_distributed.ipynb`.  Moreover, there is standalone
-code in `examples/simple_distributed.py`.
+code in `examples/simple_async_distributed.py`.

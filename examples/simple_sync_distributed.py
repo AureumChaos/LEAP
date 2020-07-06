@@ -29,6 +29,7 @@ if __name__ == '__main__':
                                    ops.clone,
                                    ops.mutate_bitflip,
                                    ops.uniform_crossover,
+                                   # Scatter offspring to be evaluated
                                    synchronous.eval_pool(client=client,
                                                          size=len(parents)))
 
