@@ -48,7 +48,11 @@ concurrently evaluating newly created offspring, we use `synchronous.eval_pool`,
 which is just a variant of the `leap_ec.ops.pool` operator that relies on `dask`
 to evaluate individuals in parallel.
 
-
+.. note:: If you wanted to use resources on a cluster or supercomputer, you would
+    start up `dask-scheduler` and `dask-worker`s first, and then point the `Client`
+    at the scheduler file used by the scheduler and workers.  Distributed LEAP is agnostic on what kind of dask
+    client is passed as a `client` parameter -- it will generically perform the same
+    whether running on local cores or on a supercomputer.
 
 Separate Examples
 ^^^^^^^^^^^^^^^^^
