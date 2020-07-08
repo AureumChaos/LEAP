@@ -152,10 +152,65 @@ binary sequences GENOME_LENGTH in size; and, lastly, we override the default
 class with a new class, `DistributedIndividual`, that contains some additional
 bookkeeping useful for an ASEA, and is described later.
 
+The `offspring_pipeline` differs from the usual LEAP pipelines.  That is, a
+LEAP pipeline is usally a set of operators that define a workflow for creating offspring
+from a set of prospective parents.  In this case, the pipeline is for creating a
+*single* offspring from an *implied* population of prospective parents to be
+evaluated on a recently available dask worker; essentially, as a dask worker
+finishes evaluating an individual, this pipeline will be used to create a single
+offspring to be assigned to that worker for evaluation.  This gives the user
+maximum flexibility in how that offspring is created by choosing a selection
+operator followed by perturbation operators deemed suitable for the given problem.
+(Not forgetting the critical `clone` operator, the absence of which will cause
+selected parents to be modified by any applied mutation or crossover operators.)
+
+There are two optional callback function reporting parameters, `evaluated_probe` and `pop_probe`.
+`evaluated_probe` takes a single `Individual` class, or subclass, as an argument,
+and can be used to write out that individual's state in a desired format.
+`distributed.probe.log_worker_location` can be passed in as this argument to
+write each individual's state as a CSV row to a file; by default it will write to
+`sys.stdout`.  The `pop_probe` parameter is similar, but allows for taking
+snapshots of the hidden population at preset intervals, also in CSV format.
+
 Also noteworthy is that the `Client` has a `scheduler_file` specified, which
 indicates that a dask scheduler and one or more dask workers have already been
-started and are awaiting tasking to evaluate individuals.
+started beforehand outside of LEAP and are awaiting tasking to evaluate individuals.
 
+There are three other optional parameters to `steady_state`, which are summarized
+as follows:
+
+:inserter: takes a callback function of the signature `(individual, population, max_size)`
+    where `individual` is the newly evaluated individual that is a candidate for
+    inserting into the `population`, and which is the internal population that
+    `steady_state` updates. The value for `max_size` is passed in by `steady_state` that is the
+    user stipulated population size, and is used to determine if the individual
+    should just be inserted into the population when at the start of the run it
+    has yet to reach capacity.  That is, when a user invokes `steady_state`,
+    they specify a population size via `pop_size`, and we would just normally
+    insert individuals until the population reaches `pop_size` in capacity, then
+    the function will use criteria to determine whether the individual is worthy
+    of being inserted.  (And, if so, at the removal of an individual that was
+    already in the population.  Or, colloquially, someone is voted off the island.)
+
+    There are two provided inserters, `steady_state.insert_into_pop` and
+    `greedy_insert_into_pop`.  The first will randomly select an individual from
+    the internal population, and will replace it if its fitness is worse than
+    the new individual.  The second will compare the new individual with the
+    current worst in the population, and will replace that individual if it is
+    better.  The default for `inserter` is to use the `greedy_insert_into_pop`.
+
+    Of course you can write your own if either of these two inserters do not meet
+    your needs.
+
+:count_nonviable: is a boolean that, if True, means that individuals that are
+    non- viable are counted towards the birth budget; by default, this is `False`. A
+    non-viable individual is one where an exception was thrown during evaluation.
+    (E.g., an individual poses a deep-learner configuration that does not make
+    sense, such as incompatible adjacent convolutional layers, and pytorch or
+    tensorflow throws an exception.)
+
+:context: contains global state where the running number of births and non-viable individuals
+    is kept.  This defaults to `core.context`.
 
 DistributedIndividual
 ^^^^^^^^^^^^^^^^^^^^^
@@ -165,10 +220,10 @@ state that may be useful for distributed fitness evaluations.
 :uuid: is UUID assigned to that individual upon creation
 :birth_id: is a unique, monotonically increasing integer assigned to each
     indidividual on creation, and denotes its birth order
-:start_eval_time: is when evaluation began for this individul; it's set in
-    `distributed.evaluate.evaluate()` and is in `time_t` format.
-:stop_eval_time: when evaluation completed in `time_t` format.
+:start_eval_time: is when evaluation began for this individul, and is in `time_t` format
+:stop_eval_time: when evaluation completed in `time_t` format
 
+This additional state is set in `distributed.evaluate.evaluate()` and
 `is_viable` and `exception` are set as with the base class, `core.Individual`.
 
 .. note:: The `uuid` is useful if one wanted to save, say, a model or some other
