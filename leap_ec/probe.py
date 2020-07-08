@@ -3,12 +3,15 @@ pipeline such as populations or individuals. """
 import csv
 import sys
 
+from typing import Iterator
+
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 from toolz import curry
 
 from leap_ec import ops as op
+from leap_ec.ops import iteriter_op
 
 
 ##############################
@@ -28,6 +31,28 @@ def print_probe(population, probe, stream=sys.stdout, prefix=''):
     val = prefix + str(probe(population))
     stream.write(val)
     return population
+
+
+##############################
+# print_individual
+##############################
+@curry
+@iteriter_op
+def print_individual(next_individual: Iterator, prefix='', stream=sys.stdout) -> Iterator:
+    """ Just echoes the individual from within the pipeline
+
+    Uses next_individual.__str__
+
+    :param next_individual: iterator for next individual to be printed
+    :return: the same individual, unchanged
+    """
+
+    while True:
+        individual = next(next_individual)
+
+        print(f'{prefix}{individual!s}', file=stream)
+
+        yield individual
 
 
 ##############################

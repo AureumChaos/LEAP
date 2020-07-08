@@ -4,9 +4,8 @@ LEAP Concepts
 .. toctree::
 
     Problems <problem>
-    Individuals <individual>
-    Decoders <decoder>
+    Representations <representation>
     Operators <ops>
-    Context <context>
     Probes <probes>
     Visualization <visualization>
+    Context <context>

@@ -13,9 +13,11 @@ Welcome to LEAP: Library for Evolutionary Algorithms in Python's documentation!
    Quickstart Guide <readme>
    Prebuilt Algorithms <prebuilt>
    LEAP Concepts <concepts>
+   Distributed LEAP <distributed>
    LEAP Metaheuristics <metaheuristics>
    Building New Algorithms <building>
    Cookbook <cookbook>
+   Roadmap <roadmap>
 
 
 Indices and tables

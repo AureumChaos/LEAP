@@ -99,7 +99,7 @@ if __name__ == '__main__':
                                              migration_gap=50),
                                  probe.FitnessStatsCSVProbe(
                                      core.context, stream=sys.stdout)
-    ],
+                             ],
         subpop_pipelines=subpop_probes)
 
     list(ea)

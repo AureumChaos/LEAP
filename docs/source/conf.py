@@ -24,9 +24,9 @@ copyright = '2019, Jeffrey K. Bassett, Mark Coletti, and Eric O. Scott'
 author = 'Jeffrey K. Bassett, Mark Coletti, and Eric O. Scott'
 
 # The short X.Y version
-version = ''
+version = '0.3'
 # The full version, including alpha/beta/rc tags
-release = ''
+release = 'version 0.3.1'
 
 
 # -- General configuration ---------------------------------------------------
