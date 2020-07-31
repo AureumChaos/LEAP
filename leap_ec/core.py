@@ -201,6 +201,15 @@ class Individual:
         """
         return self.decoder.decode(self.genome, args, kwargs)
 
+    def evaluate_imp(self):
+        """ This is the evaluate 'implementation' called by
+            self.evaluate().   It's intended to be optionally over-ridden by
+            sub-classes to give an opportunity to pass in ancillary data to
+            the evaluate process either by tailoring the problem interface or
+            that of the given decoder.
+        """
+        return self.problem.evaluate(self.decode())
+
     def evaluate(self):
         """ determine this individual's fitness
 
@@ -220,7 +229,7 @@ class Individual:
         :return: the calculated fitness
         """
         try:
-            self.fitness = self.problem.evaluate(self.decode())
+            self.fitness = self.evaluate_imp()
             self.is_viable = True # we were able to evaluate
         except Exception as e:
             self.fitness = nan
