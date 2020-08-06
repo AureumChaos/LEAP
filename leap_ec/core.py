@@ -195,11 +195,20 @@ class Individual:
         cloned.fitness = None
         return cloned
 
-    def decode(self):
+    def decode(self, *args, **kwargs):
         """
         :return: the decoded value for this individual
         """
-        return self.decoder.decode(self.genome)
+        return self.decoder.decode(self.genome, args, kwargs)
+
+    def evaluate_imp(self):
+        """ This is the evaluate 'implementation' called by
+            self.evaluate().   It's intended to be optionally over-ridden by
+            sub-classes to give an opportunity to pass in ancillary data to
+            the evaluate process either by tailoring the problem interface or
+            that of the given decoder.
+        """
+        return self.problem.evaluate(self.decode())
 
     def evaluate(self):
         """ determine this individual's fitness
@@ -220,13 +229,12 @@ class Individual:
         :return: the calculated fitness
         """
         try:
-            self.fitness = self.problem.evaluate(self.decode())
+            self.fitness = self.evaluate_imp()
             self.is_viable = True # we were able to evaluate
         except Exception as e:
             self.fitness = nan
             self.exception = e
             self.is_viable = False # we could not complete an eval
-
 
         # Even though we've already *set* the fitness, it may be useful to also
         # *return* it to give more options to the programmer for using the
@@ -392,7 +400,7 @@ class Decoder(abc.ABC):
     """
 
     @abc.abstractmethod
-    def decode(self, genome):
+    def decode(self, genome, *args, **kwargs):
         """
         :param genome: a genome you wish to convert
         :returns: the phenotype associated with that genome
@@ -411,7 +419,7 @@ class IdentityDecoder(Decoder):
     def __init__(self):
         super().__init__()
 
-    def decode(self, genome):
+    def decode(self, genome, *args, **kwargs):
         """:return: the input `genome`.
 
         For example:
@@ -458,7 +466,7 @@ class BinaryToIntDecoder(Decoder):
         super().__init__()
         self.segments = segments
 
-    def decode(self, genome):
+    def decode(self, genome, *args, **kwargs):
         """
         Converts a Boolean genome to an integer-vector phenome by
         interpreting each segment of the genome as low-endian binary number.
@@ -568,7 +576,7 @@ class BinaryToRealDecoderCommon(Decoder):
                            zip(self.lower_bounds, self.upper_bounds,
                                cardinalities)]
 
-    def decode(self, genome):
+    def decode(self, genome, *args, **kwargs):
         """Convert a list of binary values into a real-valued vector."""
         int_values = self.binary_to_int_decoder.decode(genome)
         values = [l + i * inc for l, i, inc in
@@ -644,7 +652,7 @@ class BinaryToIntGreyDecoder(BinaryToIntDecoder):
 
         return num
 
-    def decode(self, genome):
+    def decode(self, genome, *args, **kwargs):
         # First decode the integers from the binary representation using
         # regular binary decoding.
         values = super().decode(genome)
