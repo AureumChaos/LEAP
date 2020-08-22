@@ -14,13 +14,13 @@ Quickstart Guide
  .. image:: https://readthedocs.org/projects/leap-gmu/badge/?version=latest
     :target: https://leap-gmu.readthedocs.io/en/latest/?badge=latest
 
-LEAP is a general purpose Evolutionary Computation package that combines 
-readable and easy-to-use syntax for search and optimization algorithms with 
+LEAP is a general purpose Evolutionary Computation package that combines
+readable and easy-to-use syntax for search and optimization algorithms with
 powerful distribution and visualization features.
 
-LEAP's signature is its operator pipeline, which uses a simple list of 
-functional operators to concisely express a metaheuristic algorithm's 
-configuration as high-level code.  Adding metrics, visualization, or 
+LEAP's signature is its operator pipeline, which uses a simple list of
+functional operators to concisely express a metaheuristic algorithm's
+configuration as high-level code.  Adding metrics, visualization, or
 special features (like distribution, coevolution, or island migrations)
 is often as simple as adding operators into the pipeline.
 
@@ -31,13 +31,13 @@ Using LEAP
 Get the stable version of LEAP from the Python package index with
 
 .. code-block:: bash
-    
+
     pip install leap_ec
 
 Simple Example
 **************
 
-The easiest way to use an evolutionary algorithm in LEAP is to use the 
+The easiest way to use an evolutionary algorithm in LEAP is to use the
 `leap_ec.simple` package, which contains simple interfaces for pre-built
 algorithms:
 
@@ -46,7 +46,7 @@ algorithms:
     from leap_ec.simple import ea_solve
 
     def f(x):
-        """A real-valued function to optimized."""
+        """A real-valued function to be optimized."""
         return sum(x)**2
 
     ea_solve(f, bounds=[(-5.12, 5.12) for _ in range(5)], maximize=True)
@@ -55,14 +55,14 @@ algorithms:
 Genetic Algorithm Example
 *************************
 
-The next-easiest way to use LEAP is to configure a custom algorithm via one 
-of the metaheuristic functions in the `leap_ec.algorithms` package.  These 
-interfaces off you a flexible way to customize the various operators, 
-representations, and other components that go into a modern evolutionary 
+The next-easiest way to use LEAP is to configure a custom algorithm via one
+of the metaheuristic functions in the `leap_ec.algorithms` package.  These
+interfaces off you a flexible way to customize the various operators,
+representations, and other components that go into a modern evolutionary
 algorithm.
 
-Here's an example that applies a genetic algorithm variant to solve the 
-`MaxOnes` optimization problem.  It uses bitflip mutation, uniform crossover, 
+Here's an example that applies a genetic algorithm variant to solve the
+`MaxOnes` optimization problem.  It uses bitflip mutation, uniform crossover,
 and binary tournament selection:
 
 .. code-block:: Python
@@ -72,7 +72,7 @@ and binary tournament selection:
     pop_size = 5
     ea = generational_ea(generations=100, pop_size=pop_size,
                         problem=binary_problems.MaxOnes(),             # Solve a MaxOnes Boolean optimization problem
-                        
+
                         representation=core.Representation(
                             decoder=core.IdentityDecoder(),             # Genotype and phenotype are the same for this task
                             initialize=core.create_binary_sequence(length=10)  # Initial genomes are random binary sequences
@@ -120,7 +120,7 @@ The stable version of LEAP's full documentation is over at ReadTheDocs_
 If you want to build a fresh set of docs for yourself, you can do so after running `make setup`:
 
 .. code-block:: bash
-    
+
     make doc
 
 
@@ -134,7 +134,7 @@ Installing from Source
 To install a source distribution of LEAP, clone the repo:
 
 .. code-block:: bash
-    
+
     git clone https://github.com/AureumChaos/LEAP.git
 
 
@@ -148,13 +148,13 @@ And use the Makefile to install the package:
 Run the Test Suite
 ******************
 
-LEAP ships with a two-part `pytest` harness, divided into fast and slow tests.  You can run them with 
+LEAP ships with a two-part `pytest` harness, divided into fast and slow tests.  You can run them with
 
 .. code-block:: bash
 
     make test-fast
 
-and 
+and
 
 .. code-block:: bash
 
