@@ -1,11 +1,19 @@
 LEAP Concepts
 ===========================
 
-.. inheritance-diagram:: leap_ec.core.Individual leap_ec.problem.Problem leap_ec.core.Representation
-    :parts: 2
-    :caption: **Figure 1: The core classes**  `Individual`, `Problem`, and
-        `Representation` are the three core classes upon which the rest of the
+.. figure:: _static/top-level-class-diagram.svg
+
+        **Figure 1: The core classes**  `Individual`, `Problem`, and
+        `Representation` are the three classes upon which the rest of the
         toolkit rests.
+
+Three classes work in tandem to represent and evaluate solutions: `Individual`,
+`Problem`, and `Decoder`.  The relationship between these classes is depicted
+in Figure 1, and shows that the `Individual` is the design's keystone, and encapsulates
+posed solution to a `Problem`.  `Problem` implements the semantics for a given
+problem to be solved, and which `Individual` uses to compute its fitness.
+`Problem` also implements how any two given `Individuals` are "better than" or
+"equivalent" to one another.
 
 .. figure:: _static/Pipeline.png
 
