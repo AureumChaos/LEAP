@@ -1,6 +1,11 @@
 LEAP Concepts
 ===========================
 
+.. inheritance-diagram:: leap_ec.core.Individual leap_ec.problem.Problem leap_ec.core.Representation
+    :parts: 2
+    :caption: **Figure 1: The core classes**  `Individual`, `Problem`, and
+        `Representation` are the three core classes upon which the rest of the
+        toolkit rests.
 
 .. figure:: _static/Pipeline.png
 
@@ -19,10 +24,10 @@ LEAP Concepts
 
 .. toctree::
 
-    Problems <problem>
     Individuals <individuals>
     Representations <representation>
+    Problems <problem>
     Operators <ops>
+    Context <context>
     Probes <probes>
     Visualization <visualization>
-    Context <context>
