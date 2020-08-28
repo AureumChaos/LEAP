@@ -55,9 +55,53 @@ the last one returning the final results.  For example::
     1         14        6.0
     0         36        31.0
 
-This shows the output of `cut` is passed to `head` and the out of that is
+This shows the output of `cut` is passed to `head` and the output of that is
 passed to the formatter `column`, which then sends its output to stdout.
 
+Here is an example of a LEAP pipeline:
+
+.. code-block:: python
+
+    gen = 0
+    while gen < max_generation:
+        offspring = toolz.pipe(parents,
+                               ops.tournament,
+                               ops.clone,
+                               ops.mutate_bitflip,
+                               ops.evaluate,
+                               ops.pool(size=len(parents)))
+
+        parents = offspring
+        gen += 1
+
+The above code snippet is an example of a very basic genetic algorithm
+implementation that uses a `toolz.pipe()` function to link
+together a series of operators to do the following:
+
+#. binary tournament selection on a set of parents
+#. clone those that were selected
+#. perform mutation bitflip on the clones
+#. evaluate the offspring
+#. accumulate as many offspring as there are parents
+
+Essentially the `ops.` functions are python co-routines that are driven by the
+last function, `ops.pool()` , that makes requests of the upstream operators to
+fill a pool of offspring.  Once the pool is filled, it is returned as the next
+set of offspring, which are then assigned to become the parents for the next
+generation.
+
+Fig. 2 depicts a general pattern of LEAP pipeline operators. Typically, the
+first pipeline element is a source for individuals followed by some form of
+selection operator and then a clone operator to create an offspring that is
+initially just a copy of the selected parent.  Following that there are one
+or more pertubation operators, and though there is only a mutation operator
+shown in the figure, there can be other configurations that also include
+crossover, among other pertubation operators.  Next, there is an operator
+to evaluate offspring as they come through pipeline where they are collected
+by a pooling operator.  And, lastly, there can be a survival selection operator to
+determine survivors for the next generation, such as truncation selection. (The
+above code snippet does not have survival selection because it replaces the
+parents with the offspring for every generation.)
 
 Detailed Explanations
 ---------------------
@@ -68,9 +112,10 @@ sections.
 .. toctree::
 
     Individuals <individuals>
+    Decoders <decoders>
     Representations <representation>
     Problems <problem>
     Operators <ops>
-    Context <context>
+    Contexts <context>
     Probes <probes>
-    Visualization <visualization>
+    Visualizations <visualization>
