@@ -11,7 +11,7 @@ Core Classes
     :align: center
 
     **Figure 1: The core classes**  `Individual`, `Problem`, and
-    `Representation` are the three classes upon which the rest of the
+    `Decoder` are the three classes upon which the rest of the
     toolkit rests.
 
 Three classes work in tandem to represent and evaluate solutions: `Individual`,
