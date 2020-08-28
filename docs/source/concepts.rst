@@ -29,20 +29,6 @@ evaluation.
 Operator Pipeline
 -----------------
 
-.. figure:: _static/Pipeline.png
-
-    **Figure 2: LEAP operator pipeline.** This figure depicts a typical
-    LEAP operator pipeline.  First is a parent population from which the
-    next operator selects individuals, which are then cloned by the next
-    operator to be followed by operators for mutating and evaluating the
-    individual.  (For brevity, a crossover operator was not included, but
-    could also have been freely inserted into this pipeline.)  The pool
-    operator is a sink for offspring, and drives the demand for the upstream
-    operators to repeatedly select, clone, mutate, and evaluate individuals
-    repeatedly until the pool has the desired number of offspring.  Lastly,
-    another selection operator returns the final set of individuals based
-    on the offspring pool and optionally the parents.
-
 If the above classes are the "nouns" of LEAP, the pipeline operators are the
 "verbs" that work on those "nouns."  The overarching concept of the pipeline is
 similar to *nix style text processing command lines, where a sequence
@@ -89,6 +75,20 @@ last function, `ops.pool()` , that makes requests of the upstream operators to
 fill a pool of offspring.  Once the pool is filled, it is returned as the next
 set of offspring, which are then assigned to become the parents for the next
 generation.
+
+.. figure:: _static/Pipeline.png
+
+    **Figure 2: LEAP operator pipeline.** This figure depicts a typical
+    LEAP operator pipeline.  First is a parent population from which the
+    next operator selects individuals, which are then cloned by the next
+    operator to be followed by operators for mutating and evaluating the
+    individual.  (For brevity, a crossover operator was not included, but
+    could also have been freely inserted into this pipeline.)  The pool
+    operator is a sink for offspring, and drives the demand for the upstream
+    operators to repeatedly select, clone, mutate, and evaluate individuals
+    repeatedly until the pool has the desired number of offspring.  Lastly,
+    another selection operator returns the final set of individuals based
+    on the offspring pool and optionally the parents.
 
 Fig. 2 depicts a general pattern of LEAP pipeline operators. Typically, the
 first pipeline element is a source for individuals followed by some form of
