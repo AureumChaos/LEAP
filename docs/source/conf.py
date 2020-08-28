@@ -43,6 +43,7 @@ extensions = [
     'sphinx.ext.autodoc',  # For sucking up docstrings in our source code
     'sphinx.ext.doctest',  # Doctests!
     'sphinx.ext.todo',
+    'sphinx.ext.inheritance_diagram',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx_rtd_theme'

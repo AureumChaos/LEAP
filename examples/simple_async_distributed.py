@@ -55,7 +55,7 @@ from leap_ec import core
 from leap_ec import ops
 from leap_ec import binary_problems
 from leap_ec.distributed import asynchronous
-from leap_ec.distributed.logging import WorkerLoggerPlugin
+from leap_ec.distributed.logger import WorkerLoggerPlugin
 from leap_ec.distributed.probe import log_worker_location, log_pop
 from leap_ec.distributed.individual import DistributedIndividual
 
@@ -117,12 +117,16 @@ if __name__ == '__main__':
 
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
+        logger.setLevel(logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
+        logger.setLevel(logging.INFO)
 
     logger.info(
         'workers: %s init pop size: %s max births: %s, pop size: %s',
         args.workers, args.init_pop_size, args.max_births, args.pop_size)
+
+    track_workers_func = track_pop_func = None
 
     try:
         if args.scheduler_file:
@@ -130,10 +134,10 @@ if __name__ == '__main__':
             # them locally because we went through the trouble of specifying
             # a scheduler file that the scheduler and workers will use to
             # coordinate with one another.
-            logging.info('Using a remote distributed model')
+            logger.info('Using a remote distributed model')
             client = Client(scheduler_file=args.scheduler_file)
         else:
-            logging.info('Using a local distributed model')
+            logger.info('Using a local distributed model')
             cluster = LocalCluster(n_workers=args.workers, processes=False,
                                    silence_logs=logger.level)
             logger.info("Cluster: %s", cluster)
@@ -146,14 +150,10 @@ if __name__ == '__main__':
         if args.track_workers_file:
             track_workers_stream = open(args.track_workers_file, 'w')
             track_workers_func = log_worker_location(track_workers_stream)
-        else:
-            track_workers_func = None
 
         if args.track_pop_file is not None:
             track_pop_stream = open(args.track_pop_file, 'w')
             track_pop_func = log_pop(args.update_interval, track_pop_stream)
-        else:
-            track_pop_func = None
 
         final_pop = asynchronous.steady_state(client, # dask client
                                               births=args.max_births,

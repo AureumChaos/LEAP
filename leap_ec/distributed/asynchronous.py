@@ -155,7 +155,7 @@ def steady_state(client, births, init_pop_size, pop_size,
            towards the birth budget
     :param evaluated_probe: is a function taking an individual that is given
            the next evaluated individual; can be used to print newly evaluated
-            individuals
+           individuals
     :param pop_probe: is an optional function that writes a snapshot of the
            population to a CSV formatted stream ever N births
     :return: the population containing the final individuals
