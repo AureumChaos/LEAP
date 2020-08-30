@@ -102,9 +102,7 @@ class Individual:
     """
         Represents a single solution to a `Problem`.
 
-        We represent an `Individual` by a `genome`, a `fitness`, and an
-        optional dict of `attributes`.
-
+        We represent an `Individual` by a `genome` and a `fitness`.
         `Individual` also maintains a reference to the `Problem` it will be
         evaluated on, and an `decoder`, which defines how genomes are
         converted into phenomes for fitness evaluation.
@@ -188,7 +186,13 @@ class Individual:
 
         >>> from leap_ec import binary_problems
         >>> ind = Individual([0, 1, 1, 0], IdentityDecoder(), binary_problems.MaxOnes())
-        >>>
+        >>> ind_copy = ind.clone()
+        >>> ind_copy.genome == ind.genome
+        True
+        >>> ind_copy.problem == ind.problem
+        True
+        >>> ind_copy.decoder == ind.decoder
+        True
         """
         new_genome = deepcopy(self.genome)
         cloned = type(self)(new_genome, self.decoder, self.problem)
@@ -218,11 +222,11 @@ class Individual:
         phenome.
 
         Note that if an exception is thrown during evaluation, the fitness is
-        set to NaN and self.is_viable to False; also, the returned exception is
-        assigned to self.exception for possible later inspection.  If the
-        individual was successfully evaluated, self.is_viable is set to true.
-        nan fitness values will figure into comparing individuals in that nan
-        will always be considered worse than non-nan fitness values.
+        set to NaN and `self.is_viable` to False; also, the returned exception is
+        assigned to `self.exception` for possible later inspection.  If the
+        individual was successfully evaluated, `self.is_viable` is set to true.
+        NaN fitness values will figure into comparing individuals in that NaN
+        will always be considered worse than non-NaN fitness values.
 
         :see also: ScalarProblem.worse_than
 
