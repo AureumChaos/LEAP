@@ -8,7 +8,7 @@ Class Summary
 .. figure:: _static/individual-class-diagram.svg
     :align: center
 
-    **Figure 1: The `Individual` class**  This class diagrams shows the detail
+    **Figure 1: The `Individual` class**  This class diagram shows the detail
     for `Individual`.  In additional to the association with `Decoder` and
     `ProbLem`, each `Individual` has a `genome` and `fitness`.  There are also
     several member functions for cloning, decoding, and evaluating individuals.
