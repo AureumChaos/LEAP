@@ -155,12 +155,12 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
         best individual in each population at each generation.
 
     To turn a multi-population EA into an island model, use the
-    :py:function:`~leap.ops.migrate` operator in the shared pipeline.  This
+    :py:func:`~leap_ec.ops.migrate` operator in the shared pipeline.  This
     operator takes a `NetworkX` graph describing the topology of connections
     between islands as input.
 
     For example, here's how we might define a fully connected 4-island model
-    that solves a :py:class:`~leap.real_problems.SchwefelProblem` using a
+    that solves a :py:class:`~leap_ec.real_problems.SchwefelProblem` using a
     real-vector representation:
 
     >>> import networkx as nx

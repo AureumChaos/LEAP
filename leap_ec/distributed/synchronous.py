@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.DEBUG)
 
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = \
+    logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 console_handler.setFormatter(formatter)
 
@@ -63,10 +63,8 @@ def eval_pool(next_individual, client, size, context=core.context):
     reset that between runs if that variable has been updated.
 
     :param next_individual: iterator/generator for individual provider
-
     :param client: dask client through which we submit individuals to be
-    evaluated
-
+        evaluated
     :param size: how many individuals to evaluate simultaneously.
     :param context: for storing count of non-viable individuals
     :return: the pool of evaluated individuals

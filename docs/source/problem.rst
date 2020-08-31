@@ -1,6 +1,6 @@
 Problems
 ========
-This section covers `Problems`s in more detail.
+This section covers `Problem` classes in more detail.
 
 Class Summary
 -------------

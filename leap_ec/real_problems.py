@@ -865,9 +865,9 @@ class CosineFamilyProblem(ScalarProblem):
     A configurable multi-modal function based on combinations of cosines,
     taken from the problem generators proposed in
 
-     * Jani Rönkkönen et al., "A Generator for Multimodal Test Functions
-     with Multiple Global Optima," *Asia-Pacific Conference on Simulated
-     Evolution and Learning*. Springer, Berlin, Heidelberg, 2008.
+     Jani Rönkkönen et al., "A Generator for Multimodal Test Functions
+     with Multiple Global Optima," _Asia-Pacific Conference on Simulated
+     Evolution and Learning_. Springer, Berlin, Heidelberg, 2008.
 
     .. math::
 
