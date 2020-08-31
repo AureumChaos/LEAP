@@ -26,18 +26,27 @@ used to determine if two given fitnesses are effectively the same.
 
 Class API
 ---------
+.. inheritance-diagram:: leap_ec.problem
+
 .. automodule:: leap_ec.problem
     :members:
+    :undoc-members:
 
 Binary Problems API
 -------------------
+.. inheritance-diagram:: leap_ec.binary_problems
+
 .. automodule:: leap_ec.binary_problems
     :members:
+    :undoc-members:
 
 Real-value Problems API
 -----------------------
+.. inheritance-diagram:: leap_ec.real_problems
+
 .. automodule:: leap_ec.real_problems
     :members:
+    :undoc-members:
 
 
 
