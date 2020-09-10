@@ -46,6 +46,7 @@ extensions = [
     'sphinx.ext.inheritance_diagram',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
+    'sphinxcontrib.bibtex',
     'sphinx_rtd_theme'
 ]
 
