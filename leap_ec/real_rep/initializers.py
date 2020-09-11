@@ -26,11 +26,12 @@ def create_real_vector(bounds):
 
     E.g., can be used for `Individual.create_population()`
 
-    >>> from leap_ec import core, real_problems
+    >>> from leap_ec.decoder import IdentityDecoder
+    >>> from problems import SpheroidProblem
     >>> bounds = [(0, 1), (0, 1), (-1, 100)]
-    >>> population = Individual.create_population(10, core.create_real_vector(bounds),
-    ...                                           decoder=core.IdentityDecoder(),
-    ...                                           problem=real_problems.SpheroidProblem())
+    >>> population = Individual.create_population(10, create_real_vector(bounds),
+    ...                                           decoder=IdentityDecoder(),
+    ...                                           problem=SpheroidProblem())
 
     """
 
