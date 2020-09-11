@@ -97,8 +97,9 @@ class Individual:
         has a custom genome type, it's important that it implements the
         `__deepcopy__()` method.
 
-        >>> from leap_ec import binary_problems
-        >>> ind = Individual([0, 1, 1, 0], IdentityDecoder(), binary_problems.MaxOnes())
+        >>> from leap_ec.binary_rep.problems import MaxOnes
+        >>> from leap_ec.decoder import IdentityDecoder
+        >>> ind = Individual([0, 1, 1, 0], IdentityDecoder(), MaxOnes())
         >>> ind_copy = ind.clone()
         >>> ind_copy.genome == ind.genome
         True
@@ -183,8 +184,9 @@ class Individual:
         compare themselves to one another.  One individual is better than
         another if and only if it is greater than the other:
 
-        >>> from leap_ec import binary_problems
-        >>> f = binary_problems.MaxOnes(maximize=True)
+        >>> from leap_ec.binary_rep.problems import MaxOnes
+        >>> from leap_ec.decoder import IdentityDecoder
+        >>> f = MaxOnes(maximize=True)
         >>> ind_A = Individual([0, 0, 1, 0, 1], IdentityDecoder(), problem=f)
         >>> ind_A.fitness = 2
         >>> ind_B = Individual([1, 1, 1, 1, 1], IdentityDecoder(), problem=f)
@@ -198,7 +200,7 @@ class Individual:
         indicate maximization, minimization, Pareto dominance, etc.: it all
         depends on the underlying `Problem`.
 
-        >>> f = binary_problems.MaxOnes(maximize=False)
+        >>> f = MaxOnes(maximize=False)
         >>> ind_A = Individual([0, 0, 1, 0, 1], IdentityDecoder(), problem=f)
         >>> ind_A.fitness = 2
         >>> ind_B = Individual([1, 1, 1, 1, 1], IdentityDecoder(), problem=f)
