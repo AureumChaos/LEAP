@@ -4,7 +4,9 @@
 """
 import math
 import random
-from typing import Tuple
+from typing import Tuple, Iterator
+
+from leap_ec import util
 
 ##############################
 # Function mutate_gaussian

@@ -104,7 +104,7 @@ def generational_ea(generations, pop_size, representation, problem, pipeline):
     parents = Individual.evaluate_population(parents)
 
     # Set up a generation counter that records the current generation to
-    # core.context
+    # context
     generation_counter = util.inc_generation(context=context)
 
     # Output the best individual in the initial population
@@ -138,7 +138,7 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
 
     This effectively executes several EAs concurrently that share the same
     generation counter, and which share the same representation (
-    :py:class:`~leap.core.Individual`, :py:class:`~leap.core.Decoder`) and
+    :py:class:`~leap.Individual`, :py:class:`~leap.Decoder`) and
     objective function (:py:class:`~leap.problem.Problem`), and which share
     all or part of the same operator pipeline.
 
@@ -167,35 +167,40 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
     between islands as input.
 
     For example, here's how we might define a fully connected 4-island model
-    that solves a :py:class:`~leap_ec.real_problems.SchwefelProblem` using a
+    that solves a :py:class:`~leap_ec.real_rep.problems.SchwefelProblem` using a
     real-vector representation:
 
     >>> import networkx as nx
     >>> from leap_ec.algorithm import multi_population_ea
-    >>> from leap_ec import ops, real_problems
+    >>> from leap_ec import ops
+    >>> from leap_ec.real_rep.ops import mutate_gaussian
+    >>> from leap_ec.real_rep import problems
+    >>> from leap_ec.decoder import IdentityDecoder
+    >>> from leap_ec.representation import Representation
+    >>> from leap_ec.real_rep.initializers import create_real_vector
     >>>
     >>> topology = nx.complete_graph(4)
     >>> nx.draw(topology)
-    >>> problem = real_problems.SchwefelProblem(maximize=False)
+    >>> problem = problems.SchwefelProblem(maximize=False)
     ...
     >>> l = 2  # Length of the genome
     >>> pop_size = 10
     >>> ea = multi_population_ea(generations=1000, num_populations=topology.number_of_nodes(), pop_size=pop_size,
     ...                         problem=problem,
     ...
-    ...                         representation=core.Representation(
-    ...                             individual_cls=core.Individual,
-    ...                             decoder=core.IdentityDecoder(),
-    ...                             initialize=core.create_real_vector(bounds=[problem.bounds] * l)
+    ...                         representation=Representation(
+    ...                             individual_cls=Individual,
+    ...                             decoder=IdentityDecoder(),
+    ...                             initialize=create_real_vector(bounds=[problem.bounds] * l)
     ...                             ),
     ...
     ...                         shared_pipeline=[
     ...                             ops.tournament,
     ...                             ops.clone,
-    ...                             ops.mutate_gaussian(std=30, hard_bounds=problem.bounds),
+    ...                             mutate_gaussian(std=30, hard_bounds=problem.bounds),
     ...                             ops.evaluate,
     ...                             ops.pool(size=pop_size),
-    ...                             ops.migrate(core.context,
+    ...                             ops.migrate(context,
     ...                                         topology=topology,
     ...                                         emigrant_selector=ops.tournament,
     ...                                         replacement_selector=ops.random_selection,
@@ -217,7 +222,7 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
     (4, [Individual(...), Individual(...), Individual(...), Individual(...)])
 
     While each population is executing, `multi_population_ea` writes the
-    index of the current subpopulation to `core.context['leap'][
+    index of the current subpopulation to `context['leap'][
     'subpopulation']`.  That way shared operators (such as
     :py:function:`~leap.ops.migrate`) have the option of accessing the share
     context to learn which subpopulation they are currently working with.
