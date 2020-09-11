@@ -26,8 +26,9 @@ class Individual:
 
         We also require `Individual`s to maintain a reference to the `Problem`:
 
-        >>> from leap_ec import binary_problems
-        >>> ind = Individual([0, 0, 1, 0, 1], decoder=IdentityDecoder(), problem=binary_problems.MaxOnes())
+        >>> from leap_ec.binary_rep.problems import MaxOnes
+        >>> from leap_ec.decoder import IdentityDecoder
+        >>> ind = Individual([0, 0, 1, 0, 1], decoder=IdentityDecoder(), problem=MaxOnes())
         >>> ind.genome
         [0, 0, 1, 0, 1]
 
