@@ -2,7 +2,10 @@
 """
     Binary representation specific pipeline operators.
 """
-from .. ops import compute_expected_probability
+from typing import Iterator, List, Tuple, Callable
+from toolz import curry
+
+from .. ops import compute_expected_probability, iteriter_op
 
 ##############################
 # Function mutate_bitflip

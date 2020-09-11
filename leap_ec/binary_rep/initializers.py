@@ -4,7 +4,7 @@
 """
 import random
 
-from .. individual import Individual
+from leap_ec.individual import Individual
 
 ##############################
 # Closure create_binary_sequence
@@ -20,10 +20,11 @@ def create_binary_sequence(length):
 
     E.g., can be used for `Individual.create_population`
 
-    >>> from leap_ec import core, binary_problems
-    >>> population = Individual.create_population(10, core.create_binary_sequence(length=10),
-    ...                                           decoder=core.IdentityDecoder(),
-    ...                                           problem=binary_problems.MaxOnes())
+    >>> from leap_ec.decoder import IdentityDecoder
+    >>> from problems import MaxOnes
+    >>> population = Individual.create_population(10, create_binary_sequence(length=10),
+    ...                                           decoder=IdentityDecoder(),
+    ...                                           problem=MaxOnes())
 
     """
 

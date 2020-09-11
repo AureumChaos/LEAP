@@ -17,7 +17,7 @@ from typing import Iterator, List, Tuple, Callable
 import toolz
 from toolz import curry
 
-from leap_ec.core import Individual
+from . individual import Individual
 from leap_ec import util
 
 

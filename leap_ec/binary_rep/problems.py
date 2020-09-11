@@ -5,7 +5,6 @@ import numpy as np
 from PIL import Image, ImageOps
 
 from leap_ec.problem import ScalarProblem
-from leap_ec import core
 
 
 ##############################
