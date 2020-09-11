@@ -2,6 +2,7 @@
 """
     Used to initialize binary sequences
 """
+import random
 
 ##############################
 # Closure create_binary_sequence

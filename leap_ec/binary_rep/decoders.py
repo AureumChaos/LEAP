@@ -2,6 +2,8 @@
 """
     Decoders for binary representations.
 """
+from toolz.itertoolz import pluck
+
 from .. decoder import Decoder
 
 ##############################
