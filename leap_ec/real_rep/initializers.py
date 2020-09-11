@@ -2,7 +2,8 @@
 """
     Initializers for real values.
 """
-from .. individual import Individual
+import random
+from leap_ec.individual import Individual
 
 ##############################
 # Closure create_real_vector
