@@ -13,7 +13,7 @@ import toolz
 
 from dask.distributed import as_completed
 
-from leap_ec import core
+from leap_ec.context import context
 from leap_ec import util
 
 from .evaluate import evaluate, is_viable
@@ -35,7 +35,7 @@ logger.addHandler(console_handler)
 ##############################
 # function eval_population
 ##############################
-def eval_population(population, client, context=core.context):
+def eval_population(population, client, context=context):
     """ Concurrently evaluate all the individuals in the given population
 
     :param population: to be evaluated
