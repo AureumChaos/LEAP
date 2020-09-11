@@ -234,11 +234,11 @@ class Individual:
         """
         try:
             self.fitness = self.evaluate_imp()
-            self.is_viable = True # we were able to evaluate
+            self.is_viable = True  # we were able to evaluate
         except Exception as e:
             self.fitness = nan
             self.exception = e
-            self.is_viable = False # we could not complete an eval
+            self.is_viable = False  # we could not complete an eval
 
         # Even though we've already *set* the fitness, it may be useful to also
         # *return* it to give more options to the programmer for using the

@@ -1,10 +1,10 @@
-""" This module provides machinery for representing and evolving executable
-objects (i.e. \"brains\") of various kinds.
+""" This module provides machinery for representing executable objects
+of various kinds—ex. functions, agent controllers, etc.—that serve as problem 
+¯solutions.
 
-A LEAP \"brain\" is a kind of phenotype, and it is constructed when we use a
-:class:`~leap.core.Decoder` to convert a genotypic representation of the
-brain into an executable phenotype.
-
+A LEAP `Executable` is a kind of phenotype, and it is constructed when we use a
+:class:`~leap_ec.core.Decoder` from the `executable.decoder` module to convert a 
+genotypic representation of the object into an executable phenotype.
 """
 
 import abc
@@ -17,20 +17,21 @@ from leap_ec import core, real_problems
 
 
 ##############################
-# Abstract Class Brain
+# Abstract Class Executable
 ##############################
-class Brain(abc.ABC):
+class Executable(abc.ABC):
     @abc.abstractmethod
     def output(self, input):
         pass
 
 
 ##############################
-# Class RandomBrain
+# Class RandomExecutable
 ##############################
-class RandomBrain(Brain):
+class RandomExecutable(Executable):
     """
-    A trivial 'brain' that samples a random value from its output space.
+    A trivial `Executable` phenotype that samples a random value from its 
+    output space.
 
     :param input_space: space of possible inputs (ignored)
     :param output_space: the space of possible actions to sample from,
@@ -58,7 +59,7 @@ class RandomBrain(Brain):
 
         Then this method will sample a random 2-D point in that box:
 
-        >>> b = RandomBrain(None, output_space)
+        >>> b = RandomExecutable(None, output_space)
         >>> b.output(input='whatever')
         array([..., ...], dtype=float32)
         """
@@ -66,12 +67,12 @@ class RandomBrain(Brain):
 
 
 ##############################
-# Class KeyboardBrain
+# Class KeyboardExecutable
 ##############################
-class KeyboardBrain(Brain):
+class KeyboardExecutable(Executable):
     """
-    A non-autonomous 'brain' that allows users to control an agent via the
-    keyboard.
+    A non-autonomous `Executable` phenotype that allows users to control an 
+    agent via the keyboard.
 
     :param input_space: space of possible inputs (ignored)
     :param output_space: the space of possible actions to sample from,
@@ -85,10 +86,10 @@ class KeyboardBrain(Brain):
         assert (output_space is not None)
         if np.prod(output_space.shape) > 1:
             raise ValueError(
-                "This environment requires a 'brain' with {0} ".format(
+                "This environment requires an Executable with {0} ".format(
                     np.prod(output_space.shape)) +
                 "outputs, but {0} can only produce 1 output at a time.".format(
-                    KeyboardBrain.__name__))
+                    KeyboardExecutable.__name__))
         assert (keymap is not None)
         self.output_space = output_space
         self.keymap = keymap
@@ -111,60 +112,12 @@ class KeyboardBrain(Brain):
 
 
 ##############################
-# Class BrainProblem
+# Class PittRulesExecutable
 ##############################
-class BrainProblem(real_problems.ScalarProblem):
-    def __init__(self, runs, steps, environment, behavior_fitness,
-                 stop_on_done=True, maximize=True):
-        super().__init__(maximize)
-        self.runs = runs
-        self.steps = steps
-        self.environment = environment
-        self.behavior_fitness = behavior_fitness
-        self.stop_on_done = stop_on_done
-
-    def evaluate(self, brain):
-        observations = []
-        rewards = []
-        for r in range(self.runs):
-            observation = self.environment.reset()
-            run_observations = [observation]
-            run_rewards = []
-            for t in range(self.steps):
-                self.environment.render()
-                action = brain.output(observation)
-                observation, reward, done, info = self.environment.step(action)
-                run_observations.append(observation)
-                run_rewards.append(reward)
-                if self.stop_on_done and done:
-                    break
-            observations.append(run_observations)
-            rewards.append(run_rewards)
-        return self.behavior_fitness(observations, rewards)
-
-
-##############################
-# reward_fitness function
-##############################
-def reward_fitness(observations, rewards):
-    sums = [sum(run) for run in rewards]
-    return np.mean(sums)
-
-
-##############################
-# survival_fitness function
-##############################
-def survival_fitness(observations, rewards):
-    return np.mean([len(o) for o in observations])
-
-
-##############################
-# Class PittRulesBrain
-##############################
-class PittRulesBrain(Brain):
+class PittRulesExecutable(Executable):
     """
-    A 'brain' that interprets a Pittsburgh-style ruleset and outputs the
-    appropriate action.
+    An `Executable` phenotype that interprets a Pittsburgh-style ruleset and 
+    outputs the appropriate action.
 
     :param input_space: an OpenAI-gym-style space defining the inputs
     :param output_space: an OpenAI-gym-style space defining the outputs
@@ -187,7 +140,7 @@ class PittRulesBrain(Brain):
     ...          [0.4,1.0, 0.6,1.0, 1]]
 
     The input and output spaces are defined in the style of OpenAI gym.  For
-    example, here's how you would set up a PittRulesBrain with the above
+    example, here's how you would set up a PittRulesExecutable with the above
     ruleset that takes two continuous input variables on `(0.0, 1.0)`,
     and outputs discrete values in `{0, 1}`:
 
@@ -195,8 +148,8 @@ class PittRulesBrain(Brain):
     >>> from gym import spaces
     >>> input_space = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
     >>> output_space = spaces.Discrete(2)
-    >>> brain = PittRulesBrain(input_space, output_space, rules,
-    ...                        priority_metric=PittRulesBrain.PriorityMetric.RULE_ORDER)
+    >>> rules = PittRulesExecutable(input_space, output_space, rules,
+    ...                             priority_metric=PittRulesExecutable.PriorityMetric.RULE_ORDER)
     """
 
     PriorityMetric = Enum('PriorityMetric', 'RULE_ORDER GENERALITY PERIMETER')
@@ -208,7 +161,7 @@ class PittRulesBrain(Brain):
         assert (rules is not None)
         assert (len(rules) > 0)
         assert (priority_metric in \
-                PittRulesBrain.PriorityMetric.__members__.values())
+                PittRulesExecutable.PriorityMetric.__members__.values())
 
         self.input_space = input_space
         self.num_inputs = int(np.prod(input_space.shape))
@@ -222,11 +175,11 @@ class PittRulesBrain(Brain):
 
     def __priority(self, rule_order, rule, priority_metric):
         """Compute the priority value to a given rule."""
-        if priority_metric == PittRulesBrain.PriorityMetric.RULE_ORDER:
+        if priority_metric == PittRulesExecutable.PriorityMetric.RULE_ORDER:
             return rule_order
-        elif priority_metric == PittRulesBrain.PriorityMetric.GENERALITY:
+        elif priority_metric == PittRulesExecutable.PriorityMetric.GENERALITY:
             pass
-        elif priority_metric == PittRulesBrain.PriorityMetric.PERIMETER:
+        elif priority_metric == PittRulesExecutable.PriorityMetric.PERIMETER:
             pass
         else:
             raise ValueError(
@@ -278,35 +231,35 @@ class PittRulesBrain(Brain):
         >>> ruleset = [[0.0,0.6, 0.0,0.5, 0],
         ...            [0.4,1.0, 0.3,1.0, 1]]
 
-        We build a brain around it like so:
+        We build an executable around it like so:
 
         >>> import numpy as np
         >>> from gym import spaces
         >>> input_space = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
         >>> output_space = spaces.Discrete(2)
-        >>> brain = PittRulesBrain(input_space, output_space, ruleset,
-        ...                        priority_metric=PittRulesBrain.PriorityMetric.RULE_ORDER)
+        >>> rules = PittRulesExecutable(input_space, output_space, ruleset,
+        ...                             priority_metric=PittRulesExecutable.PriorityMetric.RULE_ORDER)
 
         It outputs `0` for inputs that are covered by only the first rule:
 
-        >>> brain.output([0.1, 0.1])
+        >>> rules.output([0.1, 0.1])
         0
 
-        >>> brain.output([0.5, 0.3])
+        >>> rules.output([0.5, 0.3])
         0
 
         It outputs `1` for inputs that are covered by only the second rule:
 
-        >>> brain.output([0.9, 0.9])
+        >>> rules.output([0.9, 0.9])
         1
 
-        >>> brain.output([0.5, 0.6])
+        >>> rules.output([0.5, 0.6])
         1
 
         If a point is covered by both rules, the first rule fires (because we set `priority_metric` to `RULE_ORDER`),
         and it outputs `0`:
 
-        >>> brain.output([0.5, 0.5])
+        >>> rules.output([0.5, 0.5])
         0
 
         Note that if the system has more than one output, a list is returned:
@@ -314,9 +267,9 @@ class PittRulesBrain(Brain):
         >>> ruleset = [[0.0,0.6, 0.0,0.5, 0, 1],
         ...            [0.4,1.0, 0.3,1.0, 1, 0]]
         >>> output_space = spaces.MultiBinary(2)  # A space with two binary outputs
-        >>> brain = PittRulesBrain(input_space, output_space, ruleset,
-        ...                        priority_metric=PittRulesBrain.PriorityMetric.RULE_ORDER)
-        >>> brain.output([0.1, 0.1])
+        >>> rules = PittRulesExecutable(input_space, output_space, ruleset,
+        ...                             priority_metric=PittRulesExecutable.PriorityMetric.RULE_ORDER)
+        >>> rules.output([0.1, 0.1])
         [0, 1]
 
         """
@@ -346,30 +299,3 @@ class PittRulesBrain(Brain):
             return output  # Return a list of outputs if there are more than one
         else:
             return output[0]  # Return just the raw output if there is only one
-
-
-##############################
-# Class PittRulesDecoder
-##############################
-class PittRulesDecoder(core.Decoder):
-    def __init__(self, input_space, output_space, priority_metric,
-                 num_memory_registers):
-        assert (input_space is not None)
-        assert (output_space is not None)
-        assert (num_memory_registers >= 0)
-        self.input_space = input_space
-        self.num_inputs = int(np.prod(input_space.shape))
-        self.output_space = output_space
-        self.num_outputs = int(np.prod(output_space.shape))
-        self.priority_metric = priority_metric
-        self.num_memory_registers = num_memory_registers
-
-    def decode(self, genome):
-        assert (genome is not None)
-        assert (len(genome) > 0)
-        rule_length = self.num_inputs * 2 + \
-                      self.num_outputs + self.num_memory_registers
-        assert (len(genome) % rule_length == 0)
-        rules = np.reshape(genome, (-1, rule_length))
-        return PittRulesBrain(self.input_space, self.output_space, rules,
-                              self.priority_metric)

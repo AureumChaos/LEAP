@@ -7,7 +7,8 @@ import gym
 from matplotlib import pyplot as plt
 import numpy as np
 
-from leap_ec import brains, core, real_problems, probe, ops
+from leap_ec import core, real_problems, probe, ops
+from leap_ec.executable import problem, decoder, phenotype
 from leap_ec.algorithm import generational_ea
 
 
@@ -35,18 +36,18 @@ def list_envs():
 def keyboard(runs, steps, env):
     """Run an environment and control it with the keyboard."""
     environment = gym.make(env)
-    brain = brains.KeyboardBrain(
-        environment.observation_space,
-        environment.action_space)
+    controller = phenotype.KeyboardExecutable(
+                 environment.observation_space,
+                 environment.action_space)
 
-    # Wire our brain's keyboard function into the viewer's events
+    # Wire our controller's keyboard function into the viewer's events
     environment.render()
-    environment.unwrapped.viewer.window.on_key_press = brain.key_press
-    environment.unwrapped.viewer.window.on_key_release = brain.key_release
+    environment.unwrapped.viewer.window.on_key_press = controller.key_press
+    environment.unwrapped.viewer.window.on_key_release = controller.key_release
 
     # Hand over control of the environment to the Problem
-    p = brains.BrainProblem(runs, steps, environment, brains.reward_fitness)
-    print(p.evaluate(brain))
+    p = problem.ExecutableProblem(runs, steps, environment, 'reward')
+    print(p.evaluate(controller))
 
 
 @cli.command()
@@ -57,13 +58,13 @@ def keyboard(runs, steps, env):
 @click.option('--env', default='CartPole-v0',
               help='The OpenAI Gym environment to run.')
 def random(runs, steps, env):
-    """Run an environment controlled by a random brain."""
+    """Run an environment controlled by a random `Executable`."""
     environment = gym.make(env)
-    brain = brains.RandomBrain(
-        environment.observation_space,
-        environment.action_space)
-    p = brains.BrainProblem(runs, steps, environment, brains.reward_fitness)
-    print(p.evaluate(brain))
+    controller = phenotype.RandomExecutable(
+                 environment.observation_space,
+                 environment.action_space)
+    p = problem.ExecutableProblem(runs, steps, environment, 'reward')
+    print(p.evaluate(controller))
 
 
 @cli.command()
@@ -110,14 +111,14 @@ def evolve_pitt(runs, steps, env, evals, pop_size,
         ea = generational_ea(generations=evals, pop_size=pop_size,
                              # Solve a problem that executes agents in the
                              # environment and obtains fitness from it
-                             problem=brains.BrainProblem(
-                                 runs, steps, environment, brains.reward_fitness),
+                             problem=problem.ExecutableProblem(
+                                 runs, steps, environment, 'reward'),
 
                              representation=core.Representation(
-                                 decoder=brains.PittRulesDecoder(  # Decode genomes into Pitt-style rules
+                                 decoder=decoder.PittRulesDecoder(  # Decode genomes into Pitt-style rules
                                      input_space=environment.observation_space,
                                      output_space=environment.action_space,
-                                     priority_metric=brains.PittRulesBrain.PriorityMetric.RULE_ORDER,
+                                     priority_metric=phenotype.PittRulesExecutable.PriorityMetric.RULE_ORDER,
                                      num_memory_registers=0
                                  ),
 
@@ -162,16 +163,16 @@ def run_pitt(runs, steps, env, rules):
     # Convert rules string into a list of floats
     rules = list(map(float, rules.split(',')))
     environment = gym.make(env)
-    decoder = brains.PittRulesDecoder(
+    decoder = decoder.PittRulesDecoder(
         input_space=environment.observation_space,
         output_space=environment.action_space,
-        priority_metric=brains.PittRulesBrain.PriorityMetric.RULE_ORDER,
+        priority_metric=phenotype.PittRulesExecutable.PriorityMetric.RULE_ORDER,
         num_memory_registers=0
     )
-    brain = decoder.decode(rules)
-    problem = brains.BrainProblem(
-        runs, steps, environment, brains.survival_fitness)
-    print(problem.evaluate(brain))
+    controller = decoder.decode(rules)
+    problem = problem.ExecutableProblem(
+        runs, steps, environment, 'survival')
+    print(problem.evaluate(controller))
 
 
 if __name__ == '__main__':
