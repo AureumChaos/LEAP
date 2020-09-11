@@ -5,10 +5,11 @@
     * generational_ea() for a typical generational model
     * multi_population_ea() for invoking an EA using sub-populations
 """
-from leap_ec import core, util, ops
+from leap_ec import util
 from toolz import pipe
-import random
 
+from leap_ec.context import context
+from leap_ec.individual import Individual
 
 ##############################
 # Function generational_ea
@@ -52,23 +53,29 @@ def generational_ea(generations, pop_size, representation, problem, pipeline):
     basic (mu, lambda)-style EA looks like (that is, an EA that throws away
     the parents at each generation in favor of their offspring):
 
-    >>> from leap_ec import core, ops, binary_problems
+    >>> from leap_ec.binary_rep.problems import MaxOnes
+    >>> from leap_ec.binary_rep.initializers import create_binary_sequence
+    >>> from leap_ec.binary_rep.ops import mutate_bitflip
+    >>> from leap_ec.representation import Representation
+    >>> from leap_ec.decoder import IdentityDecoder
+    >>> from leap_ec.individual import Individual
+    >>> import leap_ec.ops as ops
     >>> l = 10  # The length of the genome
     >>> pop_size = 5
     >>> ea = generational_ea(generations=100, pop_size=pop_size,
-    ...                      problem=binary_problems.MaxOnes(),      # Solve a MaxOnes Boolean optimization problem
+    ...                      problem=MaxOnes(),      # Solve a MaxOnes Boolean optimization problem
     ...
-    ...                      representation=core.Representation(
-    ...                          individual_cls=core.Individual,     # Use the standard Individual as the prototype for the population
-    ...                          decoder=core.IdentityDecoder(),     # Genotype and phenotype are the same for this task
-    ...                          initialize=core.create_binary_sequence(length=10)  # Initial genomes are random binary sequences
+    ...                      representation=Representation(
+    ...                          individual_cls=Individual,     # Use the standard Individual as the prototype for the population
+    ...                          decoder=IdentityDecoder(),     # Genotype and phenotype are the same for this task
+    ...                          initialize=create_binary_sequence(length=10)  # Initial genomes are random binary sequences
     ...                      ),
     ...
     ...                      # The operator pipeline
     ...                      pipeline=[
     ...                          ops.tournament,                     # Select parents via tournament selection
     ...                          ops.clone,                          # Copy them (just to be safe)
-    ...                          ops.mutate_bitflip,                 # Basic mutation: defaults to a 1/L mutation rate
+    ...                          mutate_bitflip,                     # Basic mutation: defaults to a 1/L mutation rate
     ...                          ops.uniform_crossover(p_swap=0.4),  # Crossover with a 40% chance of swapping each gene
     ...                          ops.evaluate,                       # Evaluate fitness
     ...                          ops.pool(size=pop_size)             # Collect offspring into a new population
@@ -94,11 +101,11 @@ def generational_ea(generations, pop_size, representation, problem, pipeline):
     parents = representation.create_population(pop_size, problem=problem)
 
     # Evaluate initial population
-    parents = core.Individual.evaluate_population(parents)
+    parents = Individual.evaluate_population(parents)
 
     # Set up a generation counter that records the current generation to
     # core.context
-    generation_counter = util.inc_generation(context=core.context)
+    generation_counter = util.inc_generation(context=context)
 
     # Output the best individual in the initial population
     bsf = max(parents)
@@ -123,8 +130,8 @@ def generational_ea(generations, pop_size, representation, problem, pipeline):
 ##############################
 def multi_population_ea(generations, num_populations, pop_size, problem,
                         representation, shared_pipeline,
-                        subpop_pipelines=None, context=core.context,
-                        init_evaluate=core.Individual.evaluate_population):
+                        subpop_pipelines=None, context=context,
+                        init_evaluate=Individual.evaluate_population):
     """
     An EA that maintains multiple (interacting) subpopulations, i.e. for
     implementing island models.

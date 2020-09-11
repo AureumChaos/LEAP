@@ -3,6 +3,7 @@
     Binary representation specific pipeline operators.
 """
 from typing import Iterator, List, Tuple, Callable
+import random
 from toolz import curry
 
 from .. ops import compute_expected_probability, iteriter_op

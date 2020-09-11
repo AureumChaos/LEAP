@@ -7,7 +7,7 @@ This just serves as some syntactic sugar when we are specifying
 algorithms---so that representation-related components are grouped
 together and clearly labeled `Representation`.
 """
-from .. individual import Individual
+from leap_ec.individual import Individual
 
 ##############################
 # Class Representation
