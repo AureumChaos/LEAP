@@ -14,8 +14,8 @@ import abc
 ##############################
 class Decoder(abc.ABC):
     """Decoders in LEAP implement how solutions to a problem are represented.
-     Specifically, a :py:class:`~leap.core.Decoder` converts  an
-     :py:class:`~leap.core.Individual`'s *genotype* (which is a format that
+     Specifically, a :py:class:`~leap.Decoder` converts  an
+     :py:class:`~leap.Individual`'s *genotype* (which is a format that
      can easily be manipulated by mutation and recombination operators) into
      a *phenotype* (which is a format that can be fed directly into a
      :py:class:`~leap.problem.Problem` object to obtain a fitness value).
@@ -24,40 +24,42 @@ class Decoder(abc.ABC):
     numbers to a complex data structure. Choosing a good genotypic
     representation and genotype-to-phenotype mapping for a given problem
     domain is a critical part of evolutionary algorithm design: the
-    :py:class:`~leap.core.Decoder` object that an algorithm uses can have a
+    :py:class:`~leap.Decoder` object that an algorithm uses can have a
     big impact on the effectiveness of your metaheuristics.
 
-    In LEAP, a :py:class:`~leap.core.Decoder` is typically used by
-    :py:class:`~leap.core.Individual` as an intermediate step in calculating
+    In LEAP, a :py:class:`~leap.Decoder` is typically used by
+    :py:class:`~leap.Individual` as an intermediate step in calculating
     its own fitness.
 
     For example, say that we want to use a binary-represented
-    :py:class:`~leap.core.Individual` to solve a real-valued optimization
+    :py:class:`~leap.Individual` to solve a real-valued optimization
     problem, such as :py:class:`~leap.real_problems.SchwefelProblem`.  Here,
     the genotype is a vector of binary values, whereas the phenotype is its
     corresponding float vector.
 
-    We can use a :py:class:`~leap.core.BinaryToIntDecoder` to express this
+    We can use a :py:class:`~leap.BinaryToIntDecoder` to express this
     mapping.  And when we initialize an individual, we give it all three
     pieces of this information:
 
-    >>> from leap_ec import core, real_problems
+    >>> from leap_ec.binary_rep.decoders import BinaryToRealDecoder
+    >>> from leap_ec.individual import Individual
+    >>> from leap_ec.real_rep.problems import SchwefelProblem
     >>> genome = [0, 1, 1, 0, 1, 0, 1, 1]
     >>> decoder = BinaryToRealDecoder((4, -5.12, 5.12), (4, -5.12, 5.12))  # Every 4 bits map to a float on (-5.12, 5.12)
-    >>> ind = core.Individual(genome, decoder=decoder, problem=real_problems.SchwefelProblem())
+    >>> ind = Individual(genome, decoder=decoder, problem=SchwefelProblem())
 
     Now we can decode the individual to examine its phenotype:
 
     >>> ind.decode()
     [-1.024, 2.389333333333333]
 
-    This call is just a wrapper for the :py:class:`~leap.core.Decoder`,
+    This call is just a wrapper for the :py:class:`~leap_ec.Decoder`,
     which has the same output:
 
     >>> decoder.decode(genome)
     [-1.024, 2.389333333333333]
 
-    But now :py:class:`~leap.core.Individual` also has everything it needs to
+    But now :py:class:`~leap.Individual` also has everything it needs to
     evaluate its own fitness:
 
     >>> ind.evaluate()
