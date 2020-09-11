@@ -38,7 +38,8 @@ def print_probe(population, probe, stream=sys.stdout, prefix=''):
 ##############################
 @curry
 @iteriter_op
-def print_individual(next_individual: Iterator, prefix='', stream=sys.stdout) -> Iterator:
+def print_individual(next_individual: Iterator, prefix='',
+                     stream=sys.stdout) -> Iterator:
     """ Just echoes the individual from within the pipeline
 
     Uses next_individual.__str__
@@ -74,7 +75,7 @@ class BestSoFarProbe(op.Operator):
             self.bsf = ind
 
         self.writer.writerow({'step': self.context['leap']['generation'],
-                              'bsf': self.bsf.fitness
+                              'bsf' : self.bsf.fitness
                               })
 
         yield ind
@@ -144,10 +145,10 @@ class AttributesCSVProbe(op.Operator):
     here's how you'd record the best individual's fitness and genome to a
     dataframe:
 
-    >>> from leap_ec import core
+    >>> from leap_ec.context import context
     >>> from leap_ec.data import test_population
-    >>> probe = AttributesCSVProbe(core.context, do_dataframe=True, best_only=True, do_fitness=True, do_genome=True)
-    >>> core.context['leap']['generation'] = 100
+    >>> probe = AttributesCSVProbe(context, do_dataframe=True, best_only=True, do_fitness=True, do_genome=True)
+    >>> context['leap']['generation'] = 100
     >>> probe(test_population) == test_population
     True
 
@@ -168,8 +169,8 @@ class AttributesCSVProbe(op.Operator):
 
     >>> import io
     >>> stream = io.StringIO()
-    >>> probe = AttributesCSVProbe(core.context, attributes=['foo', 'bar'], stream=stream)
-    >>> core.context['leap']['generation'] = 100
+    >>> probe = AttributesCSVProbe(context, attributes=['foo', 'bar'], stream=stream)
+    >>> context['leap']['generation'] = 100
     >>> r = probe(test_population)
     >>> print(stream.getvalue())
     step,foo,bar
@@ -180,7 +181,9 @@ class AttributesCSVProbe(op.Operator):
     <BLANKLINE>
     """
 
-    def __init__(self, context, attributes=(), stream=sys.stdout, do_dataframe=False, best_only=False, header=True, do_fitness=False,
+    def __init__(self, context, attributes=(), stream=sys.stdout,
+                 do_dataframe=False, best_only=False, header=True,
+                 do_fitness=False,
                  do_genome=False, notes={}, computed_columns={}, job=None):
         assert ((stream is None) or hasattr(stream, 'write'))
         assert (len(attributes) >= 0)
@@ -231,8 +234,9 @@ class AttributesCSVProbe(op.Operator):
         """Property for retrieving a Pandas DataFrame representation of the
         collected data. """
         if not self.do_dataframe:
-            raise ValueError('Tried to retrieve a dataframe of results, but this ' +
-                             f'{type(AttributesCSVProbe).__name__} was initialized with dataframe=False.')
+            raise ValueError(
+                'Tried to retrieve a dataframe of results, but this ' +
+                f'{type(AttributesCSVProbe).__name__} was initialized with dataframe=False.')
         # We create the DataFrame on demand because it's inefficient to append to a DataFrame,
         # so we only want to create it after we are done generating data.
         return pd.DataFrame(self.data, columns=self.fieldnames)
@@ -313,7 +317,7 @@ class PopulationPlotProbe:
 
 
         plt.figure()  # Setup a figure to plot to
-        plot_probe = PopulationPlotProbe(core.context, ylim=(0, 70), ax=plt.gca())
+        plot_probe = PopulationPlotProbe(context, ylim=(0, 70), ax=plt.gca())
 
 
         # Create an algorithm that contains the probe in the operator pipeline
@@ -325,10 +329,10 @@ class PopulationPlotProbe:
         ea = generational_ea(generations=100, pop_size=pop_size,
                              problem=real_problems.SpheroidProblem(maximize=False),
 
-                             representation=core.Representation(
-                                individual_cls=core.Individual,
-                                decoder=core.IdentityDecoder(),
-                                initialize=core.create_real_vector(bounds=[[-5.12, 5.12]] * l)
+                             representation=Representation(
+                                individual_cls=Individual,
+                                decoder=IdentityDecoder(),
+                                initialize=create_real_vector(bounds=[[-5.12, 5.12]] * l)
                              ),
 
                              pipeline=[
@@ -351,7 +355,7 @@ class PopulationPlotProbe:
     """
 
     def __init__(self, context, ax=None, f=lambda x: best_of_gen(
-            x).fitness, xlim=(0, 100), ylim=(0, 1), modulo=1):
+        x).fitness, xlim=(0, 100), ylim=(0, 1), modulo=1):
 
         if ax is None:
             ax = plt.subplot(111)
@@ -431,13 +435,17 @@ class PlotTrajectoryProbe:
         import matplotlib.pyplot as plt
         from leap_ec.probe import PlotTrajectoryProbe
         from leap_ec.algorithm import generational_ea
-        from leap_ec import core, ops, real_problems
+        from leap_ec import ops
+        from leap_ec.decoder import IdentityDecoder
+        import leap_ec.real_rep.problems
+        from leap_ec.real_rep.initializers import create_real_vector
+        from leap_ec.real_rep.ops import mutate_gaussian
 
         # The fitness landscape
-        problem = real_problems.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
+        problem = problems.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
 
         # If no axis is provided, a new figure will be created for the probe to write to
-        trajectory_probe = PlotTrajectoryProbe(context=core.context,
+        trajectory_probe = PlotTrajectoryProbe(context=context,
                                                contours=problem,
                                                xlim=(0, 1), ylim=(0, 1),
                                                granularity=0.025)
@@ -448,17 +456,17 @@ class PlotTrajectoryProbe:
         ea = generational_ea(generations=20, pop_size=pop_size,
                              problem=problem,
 
-                             representation=core.Representation(
-                                individual_cls=core.Individual,
-                                initialize=core.create_real_vector(bounds=[[0.4, 0.6]] * 2),
-                                decoder=core.IdentityDecoder()
+                             representation=Representation(
+                                individual_cls=Individual,
+                                initialize=create_real_vector(bounds=[[0.4, 0.6]] * 2),
+                                decoder=IdentityDecoder()
                              ),
 
                              pipeline=[
                                  trajectory_probe,  # Insert the probe into the pipeline like so
                                  ops.tournament,
                                  ops.clone,
-                                 ops.mutate_gaussian(std=0.1, hard_bounds=(0, 1)),
+                                 mutate_gaussian(std=0.1, hard_bounds=(0, 1)),
                                  ops.evaluate,
                                  ops.pool(size=pop_size)
                              ])
@@ -532,7 +540,6 @@ def best_of_gen(population):
     :param population: a list of individuals
     :param context: optional `dict` of auxiliary state (ignored)
 
-    >>> from leap_ec import core, ops
     >>> from leap_ec.data import test_population
     >>> print(best_of_gen(test_population))
     [0, 1, 1, 1, 1]
