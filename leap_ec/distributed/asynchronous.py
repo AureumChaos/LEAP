@@ -135,7 +135,7 @@ def steady_state(client, births, init_pop_size, pop_size,
                  problem, offspring_pipeline,
                  inserter=greedy_insert_into_pop,
                  count_nonviable=False,
-                 context=core.context,
+                 context=context,
                  evaluated_probe=None,
                  pop_probe=None):
     """ Implements an asynchronous steady-state EA
