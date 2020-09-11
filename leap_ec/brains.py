@@ -13,8 +13,8 @@ import time
 
 import numpy as np
 
-from leap_ec import core, real_problems
-
+from leap_ec.problem import ScalarProblem
+from leap_ec.decoder import Decoder
 
 ##############################
 # Abstract Class Brain
@@ -113,7 +113,7 @@ class KeyboardBrain(Brain):
 ##############################
 # Class BrainProblem
 ##############################
-class BrainProblem(real_problems.ScalarProblem):
+class BrainProblem(ScalarProblem):
     def __init__(self, runs, steps, environment, behavior_fitness,
                  stop_on_done=True, maximize=True):
         super().__init__(maximize)
@@ -351,7 +351,7 @@ class PittRulesBrain(Brain):
 ##############################
 # Class PittRulesDecoder
 ##############################
-class PittRulesDecoder(core.Decoder):
+class PittRulesDecoder(Decoder):
     def __init__(self, input_space, output_space, priority_metric,
                  num_memory_registers):
         assert (input_space is not None)
