@@ -4,6 +4,8 @@
 """
 import random
 
+from .. individual import Individual
+
 ##############################
 # Closure create_binary_sequence
 ##############################
