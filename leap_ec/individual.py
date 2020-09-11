@@ -2,6 +2,7 @@
 """
     Defines `Individual`
 """
+from math import nan, isnan
 from copy import deepcopy
 from functools import total_ordering
 
