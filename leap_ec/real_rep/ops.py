@@ -4,7 +4,7 @@
 """
 import math
 import random
-
+from typing import Tuple
 
 ##############################
 # Function mutate_gaussian
