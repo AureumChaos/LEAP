@@ -1,11 +1,12 @@
 import numpy as np
 
+from leap_ec.decoder import Decoder
 from .phenotype import *
 
 ##############################
 # Class PittRulesDecoder
 ##############################
-class PittRulesDecoder(core.Decoder):
+class PittRulesDecoder(Decoder):
     """Construct a Pitt-approach rule system (phenotype) out of a real-valued 
     genome.
     """

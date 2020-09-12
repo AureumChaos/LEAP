@@ -2,7 +2,7 @@ from enum import Enum
 
 import numpy as np
 
-from leap_ec.real_problems import ScalarProblem
+from leap_ec.real_rep.problems import ScalarProblem
 
 ##############################
 # Class ExecutableProblem
