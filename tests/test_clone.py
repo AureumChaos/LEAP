@@ -25,7 +25,3 @@ def test_clone():
     assert original.decoder == cloned.decoder
     assert original.problem == cloned.problem
     assert original.__dict__ == cloned.__dict__
-
-
-
-
