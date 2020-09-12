@@ -21,26 +21,32 @@ leap\_ec.algorithm module
    :undoc-members:
    :show-inheritance:
 
-leap\_ec.binary\_problems module
---------------------------------
+leap\_ec.binary_rep package
+---------------------------
+.. automodule:: leap_ec.binary_rep.decoders
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
-.. automodule:: leap_ec.binary_problems
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. automodule:: leap_ec.binary_rep.initializers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. automodule:: leap_ec.binary_rep.ops
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. automodule:: leap_ec.binary_rep.problems
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 leap\_ec.brains module
 ----------------------
 
 .. automodule:: leap_ec.brains
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-leap\_ec.core module
---------------------
-
-.. automodule:: leap_ec.core
    :members:
    :undoc-members:
    :show-inheritance:
@@ -77,13 +83,23 @@ leap\_ec.problem module
    :undoc-members:
    :show-inheritance:
 
-leap\_ec.real\_problems module
-------------------------------
+leap\_ec.real_rep package
+---------------------------
 
-.. automodule:: leap_ec.real_problems
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. automodule:: leap_ec.binary_rep.initializers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. automodule:: leap_ec.binary_rep.ops
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. automodule:: leap_ec.binary_rep.problems
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 leap\_ec.simple module
 ----------------------
@@ -109,3 +125,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+
