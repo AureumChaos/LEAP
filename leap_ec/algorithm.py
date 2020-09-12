@@ -224,7 +224,7 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
     While each population is executing, `multi_population_ea` writes the
     index of the current subpopulation to `context['leap'][
     'subpopulation']`.  That way shared operators (such as
-    :py:function:`leap.ops.migrate`) have the option of accessing the share
+    :py:func:`leap.ops.migrate`) have the option of accessing the share
     context to learn which subpopulation they are currently working with.
 
     """

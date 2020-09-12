@@ -26,7 +26,7 @@ def print_probe(population, probe, stream=sys.stdout, prefix=''):
     :param probe:
     :param stream:
     :param prefix:
-    :return:
+    :return: population
     """
     val = prefix + str(probe(population))
     stream.write(val)
@@ -168,6 +168,7 @@ class AttributesCSVProbe(op.Operator):
     how to use the probe without a dataframe:
 
     >>> import io
+    >>> from leap_ec.context import context
     >>> stream = io.StringIO()
     >>> probe = AttributesCSVProbe(context, attributes=['foo', 'bar'], stream=stream)
     >>> context['leap']['generation'] = 100
@@ -313,7 +314,8 @@ class PopulationPlotProbe:
 
         import matplotlib.pyplot as plt
         from leap_ec.probe import PopulationPlotProbe
-
+        from leap_ec.context import context
+        from leap_ec.representation import Representation
 
         plt.figure()  # Setup a figure to plot to
         plot_probe = PopulationPlotProbe(context, ylim=(0, 70), ax=plt.gca())
@@ -325,7 +327,7 @@ class PopulationPlotProbe:
         from leap_ec import ops
         from leap_ec.real_rep.problems import SpheroidProblem
         from leap_ec.real_rep.ops import mutate_gaussian
-
+        from leap_ec.real_rep.initializers import create_real_vector
 
         from leap_ec.algorithm import generational_ea
 
@@ -418,11 +420,9 @@ class PlotTrajectoryProbe:
     :type xlim: (float, float)
     :param ylim: Bounds of the vertical axis.
     :type ylim: (float, float)
-
     :param ~leap.problem.Problem contours: a problem defining a 2-D fitness
-    function (this will be used to draw fitness contours in the background of
-    the scatterplot).
-
+        function (this will be used to draw fitness contours in the background of
+        the scatterplot).
     :param float granularity: (Optional) spacing of the grid to sample points
         along while drawing the fitness contours. If none is given, then the
         granularity will default to 1/50th of the range of the function's
@@ -439,16 +439,20 @@ class PlotTrajectoryProbe:
 
         import matplotlib.pyplot as plt
         from leap_ec.probe import PlotTrajectoryProbe
+        from leap_ec.representation import Representation
+
         from leap_ec.individual import Individual
         from leap_ec.algorithm import generational_ea
+        from leap_ec.context import context
+
         from leap_ec import ops
         from leap_ec.decoder import IdentityDecoder
-        import leap_ec.real_rep.problems
+        from leap_ec.real_rep.problems import CosineFamilyProblem
         from leap_ec.real_rep.initializers import create_real_vector
         from leap_ec.real_rep.ops import mutate_gaussian
 
         # The fitness landscape
-        problem = problems.CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
+        problem = CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
 
         # If no axis is provided, a new figure will be created for the probe to write to
         trajectory_probe = PlotTrajectoryProbe(context=context,

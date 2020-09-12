@@ -133,12 +133,4 @@ leap\_ec.util module
     :noindex:
 
 
-Module contents
----------------
-
-.. automodule:: leap_ec
-    :members:
-    :undoc-members:
-    :show-inheritance:
-    :noindex:
 

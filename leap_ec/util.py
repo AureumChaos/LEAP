@@ -54,10 +54,9 @@ def inc_generation(context, callbacks=()):
     >>> my_inc_generation = inc_generation(context)
 
     :param context: will set ['leap']['generation'] to the incremented
-    generation
-
+        generation
     :param callbacks: optional list of callback function to call when a
-           generation is incremented
+        generation is incremented
     :return: function for incrementing generations
     """
     curr_generation = 0
