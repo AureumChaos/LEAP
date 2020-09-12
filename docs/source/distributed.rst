@@ -93,9 +93,16 @@ Example
 
     from dask.distributed import Client, LocalCluster
 
-    from leap_ec import core
-    from leap_ec import ops
-    from leap_ec import binary_problems
+    from leap_ec.individual import Individual
+    from leap_ec.decoder import IdentityDecoder
+    from leap_ec.representation import Representation
+
+    import leap_ec.ops as ops
+
+    from leap_ec.binary_rep.problems import MaxOnes
+    from leap_ec.binary_rep.initializers import create_binary_sequence
+    from leap_ec.binary_rep.ops import mutate_bitflip
+
     from leap_ec.distributed import asynchronous
     from leap_ec.distributed.probe import log_worker_location, log_pop
     from leap_ec.distributed.individual import DistributedIndividual
@@ -111,18 +118,18 @@ Example
                                       init_pop_size=INIT_POP_SIZE,
                                       pop_size=POP_SIZE,
 
-                                      representation=core.Representation(
-                                          decoder=core.IdentityDecoder(),
-                                          initialize=core.create_binary_sequence(
+                                      representation=Representation(
+                                          decoder=IdentityDecoder(),
+                                          initialize=create_binary_sequence(
                                               GENOME_LENGTH),
                                           individual_cls=DistributedIndividual),
 
-                                      problem=binary_problems.MaxOnes(),
+                                      problem=MaxOnes(),
 
                                       offspring_pipeline=[
                                           ops.random_selection,
                                           ops.clone,
-                                          ops.mutate_bitflip,
+                                              mutate_bitflip,
                                           ops.pool(size=1)],
 
                                       evaluated_probe=track_workers_func,
@@ -207,7 +214,7 @@ as follows:
     tensorflow throws an exception.)
 
 :context: contains global state where the running number of births and non-viable individuals
-    is kept.  This defaults to `core.context`.
+    is kept.  This defaults to `context`.
 
 DistributedIndividual
 ^^^^^^^^^^^^^^^^^^^^^
