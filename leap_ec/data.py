@@ -1,18 +1,19 @@
 """A module for synthetic data that we use in test and examples."""
-
-from leap_ec import core, binary_problems
+from leap_ec.individual import Individual
+from leap_ec.binary_rep.problems import MaxOnes
+from leap_ec.decoder import IdentityDecoder
 
 def _build_test_pop():
     """Construct a synthetic population for illustrating example operations."""
-    pop = [core.Individual([1, 0, 1, 1, 0], core.IdentityDecoder(),
-                           binary_problems.MaxOnes()),
-           core.Individual([0, 0, 1, 0, 0], core.IdentityDecoder(),
-                           binary_problems.MaxOnes()),
-           core.Individual([0, 1, 1, 1, 1], core.IdentityDecoder(),
-                           binary_problems.MaxOnes()),
-           core.Individual([1, 0, 0, 0, 1], core.IdentityDecoder(),
-                           binary_problems.MaxOnes())]
-    pop = core.Individual.evaluate_population(pop)
+    pop = [Individual([1, 0, 1, 1, 0], IdentityDecoder(),
+                           MaxOnes()),
+           Individual([0, 0, 1, 0, 0], IdentityDecoder(),
+                           MaxOnes()),
+           Individual([0, 1, 1, 1, 1], IdentityDecoder(),
+                           MaxOnes()),
+           Individual([1, 0, 0, 0, 1], IdentityDecoder(),
+                           MaxOnes())]
+    pop = Individual.evaluate_population(pop)
 
     # Assign distinct values to an attribute on each individual
     attrs = [('foo', ['GREEN', 15, 'BLUE', 72.81]),

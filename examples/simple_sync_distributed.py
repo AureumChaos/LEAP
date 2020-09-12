@@ -5,9 +5,15 @@
 import toolz
 from dask.distributed import Client
 
-from leap_ec import core
-from leap_ec import ops
-from leap_ec import binary_problems
+from leap_ec.individual import Individual
+from leap_ec.decoder import IdentityDecoder
+import leap_ec.ops as ops
+
+
+from leap_ec.binary_rep.problems import MaxOnes
+from leap_ec.binary_rep.initializers import create_binary_sequence
+from leap_ec.binary_rep.ops import mutate_bitflip
+
 from leap_ec.distributed import synchronous
 
 if __name__ == '__main__':
@@ -15,10 +21,10 @@ if __name__ == '__main__':
     with Client() as client:
         # create an initial population of 5 parents of 4 bits each for the
         # MAX ONES problem
-        parents = core.Individual.create_population(5,
-                                                    initialize=core.create_binary_sequence(4),
-                                                    decoder=core.IdentityDecoder(),
-                                                    problem=binary_problems.MaxOnes())
+        parents = Individual.create_population(5,
+                                                    initialize=create_binary_sequence(4),
+                                                    decoder=IdentityDecoder(),
+                                                    problem=MaxOnes())
 
         # Scatter the initial parents to dask workers for evaluation
         parents = synchronous.eval_population(parents, client=client)
@@ -27,7 +33,7 @@ if __name__ == '__main__':
             offspring = toolz.pipe(parents,
                                    ops.tournament,
                                    ops.clone,
-                                   ops.mutate_bitflip,
+                                   mutate_bitflip,
                                    ops.uniform_crossover,
                                    # Scatter offspring to be evaluated
                                    synchronous.eval_pool(client=client,

@@ -1,17 +1,16 @@
 """
     Unit test for selection operators.
 """
-import itertools
-
-from leap_ec import core
-from leap_ec import ops
-from leap_ec import binary_problems
+from leap_ec.individual import Individual
+from leap_ec.decoder import IdentityDecoder
+from leap_ec.binary_rep.problems import MaxOnes
+import leap_ec.ops as ops
 
 
 def test_naive_cyclic_selection():
     """ Test of the naive deterministic cyclic selection """
-    pop = [core.Individual([0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
-           core.Individual([0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())]
+    pop = [Individual([0, 0], decoder=IdentityDecoder(), problem=MaxOnes()),
+           Individual([0, 1], decoder=IdentityDecoder(), problem=MaxOnes())]
 
     # This selection operator will deterministically cycle through the
     # given population
@@ -54,13 +53,13 @@ def test_cyclic_selection():
 
 def test_truncation_selection():
     """ Basic truncation selection test"""
-    pop = [core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
-           core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
-           core.Individual([1, 1, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
-           core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())]
+    pop = [Individual([0, 0, 0], decoder=IdentityDecoder(), problem=MaxOnes()),
+           Individual([0, 0, 1], decoder=IdentityDecoder(), problem=MaxOnes()),
+           Individual([1, 1, 0], decoder=IdentityDecoder(), problem=MaxOnes()),
+           Individual([1, 1, 1], decoder=IdentityDecoder(), problem=MaxOnes())]
 
     # We first need to evaluate all the individuals so that truncation selection has fitnesses to compare
-    pop = core.Individual.evaluate_population(pop)
+    pop = Individual.evaluate_population(pop)
 
     truncated = ops.truncate(pop, 2)
 
@@ -77,14 +76,14 @@ def test_truncation_parents_selection():
     Create parent and offspring populations such that each has an "best" individual that will be selected by
     truncation selection.
     """
-    parents = [core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
-               core.Individual([1, 1, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())]
+    parents = [Individual([0, 0, 0], decoder=IdentityDecoder(), problem=MaxOnes()),
+               Individual([1, 1, 0], decoder=IdentityDecoder(), problem=MaxOnes())]
 
-    parents = core.Individual.evaluate_population(parents)
+    parents = Individual.evaluate_population(parents)
 
-    offspring = [core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
-                 core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())]
-    offspring = core.Individual.evaluate_population(offspring)
+    offspring = [Individual([0, 0, 1], decoder=IdentityDecoder(), problem=MaxOnes()),
+                 Individual([1, 1, 1], decoder=IdentityDecoder(), problem=MaxOnes())]
+    offspring = Individual.evaluate_population(offspring)
 
     truncated = ops.truncate(offspring, 2, parents=parents)
 
@@ -97,11 +96,11 @@ def test_truncation_parents_selection():
 def test_tournament_selection():
     """ This simple binary tournament selection """
     # Make a population where binary tournament has an obvious reproducible choice
-    pop = [core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
-           core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())]
+    pop = [Individual([0, 0, 0], decoder=IdentityDecoder(), problem=MaxOnes()),
+           Individual([1, 1, 1], decoder=IdentityDecoder(), problem=MaxOnes())]
 
     # We first need to evaluate all the individuals so that truncation selection has fitnesses to compare
-    pop = core.Individual.evaluate_population(pop)
+    pop = Individual.evaluate_population(pop)
 
     best = next(ops.tournament(pop))
     pass

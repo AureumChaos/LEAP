@@ -53,7 +53,7 @@ Here is an example of a LEAP pipeline:
         offspring = toolz.pipe(parents,
                                ops.tournament,
                                ops.clone,
-                               ops.mutate_bitflip,
+                                   mutate_bitflip,
                                ops.evaluate,
                                ops.pool(size=len(parents)))
 
@@ -74,7 +74,10 @@ Essentially the `ops.` functions are python co-routines that are driven by the
 last function, `ops.pool()` , that makes requests of the upstream operators to
 fill a pool of offspring.  Once the pool is filled, it is returned as the next
 set of offspring, which are then assigned to become the parents for the next
-generation.
+generation.  (`mutate_bitflip` is in `ops` but the one for binary
+representations; i.e., `binary_rep/ops.py`.  And, since `ops` is already used,
+we just directly import `mutate_bitflip`, which is why it does not have the
+`ops` qualifier.)
 
 .. figure:: _static/Pipeline.png
 

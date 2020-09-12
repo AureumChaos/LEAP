@@ -9,11 +9,11 @@ from toolz import curry
 
 from dask.distributed import get_worker
 
-from leap_ec import core
+from leap_ec.context import context
 
 
 @curry
-def evaluate(individual, context=core.context):
+def evaluate(individual, context=context):
     """ concurrently evaluate the given individual
 
     This is what's invoked on each dask worker to evaluate each individual.

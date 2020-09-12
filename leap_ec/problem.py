@@ -139,9 +139,10 @@ class ConstantProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap_ec import problem, real_problems
-       bounds = problem.ConstantProblem.bounds
-       real_problems.plot_2d_problem(problem.ConstantProblem(), xlim=bounds, ylim=bounds, granularity=0.025)
+       from leap_ec.problem import ConstantProblem
+       from leap_ec.real_rep.problems import plot_2d_problem
+       bounds = ConstantProblem.bounds
+       plot_2d_problem(ConstantProblem(), xlim=bounds, ylim=bounds, granularity=0.025)
 
     """
 

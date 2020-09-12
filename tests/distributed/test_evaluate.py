@@ -1,8 +1,8 @@
 """
     Tests for leap_ec.distributed.evaluate.
 """
-from leap_ec import core
-from leap_ec import binary_problems
+from leap_ec.individual import Individual
+from leap_ec.binary_rep.problems import MaxOnes
 from leap_ec.distributed.evaluate import evaluate
 
 # FIXME unable to use this standard import for Client, and I don't know why
@@ -18,10 +18,10 @@ def test_good_eval():
     # with Client() as client:
     #     # hand craft an individual that should evaluate fine
     #     # Let's try evaluating a single individual
-    #     individual = core.Individual([1, 1], decoder=core.IdentityDecoder(),
-    #                                  problem=binary_problems.MaxOnes())
+    #     individual = Individual([1, 1], decoder=IdentityDecoder(),
+    #                                  problem=MaxOnes())
     #
-    #     future = client.submit(evaluate(context=core.context),
+    #     future = client.submit(evaluate(context=context),
     #                            individual)
     #
     #     evaluated_individual = future.result()

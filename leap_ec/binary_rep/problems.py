@@ -1,10 +1,10 @@
 """
     A set of standard EA problems that rely on a binary-representation
 """
+import numpy as np
 from PIL import Image, ImageOps
 
 from leap_ec.problem import ScalarProblem
-from leap_ec import core
 
 
 ##############################
@@ -28,10 +28,12 @@ class MaxOnes(ScalarProblem):
 
     def evaluate(self, phenome):
         """
+        >>> from leap_ec.individual import Individual
+        >>> from leap_ec.decoder import IdentityDecoder
         >>> p = MaxOnes()
-        >>> ind = core.Individual([0, 0, 1, 1, 0, 1, 0, 1, 1],
-        ...                       decoder=core.IdentityDecoder(),
-        ...                       problem=p)
+        >>> ind = Individual([0, 0, 1, 1, 0, 1, 0, 1, 1],
+        ...                   decoder=IdentityDecoder(),
+        ...                   problem=p)
         >>> p.evaluate(ind.decode())
         5
         """

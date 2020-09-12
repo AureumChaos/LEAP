@@ -28,10 +28,10 @@ leap\_ec.distributed.individual module
    :undoc-members:
    :show-inheritance:
 
-leap\_ec.distributed.logging module
+leap\_ec.distributed.logger module
 -----------------------------------
 
-.. automodule:: leap_ec.distributed.logging
+.. automodule:: leap_ec.distributed.logger
    :members:
    :undoc-members:
    :show-inheritance:

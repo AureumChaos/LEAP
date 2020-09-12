@@ -1,12 +1,15 @@
 """
     Unit tests for the various pipeline probes.
 
-    Note that this *NOT* use python3 unittest.  pytest?
+    Note that this does *NOT* use python3 unittest.  pytest?
 """
 import io
 
+from leap_ec import data
 from leap_ec.probe import *
-from leap_ec import core, data, ops
+import leap_ec.ops as ops
+from leap_ec.context import context
+
 
 
 ##############################
@@ -27,10 +30,10 @@ def test_AttributesCSVProbe_1():
 
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
-    probe = AttributesCSVProbe(core.context, ['my_value'], stream)
+    probe = AttributesCSVProbe(context, ['my_value'], stream)
 
     # Set the generation in the context
-    core.context['leap']['generation'] = 10
+    context['leap']['generation'] = 10
 
     # Execute
     probe(pop)
@@ -63,10 +66,10 @@ def test_AttributesCSVProbe_2():
 
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
-    probe = AttributesCSVProbe(core.context, ['foo', 'bar'], stream)
+    probe = AttributesCSVProbe(context, ['foo', 'bar'], stream)
 
     # Set the generation in the context
-    core.context['leap']['generation'] = 10
+    context['leap']['generation'] = 10
 
     # Execute
     probe(pop)
@@ -98,10 +101,10 @@ def test_AttributesCSVProbe_3():
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
     # Passing params in reverse order from the other test above
-    probe = AttributesCSVProbe(core.context, ['bar', 'foo'], stream)
+    probe = AttributesCSVProbe(context, ['bar', 'foo'], stream)
 
     # Set the generation in the context
-    core.context['leap']['generation'] = 10
+    context['leap']['generation'] = 10
 
     # Execute
     probe(pop)
@@ -132,10 +135,10 @@ def test_AttributesCSVProbe_4():
 
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
-    probe = AttributesCSVProbe(core.context, ['bar', 'baz'], stream)
+    probe = AttributesCSVProbe(context, ['bar', 'baz'], stream)
 
     # Set the generation in the context
-    core.context['leap']['generation'] = 10
+    context['leap']['generation'] = 10
 
     # Execute
     probe(pop)
