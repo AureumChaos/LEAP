@@ -43,7 +43,7 @@ and comparison operators.
 Class API
 -------------
 
-.. autoclass:: leap_ec.core.Individual
+.. autoclass:: leap_ec.individual.Individual
     :members:
     :undoc-members:
 
