@@ -9,9 +9,13 @@
     evolutionary strategy-like approaches. """
 from toolz import pipe
 
-from leap_ec import core
-from leap_ec import ops
-from leap_ec import real_problems
+from leap_ec.individual import Individual
+from leap_ec.decoder import IdentityDecoder
+import leap_ec.ops as ops
+from leap_ec.context import context
+from leap_ec.real_rep.problems import SpheroidProblem
+from leap_ec.real_rep.initializers import create_real_vector
+from leap_ec.real_rep.ops import mutate_gaussian
 from leap_ec import util
 
 
@@ -38,30 +42,30 @@ if __name__ == '__main__':
     # the (-5.12,5.12) was what was originally used for this problem in
     # Ken De Jong's 1975 dissertation, so was used for historical reasons.
     bounds = [(-5.12, 5.12), (-5.12, 5.12), (-5.12, 5.12), (-5.12, 5.12)]
-    parents = core.Individual.create_population(POPULATION_SIZE,
-                                                initialize=core.create_real_vector(
+    parents = Individual.create_population(POPULATION_SIZE,
+                                                initialize=create_real_vector(
                                                     bounds),
-                                                decoder=core.IdentityDecoder(),
-                                                problem=real_problems.SpheroidProblem(maximize=False))
+                                                decoder=IdentityDecoder(),
+                                                problem=SpheroidProblem(maximize=False))
 
     # Evaluate initial population
-    parents = core.Individual.evaluate_population(parents)
+    parents = Individual.evaluate_population(parents)
 
     # print initial, random population
     print_population(parents, generation=0)
 
     max_generation = MAX_GENERATIONS
 
-    # We use the provided core.context, but we could roll our own if we
+    # We use the provided context, but we could roll our own if we
     # wanted to keep separate contexts.  E.g., island models may want to have
     # their own contexts.
-    generation_counter = util.inc_generation(context=core.context)
+    generation_counter = util.inc_generation(context=context)
 
     while generation_counter.generation() < max_generation:
         offspring = pipe(parents,
                          ops.random_selection,
                          ops.clone,
-                         ops.mutate_gaussian(std=.1),
+                         mutate_gaussian(std=.1),
                          ops.evaluate,
                          ops.pool(
                              size=len(parents) * BROOD_SIZE),
@@ -74,4 +78,4 @@ if __name__ == '__main__':
 
         # Just to demonstrate that we can also get the current generation from
         # the context
-        print_population(parents, core.context['leap']['generation'])
+        print_population(parents, context['leap']['generation'])

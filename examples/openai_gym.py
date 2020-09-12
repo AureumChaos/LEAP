@@ -7,7 +7,13 @@ import gym
 from matplotlib import pyplot as plt
 import numpy as np
 
-from leap_ec import brains, core, real_problems, probe, ops
+from leap_ec.individual import Individual
+from leap_ec.representation import Representation
+from leap_ec.real_rep.initializers import create_real_vector
+import leap_ec.ops as ops
+from leap_ec.real_rep.ops import mutate_gaussian
+
+from leap_ec import brains, probe
 from leap_ec.algorithm import generational_ea
 
 
@@ -91,11 +97,11 @@ def evolve_pitt(runs, steps, env, evals, pop_size,
     environment = gym.make(env)
     num_inputs = int(np.prod(environment.observation_space.shape))
     num_outputs = int(np.prod(environment.action_space.shape))
-    stdout_probe = probe.FitnessStatsCSVProbe(core.context, stream=sys.stdout)
+    stdout_probe = probe.FitnessStatsCSVProbe(context, stream=sys.stdout)
 
     with open(output, 'w') as genomes_file:
         file_probe = probe.AttributesCSVProbe(
-            core.context,
+            context,
             stream=genomes_file,
             do_fitness=True,
             do_genome=True)
@@ -104,7 +110,7 @@ def evolve_pitt(runs, steps, env, evals, pop_size,
         plt.xlabel("Generations")
         plt.title("Best-of-Generation Fitness")
         fitness_viz_probe = probe.PopulationPlotProbe(
-            core.context, ylim=(
+            context, ylim=(
                 0, 1), xlim=(
                 0, 1), modulo=1, ax=plt.gca())
         ea = generational_ea(generations=evals, pop_size=pop_size,
@@ -113,7 +119,7 @@ def evolve_pitt(runs, steps, env, evals, pop_size,
                              problem=brains.BrainProblem(
                                  runs, steps, environment, brains.reward_fitness),
 
-                             representation=core.Representation(
+                             representation=Representation(
                                  decoder=brains.PittRulesDecoder(  # Decode genomes into Pitt-style rules
                                      input_space=environment.observation_space,
                                      output_space=environment.action_space,
@@ -121,7 +127,7 @@ def evolve_pitt(runs, steps, env, evals, pop_size,
                                      num_memory_registers=0
                                  ),
 
-                                 initialize=core.create_real_vector(  # Initialized genomes are random real-valued vectors.
+                                 initialize=create_real_vector(  # Initialized genomes are random real-valued vectors.
                                      # Initialize each element between 0 and 1.
                                      bounds=(
                                          [[-0.0, 1.0]] * (num_inputs * 2 + num_outputs)) * num_rules
@@ -132,7 +138,7 @@ def evolve_pitt(runs, steps, env, evals, pop_size,
                              pipeline=[
                                  ops.tournament,
                                  ops.clone,
-                                 ops.mutate_gaussian(
+                                 mutate_gaussian(
                                      std=mutate_std, hard_bounds=(0, 1)),
                                  ops.evaluate,
                                  ops.pool(size=pop_size),

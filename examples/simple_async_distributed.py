@@ -49,11 +49,16 @@ import logging
 from pprint import pformat
 import argparse
 
-from dask.distributed import Client, LocalCluster
+from dask.distributed import Client
+from dask.distributed import LocalCluster
 
-from leap_ec import core
-from leap_ec import ops
-from leap_ec import binary_problems
+import leap_ec.ops as ops
+from leap_ec.decoder import IdentityDecoder
+from leap_ec.binary_rep.initializers import create_binary_sequence
+from leap_ec.binary_rep.problems import MaxOnes
+from leap_ec.binary_rep.ops import mutate_bitflip
+from leap_ec.representation import Representation
+
 from leap_ec.distributed import asynchronous
 from leap_ec.distributed.logger import WorkerLoggerPlugin
 from leap_ec.distributed.probe import log_worker_location, log_pop
@@ -155,23 +160,23 @@ if __name__ == '__main__':
             track_pop_stream = open(args.track_pop_file, 'w')
             track_pop_func = log_pop(args.update_interval, track_pop_stream)
 
-        final_pop = asynchronous.steady_state(client, # dask client
+        final_pop = asynchronous.steady_state(client,
                                               births=args.max_births,
                                               init_pop_size=5,
                                               pop_size=args.pop_size,
 
-                                              representation=core.Representation(
-                                                  decoder=core.IdentityDecoder(),
-                                                  initialize=core.create_binary_sequence(
+                                              representation=Representation(
+                                                  decoder=IdentityDecoder(),
+                                                  initialize=create_binary_sequence(
                                                       args.length),
                                                   individual_cls=DistributedIndividual),
 
-                                              problem=binary_problems.MaxOnes(),
+                                              problem=MaxOnes(),
 
                                               offspring_pipeline=[
                                                   ops.random_selection,
                                                   ops.clone,
-                                                  ops.mutate_bitflip,
+                                                  mutate_bitflip,
                                                   ops.pool(size=1)],
 
                                               evaluated_probe=track_workers_func,

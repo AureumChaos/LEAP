@@ -6,9 +6,14 @@
     didactic purposes. """
 from toolz import pipe
 
-from leap_ec import core
-from leap_ec import ops
-from leap_ec import binary_problems
+from leap_ec.individual import Individual
+from leap_ec.decoder import IdentityDecoder
+from leap_ec.context import context
+
+import leap_ec.ops as ops
+from leap_ec.binary_rep.problems import MaxOnes
+from leap_ec.binary_rep.initializers import create_binary_sequence
+from leap_ec.binary_rep.ops import mutate_bitflip
 from leap_ec import util
 from leap_ec import probe
 
@@ -26,23 +31,24 @@ def print_population(population, generation):
 
 
 if __name__ == '__main__':
-    parents = core.Individual.create_population(5,
-                                                initialize=core.create_binary_sequence(
-                                                    4),
-                                                decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())
+    parents = Individual.create_population(5,
+                                           initialize=create_binary_sequence(
+                                               4),
+                                           decoder=IdentityDecoder(),
+                                           problem=MaxOnes())
 
     # Evaluate initial population
-    parents = core.Individual.evaluate_population(parents)
+    parents = Individual.evaluate_population(parents)
 
     # print initial, random population
     print_population(parents, generation=0)
 
     max_generation = 6
 
-    # We use the provided core.context, but we could roll our own if we
+    # We use the provided context, but we could roll our own if we
     # wanted to keep separate contexts.  E.g., island models may want to have
     # their own contexts.
-    generation_counter = util.inc_generation(context=core.context)
+    generation_counter = util.inc_generation(context=context)
 
     while generation_counter.generation() < max_generation:
         offspring = pipe(parents,
@@ -50,7 +56,7 @@ if __name__ == '__main__':
                          ops.clone,
                          # these are optional probes to demonstrate their use
                          probe.print_individual(prefix='before mutation: '),
-                         ops.mutate_bitflip,
+                         mutate_bitflip,
                          probe.print_individual(prefix='after mutation: '),
                          ops.uniform_crossover,
                          ops.evaluate,
@@ -62,4 +68,4 @@ if __name__ == '__main__':
 
         # Just to demonstrate that we can also get the current generation from
         # the context
-        print_population(parents, core.context['leap']['generation'])
+        print_population(parents, context['leap']['generation'])
