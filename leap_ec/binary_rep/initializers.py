@@ -21,7 +21,7 @@ def create_binary_sequence(length):
     E.g., can be used for `Individual.create_population`
 
     >>> from leap_ec.decoder import IdentityDecoder
-    >>> from problems import MaxOnes
+    >>> from . problems import MaxOnes
     >>> population = Individual.create_population(10, create_binary_sequence(length=10),
     ...                                           decoder=IdentityDecoder(),
     ...                                           problem=MaxOnes())
