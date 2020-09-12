@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 from leap_ec import core, real_problems, probe, ops
-from leap_ec.executable import problem, decoder, phenotype
+from leap_ec.executable_rep import problem, decoder, phenotype
 from leap_ec.algorithm import generational_ea
 
 
