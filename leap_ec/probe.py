@@ -312,7 +312,6 @@ class PopulationPlotProbe:
        :include-source:
 
         import matplotlib.pyplot as plt
-        from leap_ec import core
         from leap_ec.probe import PopulationPlotProbe
 
 
@@ -321,13 +320,19 @@ class PopulationPlotProbe:
 
 
         # Create an algorithm that contains the probe in the operator pipeline
-        from leap_ec import ops, real_problems
+        from leap_ec.individual import Individual
+        from leap_ec.decoder import IdentityDecoder
+        from leap_ec import ops
+        from leap_ec.real_rep.problems import SpheroidProblem
+        from leap_ec.real_rep.ops import mutate_gaussian
+
+
         from leap_ec.algorithm import generational_ea
 
         l = 10
         pop_size = 10
         ea = generational_ea(generations=100, pop_size=pop_size,
-                             problem=real_problems.SpheroidProblem(maximize=False),
+                             problem=SpheroidProblem(maximize=False),
 
                              representation=Representation(
                                 individual_cls=Individual,
@@ -339,7 +344,7 @@ class PopulationPlotProbe:
                                  plot_probe,  # Insert the probe into the pipeline like so
                                  ops.tournament,
                                  ops.clone,
-                                 ops.mutate_gaussian(std=1.0),
+                                 mutate_gaussian(std=1.0),
                                  ops.evaluate,
                                  ops.pool(size=pop_size)
                              ])
@@ -434,6 +439,7 @@ class PlotTrajectoryProbe:
 
         import matplotlib.pyplot as plt
         from leap_ec.probe import PlotTrajectoryProbe
+        from leap_ec.individual import Individual
         from leap_ec.algorithm import generational_ea
         from leap_ec import ops
         from leap_ec.decoder import IdentityDecoder
