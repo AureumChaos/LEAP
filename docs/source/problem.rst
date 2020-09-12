@@ -16,7 +16,8 @@ Class Summary
     individuals and, as the name suggests, respectively returns the worst
     of the two or the equivalent within the `Problem` context.
 
-As shown in Fig. 1, the `Problem` abstract-base class has three abstract methods.  `evaluate()` takes
+As shown in Fig. 1, the `Problem`abstract-base class has three abstract
+methods. `evaluate()` takes
 a phenome that was `decode()d` from an `Individual`'s genome, and returns a value
 denoting the quality, or fitness, of that individual.  `Problems` are also used
 to compare the fitnesses between `Individuals`.  `worse_than()` returns true if
@@ -34,17 +35,17 @@ Class API
 
 Binary Problems API
 -------------------
-.. inheritance-diagram:: leap_ec.binary_problems
+.. inheritance-diagram:: leap_ec.binar_rep.problems
 
-.. automodule:: leap_ec.binary_problems
+.. automodule:: leap_ec.binary_rep.problems
     :members:
     :undoc-members:
 
 Real-value Problems API
 -----------------------
-.. inheritance-diagram:: leap_ec.real_problems
+.. inheritance-diagram:: leap_ec.real_rep.problems
 
-.. automodule:: leap_ec.real_problems
+.. automodule:: leap_ec.real_rep.problems
     :members:
     :undoc-members:
 

@@ -12,7 +12,7 @@ import csv
 
 class Repertoire(abc.ABC):
     """Abstract definition of a 'repertoire' algorithm for evolutionary transfer.
-    
+
     A repertoire is a wrapper for an algorithm that can be trained on a set of problems,
     from which is learns and encodes some form of memory, which can be applied to new
     problems.
@@ -21,7 +21,7 @@ class Repertoire(abc.ABC):
     @abc.abstractmethod
     def build_repertoire(self, problems, initialize, algorithm):
         """Train the repertoire on a set of problems.
-        
+
         :param problems: a list of Problems to train on.
         :param initialize: a function that generates a population.
         :param algorithm: an algorithm function, which may be parameterized with an initialize function."""
@@ -42,14 +42,14 @@ class Repertoire(abc.ABC):
 
 
 class PopulationSeedingRepertoire:
-    """ A repertoire method that works by seeding the population with 
+    """ A repertoire method that works by seeding the population with
     individuals that  were successful on past problems.
 
-    This works by injecting an `initialize` function into the wrapped 
+    This works by injecting an `initialize` function into the wrapped
     algorithm's parameterization.  During training, we inject a
-    standard initializer (i.e. that create a random population), but 
-    when applying the repertoire, we use a special initializer that 
-    draws individuals from the repertoire's memory. 
+    standard initializer (i.e. that create a random population), but
+    when applying the repertoire, we use a special initializer that
+    draws individuals from the repertoire's memory.
 
     :param initialize: a standard initializer to create random populations during training.
     :param algorithm: the wrapped algorithm, which should take an initialize argument.
@@ -68,7 +68,7 @@ class PopulationSeedingRepertoire:
 
     def build_repertoire(self, problems, problem_kwargs):
         """Train the repertoire on a set of problems.
-        
+
         The best solution found on each problem will be saved into the repertoire.
         """
         assert(problems is not None)
@@ -95,7 +95,7 @@ class PopulationSeedingRepertoire:
             csv.writer(f).writerows(self.repertoire)
 
     def apply(self, problem, **kwargs):
-        """Solve a new problem by injecting the all the individuals from the 
+        """Solve a new problem by injecting the all the individuals from the
         repertoire into the new initial population."""
         repertoire_init = initialize_seeded(self.initialize, self.repertoire)
         return self.algorithm(problem, repertoire_init, **kwargs)
@@ -106,8 +106,8 @@ def initialize_seeded(initialize, seed_pop):
     into the population, and fills the remaining space with newly generated
     individuals.
 
-    >>> from leap_ec import core
-    >>> random_init = core.create_real_vector(bounds=[[0, 0]] * 2)
+    >>> from leap_ec.real_rep.initializers import create_real_vector
+    >>> random_init = create_real_vector(bounds=[[0, 0]] * 2)
     >>> init = initialize_seeded(random_init, [[5.0, 5.0], [4.5, -6]])
     >>> [init() for _ in range(5)]
     [[5.0, 5.0], [4.5, -6], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]

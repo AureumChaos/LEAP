@@ -17,7 +17,7 @@ from typing import Iterator, List, Tuple, Callable
 import toolz
 from toolz import curry
 
-from leap_ec.core import Individual
+from . individual import Individual
 from leap_ec import util
 
 
@@ -225,7 +225,7 @@ def const_evaluate(population: List, value) -> List:
 
     This is useful for algorithms that need to assign an arbitrary initial
     fitness value before using their normal evaluation method.  Some forms of
-    cooperative coevolution are an eample.
+    cooperative coevolution are an example.
     """
     for ind in population:
         ind.fitness = value
@@ -257,45 +257,6 @@ def clone(next_individual: Iterator) -> Iterator:
         individual = next(next_individual)
 
         yield individual.clone()
-
-
-##############################
-# Function mutate_bitflip
-##############################
-@curry
-@iteriter_op
-def mutate_bitflip(next_individual: Iterator, expected: float = 1) -> Iterator:
-    """ mutate and return an individual with a binary representation
-
-    >>> from leap_ec import core, binary_problems
-
-    >>> original = Individual([1,1])
-
-    >>> mutated = next(mutate_bitflip(iter([original])))
-
-    :param individual: to be mutated
-    :param expected: the *expected* number of mutations, on average
-    :return: mutated individual
-    """
-    def flip(gene):
-        if random.random() < probability:
-            return (gene + 1) % 2
-        else:
-            return gene
-
-    while True:
-        individual = next(next_individual)
-
-        # Given the average expected number of mutations, calculate the
-        # probability for flipping each bit.  This calculation must be made
-        # each time given that we may be dealing with dynamic lengths.
-        probability = compute_expected_probability(expected, individual.genome)
-
-        individual.genome = [flip(gene) for gene in individual.genome]
-
-        individual.fitness = None  # invalidate fitness since we have new genome
-
-        yield individual
 
 
 ##############################
@@ -434,64 +395,6 @@ def n_ary_crossover(next_individual: Iterator,
         yield child1
         yield child2
 
-
-##############################
-# Function mutate_gaussian
-##############################
-def mutate_gaussian(std: float, expected: float = None,
-                    hard_bounds: Tuple[float, float] = (-math.inf, math.inf)):
-    """ mutate and return an individual with a real-valued representation
-
-    TODO hard_bounds should also be able to take a sequence —Siggy
-
-    :param next_individual: to be mutated
-
-    :param std: standard deviation to be equally applied to all individuals;
-        this can be a scalar value or a "shadow vector" of standard deviations
-
-    :param expected: the *expected* number of mutations per individual,
-        on average.  If None, all genes will be mutated.
-
-    :param hard_bounds: to clip for mutations; defaults to (- ∞, ∞)
-    :return: a generator of mutated individuals.
-    """
-    def add_gauss(x, std, probability):
-        if random.random() < probability:
-            return random.gauss(x, std)
-        else:
-            return x
-
-    def clip(x):
-        return max(hard_bounds[0], min(hard_bounds[1], x))
-
-    def mutate(next_individual: Iterator) -> Iterator:
-        while True:
-            individual = next(next_individual)
-
-            # compute actual probability of mutation based on expected number of
-            # mutations and the genome length
-            if expected is None:
-                p = 1.0
-            else:
-                p = compute_expected_probability(expected, individual.genome)
-
-            if util.is_sequence(std):
-                # We're given a vector of "shadow standard deviations" so apply
-                # each sigma individually to each gene
-                individual.genome = [
-                    clip(
-                        add_gauss(
-                            x, s, p)) for x, s in zip(
-                        individual.genome, std)]
-            else:
-                individual.genome = [clip(add_gauss(x, std, p))
-                                     for x in individual.genome]
-            # invalidate fitness since we have new genome
-            individual.fitness = None
-
-            yield individual
-
-    return mutate
 
 
 ##############################
@@ -872,10 +775,10 @@ class CooperativeEvaluate(Operator):
 
 
 ##############################
-# Helper Functions
+# function compute_expected_probability
 ##############################
-def compute_expected_probability(
-        expected: float, individual_genome: List) -> float:
+def compute_expected_probability(expected: float, individual_genome: List) \
+        -> float:
     """ Computed the probability of mutation based on the desired average
     expected mutation and genome length.
 

@@ -11,7 +11,7 @@
 import itertools
 import uuid
 
-from ..core import Individual
+from leap_ec.individual import Individual
 
 
 class DistributedIndividual(Individual):

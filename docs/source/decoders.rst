@@ -29,9 +29,9 @@ Class API
 Decoder
 ^^^^^^^
 
-.. inheritance-diagram:: leap_ec.core.Decoder
+.. inheritance-diagram:: leap_ec.decoder.Decoder
 
-.. autoclass:: leap_ec.core.Decoder
+.. autoclass:: leap_ec.decoder.Decoder
     :members:
     :undoc-members:
 
@@ -41,9 +41,9 @@ Decoder
 IdentityDecoder
 ^^^^^^^^^^^^^^^
 
-.. inheritance-diagram:: leap_ec.core.IdentityDecoder
+.. inheritance-diagram:: leap_ec.decoder.IdentityDecoder
 
-.. autoclass:: leap_ec.core.IdentityDecoder
+.. autoclass:: leap_ec.decoder.IdentityDecoder
     :members:
     :undoc-members:
 
@@ -52,9 +52,9 @@ IdentityDecoder
 BinaryToIntDecoder
 ^^^^^^^^^^^^^^^^^^
 
-.. inheritance-diagram:: leap_ec.core.BinaryToIntDecoder
+.. inheritance-diagram:: leap_ec.binary_rep.decoders.BinaryToIntDecoder
 
-.. autoclass:: leap_ec.core.BinaryToIntDecoder
+.. autoclass:: leap_ec.binary_rep.decoders.BinaryToIntDecoder
     :members:
     :undoc-members:
 
@@ -63,9 +63,9 @@ BinaryToIntDecoder
 BinaryToRealDecoderCommon
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. inheritance-diagram:: leap_ec.core.BinaryToRealDecoderCommon
+.. inheritance-diagram:: leap_ec.binary_rep.decoders.BinaryToRealDecoderCommon
 
-.. autoclass:: leap_ec.core.BinaryToRealDecoderCommon
+.. autoclass:: leap_ec.binary_rep.decoders.BinaryToRealDecoderCommon
     :members:
     :undoc-members:
 
@@ -74,9 +74,9 @@ BinaryToRealDecoderCommon
 BinaryToRealDecoder
 ^^^^^^^^^^^^^^^^^^^
 
-.. inheritance-diagram:: leap_ec.core.BinaryToRealDecoder
+.. inheritance-diagram:: leap_ec.binary_rep.BinaryToRealDecoder
 
-.. autoclass:: leap_ec.core.BinaryToRealDecoder
+.. autoclass:: leap_ec.binary_rep.decoders.BinaryToRealDecoder
     :members:
     :undoc-members:
 
@@ -85,9 +85,9 @@ BinaryToRealDecoder
 BinaryToIntGreyDecoder
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. inheritance-diagram:: leap_ec.core.BinaryToIntGreyDecoder
+.. inheritance-diagram:: leap_ec.binary_rep.decoders.BinaryToIntGreyDecoder
 
-.. autoclass:: leap_ec.core.BinaryToIntGreyDecoder
+.. autoclass:: leap_ec.binary_rep.decoders.BinaryToIntGreyDecoder
     :members:
     :undoc-members:
 
@@ -96,9 +96,9 @@ BinaryToIntGreyDecoder
 BinaryToRealGreyDecoder
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-.. inheritance-diagram:: leap_ec.core.BinaryToRealGreyDecoder
+.. inheritance-diagram:: leap_ec.binary_rep.decoders.BinaryToRealGreyDecoder
 
-.. autoclass:: leap_ec.core.BinaryToRealGreyDecoder
+.. autoclass:: leap_ec.binary_rep.decoders.BinaryToRealGreyDecoder
     :members:
     :undoc-members:
 

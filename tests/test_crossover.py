@@ -5,13 +5,13 @@ import itertools
 
 import pytest
 
-from leap_ec import core
-from leap_ec import ops
+from leap_ec.individual import Individual
+import leap_ec.ops as ops
 
 
 def test_uniform_crossover():
-    pop = [core.Individual([0, 0]),
-           core.Individual([1, 1])]
+    pop = [Individual([0, 0]),
+           Individual([1, 1])]
 
     # We need a cyclic generator because there are only two individuals in the population, and once the first two
     # are selected for uniform crossover, the next two parents are selected and crossed over.  The cyclic iterator
@@ -32,8 +32,8 @@ def test_uniform_crossover():
 def test_uniform_crossover_bad_len():
     """ Test assertion for mis-matched genome lengths
     """
-    pop = [core.Individual([0, 0, 1]),
-           core.Individual([1, 1])]
+    pop = [Individual([0, 0, 1]),
+           Individual([1, 1])]
 
     i = ops.naive_cyclic_selection(pop)
 
@@ -46,8 +46,8 @@ def test_n_ary_crossover_bad_lengths():
 
     (Separate tests for variable length crossover.)
     """
-    pop = [core.Individual([0, 0, 1]),
-           core.Individual([1, 1])]
+    pop = [Individual([0, 0, 1]),
+           Individual([1, 1])]
 
     i = ops.naive_cyclic_selection(pop)
 
@@ -57,8 +57,8 @@ def test_n_ary_crossover_bad_lengths():
 
 def test_n_ary_crossover_bad_crossover_points():
     """ Test assertions for having more crossover points than genome length """
-    pop = [core.Individual([0, 0]),
-           core.Individual([1, 1])]
+    pop = [Individual([0, 0]),
+           Individual([1, 1])]
 
     i = ops.naive_cyclic_selection(pop)
 
@@ -68,8 +68,8 @@ def test_n_ary_crossover_bad_crossover_points():
 
 def test_n_ary_crossover():
     """ Does n-point crossover even work? """
-    pop = [core.Individual([0, 0]),
-           core.Individual([1, 1])]
+    pop = [Individual([0, 0]),
+           Individual([1, 1])]
 
     i = ops.naive_cyclic_selection(pop)
 

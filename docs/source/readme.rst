@@ -68,20 +68,24 @@ and binary tournament selection:
 .. code-block:: Python
 
     from leap_ec.algorithm import generational_ea
-    from leap_ec import core, ops, binary_problems
+    from leap_ec.decoder import IdentityDecoder
+    from leap_ec.representation import Representation
+    from leap_ec.binary_rep.problems import MaxOnes
+    from leap_ec.binary_rep.initializers import create_binary_sequence
+    from leap_ec.binary_rep.ops import mutate_bitflip
     pop_size = 5
     ea = generational_ea(generations=100, pop_size=pop_size,
-                        problem=binary_problems.MaxOnes(),             # Solve a MaxOnes Boolean optimization problem
+                        problem=MaxOnes(),             # Solve a MaxOnes Boolean optimization problem
 
-                        representation=core.Representation(
-                            decoder=core.IdentityDecoder(),             # Genotype and phenotype are the same for this task
-                            initialize=core.create_binary_sequence(length=10)  # Initial genomes are random binary sequences
+                        representation=Representation(
+                            decoder=IdentityDecoder(),             # Genotype and phenotype are the same for this task
+                            initialize=create_binary_sequence(length=10)  # Initial genomes are random binary sequences
                         ),
 
                         # The operator pipeline
                         pipeline=[ops.tournament,                     # Select parents via tournament selection
                                 ops.clone,                          # Copy them (just to be safe)
-                                ops.mutate_bitflip,                 # Basic mutation: defaults to a 1/L mutation rate
+                                    mutate_bitflip,                 # Basic mutation: defaults to a 1/L mutation rate
                                 ops.uniform_crossover(p_swap=0.4),  # Crossover with a 40% chance of swapping each gene
                                 ops.evaluate,                       # Evaluate fitness
                                 ops.pool(size=pop_size)             # Collect offspring into a new population

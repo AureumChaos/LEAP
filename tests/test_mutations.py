@@ -1,15 +1,16 @@
 """
     Unit tests for mutation-related functionality.
 """
-from leap_ec import core
-from leap_ec import binary_problems
-from leap_ec import ops
+from leap_ec.individual import Individual
+from leap_ec.decoder import IdentityDecoder
+from leap_ec.binary_rep.problems import MaxOnes
+import leap_ec.binary_rep.ops as ops
 
 
 def test_mutate_bitflip():
     # Create a very simple individual with two binary genes of all ones.
-    ind = [core.Individual([1, 1], decoder=core.IdentityDecoder(),
-                           problem=binary_problems.MaxOnes())]
+    ind = [Individual([1, 1], decoder=IdentityDecoder(),
+                           problem=MaxOnes())]
 
     # Now mutate the individual such that we *expect both bits to flip*
     mutated_ind = next(ops.mutate_bitflip(iter(ind), expected=2))
