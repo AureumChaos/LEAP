@@ -40,12 +40,33 @@ The `@total_ordering` class wrapper is used to expand the member functions
 `__lt__()` and `__eq__()` that are, in turn, heavily used in sorting, selection,
 and comparison operators.
 
+`RobustIndividual`
+^^^^^^^^^^^^^^^^^^^
+
+`RobustIndividual` is a sub-class of `Individual` that over-rides `evaluate()`
+to handle exceptions thrown during evaluation.  If no exceptions are thrown,
+then `self.is_viable` is set to `True`.  If an exception happens, then the
+following occurs:
+
+* `self.is_viable` is set to `False`
+* `self.fitness` is set to `math.nan`
+* `self.exception` is assigned the `Exception` object
+
+In turn, this class has another sub-class `leap_ec.distributed.individual.DistributedIndividual`.
+
 Class API
 -------------
+.. inheritance-diagram:: leap_ec.individual.RobustIndividual
 
 .. autoclass:: leap_ec.individual.Individual
     :members:
     :undoc-members:
 
     .. automethod:: __init__
+
+.. autoclass:: leap_ec.individual.RobustIndividual
+    :members:
+    :undoc-members:
+
+    .. authomethod:: __init__
 

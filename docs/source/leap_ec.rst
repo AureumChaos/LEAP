@@ -51,7 +51,7 @@ leap\_ec.binary_rep package
 leap\_ec.brains module
 ----------------------
 
-.. automodule:: leap_ec.brains
+.. automodule:: leap_ec.executable_rep
     :members:
     :undoc-members:
     :show-inheritance:

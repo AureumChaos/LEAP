@@ -35,7 +35,7 @@ Class API
 
 Binary Problems API
 -------------------
-.. inheritance-diagram:: leap_ec.binar_rep.problems
+.. inheritance-diagram:: leap_ec.binary_rep.problems
 
 .. automodule:: leap_ec.binary_rep.problems
     :members:

@@ -93,7 +93,6 @@ Example
 
     from dask.distributed import Client, LocalCluster
 
-    from leap_ec.individual import Individual
     from leap_ec.decoder import IdentityDecoder
     from leap_ec.representation import Representation
 
@@ -218,7 +217,7 @@ as follows:
 
 DistributedIndividual
 ^^^^^^^^^^^^^^^^^^^^^
-`DistributedIndividual` is a subclass of `Individual` that contains some additional
+`DistributedIndividual` is a subclass of `RobustIndividual` that contains some additional
 state that may be useful for distributed fitness evaluations.
 
 :uuid: is UUID assigned to that individual upon creation

@@ -719,13 +719,10 @@ class LunacekProblem(ScalarProblem):
     :param int N: dimensionality of the anticipated input solutions
     :param float d: base fitness value of the second spheroid
     :param float mu_1: offset of the first spheroid
-
     :param float mu_2: offset of the second spheroid (if `None`, this will be
         calculated automatically)
-
     :param float s: scale parameter for the second spheroid (if `None`,
         this will be calculated automatically)
-
     :param bool maximize: the function is maximized if `True`, else minimized.
 
     .. plot::
@@ -865,9 +862,10 @@ class CosineFamilyProblem(ScalarProblem):
     A configurable multi-modal function based on combinations of cosines,
     taken from the problem generators proposed in
 
-     Jani Rönkkönen et al., "A Generator for Multimodal Test Functions
-     with Multiple Global Optima," _Asia-Pacific Conference on Simulated
-     Evolution and Learning_. Springer, Berlin, Heidelberg, 2008.
+    .. [Jani2008] "A Generator for Multimodal Test Functions with Multiple Global Optima,"
+         Jani Rönkkönen et al., *Asia-Pacific Conference on Simulated Evolution and Learning*. Springer, Berlin, Heidelberg, 2008.
+
+    [Jani2008]_
 
     .. math::
 
@@ -878,13 +876,10 @@ class CosineFamilyProblem(ScalarProblem):
     of global and local optima, respectively, in the ith dimension.
 
     :param float alpha: parameter that controls the depth of the local optima.
-
     :param [int] global_optima_counts: list of integers indicating the number
         of global optima for each dimension.
-
     :param [int] local_optima_counts: list of integers indicated the number
         of local optima for each dimension.
-
     :param maximize: the function is maximized if `True`, else minimized.
 
     .. plot::
@@ -953,7 +948,8 @@ class TranslatedProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap_ec.real_rep.problems import SpheroidProblem, plot_2d_problem
+       from matplotlib import pyplot as plt
+       from leap_ec.real_rep.problems import SpheroidProblem, TranslatedProblem, plot_2d_problem
 
        original_problem = SpheroidProblem()
        offset = [-1.0, -2.5]
@@ -974,7 +970,6 @@ class TranslatedProblem(ScalarProblem):
        plt.subplot(224)
        plot_2d_problem(translated_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
     """
-
     def __init__(self, problem, offset, maximize=None):
         if maximize is None:
             maximize = problem.maximize
@@ -1073,12 +1068,13 @@ class MatrixTransformedProblem(ScalarProblem):
         then applies fun to the transformed input.
 
     For example, here we manually construct a 2x2 rotation matrix and apply
-    it to the :class:`~leap.RosenbrockProblem` function:
+    it to the :class:`leap.RosenbrockProblem` function:
 
     .. plot::
        :include-source:
 
-       from leap_ec.real_rep.problems import RosenbrockProblem, plot_2d_problem
+       from matplotlib import pyplot as plt
+       from leap_ec.real_rep.problems import RosenbrockProblem, MatrixTransformedProblem, plot_2d_problem
 
        original_problem = RosenbrockProblem()
        theta = np.pi/2
@@ -1103,7 +1099,6 @@ class MatrixTransformedProblem(ScalarProblem):
        plot_2d_problem(transformed_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
 
     """
-
     def __init__(self, problem, matrix, maximize=None):
         if maximize is None:
             maximize = problem.maximize
@@ -1135,8 +1130,9 @@ class MatrixTransformedProblem(ScalarProblem):
 
         .. plot::
            :include-source:
+
            from matplotlib import pyplot as plt
-           from leap_ec.real_rep.problems import CosineFamilyProblem, plot_2d_problem
+           from leap_ec.real_rep.problems import CosineFamilyProblem, MatrixTransformedProblem, plot_2d_problem
 
            original_problem = CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 3], local_optima_counts=[2, 3])
 
@@ -1242,7 +1238,6 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
 
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
         be created).
-
     :param float granularity: Spacing of the grid to sample points along. If
         none is given, then the granularity will default to 1/50th of the range
         of the function's `bounds` attribute.
@@ -1256,7 +1251,7 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
     .. plot::
        :include-source:
 
-       from leap_ec.real_rep.problems import CosineFamilyProblem
+       from leap_ec.real_rep.problems import CosineFamilyProblem, plot_2d_problem
        problem = CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
        plot_2d_problem(problem, xlim=(0, 1), ylim=(0, 1), granularity=0.025);
 
@@ -1268,7 +1263,7 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
        :include-source:
 
        from matplotlib import pyplot as plt
-       from leap_ec.real_rep.problems import RastriginProblem
+       from leap_ec.real_rep.problems import RastriginProblem, plot_2d_problem
 
        fig = plt.figure(figsize=(12, 4))
        bounds=RastriginProblem.bounds  # Contains default bounds
@@ -1380,7 +1375,7 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None):
        import numpy as np
        from scipy import linalg
 
-       from leap_ec.real_rep.problems import plot_2d_function
+       from leap_ec.real_rep.problems import plot_2d_contour
 
        def sinc_hd(phenome):
            r = linalg.norm(phenome)
