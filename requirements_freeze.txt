@@ -69,8 +69,6 @@ Pygments==2.6.1
 pyparsing==3.0.0a1
 pyrsistent==0.16.0
 pytest==5.4.3
-pytest-cov==2.10.0
-python-coveralls==2.9.3
 python-dateutil==2.8.1
 pytz==2020.1
 PyYAML==5.3.1
