@@ -136,28 +136,12 @@ class Individual:
         Problem object since it "knows" what is good or bad for a given
         phenome.
 
-        Note that if an exception is thrown during evaluation, the fitness is
-        set to NaN and `self.is_viable` to False; also, the returned exception is
-        assigned to `self.exception` for possible later inspection.  If the
-        individual was successfully evaluated, `self.is_viable` is set to true.
-        NaN fitness values will figure into comparing individuals in that NaN
-        will always be considered worse than non-NaN fitness values.
 
         :see also: ScalarProblem.worse_than
 
         :return: the calculated fitness
         """
-        try:
-            self.fitness = self.evaluate_imp()
-            self.is_viable = True # we were able to evaluate
-        except Exception as e:
-            self.fitness = nan
-            self.exception = e
-            self.is_viable = False # we could not complete an eval
-
-        # Even though we've already *set* the fitness, it may be useful to also
-        # *return* it to give more options to the programmer for using the
-        # newly evaluated fitness.
+        self.fitness = self.evaluate_imp()
         return self.fitness
 
     def __iter__(self):
@@ -226,4 +210,46 @@ class Individual:
     def __repr__(self):
         return f"{type(self).__name__}({self.genome.__repr__()}, " \
                f"{self.decoder.__repr__()}, {self.problem.__repr__()})"
+
+
+@total_ordering
+class RobustIndividual(Individual):
+    """
+        This adds exception handling for evaluations
+
+        After evaluation `self.is_viable` is set to True if all went well.
+        However, if an exception is thrown during evaluation, the following
+        happens:
+
+        * self.is_viable is set to False
+        * self.fitness is set to math.nan
+        * self.exception is assigned the exception
+    """
+    def __init__(self, genome, decoder=None, problem=None):
+        super().__init__(genome, decoder=decoder, problem=problem)
+
+    def evaluate(self):
+        """ determine this individual's fitness
+
+        Note that if an exception is thrown during evaluation, the fitness is
+        set to NaN and `self.is_viable` to False; also, the returned exception is
+        assigned to `self.exception` for possible later inspection.  If the
+        individual was successfully evaluated, `self.is_viable` is set to true.
+        NaN fitness values will figure into comparing individuals in that NaN
+        will always be considered worse than non-NaN fitness values.
+
+        :return: the calculated fitness
+        """
+        try:
+            self.fitness = self.evaluate_imp()
+            self.is_viable = True  # we were able to evaluate
+        except Exception as e:
+            self.fitness = nan
+            self.exception = e
+            self.is_viable = False  # we could not complete an eval
+
+        # Even though we've already *set* the fitness, it may be useful to also
+        # *return* it to give more options to the programmer for using the
+        # newly evaluated fitness.
+        return self.fitness
 

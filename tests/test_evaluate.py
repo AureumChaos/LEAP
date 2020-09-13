@@ -3,7 +3,7 @@
 """
 from math import nan
 
-from leap_ec.individual import Individual
+from leap_ec.individual import Individual, RobustIndividual
 from leap_ec.decoder import IdentityDecoder
 
 import leap_ec.ops as ops
@@ -14,6 +14,16 @@ from leap_ec.binary_rep.problems import MaxOnes
 def test_simple_evaluate():
     # Let's try evaluating a single individual
     pop = [Individual([1, 1], decoder=IdentityDecoder(),
+                           problem=MaxOnes())]
+
+    evaluated_individual = next(ops.evaluate(iter(pop)))
+
+    assert evaluated_individual.fitness == 2
+
+
+def test_simple_robust_evaluate():
+    # Let's try evaluating a single individual
+    pop = [RobustIndividual([1, 1], decoder=IdentityDecoder(),
                            problem=MaxOnes())]
 
     evaluated_individual = next(ops.evaluate(iter(pop)))
@@ -34,7 +44,7 @@ class BrokenProblem(leap_ec.problem.ScalarProblem):
 
 def test_broken_evaluate():
     # Test evaluations that throw exception
-    pop = [Individual([1, 1], decoder=IdentityDecoder(),
+    pop = [RobustIndividual([1, 1], decoder=IdentityDecoder(),
                            problem=BrokenProblem(True))]
 
     evaluated_individual = next(ops.evaluate(iter(pop)))
