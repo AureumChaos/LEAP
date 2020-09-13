@@ -118,7 +118,7 @@ class FunctionProblem(ScalarProblem):
         self.fitness_function = fitness_function
 
     def evaluate(self, phenome, *args, **kwargs):
-        return self.fitness_function(phenome, args, kwargs)
+        return self.fitness_function(phenome, *args, **kwargs)
 
 
 ##############################
