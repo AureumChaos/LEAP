@@ -212,7 +212,6 @@ class Individual:
                f"{self.decoder.__repr__()}, {self.problem.__repr__()})"
 
 
-@total_ordering
 class RobustIndividual(Individual):
     """
         This adds exception handling for evaluations
