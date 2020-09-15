@@ -5,12 +5,17 @@
 import math
 import random
 from typing import Tuple, Iterator
+from toolz import curry
+
+from .. ops import compute_expected_probability, iteriter_op
+
 
 from leap_ec import util
 
 ##############################
 # Function mutate_gaussian
 ##############################
+@curry
 def mutate_gaussian(std: float, expected: float = None,
                     hard_bounds: Tuple[float, float] = (-math.inf, math.inf)):
     """ mutate and return an individual with a real-valued representation
@@ -37,6 +42,7 @@ def mutate_gaussian(std: float, expected: float = None,
     def clip(x):
         return max(hard_bounds[0], min(hard_bounds[1], x))
 
+    @iteriter_op
     def mutate(next_individual: Iterator) -> Iterator:
         while True:
             individual = next(next_individual)

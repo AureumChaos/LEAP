@@ -9,6 +9,7 @@ import collections
 from copy import copy
 import csv
 import itertools
+from functools import wraps
 import math
 import random
 from statistics import mean
@@ -73,6 +74,7 @@ def iteriter_op(f):
 
     :param f function: the function to wrap
     """
+    @wraps(f)
     def typecheck_f(next_individual: Iterator, *args, **kwargs) -> Iterator:
         if not isinstance(next_individual, collections.abc.Iterator):
             raise ValueError(
@@ -103,6 +105,7 @@ def listlist_op(f):
 
     :param f function: the function to wrap
     """
+    @wraps(f)
     def typecheck_f(population: List, *args, **kwargs) -> List:
         if not isinstance(population, list):
             raise ValueError(
@@ -133,6 +136,7 @@ def listiter_op(f):
 
     :param f function: the function to wrap
     """
+    @wraps(f)
     def typecheck_f(population: List, *args, **kwargs) -> Iterator:
         if not isinstance(population, list):
             raise ValueError(
@@ -163,6 +167,7 @@ def iterlist_op(f):
 
     :param f function: the function to wrap
     """
+    @wraps(f)
     def typecheck_f(next_individual: Iterator, *args, **kwargs) -> List:
         if not isinstance(next_individual, collections.abc.Iterator):
             raise ValueError(

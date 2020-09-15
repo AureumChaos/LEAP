@@ -2,11 +2,12 @@
 """
     Binary representation specific pipeline operators.
 """
-from typing import Iterator, List, Tuple, Callable
+from typing import Iterator
 import random
 from toolz import curry
 
 from .. ops import compute_expected_probability, iteriter_op
+
 
 ##############################
 # Function mutate_bitflip
@@ -17,12 +18,10 @@ def mutate_bitflip(next_individual: Iterator, expected: float = 1) -> Iterator:
     """ mutate and return an individual with a binary representation
 
     >>> from leap_ec import core, binary_problems
-
     >>> original = Individual([1,1])
-
     >>> mutated = next(mutate_bitflip(iter([original])))
 
-    :param individual: to be mutated
+    :param next_individual: to be mutated
     :param expected: the *expected* number of mutations, on average
     :return: mutated individual
     """
