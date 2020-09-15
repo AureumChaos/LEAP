@@ -17,7 +17,9 @@ from .. ops import compute_expected_probability, iteriter_op
 def mutate_bitflip(next_individual: Iterator, expected: float = 1) -> Iterator:
     """ mutate and return an individual with a binary representation
 
-    >>> from leap_ec import core, binary_problems
+    >>> from leap_ec.individual import Individual
+    >>> from leap_ec.binary_rep.ops import mutate_bitflip
+
     >>> original = Individual([1,1])
     >>> mutated = next(mutate_bitflip(iter([original])))
 
