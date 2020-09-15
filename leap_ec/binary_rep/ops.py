@@ -6,7 +6,7 @@ from typing import Iterator
 import random
 from toolz import curry
 
-from .. ops import compute_expected_probability, iteriter_op
+from leap_ec.ops import compute_expected_probability, iteriter_op
 
 
 ##############################
