@@ -10,7 +10,6 @@ from copy import copy
 import csv
 import itertools
 from functools import wraps
-import math
 import random
 from statistics import mean
 from typing import Iterator, List, Tuple, Callable
@@ -18,8 +17,7 @@ from typing import Iterator, List, Tuple, Callable
 import toolz
 from toolz import curry
 
-from . individual import Individual
-from leap_ec import util
+from leap_ec.individual import Individual
 
 
 ##############################
@@ -194,11 +192,13 @@ def iterlist_op(f):
 def evaluate(next_individual: Iterator) -> Iterator:
     """ Evaluate and returns the next individual in the pipeline
 
-    >>> from leap_ec import core, binary_problems
+    >>> from leap_ec.individual import Individual
+    >>> from leap_ec.decoder import IdentityDecoder
+    >>> from leap_ec.binary_rep.problems import MaxOnes
 
     We need to specify the decoder and problem so that evaluation is possible.
 
-    >>> ind = core.Individual([1,1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())
+    >>> ind = Individual([1,1], decoder=IdentityDecoder(), problem=MaxOnes())
 
     >>> evaluated_ind = next(evaluate(iter([ind])))
 
@@ -246,7 +246,7 @@ def const_evaluate(population: List, value) -> List:
 def clone(next_individual: Iterator) -> Iterator:
     """ clones and returns the next individual in the pipeline
 
-    >>> from leap_ec import core
+    >>> from leap_ec.individual import Individual
 
     Create a common decoder and problem for individuals.
 
@@ -274,7 +274,8 @@ def uniform_crossover(next_individual: Iterator,
     """ Generator for recombining two individuals and passing them down the
     line.
 
-    >>> from leap_ec import core, binary_problems
+    >>> from leap_ec.individual import Individual
+    >>> from leap_ec.ops import uniform_crossover
 
     >>> first = Individual([0,0])
     >>> second = Individual([1,1])
@@ -335,7 +336,8 @@ def n_ary_crossover(next_individual: Iterator,
 
     We also assume that the passed in individuals are *clones* of parents.
 
-    >>> from leap_ec import core, binary_problems
+    >>> from leap_ec.individual import Individual
+    >>> from leap_ec.ops import n_ary_crossover
 
     >>> first = Individual([0,0])
     >>> second = Individual([1,1])
@@ -412,16 +414,20 @@ def truncate(offspring: List, size: int, parents: List = None) -> List:
 
         This defaults to (mu, lambda) if `parents` is not given.
 
-        >>> from leap_ec import core, ops, binary_problems
-        >>> pop = [core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
-        ...        core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
-        ...        core.Individual([1, 1, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
-        ...        core.Individual([1, 1, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())]
+        >>> from leap_ec.individual import Individual
+        >>> from leap_ec.decoder import IdentityDecoder
+        >>> from leap_ec.binary_rep.problems import MaxOnes
+        >>> from leap_ec.ops import truncate
+
+        >>> pop = [Individual([0, 0, 0], decoder=IdentityDecoder(), problem=MaxOnes()),
+        ...        Individual([0, 0, 1], decoder=IdentityDecoder(), problem=MaxOnes()),
+        ...        Individual([1, 1, 0], decoder=IdentityDecoder(), problem=MaxOnes()),
+        ...        Individual([1, 1, 1], decoder=IdentityDecoder(), problem=MaxOnes())]
 
         We need to evaluate them to get their fitness to sort them for
         truncation.
 
-        >>> pop = core.Individual.evaluate_population(pop)
+        >>> pop = Individual.evaluate_population(pop)
 
         >>> truncated = truncate(pop, 2)
 
@@ -449,14 +455,18 @@ def tournament(population: List, k: int = 2) -> Iterator:
     """ Selects the best individual from k individuals randomly selected from
         the given population
 
-        >>> from leap_ec import core, ops, binary_problems
-        >>> pop = [core.Individual([0, 0, 0], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes()),
-        ...        core.Individual([0, 0, 1], decoder=core.IdentityDecoder(), problem=binary_problems.MaxOnes())]
+        >>> from leap_ec.individual import Individual
+        >>> from leap_ec.decoder import IdentityDecoder
+        >>> from leap_ec.binary_rep.problems import MaxOnes
+        >>> from leap_ec.ops import tournament
+
+        >>> pop = [Individual([0, 0, 0], IdentityDecoder(), problem=MaxOnes()),
+        ...        Individual([0, 0, 1], IdentityDecoder(), problem=MaxOnes())]
 
         We need to evaluate them to get their fitness to sort them for
         truncation.
 
-        >>> pop = core.Individual.evaluate_population(pop)
+        >>> pop = Individual.evaluate_population(pop)
 
         >>> best = tournament(pop)
 
@@ -517,12 +527,13 @@ def naive_cyclic_selection(population: List) -> Iterator:
     This is "naive" because it doesn't shuffle the population between complete
     tours to minimize bias.
 
-    >>> from leap_ec import core, ops
+    >>> from leap_ec.individual import Individual
+    >>> from leap_ec.ops import naive_cyclic_selection
 
-    >>> pop = [core.Individual([0, 0]),
-    ...        core.Individual([0, 1])]
+    >>> pop = [Individual([0, 0]),
+    ...        Individual([0, 1])]
 
-    >>> cyclic_selector = ops.naive_cyclic_selection(pop)
+    >>> cyclic_selector = naive_cyclic_selection(pop)
 
     :param population: from which to select
     :return: the next selected individual
@@ -543,12 +554,13 @@ def cyclic_selection(population: List) -> Iterator:
     sequence, returns the individuals in that new order, and repeats this
     process.
 
-    >>> from leap_ec import core, ops
+    >>> from leap_ec.individual import Individual
+    >>> from leap_ec.ops import cyclic_selection
 
-    >>> pop = [core.Individual([0, 0]),
-    ...        core.Individual([0, 1])]
+    >>> pop = [Individual([0, 0]),
+    ...        Individual([0, 1])]
 
-    >>> cyclic_selector = ops.cyclic_selection(pop)
+    >>> cyclic_selector = cyclic_selection(pop)
 
     :param population: from which to select
     :return: the next selected individual
@@ -594,14 +606,15 @@ def pool(next_individual: Iterator, size: int) -> List:
     selection and birth operators, but could also be used to, say, "pool"
     individuals to be passed to an EDA as a training set.
 
-    >>> from leap_ec import core, ops
+    >>> from leap_ec.individual import Individual
+    >>> from leap_ec.ops import naive_cyclic_selection
 
-    >>> pop = [core.Individual([0, 0]),
-    ...        core.Individual([0, 1])]
+    >>> pop = [Individual([0, 0]),
+    ...        Individual([0, 1])]
 
-    >>> cyclic_selector = ops.naive_cyclic_selection(pop)
+    >>> cyclic_selector = naive_cyclic_selection(pop)
 
-    >>> pool = ops.pool(cyclic_selector, 3)
+    >>> pool = pool(cyclic_selector, 3)
 
     print(pool)
     [Individual([0, 0], None, None), Individual([0, 1], None, None), Individual([0, 0], None, None)]
