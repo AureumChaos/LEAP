@@ -341,7 +341,23 @@ representations that will similarly have their own operators.
 Type-checking Decorator Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+However, to help minimize the chances that pipeline operators would be mis-used
+the operators have function decorates that due parameter type-checking to
+ensure the correct parameters are being passed in.  These are:
 
+`iteriter_op`
+    This checks for signatures of type `Iterator` -> `Iterator`
+
+`listlist_op`
+    Checks for population -> population type operators
+
+`listiter_op`
+    Checks for population -> population type operators
+
+`iterlist_op`
+    Checks for population -> `Iterator` type operators
+
+These can be found in `leap_ec.ops`.
 
 API Documentation
 -----------------
