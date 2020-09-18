@@ -218,9 +218,24 @@ the list of those `Individuals` is returned.
 Currying Function Decorators
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Safety Decorator Functions
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Some pipeline operators have user-specified parameters.  E.g., :py:func:`leap_ec.ops.pool` has
+the mandatory `size` parameter.  However, given that `toolz.pipe()` takes
+functions as parameters, how do we ensure that we pass in functions that have
+set parameters?
 
+Normally we would use the Standard Python Library's `functools.partial` to
+set the function parameters and then pass in the function returned from that call.  However, `toolz`
+has a convenient function wrapper that does the same thing, `toolz.functools.curry`.
+(See: https://toolz.readthedocs.io/en/latest/api.html#toolz.functoolz.curry )
+Pipeline operators that take on user-settable parameters are all wrapped with
+`curry` to allow functions with parameters set to be passed into `toolz.pipe()`.
+
+Type-checking Decorator Functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Class Operator
+^^^^^^^^^^^^^^
 
 API Documentation
 -----------------
