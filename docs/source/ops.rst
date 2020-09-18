@@ -234,6 +234,26 @@ Pipeline operators that take on user-settable parameters are all wrapped with
 Operator Class
 ^^^^^^^^^^^^^^
 
+Most of the pipeline operators are implemented as functions.  However, from
+time to time an operator will need to persist state between invocations.  For
+generator functions, that comes with using `yield` in that the next time that
+function is invoked the next individual is returned.  However, there are some
+operators that use closures, such as `:py:func:leap_ec.ops.migrate`.
+
+In any case, sometimes if one wants persistent state in a pipeline operator a
+closure or using ``yield`` isn't enough.  In which case, having a *class* that
+can have objects that persist state might be useful.
+
+To that end, :py:class:`leap_ec.ops.Operator` is an abstract base-class (ABC)
+that provides a template of sorts for those kinds of classes.  That is, you would
+write an `Operator` sub-class that provides a `__call__()` member function
+that would allow objects of that class to be inserted into a LEAP pipeline
+just like any other operator.  Presumably during execution the internal object
+state would be continually be updated with book-keeping information as
+`Individuals` flow through it in the pipeline.
+
+:py:class:`leap_ec.ops.CooperativeEvaluate` is an example of using this class.
+
 Table of Pipeline Operators
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 +--------------------------------+--------------------------+---------------------------+
@@ -321,9 +341,7 @@ representations that will similarly have their own operators.
 Type-checking Decorator Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Most of the pipeline operators are implemented as functions.  However, from
-time to time an operator will need to persist state between invocations.  For
-generator functions, that comes with using `yield` in that the next
+
 
 API Documentation
 -----------------
