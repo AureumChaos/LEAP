@@ -230,12 +230,37 @@ has a convenient function wrapper that does the same thing, `toolz.functools.cur
 Pipeline operators that take on user-settable parameters are all wrapped with
 `curry` to allow functions with parameters set to be passed into `toolz.pipe()`.
 
+
+Operator Class
+^^^^^^^^^^^^^^
+
+Table of Operators
+^^^^^^^^^^^^^^^^^^
+
+Why is this not rendering?
+
+
++-------------------------+-----------------------+-------------------------+--------------------------+---------------------+---------------------+
+| representation agnostic |                       |                         |                          | binary rep          | real_rep            |
++=========================+=======================+=========================+==========================+=====================+=====================+
+| Iterator → Iterator     | Iterator → population | population → population | population → Iterator    | Iterator → Iterator | Iterator → Iterator |
++-------------------------+-----------------------+-------------------------+--------------------------+---------------------+---------------------+
+| clone()                 | pool()                | truncate()              | tournament()             | mutate_bitflip()    | mutate_gaussian()   |
++-------------------------+-----------------------+-------------------------+--------------------------+---------------------+---------------------+
+| evaluate()              |                       | const_evaluate()        | naive_cyclic_selection() |                     |                     |
++-------------------------+-----------------------+-------------------------+--------------------------+---------------------+---------------------+
+| uniform_crossover()     |                       | insertion_selection()   | cyclic_selection()       |                     |                     |
++-------------------------+-----------------------+-------------------------+--------------------------+---------------------+---------------------+
+| n_ary_crossover()       |                       | migrate()               | random_selection()       |                     |                     |
++-------------------------+-----------------------+-------------------------+--------------------------+---------------------+---------------------+
+| CooperativeEvaluate     |                       |                         |                          |                     |                     |
++-------------------------+-----------------------+-------------------------+--------------------------+---------------------+---------------------+
+
+This better work.
+
 Type-checking Decorator Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-
-Class Operator
-^^^^^^^^^^^^^^
 
 API Documentation
 -----------------
