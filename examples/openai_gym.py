@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 from leap_ec.context import context
-from leap_ec.executable_rep import problem, decoder, phenotype
+from leap_ec.executable_rep import problem, rules, executable
 from leap_ec.individual import Individual
 from leap_ec import probe, ops
 from leap_ec.representation import Representation
@@ -41,7 +41,7 @@ def list_envs():
 def keyboard(runs, steps, env):
     """Run an environment and control it with the keyboard."""
     environment = gym.make(env)
-    controller = phenotype.KeyboardExecutable(
+    controller = executable.KeyboardExecutable(
                  environment.observation_space,
                  environment.action_space)
 
@@ -65,7 +65,7 @@ def keyboard(runs, steps, env):
 def random(runs, steps, env):
     """Run an environment controlled by a random `Executable`."""
     environment = gym.make(env)
-    controller = phenotype.RandomExecutable(
+    controller = executable.RandomExecutable(
                  environment.observation_space,
                  environment.action_space)
     p = problem.ExecutableProblem(runs, steps, environment, 'reward')
@@ -84,19 +84,22 @@ def random(runs, steps, env):
 @click.option('--pop-size', default=5, help='Population size')
 @click.option('--num-rules', default=10,
               help='Number of rules to use in the Pitt-style genome.')
-@click.option('--mutate-prob', default=0.1,
-              help='Per-gene Gaussian mutation rate')
 @click.option('--mutate-std', default=0.05,
               help='Standard deviation of Gaussian mutation')
 @click.option('--output', default='./genomes.csv',
               help='File to record best-of-gen genomes & fitness to.')
+@click.option('--gui/--no-gui', default=True,
+              help='Toggle GUI visualization of each simulation.')
 def evolve_pitt(runs, steps, env, evals, pop_size,
-                num_rules, mutate_prob, mutate_std, output):
+                num_rules, mutate_std, output, gui):
     """Evolve a controller using a Pitt-style rule system."""
 
+    print(f"Loading environment '{env}'...")
     environment = gym.make(env)
     num_inputs = int(np.prod(environment.observation_space.shape))
+    print(f"# of Inputs: {num_inputs}")
     num_outputs = int(np.prod(environment.action_space.shape))
+    print(f"# of Outputs: {num_inputs}")
     stdout_probe = probe.FitnessStatsCSVProbe(context, stream=sys.stdout)
 
     with open(output, 'w') as genomes_file:
@@ -117,13 +120,13 @@ def evolve_pitt(runs, steps, env, evals, pop_size,
                              # Solve a problem that executes agents in the
                              # environment and obtains fitness from it
                              problem=problem.ExecutableProblem(
-                                 runs, steps, environment, 'reward'),
+                                 runs, steps, environment, 'reward', gui),
 
                              representation=Representation(
-                                 decoder=decoder.PittRulesDecoder(  # Decode genomes into Pitt-style rules
+                                 decoder=rules.PittRulesDecoder(  # Decode genomes into Pitt-style rules
                                      input_space=environment.observation_space,
                                      output_space=environment.action_space,
-                                     priority_metric=phenotype.PittRulesExecutable.PriorityMetric.RULE_ORDER,
+                                     priority_metric=rules.PittRulesExecutable.PriorityMetric.RULE_ORDER,
                                      num_memory_registers=0
                                  ),
 
@@ -168,13 +171,13 @@ def run_pitt(runs, steps, env, rules):
     # Convert rules string into a list of floats
     rules = list(map(float, rules.split(',')))
     environment = gym.make(env)
-    decoder = decoder.PittRulesDecoder(
+    decoder = rules.PittRulesDecoder(
         input_space=environment.observation_space,
         output_space=environment.action_space,
-        priority_metric=phenotype.PittRulesExecutable.PriorityMetric.RULE_ORDER,
+        priority_metric=rules.PittRulesExecutable.PriorityMetric.RULE_ORDER,
         num_memory_registers=0
     )
-    controller = decoder.decode(rules)
+    controller = rules.decode(rules)
     problem = problem.ExecutableProblem(
         runs, steps, environment, 'survival')
     print(problem.evaluate(controller))

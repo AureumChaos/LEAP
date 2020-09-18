@@ -1,5 +1,3 @@
-from enum import Enum
-
 import numpy as np
 
 from leap_ec.real_rep.problems import ScalarProblem
@@ -18,7 +16,7 @@ class ExecutableProblem(ScalarProblem):
     """
 
     def __init__(self, runs: int, steps: int, environment, fitness_type: str,
-                 stop_on_done=True, maximize=True):
+                 gui: bool, stop_on_done=True, maximize=True):
         assert(runs > 0)
         assert(steps > 0)
         assert(environment is not None)
@@ -27,7 +25,9 @@ class ExecutableProblem(ScalarProblem):
         self.runs = runs
         self.steps = steps
         self.environment = environment
+        self.environment._max_episode_steps = steps
         self.stop_on_done = stop_on_done
+        self.gui = gui
         if fitness_type == 'reward':
             self.fitness = ExecutableProblem._reward_fitness
         elif fitness_type == 'survival':
@@ -56,7 +56,8 @@ class ExecutableProblem(ScalarProblem):
             run_observations = [observation]
             run_rewards = []
             for t in range(self.steps):
-                self.environment.render()
+                if self.gui:
+                    self.environment.render()
                 action = executable.output(observation)
                 observation, reward, done, info = self.environment.step(action)
                 run_observations.append(observation)
