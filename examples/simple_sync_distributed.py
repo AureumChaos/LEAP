@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
         for current_generation in range(5):
             offspring = toolz.pipe(parents,
-                                   ops.tournament,
+                                   ops.tournament_selection,
                                    ops.clone,
                                    mutate_bitflip,
                                    ops.uniform_crossover,

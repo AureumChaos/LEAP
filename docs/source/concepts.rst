@@ -51,7 +51,7 @@ Here is an example of a LEAP pipeline:
     gen = 0
     while gen < max_generation:
         offspring = toolz.pipe(parents,
-                               ops.tournament,
+                               ops.tournament_selection,
                                ops.clone,
                                    mutate_bitflip,
                                ops.evaluate,
@@ -64,7 +64,7 @@ The above code snippet is an example of a very basic genetic algorithm
 implementation that uses a `toolz.pipe()` function to link
 together a series of operators to do the following:
 
-#. binary tournament selection on a set of parents
+#. binary tournament_selection selection on a set of parents
 #. clone those that were selected
 #. perform mutation bitflip on the clones
 #. evaluate the offspring

@@ -88,8 +88,8 @@ if __name__ == '__main__':
                          ops.pool(
                              size=len(parents) * BROOD_SIZE),
                          # create the brood
-                         ops.truncate(size=len(parents),
-                                      parents=parents))  # mu + lambda
+                         ops.truncation_selection(size=len(parents),
+                                                  parents=parents))  # mu + lambda
 
         parents = offspring
 

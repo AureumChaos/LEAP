@@ -344,7 +344,7 @@ class PopulationPlotProbe:
 
                              pipeline=[
                                  plot_probe,  # Insert the probe into the pipeline like so
-                                 ops.tournament,
+                                 ops.tournament_selection,
                                  ops.clone,
                                  mutate_gaussian(std=1.0),
                                  ops.evaluate,
@@ -474,7 +474,7 @@ class PlotTrajectoryProbe:
 
                              pipeline=[
                                  trajectory_probe,  # Insert the probe into the pipeline like so
-                                 ops.tournament,
+                                 ops.tournament_selection,
                                  ops.clone,
                                  mutate_gaussian(std=0.1, hard_bounds=(0, 1)),
                                  ops.evaluate,

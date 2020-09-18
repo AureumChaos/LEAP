@@ -99,7 +99,7 @@ if __name__ == '__main__':
 
                              # Operator pipeline
                              shared_pipeline=[
-                                 ops.tournament,
+                                 ops.tournament_selection,
                                  ops.clone,
                                  mutate_gaussian(
                                      std=30, hard_bounds=problem.bounds),
@@ -107,7 +107,7 @@ if __name__ == '__main__':
                                  ops.pool(size=pop_size),
                                  ops.migrate(context,
                                              topology=topology,
-                                             emigrant_selector=ops.tournament,
+                                             emigrant_selector=ops.tournament_selection,
                                              replacement_selector=ops.random_selection,
                                              migration_gap=50),
                                  probe.FitnessStatsCSVProbe(

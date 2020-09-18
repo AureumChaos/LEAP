@@ -45,7 +45,7 @@ def ea_solve(function, bounds, generations=100, pop_size=2,
     """
 
     pipeline = [
-        ops.tournament,
+        ops.tournament_selection,
         ops.clone,
         mutate_gaussian(std=mutation_std),
         ops.uniform_crossover(p_swap=0.4),

@@ -90,7 +90,7 @@ For example, consider the following snippet:
     gen = 0
     while gen < max_generation:
         offspring = toolz.pipe(parents,
-                               ops.tournament,
+                               ops.tournament_selection,
                                ops.clone,
                                    mutate_bitflip,
                                ops.evaluate,
@@ -103,7 +103,7 @@ The above code snippet is an example of a very basic genetic algorithm
 implementation that uses a `toolz.pipe()` function to link
 together a series of operators to do the following:
 
-#. binary tournament selection on a set of parents
+#. binary tournament_selection selection on a set of parents
 #. clone those that were selected
 #. perform mutation bit-flip on the clones
 #. evaluate the offspring
@@ -118,7 +118,7 @@ by adding crossover:
     gen = 0
     while gen < max_generation:
         offspring = toolz.pipe(parents,
-                               ops.tournament,
+                               ops.tournament_selection,
                                ops.clone,
                                    mutate_bitflip,
                                ops.uniform_crossover, # NEW OPERATOR
@@ -130,7 +130,7 @@ by adding crossover:
 
 This does the following:
 
-#. binary tournament selection on a set of parents
+#. binary tournament_selection selection on a set of parents
 #. clone those that were selected
 #. perform mutation bitflip on the clones
 #. perform uniform crossover between the two offspring
@@ -138,7 +138,7 @@ This does the following:
 #. accumulate as many offspring as there are parents
 
 Adding crossover means that now **two** parents are selected instead of one. However,
-note that the tournament selection operator wasn't changed.  It automatically
+note that the tournament_selection selection operator wasn't changed.  It automatically
 selects two parents instead of one, as necessary.
 
 Let's take a closer look at `uniform_crossover()` (this is a simplified version;
@@ -186,18 +186,18 @@ such as selection and pooling operators.  Generally:
     accept an `Iterator` from which to get the `next()` `Individual`, and returns a collection of `Individuals`
 
 Below shows an example of a selection operator, which is a simplified version of
-the `tournament()` operator:
+the `tournament_selection()` operator:
 
 .. code-block:: python
 
-    def tournament(population: List, k: int = 2) -> Iterator:
+    def tournament_selection(population: List, k: int = 2) -> Iterator:
         while True:
             choices = random.choices(population, k=k)
             best = max(choices)
 
             yield best
 
-(Again, the actual :py:func:`leap_ec.ops.tournament` has checks and docstrings.)
+(Again, the actual :py:func:`leap_ec.ops.tournament_selection` has checks and docstrings.)
 
 This depicts how a typical selection pipeline operator works.  It accepts a
 population parameter (plus some optional parameters), and yields the selected
@@ -234,26 +234,37 @@ Pipeline operators that take on user-settable parameters are all wrapped with
 Operator Class
 ^^^^^^^^^^^^^^
 
-Table of Operators
-^^^^^^^^^^^^^^^^^^
-
+Table of Pipeline Operators
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 +--------------------------------+--------------------------+---------------------------+
-| Representation                 |  Iterator → Iterator     | clone(),\                 |
-| Agnostic                       |                          | evaluate(),\              |
-|                                |                          | uniform_crossover(),\     |
-|                                |                          | n_ary_crossover(),\       |
-|                                |                          | CooperativeEvaluate,      |
+| Representation Specificity     | Input -> Output          | Operator                  |
++================================+==========================+===========================+
+| Representation                 |  Iterator → Iterator     | clone()                   |
+|                                |                          +---------------------------+
+| Agnostic                       |                          | evaluate()                |
+|                                |                          +---------------------------+
+|                                |                          | uniform_crossover()       |
+|                                |                          +---------------------------+
+|                                |                          | n_ary_crossover()         |
+|                                |                          +---------------------------+
+|                                |                          | CooperativeEvaluate       |
 |                                +--------------------------+---------------------------+
 |                                |  Iterator → population   | pool()                    |
 |                                +--------------------------+---------------------------+
-|                                |  population → population | truncate(),               |
-|                                |                          | const_evaluate(),         |
-|                                |                          | insertion_selection(),    |
+|                                |  population → population | truncation_selection()    |
+|                                |                          +---------------------------+
+|                                |                          | const_evaluate()          |
+|                                |                          +---------------------------+
+|                                |                          | insertion_selection()     |
+|                                |                          +---------------------------+
 |                                |                          | migrate()                 |
 |                                +--------------------------+---------------------------+
-|                                |  population → Iterator   | tournament(),             |
-|                                |                          | naive_cyclic_selection(), |
-|                                |                          | cyclic_selection(),       |
+|                                |  population → Iterator   | tournament_selection()    |
+|                                |                          +---------------------------+
+|                                |                          | naive_cyclic_selection()  |
+|                                |                          +---------------------------+
+|                                |                          | cyclic_selection()        |
+|                                |                          +---------------------------+
 |                                |                          | random_selection()        |
 +-------------------+------------+--------------------------+---------------------------+
 | Representation    | binary_rep |  Iterator → Iterator     | mutate_bitflip()          |
@@ -261,6 +272,30 @@ Table of Operators
 |                   | real_rep   |  Iterator → Iterator     | mutate_gaussian()         |
 +-------------------+------------+--------------------------+---------------------------+
 
+Admittedly it can be confusing when considering the full suite of LEAP pipeline operators,
+especially in remembering what kind of operators "connect" to what.  With that in mind,
+the above table breaks down pipeline operators into different categories.  First,
+there are two broad categories of pipeline operators --- operators that don't care
+about the internal representation of `Individuals`, or "Representation Agnostic" operators;
+and those operators that do depend on the internal representation, or "Representation
+Dependent" operators.  Most of the operators are "Representation Agnostic" in that it doesn't matter
+if a given `Individual` has a genome of bits, real-values, or some other
+representation.  Only two operators are dependent on representation, and those
+will be discussed later.
+
+The next category is broken down by what kind of input and output a given
+operator takes.  That is, generally, an operator takes a population (collection
+of `Individuals`) or an `Iterator` from which a next `Individual` can be found.
+Likewise, a given operator can return a population or yield an `Iterator` to
+a next `Individual`.  So, operators that return an `Iterator` can be connected
+to operators that expect an `Iterator` for input.  Similarly, an operator that
+expects a population can be connected directly to a collection of `Individuals`
+(e.g., be the second argument to ``toolz.pipe()``) or to an operator that
+returns a collection of `Individuals`.
+
+If you are familiar with evolutionary algorithms, most of these connections are
+just common sense.  For example, selection operators would select from a
+population.
 
 Type-checking Decorator Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

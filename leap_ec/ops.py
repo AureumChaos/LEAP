@@ -405,11 +405,11 @@ def n_ary_crossover(next_individual: Iterator,
 
 
 ##############################
-# Function truncate
+# Function truncation_selection
 ##############################
 @curry
 @listlist_op
-def truncate(offspring: List, size: int, parents: List = None) -> List:
+def truncation_selection(offspring: List, size: int, parents: List = None) -> List:
     """ return the `size` best individuals from the given population
 
         This defaults to (mu, lambda) if `parents` is not given.
@@ -417,7 +417,7 @@ def truncate(offspring: List, size: int, parents: List = None) -> List:
         >>> from leap_ec.individual import Individual
         >>> from leap_ec.decoder import IdentityDecoder
         >>> from leap_ec.binary_rep.problems import MaxOnes
-        >>> from leap_ec.ops import truncate
+        >>> from leap_ec.ops import truncation_selection
 
         >>> pop = [Individual([0, 0, 0], decoder=IdentityDecoder(), problem=MaxOnes()),
         ...        Individual([0, 0, 1], decoder=IdentityDecoder(), problem=MaxOnes()),
@@ -429,7 +429,7 @@ def truncate(offspring: List, size: int, parents: List = None) -> List:
 
         >>> pop = Individual.evaluate_population(pop)
 
-        >>> truncated = truncate(pop, 2)
+        >>> truncated = truncation_selection(pop, 2)
 
         TODO Do we want an optional context to over-ride the 'parents' parameter?
 
@@ -447,18 +447,18 @@ def truncate(offspring: List, size: int, parents: List = None) -> List:
 
 
 ##############################
-# Function tournament
+# Function tournament_selection
 ##############################
 @curry
 @listiter_op
-def tournament(population: List, k: int = 2) -> Iterator:
+def tournament_selection(population: List, k: int = 2) -> Iterator:
     """ Selects the best individual from k individuals randomly selected from
         the given population
 
         >>> from leap_ec.individual import Individual
         >>> from leap_ec.decoder import IdentityDecoder
         >>> from leap_ec.binary_rep.problems import MaxOnes
-        >>> from leap_ec.ops import tournament
+        >>> from leap_ec.ops import tournament_selection
 
         >>> pop = [Individual([0, 0, 0], IdentityDecoder(), problem=MaxOnes()),
         ...        Individual([0, 0, 1], IdentityDecoder(), problem=MaxOnes())]
@@ -468,7 +468,7 @@ def tournament(population: List, k: int = 2) -> Iterator:
 
         >>> pop = Individual.evaluate_population(pop)
 
-        >>> best = tournament(pop)
+        >>> best = tournament_selection(pop)
 
         :param population: from which to select
 
