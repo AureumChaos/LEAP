@@ -19,7 +19,7 @@ setup(
         'License :: OSI Approved :: Academic Free License (AFL)',
         'Operating System :: OS Independent'
     ],
-    pythong_requires='>=3.6',
+    python_requires='>=3.6',
     install_requires=[
         'dask',         # Used for parallel and distributed algorithms
         'distributed',  # Used for parallel and distributed algorithms
