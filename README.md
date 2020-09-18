@@ -51,7 +51,7 @@ algorithm.
 
 Here's an example that applies a genetic algorithm variant to solve the 
 `MaxOnes` optimization problem.  It uses bitflip mutation, uniform crossover, 
-and binary tournament selection:
+and binary tournament_selection selection:
 
 ```Python
 from leap_ec.algorithm import generational_ea
@@ -66,7 +66,7 @@ ea = generational_ea(generations=100, pop_size=pop_size,
                      ),
 
                      # The operator pipeline
-                     pipeline=[ops.tournament,                     # Select parents via tournament selection
+                     pipeline=[ops.tournament_selection,                     # Select parents via tournament_selection selection
                                ops.clone,                          # Copy them (just to be safe)
                                ops.mutate_bitflip,                 # Basic mutation: defaults to a 1/L mutation rate
                                ops.uniform_crossover(p_swap=0.4),  # Crossover with a 40% chance of swapping each gene

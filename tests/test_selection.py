@@ -61,7 +61,7 @@ def test_truncation_selection():
     # We first need to evaluate all the individuals so that truncation selection has fitnesses to compare
     pop = Individual.evaluate_population(pop)
 
-    truncated = ops.truncate(pop, 2)
+    truncated = ops.truncation_selection(pop, 2)
 
     assert len(truncated) == 2
 
@@ -85,7 +85,7 @@ def test_truncation_parents_selection():
                  Individual([1, 1, 1], decoder=IdentityDecoder(), problem=MaxOnes())]
     offspring = Individual.evaluate_population(offspring)
 
-    truncated = ops.truncate(offspring, 2, parents=parents)
+    truncated = ops.truncation_selection(offspring, 2, parents=parents)
 
     assert len(truncated) == 2
 
@@ -94,15 +94,15 @@ def test_truncation_parents_selection():
 
 
 def test_tournament_selection():
-    """ This simple binary tournament selection """
-    # Make a population where binary tournament has an obvious reproducible choice
+    """ This simple binary tournament_selection selection """
+    # Make a population where binary tournament_selection has an obvious reproducible choice
     pop = [Individual([0, 0, 0], decoder=IdentityDecoder(), problem=MaxOnes()),
            Individual([1, 1, 1], decoder=IdentityDecoder(), problem=MaxOnes())]
 
     # We first need to evaluate all the individuals so that truncation selection has fitnesses to compare
     pop = Individual.evaluate_population(pop)
 
-    best = next(ops.tournament(pop))
+    best = next(ops.tournament_selection(pop))
     pass
 
     # This assert will sometimes not work because it's possible to select the same individual more than once, and that

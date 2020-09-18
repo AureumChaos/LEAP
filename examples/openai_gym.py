@@ -136,7 +136,7 @@ def evolve_pitt(runs, steps, env, evals, pop_size,
 
                              # The operator pipeline.
                              pipeline=[
-                                 ops.tournament,
+                                 ops.tournament_selection,
                                  ops.clone,
                                  mutate_gaussian(
                                      std=mutate_std, hard_bounds=(0, 1)),

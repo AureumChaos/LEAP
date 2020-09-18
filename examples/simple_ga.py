@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     while generation_counter.generation() < max_generation:
         offspring = pipe(parents,
-                         ops.tournament,
+                         ops.tournament_selection,
                          ops.clone,
                          # these are optional probes to demonstrate their use
                          probe.print_individual(prefix='before mutation: '),

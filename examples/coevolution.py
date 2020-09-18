@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
                                  # Operator pipeline
                                  shared_pipeline=[
-                                     ops.tournament,
+                                     ops.tournament_selection,
                                      ops.clone,
                                      mutate_bitflip(expected=1),
                                      ops.CooperativeEvaluate(
