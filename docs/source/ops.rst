@@ -75,7 +75,7 @@ function is returned as the overall pipeline output.
 Loose-coupling via generator functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The first "data" argument is a collection of `Individuals`representing
+The first "data" argument is a collection of `Individuals` representing
 prospective parents, which can be a sequence, such as a list or tuple.  The
 design philosophy for the operator functions that follow was to ensure they
 were as loosely coupled as possible. This was achieved by implementing some
@@ -167,7 +167,7 @@ the actual code has more type checking and docstrings).
 Note that the argument `next_individual` is an `Iterator` that "hooks up" to a
 previously `yielded` `Individual` from the previous pipeline operator.  The
 `uniform_crossover` operator doesn't care how the previous `Individual` is made,
-it just has a contract that when `next()` is invoked that it will get a new
+it just has a contract that when `next()` is invoked that it will get another
 `Individual`.  And, since this is a generator function, it `yields` the
 crossed-over `Individuals`.  It also has *two* `yield` statements that
 ensures both crossed-over `Individuals` are returned, thus eliminating a potential
@@ -303,9 +303,27 @@ two: :py:func:`leap_ec.binary_rep.mutate_bitflip()` and
 all bits, and the latter of real-values.  In the future, LEAP will support other
 representations that will similarly have their own operators.
 
+.. warning:: **Are all operators really representation agnostic?**
+    In reality, most of the operators assume that `Individual.genome` is a
+    python sequence, which may not always be the case.  For example, the user
+    may come up with a representation that employs, say, a sparse matrix.  In
+    that case, the crossover operators will fail.
+
+    In the future we intend on adding support for other popular representations
+    that will show up as LEAP sub-packages. (I.e., just as `binary_rep` and
+    `real_rep` provide support for binary and real-value representations.)
+
+    So, in a sense, for where it matters, LEAP currently assumes some sort of
+    sequence for genomes though, again, plans are afoot to add more representation
+    types.  In the interim, you will have to add your own operators to support
+    new non-sequence genomic representations.
+
 Type-checking Decorator Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Most of the pipeline operators are implemented as functions.  However, from
+time to time an operator will need to persist state between invocations.  For
+generator functions, that comes with using `yield` in that the next
 
 API Documentation
 -----------------
