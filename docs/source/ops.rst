@@ -297,6 +297,12 @@ If you are familiar with evolutionary algorithms, most of these connections are
 just common sense.  For example, selection operators would select from a
 population.
 
+With regards to "Representation Dependent" operators there currently are only
+two: :py:func:`leap_ec.binary_rep.mutate_bitflip()` and
+:py:func:`leap_ec.real_rep.mutate_gaussian`.  The former relies on a genome of
+all bits, and the latter of real-values.  In the future, LEAP will support other
+representations that will similarly have their own operators.
+
 Type-checking Decorator Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
