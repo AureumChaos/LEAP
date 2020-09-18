@@ -29,7 +29,7 @@ from an existing set of prospective parents that can be in a new set of
 prospective parents.
 
 Fig.2 is shown again here to depict a typical set of LEAP pipeline
-operators.  The pipeline generally starts with a "sink", or a parent population
+operators.  The pipeline generally starts with a "sink", or a parent population,
 from which the next operator typically selects for creating offspring. This is
 followed by a clone operator that ensure the subsequent pertubation operators
 do not modify the selected parents.  (And so it is critically important that
@@ -170,18 +170,56 @@ previously `yielded` `Individual` from the previous pipeline operator.  The
 it just has a contract that when `next()` is invoked that it will get a new
 `Individual`.  And, since this is a generator function, it `yields` the
 crossed-over `Individuals`.  It also has *two* `yield` statements that
-ensures both crossed-over `Individuals`are returned, thus eliminating a potential
-source of genetic drift by only yielding one.
+ensures both crossed-over `Individuals` are returned, thus eliminating a potential
+source of genetic drift by arbitrarily only yielding one and discarding the other.
+
+Operators for collections of `Individuals`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There is another class of operators that work on collections of `Individuals`
+such as selection and pooling operators.  Generally:
+
+*selection* pipeline operators
+    accept a collection of `Individuals` and yield a selected `Individual` (and thus are generator functions)
+
+*pooling* operators
+    accept an `Iterator` from which to get the `next()` `Individual`, and returns a collection of `Individuals`
+
+Below shows an example of a selection operator, which is a simplified version of
+the `tournament()` operator:
+
+.. code-block:: python
+
+    def tournament(population: List, k: int = 2) -> Iterator:
+        while True:
+            choices = random.choices(population, k=k)
+            best = max(choices)
+
+            yield best
+
+(Again, the actual :py:func:`leap_ec.ops.tournament` has checks and docstrings.)
+
+This depicts how a typical selection pipeline operator works.  It accepts a
+population parameter (plus some optional parameters), and yields the selected
+individual.
+
+Below is example of a pooling operator:
+
+.. code-block:: python
+
+    def pool(next_individual: Iterator, size: int) -> List:
+        return [next(next_individual) for _ in range(size)]
+
+This accepts an `Iterator` from which it gets the next individual, and it
+uses that iterator to accumulate a specified number of `Individuals` via a
+list comprehension.  Once the desired number of `Individuals` is accumulated,
+the list of those `Individuals` is returned.
 
 Currying Function Decorators
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Safety Decorator Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-Examples
-^^^^^^^^
 
 
 API Documentation
