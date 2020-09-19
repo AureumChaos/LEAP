@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setup(
     name='leap_ec',
-    version='0.3.1',
+    version='0.4.0',
     packages=find_packages(),
     license='Academic',
     author='Mark Coletti, Eric Scott, Jeff Bassett',
@@ -19,7 +19,7 @@ setup(
         'License :: OSI Approved :: Academic Free License (AFL)',
         'Operating System :: OS Independent'
     ],
-    pythong_requires='>=3.6',
+    python_requires='>=3.6',
     install_requires=[
         'dask',         # Used for parallel and distributed algorithms
         'distributed',  # Used for parallel and distributed algorithms

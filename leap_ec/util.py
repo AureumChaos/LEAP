@@ -9,9 +9,9 @@ import itertools
 import inspect
 
 
-# ##############################
+###############################
 # Function is_sequence
-# ##############################
+###############################
 def is_sequence(obj):
     """ :return: True if obj is a sequence
 
@@ -37,9 +37,9 @@ def is_iterable(obj):
     return inspect.isgenerator(obj) or inspect.isgeneratorfunction(obj)
 
 
-# ##############################
+###############################
 # Function inc_generation
-# ##############################
+###############################
 def inc_generation(context, callbacks=()):
     """ This tracks the current generation
 
@@ -50,14 +50,13 @@ def inc_generation(context, callbacks=()):
     generation is incremented. The registered callback functions should have
     a signature f(int), where the int is the new generation.
 
-    >>> from leap_ec import core
-    >>> my_inc_generation = inc_generation(core.context)
+    >>> from leap_ec.context import context
+    >>> my_inc_generation = inc_generation(context)
 
     :param context: will set ['leap']['generation'] to the incremented
-    generation
-
+        generation
     :param callbacks: optional list of callback function to call when a
-           generation is incremented
+        generation is incremented
     :return: function for incrementing generations
     """
     curr_generation = 0
@@ -88,9 +87,9 @@ def inc_generation(context, callbacks=()):
     return do_increment
 
 
-# ##############################
+###############################
 # Function inc_births
-# ##############################
+###############################
 def inc_births(context, start=0, callbacks=()):
     """ This tracks the current number of births
 
@@ -101,8 +100,8 @@ def inc_births(context, start=0, callbacks=()):
     generation is incremented. The registered callback functions should have
     a signature f(int), where the int is the new birth.
 
-    >>> from leap_ec import core
-    >>> my_inc_births = inc_births(core.context)
+    >>> from leap_ec.context import context
+    >>> my_inc_births = inc_births(context)
 
     :param context: will set ['leap']['births'] to the incremented births
     :param start: if we want to start counter at a higher value; e.g., take
@@ -151,16 +150,16 @@ def inc_births(context, start=0, callbacks=()):
     return do_increment
 
 
-# ##############################
+###############################
 # Function print_list
-# ##############################
+###############################
 def print_list(l):
     """
     Return a string representation of a list.
 
     This uses __str__() to resolve the elements of the list:
 
-    >>> from leap_ec.core import Individual
+    >>> from leap_ec.individual import Individual
     >>> l = [Individual([0, 1, 2]), Individual([3, 4, 5])]
     >>> print_list(l)
     [[0, 1, 2], [3, 4, 5]]
@@ -177,9 +176,9 @@ def print_list(l):
     print('[' + ', '.join([x.__str__() for x in l]) + ']')
 
 
-# ##############################
+###############################
 # Function birth_brander
-# ##############################
+###############################
 def birth_brander():
     """ This pipeline operator will add or update a "birth" attribute for
     passing individuals.

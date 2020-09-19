@@ -12,7 +12,7 @@ The LEAP development roadmap is as follows:
         * mutate gaussian
     * selection operators
         * truncation selection
-        * tournament selection
+        * tournament_selection selection
         * random selection
         * deterministic cyclic selection
         * insertion selection

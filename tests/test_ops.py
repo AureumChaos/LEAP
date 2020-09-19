@@ -2,7 +2,7 @@ import collections
 
 import pytest
 
-from leap_ec import ops
+import leap_ec.ops as ops
 
 
 ##############################
@@ -17,7 +17,7 @@ def test_iteriter_op_1():
         return iter([4, 5, 6])
 
     result = f(iter([1, 2, 3]))  # Passing in an iterator, as expected
-    
+
     assert(isinstance(result, collections.abc.Iterator)), f"{result}"
     assert(list(result) == [4, 5, 6])
 
@@ -56,7 +56,7 @@ def test_listlist_op_1():
         return [4, 5, 6]
 
     result = f([1, 2, 3])  # Passing in a list, as expected
-    
+
     assert(isinstance(result, list)), f"{result}"
     assert(result == [4, 5, 6])
 
@@ -95,7 +95,7 @@ def test_listiter_op_1():
         return iter([4, 5, 6])
 
     result = f([1, 2, 3])  # Passing in a list, as expected
-    
+
     assert(isinstance(result, collections.abc.Iterator)), f"{result}"
     assert(list(result) == [4, 5, 6])
 
@@ -134,7 +134,7 @@ def test_iterlist_op_1():
         return [4, 5, 6]
 
     result = f(iter([1, 2, 3]))  # Passing in an iterator, as expected
-    
+
     assert(isinstance(result, list)), f"{result}"
     assert(result == [4, 5, 6])
 

@@ -19,14 +19,14 @@ class Problem(ABC):
 
          1. Fitness evaluation (the `evaluate()` method)
 
-         2. Fitness comparision (the `worse_than()` and `equivalent()` methods
+         2. Fitness comparision (the `worse_than()` and `equivalent()` methods)
     """
 
     def __init__(self):
         super().__init__()
 
     @abstractmethod
-    def evaluate(self, phenome):
+    def evaluate(self, phenome, *args, **kwargs):
         """
         Decode and evaluate the given individual based on its genome.
 
@@ -117,8 +117,8 @@ class FunctionProblem(ScalarProblem):
         super().__init__(maximize)
         self.fitness_function = fitness_function
 
-    def evaluate(self, phenome):
-        return self.fitness_function(phenome)
+    def evaluate(self, phenome, *args, **kwargs):
+        return self.fitness_function(phenome, *args, **kwargs)
 
 
 ##############################
@@ -139,9 +139,10 @@ class ConstantProblem(ScalarProblem):
     .. plot::
        :include-source:
 
-       from leap_ec import problem, real_problems
-       bounds = problem.ConstantProblem.bounds
-       real_problems.plot_2d_problem(problem.ConstantProblem(), xlim=bounds, ylim=bounds, granularity=0.025)
+       from leap_ec.problem import ConstantProblem
+       from leap_ec.real_rep.problems import plot_2d_problem
+       bounds = ConstantProblem.bounds
+       plot_2d_problem(ConstantProblem(), xlim=bounds, ylim=bounds, granularity=0.025)
 
     """
 
@@ -152,7 +153,7 @@ class ConstantProblem(ScalarProblem):
         super().__init__(maximize)
         self.c = c
 
-    def evaluate(self, phenome):
+    def evaluate(self, phenome, *args, **kwargs):
         """
         Return a contant value for any input phenome:
 

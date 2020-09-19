@@ -11,10 +11,10 @@
 import itertools
 import uuid
 
-from ..core import Individual
+from leap_ec.individual import RobustIndividual
 
 
-class DistributedIndividual(Individual):
+class DistributedIndividual(RobustIndividual):
     # Tracks unique birth ID for each newly created individual
     birth_id = itertools.count()
 

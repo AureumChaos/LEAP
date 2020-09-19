@@ -24,9 +24,9 @@ copyright = '2019, Jeffrey K. Bassett, Mark Coletti, and Eric O. Scott'
 author = 'Jeffrey K. Bassett, Mark Coletti, and Eric O. Scott'
 
 # The short X.Y version
-version = '0.3'
+version = '0.4'
 # The full version, including alpha/beta/rc tags
-release = 'version 0.3.1'
+release = 'version 0.4.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -43,8 +43,10 @@ extensions = [
     'sphinx.ext.autodoc',  # For sucking up docstrings in our source code
     'sphinx.ext.doctest',  # Doctests!
     'sphinx.ext.todo',
+    'sphinx.ext.inheritance_diagram',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
+    'sphinxcontrib.bibtex',
     'sphinx_rtd_theme'
 ]
 
@@ -70,7 +72,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = ['examples','test','docs','venv','leap_ec.egg-info','__pycache__']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None

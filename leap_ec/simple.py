@@ -4,9 +4,15 @@
 """
 from matplotlib import pyplot as plt
 
-from leap_ec import core, ops, probe, problem
+from leap_ec import ops
+from leap_ec.context import context
 from leap_ec.algorithm import generational_ea
-
+from leap_ec.real_rep.ops import mutate_gaussian
+from leap_ec.representation import Representation
+from leap_ec.individual import Individual
+from leap_ec.problem import FunctionProblem
+from leap_ec.decoder import IdentityDecoder
+from leap_ec.real_rep.initializers import create_real_vector
 
 def ea_solve(function, bounds, generations=100, pop_size=2,
              mutation_std=1.0, maximize=False, viz=False, viz_ylim=(0, 1)):
@@ -39,9 +45,9 @@ def ea_solve(function, bounds, generations=100, pop_size=2,
     """
 
     pipeline = [
-        ops.tournament,
+        ops.tournament_selection,
         ops.clone,
-        ops.mutate_gaussian(std=mutation_std),
+        mutate_gaussian(std=mutation_std),
         ops.uniform_crossover(p_swap=0.4),
         ops.evaluate,
         ops.pool(size=pop_size)
@@ -49,16 +55,16 @@ def ea_solve(function, bounds, generations=100, pop_size=2,
 
     if viz:
         plot_probe = probe.PopulationPlotProbe(
-            core.context, ylim=viz_ylim, ax=plt.gca())
+            context, ylim=viz_ylim, ax=plt.gca())
         pipeline.append(plot_probe)
 
     ea = generational_ea(generations=generations, pop_size=pop_size,
-                         problem=problem.FunctionProblem(function, maximize),
+                         problem=FunctionProblem(function, maximize),
 
-                         representation=core.Representation(
-                             individual_cls=core.Individual,
-                             decoder=core.IdentityDecoder(),
-                             initialize=core.create_real_vector(bounds=bounds)
+                         representation=Representation(
+                             individual_cls=Individual,
+                             decoder=IdentityDecoder(),
+                             initialize=create_real_vector(bounds=bounds)
                          ),
 
                          pipeline=pipeline)

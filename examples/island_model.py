@@ -7,9 +7,19 @@ import sys
 from matplotlib import pyplot as plt
 import networkx as nx
 
-from leap_ec import core, ops, probe, real_problems
+from leap_ec.individual import Individual
+from leap_ec.decoder import IdentityDecoder
+from leap_ec.representation import Representation
+from leap_ec.algorithm import multi_population_ea
+from leap_ec.context import context
+
+import leap_ec.ops as ops
+from leap_ec import probe
 from leap_ec.algorithm import multi_population_ea
 
+from leap_ec.real_rep.problems import SchwefelProblem
+from leap_ec.real_rep.ops import mutate_gaussian
+from leap_ec.real_rep.initializers import create_real_vector
 
 ##############################
 # viz_plots function
@@ -33,7 +43,7 @@ def viz_plots(problems, modulo):
     for i, p in enumerate(problems):
         plt.subplot(true_rows, num_columns * 2, 2 * i + 1)
         tp = probe.PlotTrajectoryProbe(
-            core.context,
+            context,
             contours=p,
             xlim=p.bounds,
             ylim=p.bounds,
@@ -43,7 +53,7 @@ def viz_plots(problems, modulo):
 
         plt.subplot(true_rows, num_columns * 2, 2 * i + 2)
         fp = probe.PopulationPlotProbe(
-            core.context, ylim=(
+            context, ylim=(
                 0, 1), modulo=modulo, ax=plt.gca())
         fitness_probes.append(fp)
 
@@ -62,11 +72,11 @@ def viz_plots(problems, modulo):
 # main
 ##############################
 if __name__ == '__main__':
-    #file_probe = probe.AttributesCSVProbe(core.context, stream=sys.stdout, do_fitness=True, do_genome=True)
+    # file_probe = probe.AttributesCSVProbe(context, stream=sys.stdout, do_fitness=True, do_genome=True)
 
     topology = nx.complete_graph(3)
     nx.draw(topology)
-    problem = real_problems.SchwefelProblem(maximize=False)
+    problem = SchwefelProblem(maximize=False)
 
     genotype_probes, fitness_probes = viz_plots(
         [problem] * topology.number_of_nodes(), modulo=10)
@@ -74,33 +84,36 @@ if __name__ == '__main__':
 
     l = 2
     pop_size = 10
-    ea = multi_population_ea(generations=1000, num_populations=topology.number_of_nodes(), pop_size=pop_size,
+    ea = multi_population_ea(generations=1000,
+                             num_populations=topology.number_of_nodes(),
+                             pop_size=pop_size,
                              problem=problem,  # Fitness function
 
                              # Representation
-                             representation=core.Representation(
-                                individual_cls=core.Individual,
-                                initialize=core.create_real_vector(bounds=[problem.bounds] * l),
-                                decoder=core.IdentityDecoder()
+                             representation=Representation(
+                                 individual_cls=Individual,
+                                 initialize=create_real_vector(
+                                     bounds=[problem.bounds] * l),
+                                 decoder=IdentityDecoder()
                              ),
 
                              # Operator pipeline
                              shared_pipeline=[
-                                 ops.tournament,
+                                 ops.tournament_selection,
                                  ops.clone,
-                                 ops.mutate_gaussian(
+                                 mutate_gaussian(
                                      std=30, hard_bounds=problem.bounds),
                                  ops.evaluate,
                                  ops.pool(size=pop_size),
-                                 ops.migrate(core.context,
+                                 ops.migrate(context,
                                              topology=topology,
-                                             emigrant_selector=ops.tournament,
+                                             emigrant_selector=ops.tournament_selection,
                                              replacement_selector=ops.random_selection,
                                              migration_gap=50),
                                  probe.FitnessStatsCSVProbe(
-                                     core.context, stream=sys.stdout)
+                                     context, stream=sys.stdout)
                              ],
-        subpop_pipelines=subpop_probes)
+                             subpop_pipelines=subpop_probes)
 
     list(ea)
     plt.show()
