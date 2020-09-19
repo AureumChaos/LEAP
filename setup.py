@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setup(
     name='leap_ec',
-    version='0.3.1',
+    version='0.4.0',
     packages=find_packages(),
     license='Academic',
     author='Mark Coletti, Eric Scott, Jeff Bassett',

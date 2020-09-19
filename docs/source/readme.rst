@@ -195,3 +195,15 @@ BiBTeX::
 
 .. bibliography:: leap.bib
     :cited:
+
+Acknowledgements
+----------------
+
+This effort used resources of the Oak Ridge Leadership Computing Facility for
+developing LEAP's distributed evaluation capability, and
+which is a DOE Office of Science User Facility supported under Contract
+DE-AC05-00OR22725.
+
+We would also like to thank the Department of Energy's Vehicle Technologies
+Office (VTO) for their funding support.
+
