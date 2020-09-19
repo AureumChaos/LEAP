@@ -24,12 +24,12 @@ Being a terse compilation by version of changes.
 * Apply `Representation` consistently throughout LEAP, particulary the top-level monolithic functions
 * Added probe to `leap_ec.distributed.asynchronous.stead_state()` to take regular snapshots of the population
 
-## 0.3
+## 0.3, 6/14/2020
 
 * fix how non-viable individuals sort themselves when compared since the prior method of comparing math.nan to math.nan yielded non-ideal behavior 
 * minor maintenance tweaks
 
-## 0.2
+## 0.2, 6/14/2020
 
 * changed package name to `leap_ec` from `leap` to mitigate pypi namespace collisions
 * minor maintenance tweaks
