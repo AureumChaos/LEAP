@@ -15,14 +15,14 @@ Pipeline Operators
     another selection operator returns the final set of individuals based
     on the offspring pool and optionally the parents.
 
-Overiew
--------
+Overview
+--------
 
 :py:class:`leap_ec.individual.Individual`, :py:class:`leap_ec.problem.Problem`,
 and :py:class:`leap_ec.decoder.Decoder` are passive classes that need an
 external framework to make them function.  In :doc:`concepts` the notion of a
 pipeline of evolutionary algorithm (EA) operators that use these classes was
-introduced.  That is, `Individual`, `Decoder`, and `Problem`are the "nouns"
+introduced.  That is, `Individual`, `Decoder`, and `Problem` are the "nouns"
 and the pipeline operators a the verbs that operate on those nouns.  The
 operator pipeline objective is to create a new set of evaluated individuals
 from an existing set of prospective parents that can be in a new set of
