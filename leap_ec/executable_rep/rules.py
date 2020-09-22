@@ -1,5 +1,10 @@
 from enum import Enum
 import numpy as np
+from typing import List
+import uuid
+
+from matplotlib import pyplot as plt
+from matplotlib import patches
 
 from leap_ec.decoder import Decoder
 from leap_ec.executable_rep.executable import Executable
@@ -121,7 +126,9 @@ class PittRulesExecutable(Executable):
                 # TODO Normalize this, in case the possible ranges
                 # differ greatly
                 low, high = (rule[c * 2], rule[c * 2 + 1])
-                if all_input[c] >= low and all_input[c] <= high:
+                if low > high:
+                    diff = 0  # Treat an inconsistent condition like a "wildcard": it matches antyhing
+                elif all_input[c] >= low and all_input[c] <= high:
                     diff = 0  # Within range
                 else:
                     diff = min(abs(low - all_input[c]), abs(high - all_input[c]))
@@ -221,3 +228,68 @@ class PittRulesExecutable(Executable):
             return output  # Return a list of outputs if there are more than one
         else:
             return output[0]  # Return just the raw output if there is only one 
+
+
+##############################
+# PlotPittRuleProbe class
+##############################
+class PlotPittRuleProbe:
+    def __init__(self, context, num_inputs, num_outputs, plot_dimensions: (int, int), ax=None, xlim=(0, 1), ylim=(0, 1), modulo=1):
+        assert(context is not None)
+        assert(num_inputs > 0)
+        assert(num_outputs > 0)
+        assert(plot_dimensions is not None)
+        assert(len(plot_dimensions) == 2)
+        self.num_inputs = num_inputs
+        self.num_outputs = num_outputs
+        self.plot_dimensions = plot_dimensions
+        if ax is None:
+            _, ax = plt.subplots() 
+            
+        ax.scatter([], [])
+        self.xlim = xlim
+        self.ylim = ylim
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        self.ax = ax
+        self.left, self.right = xlim
+        self.bottom, self.top = ylim
+        self.x = np.array([])
+        self.y = np.array([])
+        self.modulo = modulo
+        self.context = context
+    
+    def __call__(self, population: List) -> List:
+        assert(population is not None)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
+        step = self.context['leap']['generation']
+
+        if step % self.modulo == 0:
+            for p in reversed(self.ax.patches):
+                p.remove()
+
+            best = max(population)
+            rule_length = (self.num_inputs*2 + self.num_outputs)
+            if 0 != len(best.genome) % rule_length:
+                raise ValueError(f"Found the wrong number of genes when trying to run {PlotPittRuleProbe.__name__}.  Are you sure these rules have {self.num_inputs} input(s) and {self.num_outputs} output(s)?")
+            num_rules = int(len(best.genome)/rule_length)
+            for i in range(num_rules):
+                x_low = best.genome[i*rule_length + 2*self.plot_dimensions[0]]
+                x_high = best.genome[i*rule_length + 2*self.plot_dimensions[0] + 1]
+                y_low = best.genome[i*rule_length + 2*self.plot_dimensions[1]]
+                y_high = best.genome[i*rule_length + 2*self.plot_dimensions[1] + 1]
+                if x_low > x_high:
+                   x_low, x_high = self.xlim
+                if y_low > y_high:
+                   y_low, y_high = self.ylim
+                width = x_high - x_low
+                height = y_high - y_low
+                action = best.genome[i*rule_length + self.num_inputs]
+                color = 'blue' if np.round(action) == 0 else 'red'
+                self.ax.add_patch(patches.Rectangle((x_low, y_low), width, height, fill=False, color=color))
+            
+            self.ax.figure.canvas.draw()
+            plt.pause(0.000001)
+
+        return population

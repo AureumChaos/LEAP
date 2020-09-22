@@ -5,12 +5,13 @@
 import math
 import random
 from typing import Tuple, Iterator
+from typing import Iterator, List, Tuple
+
 from toolz import curry
 
+from leap_ec import util
 from leap_ec.ops import compute_expected_probability, iteriter_op
 
-
-from leap_ec import util
 
 ##############################
 # Function mutate_gaussian
@@ -18,7 +19,7 @@ from leap_ec import util
 @curry
 def mutate_gaussian(std: float, expected: float = None,
                     hard_bounds: Tuple[float, float] = (-math.inf, math.inf)):
-    """ mutate and return an individual with a real-valued representation
+    """Mutate and return an individual with a real-valued representation.
 
     TODO hard_bounds should also be able to take a sequence —Siggy
 
