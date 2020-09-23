@@ -149,7 +149,7 @@ class PittRulesExecutable(Executable):
             self.memory_registers = winner[-self.num_memory:]
             return winner[-self.num_outputs - self.num_memory:-self.num_memory]
 
-    def output(self, input):
+    def __call__(self, input_):
         """
 
         :param input:
@@ -171,24 +171,24 @@ class PittRulesExecutable(Executable):
 
         It outputs `0` for inputs that are covered by only the first rule:
 
-        >>> rules.output([0.1, 0.1])
+        >>> rules([0.1, 0.1])
         0
 
-        >>> rules.output([0.5, 0.3])
+        >>> rules([0.5, 0.3])
         0
 
         It outputs `1` for inputs that are covered by only the second rule:
 
-        >>> rules.output([0.9, 0.9])
+        >>> rules([0.9, 0.9])
         1
 
-        >>> rules.output([0.5, 0.6])
+        >>> rules([0.5, 0.6])
         1
 
         If a point is covered by both rules, the first rule fires (because we set `priority_metric` to `RULE_ORDER`),
         and it outputs `0`:
 
-        >>> rules.output([0.5, 0.5])
+        >>> rules([0.5, 0.5])
         0
 
         Note that if the system has more than one output, a list is returned:
@@ -198,12 +198,12 @@ class PittRulesExecutable(Executable):
         >>> output_space = spaces.MultiBinary(2)  # A space with two binary outputs
         >>> rules = PittRulesExecutable(input_space, output_space, ruleset,
         ...                             priority_metric=PittRulesExecutable.PriorityMetric.RULE_ORDER)
-        >>> rules.output([0.1, 0.1])
+        >>> rules([0.1, 0.1])
         [0, 1]
 
         """
         # Compute the match set
-        match_list, best_match_score = self.__match_set(input)
+        match_list, best_match_score = self.__match_set(input_)
 
         # If our best-matching rules are exact matches
         if best_match_score == 0:

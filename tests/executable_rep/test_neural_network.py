@@ -89,7 +89,7 @@ def test_output1():
     nn = neural_network.SimpleNeuralNetworkExecutable([ weights ], neural_network.sigmoid)
 
     x = [1]*n_inputs
-    result = nn.output(x)
+    result = nn(x)
     assert(len(result) == n_outputs)
     for o in result:
         assert(approx(result[0]) == o)
@@ -109,7 +109,7 @@ def test_output2():
     nn = neural_network.SimpleNeuralNetworkExecutable(weights, neural_network.sigmoid)
 
     x = [1]*n_inputs
-    result = nn.output(x)
+    result = nn(x)
     assert(len(result) == n_outputs)
     for o in result:
         assert(approx(result[0]) == o)
@@ -126,7 +126,7 @@ def test_output3():
     nn = neural_network.SimpleNeuralNetworkExecutable([ weights ], neural_network.sigmoid)
 
     x = [1]*n_inputs
-    result = nn.output(x)
+    result = nn(x)
     assert(len(result) == n_outputs)
     for o in result:
         assert(approx(1.0) == o)
@@ -143,7 +143,7 @@ def test_output4():
     nn = neural_network.SimpleNeuralNetworkExecutable([ weights ], neural_network.sigmoid)
 
     x = [1]*n_inputs
-    result = nn.output(x)
+    result = nn(x)
     assert(len(result) == n_outputs)
     for o in result:
         assert(approx(0.0) == o)
@@ -160,7 +160,7 @@ def test_output5():
     nn = neural_network.SimpleNeuralNetworkExecutable([ weights ], neural_network.relu)
 
     x = [1]*n_inputs
-    result = nn.output(x)
+    result = nn(x)
     assert(len(result) == n_outputs)
     for o in result:
         assert(approx(0.0) == o)
@@ -178,7 +178,7 @@ def test_output6():
     nn = neural_network.SimpleNeuralNetworkExecutable([ weights ], neural_network.relu)
 
     x = [1]*n_inputs
-    result = nn.output(x)
+    result = nn(x)
     assert(len(result) == n_outputs)
     for i, o in enumerate(result):
         expected = np.sum(weights[:,i])

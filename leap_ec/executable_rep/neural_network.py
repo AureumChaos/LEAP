@@ -52,13 +52,16 @@ class SimpleNeuralNetworkDecoder():
     def __init__(self, shape: Tuple[int], activation=sigmoid):
         assert(shape is not None)
         assert(len(shape) > 1)
-        self.shape = shape
+    
+        shape = [ x for x in shape if x != 0 ]  # Ignore layers of size zero
+
         # Pair the shapes into the dimensions of each weight matrix,
         # adding one row to each layer's input so they can accomodate
         # a biat unit.
         # ex. [a, b, c, d] —> [(a + 1, b), (b + 1, c), (c + 1, d)]
         shape = np.array(shape)
         self.dimensions = list(zip(1 + shape[:-1], shape[1:]))
+        
         matrix_lengths = list(map(lambda x: x[0]*x[1], self.dimensions))
         self.length = sum(matrix_lengths)
         self.activation = activation
@@ -92,15 +95,13 @@ class SimpleNeuralNetworkExecutable(Executable):
         self.weight_matrices = weight_matrices
         self.activation = activation
 
-    def output(self, inputs):
-        assert(inputs is not None)
-        signal = np.array(inputs)
+    def __call__(self, input_):
+        assert(input_ is not None)
+        signal = np.array(input_)
         
         for W in self.weight_matrices:
             signal = np.append(signal, 1.0) # Add a constant bias unit to the input
             signal = self.activation(np.dot(signal, W))
+            assert(len(signal) > 0)
 
-        if len(signal) > 1:
-            return np.round(signal)  # Return a list of outputs if there are more than one
-        else:
-            return int(np.round(signal[0]))  # Return just the raw output if there is only one
+        return signal
