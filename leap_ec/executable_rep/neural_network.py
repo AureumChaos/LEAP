@@ -26,6 +26,15 @@ def relu(x):
         
 
 ##############################
+# Function softmax
+##############################
+def softmax(x):
+    """A softmax activation function.  Accepts array-like input and normalizes
+    each element relative to the others."""
+    return np.exp(x)/np.sum(np.exp(x))
+
+
+##############################
 # Class SimpleNeuralNetworkDecoder
 ##############################
 class SimpleNeuralNetworkDecoder():

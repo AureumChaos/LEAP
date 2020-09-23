@@ -183,3 +183,15 @@ def test_output6():
     for i, o in enumerate(result):
         expected = np.sum(weights[:,i])
         assert(approx(expected) == o)
+
+
+##############################
+# Tests for Softmax
+##############################
+def test_softmax1():
+    input_ = np.array([8, 5, 0])
+    output = neural_network.softmax(input_)
+    expected = np.array([0.9522698261237778, 0.04741072293787844, 0.0003194509383437505])
+
+    for e, o in zip(expected, output):
+        assert(approx(e) == o)
