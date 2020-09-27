@@ -40,6 +40,17 @@ def softmax(x):
 class SimpleNeuralNetworkDecoder():
     """Decode a real-vector genome into a neural network by treating it
     as a sequence of weight matrices.
+
+    For example, say we have a linear real-valued made up of 29 values:
+
+    >>> genome = list(range(0, 29))
+
+    We can decode this into a neural network with 4 inputs, two hidden layers 
+    (of size 3 and 2), and 2 outputs like so:
+
+    >>> from leap_ec.executable_rep import neural_network
+    >>> dec = neural_network.SimpleNeuralNetworkDecoder([ 4, 3, 2, 2 ])
+    >>> nn = dec.decode(genome)
     
     :param (int) shape: the size of each layer of the network, i.e. (inputs, 
         hidden nodes, outputs).  The shape tuple must have at least two 
@@ -88,7 +99,26 @@ class SimpleNeuralNetworkDecoder():
 # Class SimpleNeuralNetworkExecutable
 ##############################
 class SimpleNeuralNetworkExecutable(Executable):
-    """A simple fixed-architecture neural network that can be executed on inputs."""
+    """A simple fixed-architecture neural network that can be executed on inputs.
+    
+    Takes a list of weight matrices and an activation function as arguments.  The 
+    weight matrices each must have 1 row more than the previous layer's outputs, 
+    to support a bias node that is implicitly connected to each layer.
+
+    For example, here we build a network with 10 inputs, two hidden layers (with 
+    5 and 3 nodes, respectively), and 5 output nodes, and random weights:
+
+    >>> import numpy as np
+    >>> from leap_ec.executable_rep import neural_network
+    >>> n_inputs = 10
+    >>> n_hidden1, n_hidden2 = 5, 3
+    >>> n_outputs = 5
+    >>> weights = [ np.random.uniform((n_inputs + 1, n_hidden1)),
+    ...             np.random.uniform((n_hidden1 + 1, n_hidden2)),
+    ...             np.random.uniform((n_hidden2 + 1, n_outputs)) ]
+    >>> nn = neural_network.SimpleNeuralNetworkExecutable(weights, neural_network.sigmoid)
+
+    """
     def __init__(self, weight_matrices, activation):
         assert(weight_matrices is not None)
         assert(activation is not None)
@@ -98,10 +128,12 @@ class SimpleNeuralNetworkExecutable(Executable):
     def __call__(self, input_):
         assert(input_ is not None)
         signal = np.array(input_)
-        
+        #print(f"\n\nINPUT\n{signal.tolist()}")
         for W in self.weight_matrices:
             signal = np.append(signal, 1.0) # Add a constant bias unit to the input
+            #print(f"\n\n\nWEIGHTS\n{W.tolist()}")
             signal = self.activation(np.dot(signal, W))
             assert(len(signal) > 0)
+            #print(f"\n\n\nOUTPUT\n{signal.tolist()}")
 
         return signal
