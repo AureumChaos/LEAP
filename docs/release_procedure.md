@@ -17,3 +17,4 @@ These are the things to do when performing a release.
 1. verify that the release number and final changes have properly propagated to:
     1. github site
     1. ReadTheDocs `master` and `latest` docs
+    1. update pypi.org
