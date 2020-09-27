@@ -19,7 +19,7 @@ from leap_ec.algorithm import generational_ea
 
 @click.group()
 def cli():
-    """This LEAP example program evolve agent controllers for the problems 
+    """This LEAP example program evolves agent controllers for the problems 
     in the OpenAI Gym problem set.  It supports a couple of different 
     evolutionary representations."""
     pass
@@ -48,9 +48,9 @@ def list_command():
               help='The OpenAI Gym environment to run.')
 @click.option('--rep', default='neural',
               help="The evolutionary representation to use ('neural' or 'pitt')")
-@click.option('--evals', default=100, help='Fitness evaluations to run for')
+@click.option('--gens', default=100, help='Generations to run for')
 @click.option('--pop-size', default=5, help='Population size')
-@click.option('--num-nodes', default=10,
+@click.option('--num-nodes', default=0,
               help='Number of rules (if Pitt-style) or hidden notes (if neural) to use in the controller.')
 @click.option('--mutate-std', default=0.05,
               help='Standard deviation of Gaussian mutation')
@@ -58,13 +58,15 @@ def list_command():
               help='File to record best-of-gen genomes & fitness to.')
 @click.option('--gui/--no-gui', default=True,
               help='Toggle GUI visualization of each simulation.')
-def evolve(runs, steps, env, rep, evals, pop_size,
+def evolve(runs, steps, env, rep, gens, pop_size,
                 num_nodes, mutate_std, output, gui):
     """Evolve a controller using a Pitt-style rule system."""
     check_rep(rep)
 
     print(f"Loading environment '{env}'...")
     environment = gym.make(env)
+    print(f"\tObservation space:\t{environment.observation_space}")
+    print(f"\tAction space:     \t{environment.action_space}")
 
     with open(output, 'w') as genomes_file:
         if rep == 'pitt':
@@ -74,7 +76,7 @@ def evolve(runs, steps, env, rep, evals, pop_size,
 
         probes = get_probes(genomes_file, environment, rep)
 
-        ea = generational_ea(generations=evals, pop_size=pop_size,
+        ea = generational_ea(generations=gens, pop_size=pop_size,
                              # Solve a problem that executes agents in the
                              # environment and obtains fitness from it
                              problem=problem.ExecutableProblem(
@@ -87,7 +89,7 @@ def evolve(runs, steps, env, rep, evals, pop_size,
                                  ops.tournament_selection,
                                  ops.clone,
                                  mutate_gaussian(
-                                     std=mutate_std, hard_bounds=(0, 1)),
+                                     std=mutate_std, hard_bounds=(-1, 1)),
                                  ops.evaluate,
                                  ops.pool(size=pop_size),
                                  *probes  # Inserting all the probes at the end
@@ -118,7 +120,7 @@ def pitt_representation(environment, num_rules):
     # Initialized genomes are random real-valued vectors.
     initialize = create_real_vector(  
                     # Initialize each element between 0 and 1.
-                    bounds=([[-0.0, 1.0]] * (num_inputs * 2 + num_outputs)) * num_rules)
+                    bounds=([[0.0, 1.0]] * (num_inputs * 2 + num_outputs)) * num_rules)
 
     return Representation(decoder, initialize)
     
@@ -127,14 +129,17 @@ def neural_representation(environment, num_hidden_nodes):
     """Return a neural network representation suitable for learning a
     controller for this environment."""
     num_inputs = int(np.prod(environment.observation_space.shape))
-    num_outputs = int(np.prod(environment.action_space.shape))
+    num_actions = environment.action_space.n
 
-    # Decode genomes into a feed-forward neural network
-    # TODO Incorporate hidden nodes
-    decoder = neural_network.SimpleNeuralNetworkDecoder(shape=(num_inputs, num_outputs))
+    # Decode genomes into a feed-forward neural network,
+    # but also wrap an argmax around the networks so their
+    # output is a single integer
+    decoder = executable.WrapperDecoder(
+                wrapped_decoder=neural_network.SimpleNeuralNetworkDecoder(shape=(num_inputs, num_hidden_nodes, num_actions)),
+                decorator=executable.ArgmaxExecutable)
 
     # Initialized genomes are random real-valued vectors.
-    initialize = create_real_vector(bounds=([[-1, 0]]*decoder.length))
+    initialize = create_real_vector(bounds=([[-1, 1]]*decoder.wrapped_decoder.length))
 
     return Representation(decoder, initialize)
 
@@ -197,9 +202,11 @@ def get_probes(genomes_file, environment, rep):
               help="The evolutionary representation to use ('neural' or 'pitt')")
 @click.option('--env', default='CartPole-v0',
               help='The OpenAI Gym environment to run.')
-@click.option('--num-nodes', default=10,
+@click.option('--num-nodes', default=0,
               help='Number of rules (if Pitt-style) or hidden notes (if neural) to use in the controller.')
-def run(evals, runs, steps, rep, env, num_nodes):
+@click.option('--gui/--no-gui', default=True,
+              help='Toggle GUI visualization of each simulation.')
+def run(evals, runs, steps, rep, env, num_nodes, gui):
     """
     Load the parameters defining a controller on stdin into an agent to drive 
     it in the given environment.
@@ -217,7 +224,7 @@ def run(evals, runs, steps, rep, env, num_nodes):
 
     controller = decoder.decode(rule_set)
     for i in range(evals):
-        p = problem.ExecutableProblem(runs, steps, environment, 'survival', True)
+        p = problem.ExecutableProblem(runs, steps, environment, 'reward', gui)
         print(p.evaluate(controller))
 
 
