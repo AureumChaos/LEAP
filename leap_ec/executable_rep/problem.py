@@ -58,7 +58,7 @@ class ExecutableProblem(ScalarProblem):
             for t in range(self.steps):
                 if self.gui:
                     self.environment.render()
-                action = executable.output(observation)
+                action = executable(observation)
                 observation, reward, done, info = self.environment.step(action)
                 run_observations.append(observation)
                 run_rewards.append(reward)
