@@ -4,6 +4,7 @@ Being a terse compilation by version of changes.
 
 ## 0.5.0
 
+* Added support for static and variable length segments, which are fixed-length "chunks" of values
 * Added a simple neural network representation, `executable_rep.neural_network`, and made it the default for `examples/openai_gym.py`
 * Changed the `Executable` interface to act as a `Callable` object (rather than using a custom `output()` method)
 
@@ -26,7 +27,7 @@ Being a terse compilation by version of changes.
 
 ## 0.3.1
 
-* Apply `Representation` consistently throughout LEAP, particulary the top-level monolithic functions
+* Apply `Representation` consistently throughout LEAP, particularly the top-level monolithic functions
 * Added probe to `leap_ec.distributed.asynchronous.steady_state()` to take regular snapshots of the population
 
 ## 0.3, 6/14/2020
