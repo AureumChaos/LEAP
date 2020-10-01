@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""
-    This is for "segmented" encodings that are essentially sequences of sequences.  This is useful
-    for Pitt Approach implementations, as well as other EAs that rely on similar representations.
+""" This is for "segmented" encodings that are essentially sequences of
+sequences.  This is useful for Pitt Approach implementations, as well as
+other EAs that rely on similar representations.
 """
 from copy import deepcopy
 import random
@@ -16,25 +16,26 @@ from smallLEAP.reproduction import binary_flip_mutation, clone_generator
 import smallLEAP.individual
 import smallLEAP.probes
 
-class SegmentedEncoding(Encoding, metaclass=ABCMeta):
+class Segmented(Encoding, metaclass=ABCMeta):
     """
-    This Encoding is an ABC that supports "sequences of sequences" representations.  This relies on
-    other Encodings to represent the "sub-sequences".
+    This Encoding is an ABC that supports "sequences of sequences"
+    representations.  This relies on other a sequence of decoders to
+    represent the "sub-sequences".
     """
 
-    def __init__(self, sub_encoding):
+    def __init__(self, decoder_seq):
         """
-        :param sub_encoding: is an Encoding representing the sub-sequences, and will be cloned for new instances
+        :param decoder_seq: is an Encoding representing the sub-sequences, and will be cloned for new instances
         """
         super().__init__()
 
-        # All SegmentedEncodings will start with an empty sequence to which sub-sequences
-        # are later added.
+        # All SegmentedEncodings will start with an empty sequence to which
+        # sub-sequences are later added.
         self.sequence = []
 
-        # This is an implementation Prototype pattern whereby this will be cloned for
-        # self.random() calls.
-        self.sub_encoding = sub_encoding
+        # This is an implementation Prototype pattern whereby this will be
+        # cloned for self.random() calls.
+        self.decoder_seq = decoder_seq
 
     @abstractmethod
     def _max_rand_segments(self):
@@ -71,17 +72,17 @@ class SegmentedEncoding(Encoding, metaclass=ABCMeta):
         return str([str(x) for x in self.sequence])
 
 
-class FixedSegmentedEncoding(SegmentedEncoding):
+class FixedSegmented(Segmented):
     """
         These are for fixed number of segments per individual
     """
 
-    def __init__(self, sub_encoding, length):
+    def __init__(self, decoder_seq, length):
         """
-        :param sub_encoding: is an Encoding representing the sub-sequences
+        :param decoder_seq: is an Encoding representing the sub-sequences
         :param length: how many segments per individual
         """
-        super().__init__(sub_encoding)
+        super().__init__(decoder_seq)
 
         self.length = length
 
@@ -93,22 +94,22 @@ class FixedSegmentedEncoding(SegmentedEncoding):
         return self.length
 
 
-class VaryingSegmentedEncoding(SegmentedEncoding):
+class VaryingSegmented(Segmented):
     """
         For a variable number of segments per individual.
     """
 
-    def __init__(self, sub_encoding, max_length):
+    def __init__(self, decoder_seq, max_length):
         """
         TODO have max_length become an integer for uniform distribution of [1,n], or an optional
         function that returns an integer for exact number of segments to be created for a given
         call to self.random() where the integer is drawn from a distribution implemented in a
         user-defined function.
 
-        :param sub_encoding: is an Encoding representing the sub-sequences
+        :param decoder_seq: is an Encoding representing the sub-sequences
         :param max_length: is the maximum number of randomly uniformly generated sub-sequences
         """
-        super().__init__(sub_encoding)
+        super().__init__(decoder_seq)
 
         self.max_length = max_length
 
@@ -252,18 +253,18 @@ def segmented_remove_mutation_generator(next_individual, probability):
 
 if __name__ == '__main__':
     # test fixed length segments
-    my_fixed_segmented_encoding = FixedSegmentedEncoding(SimpleBinaryEncoding(3), 3)
+    my_fixed_segmented_encoding = FixedSegmented(SimpleBinaryEncoding(3), 3)
     my_fixed_segmented_encoding.random()
     print(my_fixed_segmented_encoding)
 
     # test varying length segments
-    my_varying_segmented_encoding = VaryingSegmentedEncoding(BinaryIntValueEncoding(3,4,3), 5)
+    my_varying_segmented_encoding = VaryingSegmented(BinaryIntValueEncoding(3, 4, 3), 5)
     my_varying_segmented_encoding.random()
     print(my_varying_segmented_encoding)
 
     # test binary flip mutation
     #    Test individual has two segments of three bits
-    ind = smallLEAP.individual.Individual(encoding=FixedSegmentedEncoding(SimpleBinaryEncoding(3), 2))
+    ind = smallLEAP.individual.Individual(encoding=FixedSegmented(SimpleBinaryEncoding(3), 2))
     print('Original ind:', ind.encoding)
 
     # invert all bits to verify mutation worked
@@ -273,7 +274,7 @@ if __name__ == '__main__':
 
     # now to the sames tests, but with varying length encodings
 
-    ind = smallLEAP.individual.Individual(encoding=VaryingSegmentedEncoding(BinaryIntValueEncoding(3,4,3), 5))
+    ind = smallLEAP.individual.Individual(encoding=VaryingSegmented(BinaryIntValueEncoding(3, 4, 3), 5))
     print('Original varying:', ind.encoding)
 
     new_ind = segmented_binary_flip_mutation(ind, 1, 1) # expect about one mutated segment and one bit flipped
