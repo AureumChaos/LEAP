@@ -8,6 +8,22 @@ from toolz import curry
 
 from leap_ec.ops import compute_expected_probability, iteriter_op
 
+##############################
+# Function flip
+##############################
+def flip(gene, probability):
+    """ flip a bit given a probablity
+
+        Note that this is also used in segmented bit flip representation.
+
+        :param gene: a single bit to possibly be flipped
+        :param probability: how likely to flip `gene`
+    """
+    if random.random() < probability:
+        return (gene + 1) % 2
+    else:
+        return gene
+
 
 ##############################
 # Function mutate_bitflip
@@ -27,11 +43,7 @@ def mutate_bitflip(next_individual: Iterator, expected: float = 1) -> Iterator:
     :param expected: the *expected* number of mutations, on average
     :return: mutated individual
     """
-    def flip(gene):
-        if random.random() < probability:
-            return (gene + 1) % 2
-        else:
-            return gene
+
 
     while True:
         individual = next(next_individual)
@@ -41,7 +53,7 @@ def mutate_bitflip(next_individual: Iterator, expected: float = 1) -> Iterator:
         # each time given that we may be dealing with dynamic lengths.
         probability = compute_expected_probability(expected, individual.genome)
 
-        individual.genome = [flip(gene) for gene in individual.genome]
+        individual.genome = [flip(gene, probability) for gene in individual.genome]
 
         individual.fitness = None  # invalidate fitness since we have new genome
 
