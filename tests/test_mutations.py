@@ -13,7 +13,7 @@ def test_mutate_bitflip():
                            problem=MaxOnes())]
 
     # Now mutate the individual such that we *expect both bits to flip*
-    mutated_ind = next(ops.mutate_bitflip(iter(ind), expected=2))
+    mutated_ind = next(ops.mutate_bitflip(iter(ind), expected_prob=2))
 
     assert mutated_ind.genome == [0, 0]
 

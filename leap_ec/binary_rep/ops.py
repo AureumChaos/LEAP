@@ -30,7 +30,7 @@ def flip(gene, probability):
 ##############################
 @curry
 @iteriter_op
-def mutate_bitflip(next_individual: Iterator, expected: float = 1) -> Iterator:
+def mutate_bitflip(next_individual: Iterator, expected_prob: float = 1) -> Iterator:
     """ mutate and return an individual with a binary representation
 
     >>> from leap_ec.individual import Individual
@@ -40,7 +40,7 @@ def mutate_bitflip(next_individual: Iterator, expected: float = 1) -> Iterator:
     >>> mutated = next(mutate_bitflip(iter([original])))
 
     :param next_individual: to be mutated
-    :param expected: the *expected* number of mutations, on average
+    :param expected_prob: the *expected* number of mutations, on average
     :return: mutated individual
     """
 
@@ -51,7 +51,7 @@ def mutate_bitflip(next_individual: Iterator, expected: float = 1) -> Iterator:
         # Given the average expected number of mutations, calculate the
         # probability for flipping each bit.  This calculation must be made
         # each time given that we may be dealing with dynamic lengths.
-        probability = compute_expected_probability(expected, individual.genome)
+        probability = compute_expected_probability(expected_prob, individual.genome)
 
         individual.genome = [flip(gene, probability) for gene in individual.genome]
 
