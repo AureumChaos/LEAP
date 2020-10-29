@@ -51,7 +51,8 @@ def mutate_bitflip(next_individual: Iterator, expected_prob: float = 1) -> Itera
         # Given the average expected number of mutations, calculate the
         # probability for flipping each bit.  This calculation must be made
         # each time given that we may be dealing with dynamic lengths.
-        probability = compute_expected_probability(expected_prob, individual.genome)
+        probability = compute_expected_probability(expected_prob,
+                                                   individual.genome)
 
         individual.genome = [flip(gene, probability) for gene in individual.genome]
 

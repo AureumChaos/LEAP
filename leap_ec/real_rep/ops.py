@@ -17,7 +17,7 @@ from leap_ec.ops import compute_expected_probability, iteriter_op
 # Function mutate_gaussian
 ##############################
 @curry
-def mutate_gaussian(std: float, expected_prob: float = None,
+def mutate_gaussian(std: float, expected_num_mutation: float = None,
                     hard_bounds: Tuple[float, float] = (-math.inf, math.inf)):
     """Mutate and return an individual with a real-valued representation.
 
@@ -28,7 +28,7 @@ def mutate_gaussian(std: float, expected_prob: float = None,
     :param std: standard deviation to be equally applied to all individuals;
         this can be a scalar value or a "shadow vector" of standard deviations
 
-    :param expected_prob: the *expected* number of mutations per individual,
+    :param expected_num_mutation: the *expected* number of mutations per individual,
         on average.  If None, all genes will be mutated.
 
     :param hard_bounds: to clip for mutations; defaults to (- ∞, ∞)
@@ -50,11 +50,12 @@ def mutate_gaussian(std: float, expected_prob: float = None,
 
             # compute actual probability of mutation based on expected number of
             # mutations and the genome length
-            if expected_prob is None:
+            if expected_num_mutation is None:
                 # Default to expected probablity of 1.0
                 p = compute_expected_probability(1.0, individual.genome)
             else:
-                p = compute_expected_probability(expected_prob, individual.genome)
+                p = compute_expected_probability(expected_num_mutation,
+                                                 individual.genome)
 
             if util.is_sequence(std):
                 # We're given a vector of "shadow standard deviations" so apply

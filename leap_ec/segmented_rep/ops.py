@@ -41,7 +41,7 @@ def segmented_bitflip(segment: list, mutation_prob: float = 1.0) -> list:
 @curry
 def apply_mutation(next_individual: Iterator,
                    mutator_func: Callable[[list, float], list],
-                   expected_prob: float = 1.0) -> Iterator:
+                   expected_num_mutation: float = 1.0) -> Iterator:
     """
     This expects next_individual to have a segmented representation; i.e.,
     a sequence of sequences.  `mutator_func` will be applied to each
@@ -55,7 +55,7 @@ def apply_mutation(next_individual: Iterator,
         individual's genome; first argument is a segment, the second the
         expected probability of mutating each segment element.
     :param expected: expected mutations on average in [0.0,1.0]
-    :type expected_prob: float
+    :type expected_num_mutation: float
     :return: yielded mutated individual
     :rtype: Iterator
     """
@@ -63,12 +63,12 @@ def apply_mutation(next_individual: Iterator,
         individual = next(next_individual)
 
         # compute expected probability of mutation _per segment_
-        per_segment_expected_prob = compute_expected_probability(expected_prob,
-                                                                 individual.genome)
+        per_segment_expected_prob = compute_expected_probability(
+            expected_num_mutation, individual.genome)
 
         # Apply mutation function using the expected probability to create a
         # new sequence of sequences to be assigned to the genome.
-        mutated_genome = [mutator_func(segment, expected_prob=expected_prob)
+        mutated_genome = [mutator_func(segment, expected_prob=expected_num_mutation)
                           for segment in individual.genome]
 
         individual.genome = mutated_genome
