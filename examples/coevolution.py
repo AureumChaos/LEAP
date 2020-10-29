@@ -1,9 +1,17 @@
 """
     Provides an example of a co-evolutionary system.
 """
-from leap_ec import core, ops, binary_problems
+from leap_ec.individual import Individual
+from leap_ec.decoder import IdentityDecoder
+from leap_ec.representation import Representation
 from leap_ec.algorithm import multi_population_ea
+from leap_ec.context import context
 
+import leap_ec.ops as ops
+
+from leap_ec.binary_rep.problems import MaxOnes
+from leap_ec.binary_rep.initializers import create_binary_sequence
+from leap_ec.binary_rep.ops import mutate_bitflip
 
 if __name__ == '__main__':
     pop_size = 5
@@ -11,25 +19,25 @@ if __name__ == '__main__':
     with open('./coop_stats.csv', 'w') as log_stream:
         ea = multi_population_ea(generations=1000, pop_size=pop_size,
                                  num_populations=9,
-                                 problem=binary_problems.MaxOnes(),
+                                 problem=MaxOnes(),
                                  # Fitness function
 
                                  init_evaluate=ops.const_evaluate(value=-100),
 
-                                 representation=core.Representation(
-                                     individual_cls=core.Individual,
-                                     initialize=core.create_binary_sequence(
+                                 representation=Representation(
+                                     individual_cls=Individual,
+                                     initialize=create_binary_sequence(
                                          length=1),
-                                     decoder=core.IdentityDecoder()
+                                     decoder=IdentityDecoder()
                                  ),
 
                                  # Operator pipeline
                                  shared_pipeline=[
-                                     ops.tournament,
+                                     ops.tournament_selection,
                                      ops.clone,
-                                     ops.mutate_bitflip(expected=1),
+                                     mutate_bitflip(expected=1),
                                      ops.CooperativeEvaluate(
-                                         context=core.context,
+                                         context=context,
                                          num_trials=1,
                                          collaborator_selector=ops.random_selection,
                                          log_stream=log_stream),

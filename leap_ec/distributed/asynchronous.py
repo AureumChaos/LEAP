@@ -13,7 +13,7 @@ import toolz
 
 from dask.distributed import as_completed
 
-from leap_ec import core
+from leap_ec.context import context
 from leap_ec import util
 
 from .evaluate import evaluate, is_viable
@@ -35,7 +35,7 @@ logger.addHandler(console_handler)
 ##############################
 # function eval_population
 ##############################
-def eval_population(population, client, context=core.context):
+def eval_population(population, client, context=context):
     """ Concurrently evaluate all the individuals in the given population
 
     :param population: to be evaluated
@@ -135,7 +135,7 @@ def steady_state(client, births, init_pop_size, pop_size,
                  problem, offspring_pipeline,
                  inserter=greedy_insert_into_pop,
                  count_nonviable=False,
-                 context=core.context,
+                 context=context,
                  evaluated_probe=None,
                  pop_probe=None):
     """ Implements an asynchronous steady-state EA
@@ -155,7 +155,7 @@ def steady_state(client, births, init_pop_size, pop_size,
            towards the birth budget
     :param evaluated_probe: is a function taking an individual that is given
            the next evaluated individual; can be used to print newly evaluated
-            individuals
+           individuals
     :param pop_probe: is an optional function that writes a snapshot of the
            population to a CSV formatted stream ever N births
     :return: the population containing the final individuals

@@ -5,10 +5,11 @@
     * generational_ea() for a typical generational model
     * multi_population_ea() for invoking an EA using sub-populations
 """
-from leap_ec import core, util, ops
+from leap_ec import util
 from toolz import pipe
-import random
 
+from leap_ec.context import context
+from leap_ec.individual import Individual
 
 ##############################
 # Function generational_ea
@@ -52,23 +53,29 @@ def generational_ea(generations, pop_size, representation, problem, pipeline):
     basic (mu, lambda)-style EA looks like (that is, an EA that throws away
     the parents at each generation in favor of their offspring):
 
-    >>> from leap_ec import core, ops, binary_problems
+    >>> from leap_ec.binary_rep.problems import MaxOnes
+    >>> from leap_ec.binary_rep.initializers import create_binary_sequence
+    >>> from leap_ec.binary_rep.ops import mutate_bitflip
+    >>> from leap_ec.representation import Representation
+    >>> from leap_ec.decoder import IdentityDecoder
+    >>> from leap_ec.individual import Individual
+    >>> import leap_ec.ops as ops
     >>> l = 10  # The length of the genome
     >>> pop_size = 5
     >>> ea = generational_ea(generations=100, pop_size=pop_size,
-    ...                      problem=binary_problems.MaxOnes(),      # Solve a MaxOnes Boolean optimization problem
+    ...                      problem=MaxOnes(),      # Solve a MaxOnes Boolean optimization problem
     ...
-    ...                      representation=core.Representation(
-    ...                          individual_cls=core.Individual,     # Use the standard Individual as the prototype for the population
-    ...                          decoder=core.IdentityDecoder(),     # Genotype and phenotype are the same for this task
-    ...                          initialize=core.create_binary_sequence(length=10)  # Initial genomes are random binary sequences
+    ...                      representation=Representation(
+    ...                          individual_cls=Individual,     # Use the standard Individual as the prototype for the population
+    ...                          decoder=IdentityDecoder(),     # Genotype and phenotype are the same for this task
+    ...                          initialize=create_binary_sequence(length=10)  # Initial genomes are random binary sequences
     ...                      ),
     ...
     ...                      # The operator pipeline
     ...                      pipeline=[
-    ...                          ops.tournament,                     # Select parents via tournament selection
+    ...                          ops.tournament_selection,                     # Select parents via tournament selection
     ...                          ops.clone,                          # Copy them (just to be safe)
-    ...                          ops.mutate_bitflip,                 # Basic mutation: defaults to a 1/L mutation rate
+    ...                          mutate_bitflip,                     # Basic mutation: defaults to a 1/L mutation rate
     ...                          ops.uniform_crossover(p_swap=0.4),  # Crossover with a 40% chance of swapping each gene
     ...                          ops.evaluate,                       # Evaluate fitness
     ...                          ops.pool(size=pop_size)             # Collect offspring into a new population
@@ -94,11 +101,11 @@ def generational_ea(generations, pop_size, representation, problem, pipeline):
     parents = representation.create_population(pop_size, problem=problem)
 
     # Evaluate initial population
-    parents = core.Individual.evaluate_population(parents)
+    parents = Individual.evaluate_population(parents)
 
     # Set up a generation counter that records the current generation to
-    # core.context
-    generation_counter = util.inc_generation(context=core.context)
+    # context
+    generation_counter = util.inc_generation(context=context)
 
     # Output the best individual in the initial population
     bsf = max(parents)
@@ -123,15 +130,15 @@ def generational_ea(generations, pop_size, representation, problem, pipeline):
 ##############################
 def multi_population_ea(generations, num_populations, pop_size, problem,
                         representation, shared_pipeline,
-                        subpop_pipelines=None, context=core.context,
-                        init_evaluate=core.Individual.evaluate_population):
+                        subpop_pipelines=None, context=context,
+                        init_evaluate=Individual.evaluate_population):
     """
     An EA that maintains multiple (interacting) subpopulations, i.e. for
     implementing island models.
 
     This effectively executes several EAs concurrently that share the same
     generation counter, and which share the same representation (
-    :py:class:`~leap.core.Individual`, :py:class:`~leap.core.Decoder`) and
+    :py:class:`~leap.Individual`, :py:class:`~leap.Decoder`) and
     objective function (:py:class:`~leap.problem.Problem`), and which share
     all or part of the same operator pipeline.
 
@@ -155,42 +162,47 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
         best individual in each population at each generation.
 
     To turn a multi-population EA into an island model, use the
-    :py:function:`~leap.ops.migrate` operator in the shared pipeline.  This
+    :py:func:`leap_ec.ops.migrate` operator in the shared pipeline.  This
     operator takes a `NetworkX` graph describing the topology of connections
     between islands as input.
 
     For example, here's how we might define a fully connected 4-island model
-    that solves a :py:class:`~leap.real_problems.SchwefelProblem` using a
+    that solves a :py:class:`leap_ec.real_rep.problems.SchwefelProblem` using a
     real-vector representation:
 
     >>> import networkx as nx
     >>> from leap_ec.algorithm import multi_population_ea
-    >>> from leap_ec import ops, real_problems
+    >>> from leap_ec import ops
+    >>> from leap_ec.real_rep.ops import mutate_gaussian
+    >>> from leap_ec.real_rep import problems
+    >>> from leap_ec.decoder import IdentityDecoder
+    >>> from leap_ec.representation import Representation
+    >>> from leap_ec.real_rep.initializers import create_real_vector
     >>>
     >>> topology = nx.complete_graph(4)
     >>> nx.draw(topology)
-    >>> problem = real_problems.SchwefelProblem(maximize=False)
+    >>> problem = problems.SchwefelProblem(maximize=False)
     ...
     >>> l = 2  # Length of the genome
     >>> pop_size = 10
     >>> ea = multi_population_ea(generations=1000, num_populations=topology.number_of_nodes(), pop_size=pop_size,
     ...                         problem=problem,
     ...
-    ...                         representation=core.Representation(
-    ...                             individual_cls=core.Individual,
-    ...                             decoder=core.IdentityDecoder(),
-    ...                             initialize=core.create_real_vector(bounds=[problem.bounds] * l)
+    ...                         representation=Representation(
+    ...                             individual_cls=Individual,
+    ...                             decoder=IdentityDecoder(),
+    ...                             initialize=create_real_vector(bounds=[problem.bounds] * l)
     ...                             ),
     ...
     ...                         shared_pipeline=[
-    ...                             ops.tournament,
+    ...                             ops.tournament_selection,
     ...                             ops.clone,
-    ...                             ops.mutate_gaussian(std=30, hard_bounds=problem.bounds),
+    ...                             mutate_gaussian(std=30, hard_bounds=problem.bounds),
     ...                             ops.evaluate,
     ...                             ops.pool(size=pop_size),
-    ...                             ops.migrate(core.context,
+    ...                             ops.migrate(context,
     ...                                         topology=topology,
-    ...                                         emigrant_selector=ops.tournament,
+    ...                                         emigrant_selector=ops.tournament_selection,
     ...                                         replacement_selector=ops.random_selection,
     ...                                         migration_gap=50)
     ...                         ])
@@ -210,9 +222,9 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
     (4, [Individual(...), Individual(...), Individual(...), Individual(...)])
 
     While each population is executing, `multi_population_ea` writes the
-    index of the current subpopulation to `core.context['leap'][
+    index of the current subpopulation to `context['leap'][
     'subpopulation']`.  That way shared operators (such as
-    :py:function:`~leap.ops.migrate`) have the option of accessing the share
+    :py:func:`leap.ops.migrate`) have the option of accessing the share
     context to learn which subpopulation they are currently working with.
 
     """

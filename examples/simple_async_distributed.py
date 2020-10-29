@@ -1,14 +1,31 @@
 #!/usr/bin/env python3
-"""
-    usage: simple.py [-h] [--verbose] [--workers WORKERS]
-                 [--init-pop-size INIT_POP_SIZE] [--max-births MAX_BIRTHS]
-                 [--pool-size POOL_SIZE] [--scheduler-file SCHEDULER_FILE]
+""" Simple example of using leap_ec.distributed.asynchronous.steady_state()
 
-Simple PEAL example of asynchronously distributing MAX ONES problem to workers
+    usage: simple_async_distributed.py [-h] [--verbose]
+                                   [--track-workers-file TRACK_WORKERS_FILE]
+                                   [--track-pop-file TRACK_POP_FILE]
+                                   [--update-interval UPDATE_INTERVAL]
+                                   [--workers WORKERS]
+                                   [--init-pop-size INIT_POP_SIZE]
+                                   [--max-births MAX_BIRTHS]
+                                   [--pop-size POP_SIZE]
+                                   [--scheduler-file SCHEDULER_FILE]
+                                   [--length LENGTH]
+
+Simple example of asynchronously distributing MAX ONES problem to workers
 
 optional arguments:
   -h, --help            show this help message and exit
   --verbose, -v         Chatty output
+  --track-workers-file TRACK_WORKERS_FILE, -t TRACK_WORKERS_FILE
+                        Optional file to write CSV of what host and process ID
+                        was associated with each evaluation
+  --track-pop-file TRACK_POP_FILE
+                        Optional CSV file to take regular interval snapshots
+                        of the population ever --update-intervals
+  --update-interval UPDATE_INTERVAL
+                        If using --track-pop-file, how many births before
+                        writing an update to the specified file
   --workers WORKERS, -w WORKERS
                         How many workers?
   --init-pop-size INIT_POP_SIZE, -s INIT_POP_SIZE
@@ -18,25 +35,32 @@ optional arguments:
                         at the very start of the runs
   --max-births MAX_BIRTHS, -m MAX_BIRTHS
                         Maximum number of births before ending
-  --pool-size POOL_SIZE, -p POOL_SIZE
-                        The size of the evaluated individuals pool
+  --pop-size POP_SIZE, -b POP_SIZE
+                        The size of the evaluated individuals pop
   --scheduler-file SCHEDULER_FILE, -f SCHEDULER_FILE
                         The scheduler file used to coordinate between the
                         scheduler and workers. Specifying this option
                         automatically triggers non-local distribution of
                         workers, such as on a local cluster
+  --length LENGTH, -l LENGTH
+                        Genome length
 """
 import logging
 from pprint import pformat
 import argparse
 
-from dask.distributed import Client, LocalCluster
+from dask.distributed import Client
+from dask.distributed import LocalCluster
 
-from leap_ec import core
-from leap_ec import ops
-from leap_ec import binary_problems
+import leap_ec.ops as ops
+from leap_ec.decoder import IdentityDecoder
+from leap_ec.binary_rep.initializers import create_binary_sequence
+from leap_ec.binary_rep.problems import MaxOnes
+from leap_ec.binary_rep.ops import mutate_bitflip
+from leap_ec.representation import Representation
+
 from leap_ec.distributed import asynchronous
-from leap_ec.distributed.logging import WorkerLoggerPlugin
+from leap_ec.distributed.logger import WorkerLoggerPlugin
 from leap_ec.distributed.probe import log_worker_location, log_pop
 from leap_ec.distributed.individual import DistributedIndividual
 
@@ -98,12 +122,16 @@ if __name__ == '__main__':
 
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
+        logger.setLevel(logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
+        logger.setLevel(logging.INFO)
 
     logger.info(
         'workers: %s init pop size: %s max births: %s, pop size: %s',
         args.workers, args.init_pop_size, args.max_births, args.pop_size)
+
+    track_workers_func = track_pop_func = None
 
     try:
         if args.scheduler_file:
@@ -111,10 +139,10 @@ if __name__ == '__main__':
             # them locally because we went through the trouble of specifying
             # a scheduler file that the scheduler and workers will use to
             # coordinate with one another.
-            logging.info('Using a remote distributed model')
+            logger.info('Using a remote distributed model')
             client = Client(scheduler_file=args.scheduler_file)
         else:
-            logging.info('Using a local distributed model')
+            logger.info('Using a local distributed model')
             cluster = LocalCluster(n_workers=args.workers, processes=False,
                                    silence_logs=logger.level)
             logger.info("Cluster: %s", cluster)
@@ -127,32 +155,28 @@ if __name__ == '__main__':
         if args.track_workers_file:
             track_workers_stream = open(args.track_workers_file, 'w')
             track_workers_func = log_worker_location(track_workers_stream)
-        else:
-            track_workers_func = None
 
         if args.track_pop_file is not None:
             track_pop_stream = open(args.track_pop_file, 'w')
             track_pop_func = log_pop(args.update_interval, track_pop_stream)
-        else:
-            track_pop_func = None
 
-        final_pop = asynchronous.steady_state(client, # dask client
+        final_pop = asynchronous.steady_state(client,
                                               births=args.max_births,
                                               init_pop_size=5,
                                               pop_size=args.pop_size,
 
-                                              representation=core.Representation(
-                                                  decoder=core.IdentityDecoder(),
-                                                  initialize=core.create_binary_sequence(
+                                              representation=Representation(
+                                                  decoder=IdentityDecoder(),
+                                                  initialize=create_binary_sequence(
                                                       args.length),
                                                   individual_cls=DistributedIndividual),
 
-                                              problem=binary_problems.MaxOnes(),
+                                              problem=MaxOnes(),
 
                                               offspring_pipeline=[
                                                   ops.random_selection,
                                                   ops.clone,
-                                                  ops.mutate_bitflip,
+                                                  mutate_bitflip,
                                                   ops.pool(size=1)],
 
                                               evaluated_probe=track_workers_func,
