@@ -3,7 +3,6 @@
     Used to initialize segments
 """
 import random
-import inspect
 
 ##############################
 # Closure create_segmented_sequence
@@ -32,7 +31,7 @@ def create_segmented_sequence(length, seq_initializer):
     :return: sequence of segments
     :rtype: list
     """
-    if inspect.isfunction(length):
+    if callable(length):
         num_segments = length()
     else:
         num_segments = length
