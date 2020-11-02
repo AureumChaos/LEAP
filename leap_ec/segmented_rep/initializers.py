@@ -2,7 +2,6 @@
 """
     Used to initialize segments
 """
-import random
 
 ##############################
 # Closure create_segmented_sequence
@@ -17,7 +16,7 @@ def create_segmented_sequence(length, seq_initializer):
     `length` denotes how many segments to generate.  If it's an integer, then
     we will create `length` segments.  However, if it's a function that draws
     from a random distribution that returns an int, we will, instead, use that
-    to figure out
+    to calculate the number of segments to generate.
 
     >>> from leap_ec.binary_rep.initializers import create_binary_sequence
     >>> segments = create_segmented_sequence(3, create_binary_sequence(3))
