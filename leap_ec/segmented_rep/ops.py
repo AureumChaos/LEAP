@@ -7,7 +7,6 @@ import random
 from toolz import curry
 
 from leap_ec.ops import compute_expected_probability, iteriter_op
-from leap_ec.binary_rep.ops import perform_mutate_bitflip
 
 
 ##############################
@@ -26,6 +25,7 @@ def apply_mutation(next_individual: Iterator,
     all components, on average.
 
     >>> from leap_ec.individual import Individual
+    >>> from leap_ec.binary_rep.ops import perform_mutate_bitflip
     >>> original = Individual([[0,0],[1,1]])
     >>> mutated = next(apply_mutation(iter([original]),mutator=perform_mutate_bitflip))
 
