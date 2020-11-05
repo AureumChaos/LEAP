@@ -45,9 +45,12 @@ ea_solve(f, bounds=[(-5.12, 5.12) for _ in range(5)], maximize=True)
 
 The next-easiest way to use LEAP is to configure a custom algorithm via one 
 of the metaheuristic functions in the `leap_ec.algorithms` package.  These 
-interfaces off you a flexible way to customize the various operators, 
+interfaces offer you a flexible way to customize the various operators, 
 representations, and other components that go into a modern evolutionary 
 algorithm.
+
+Metaheuristics are usually defined by three main objects: a `Problem`, a
+`Representation`, and a pipeline (list) of `Operators`.
 
 Here's an example that applies a genetic algorithm variant to solve the 
 `MaxOnes` optimization problem.  It uses bitflip mutation, uniform crossover, 
