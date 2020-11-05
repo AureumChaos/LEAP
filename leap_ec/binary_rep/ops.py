@@ -9,21 +9,8 @@ from toolz import curry
 from leap_ec.ops import compute_expected_probability, iteriter_op
 
 ##############################
-# Function bitflip
+# Function perform_mutate_bitflip
 ##############################
-def bitflip(bit, probability):
-    """ bitflip a bit given a probablity
-
-        Note that this is also used in segmented bit bitflip representation.
-
-        :param bit: a single bit to possibly be flipped
-        :param probability: how likely to bitflip `bit`
-    """
-    if random.random() < probability:
-        return (bit + 1) % 2
-    else:
-        return bit
-
 @curry
 def perform_mutate_bitflip(genome: list,
                            expected_num_mutations: float = 1) -> Iterator:
@@ -38,6 +25,14 @@ def perform_mutate_bitflip(genome: list,
     :param expected_num_mutations: on average how many mutations are we expecting?
     :return: mutated genome
     """
+    def bitflip(bit, probability):
+        """ bitflip a bit given a probability
+        """
+        if random.random() < probability:
+            return (bit + 1) % 2
+        else:
+            return bit
+
     # Given the average expected number of mutations, calculate the
     # probability for flipping each bit.  This calculation must be made
     # each time given that we may be dealing with dynamic lengths.
