@@ -73,7 +73,7 @@ class ScalarProblem(Problem):
         # always be the worse possible with regards to ordering.
         if first_fitness is nan:
             if second_fitness is nan:
-                # both are nan, so to reduce bias flip a coin to arbitrarily
+                # both are nan, so to reduce bias bitflip a coin to arbitrarily
                 # select one that is worst.
                 return random.choice([True, False])
             # Doesn't matter how awful second_fitness is, nan will already be

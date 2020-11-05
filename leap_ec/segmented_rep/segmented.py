@@ -262,7 +262,7 @@ if __name__ == '__main__':
     my_varying_segmented_encoding.random()
     print(my_varying_segmented_encoding)
 
-    # test binary flip mutation
+    # test binary bitflip mutation
     #    Test individual has two segments of three bits
     ind = smallLEAP.individual.Individual(encoding=FixedSegmented(SimpleBinaryEncoding(3), 2))
     print('Original ind:', ind.encoding)

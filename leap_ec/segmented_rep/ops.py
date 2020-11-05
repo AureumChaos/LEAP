@@ -7,40 +7,16 @@ import random
 from toolz import curry
 
 from leap_ec.ops import compute_expected_probability, iteriter_op
-from leap_ec.binary_rep.ops import flip
-
-##############################
-# Function segmented_bitflip
-##############################
-@curry
-def segmented_bitflip(segment: list, mutation_prob: float = 1.0) -> list:
-    """ Perform bitflip mutation on the given segment
-
-    Intended to be used in conjunction with `apply_mutation()`
-
-    TODO find a way to minimize copy and pasting from
-    binary_rep.ops.mutate_bitflip.
-
-    :param segment: to be mutated
-    :type segment: list
-    :param mutation_prob: actual probability of mutating a given segment element
-    :type mutation_prob: float in [0.0,1.0]
-    :return: mutated segment
-    :rtype: list
-    """
-    actual_prob = compute_expected_probability(segment, expected_prob)
-
-    mutated_segment = [flip(gene, actual_prob) for gene in segment]
-
-    return mutated_segment
+from leap_ec.binary_rep.ops import perform_mutate_bitflip
 
 
 ##############################
 # Function apply_mutation
 ##############################
 @curry
+@iteriter_op
 def apply_mutation(next_individual: Iterator,
-                   mutator_func: Callable[[list, float], list],
+                   mutator: Callable[[list, float], list],
                    expected_num_mutation: float = 1.0) -> Iterator:
     """
     This expects next_individual to have a segmented representation; i.e.,
@@ -49,15 +25,16 @@ def apply_mutation(next_individual: Iterator,
     applies to *all* the sequences, and defaults to a single mutation among
     all components, on average.
 
+    >>> from leap_ec.individual import Individual
+    >>> original = Individual([[0,0],[1,1]])
+    >>> mutated = next(apply_mutation(iter([original]),mutator=perform_mutate_bitflip))
+
     :param next_individual: to mutation
-    :type next_individual: Iterator
-    :param mutator_func: function to be applied to each segment in the
+    :param mutator: function to be applied to each segment in the
         individual's genome; first argument is a segment, the second the
         expected probability of mutating each segment element.
     :param expected: expected mutations on average in [0.0,1.0]
-    :type expected_num_mutation: float
     :return: yielded mutated individual
-    :rtype: Iterator
     """
     while True:
         individual = next(next_individual)
@@ -68,7 +45,7 @@ def apply_mutation(next_individual: Iterator,
 
         # Apply mutation function using the expected probability to create a
         # new sequence of sequences to be assigned to the genome.
-        mutated_genome = [mutator_func(segment, expected_prob=expected_num_mutation)
+        mutated_genome = [mutator(segment, expected_num_mutations=per_segment_expected_prob)
                           for segment in individual.genome]
 
         individual.genome = mutated_genome

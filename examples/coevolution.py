@@ -35,7 +35,7 @@ if __name__ == '__main__':
                                  shared_pipeline=[
                                      ops.tournament_selection,
                                      ops.clone,
-                                     mutate_bitflip(expected_prob=1),
+                                     mutate_bitflip(expected_num_mutations=1),
                                      ops.CooperativeEvaluate(
                                          context=context,
                                          num_trials=1,
