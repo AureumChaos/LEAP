@@ -13,11 +13,11 @@ class BinaryToIntDecoder(Decoder):
     """A decoder that converts a Boolean-vector genome into an integer-vector
     phenome. """
 
-    def __init__(self, *segments):
+    def __init__(self, *descriptors):
         """Constructs a decoder that will convert a binary representation
         into a corresponding int-value vector.
 
-        :param segments: is a sequence of integer that determine how the
+        :param descriptors: is a sequence of integer that determine how the
             binary sequence is to be broken up into chunks for interpretation
 
         :return: a function for real-value phenome decoding of a sequence of
@@ -36,7 +36,7 @@ class BinaryToIntDecoder(Decoder):
         [0, 7]
         """
         super().__init__()
-        self.segments = segments
+        self.descriptors = descriptors
 
     def decode(self, genome, *args, **kwargs):
         """
@@ -63,11 +63,11 @@ class BinaryToIntDecoder(Decoder):
         values = []
         offset = 0  # how far are we into the binary sequence
 
-        for segment in self.segments:
+        for descriptor in self.descriptors:
             # snip out the next sequence
-            cur_sequence = genome[offset:offset + segment]
+            cur_sequence = genome[offset:offset + descriptor]
             values.append(BinaryToIntDecoder.__binary_to_int(cur_sequence))
-            offset += segment
+            offset += descriptor
 
         return values
 
@@ -205,8 +205,8 @@ class BinaryToIntGreyDecoder(BinaryToIntDecoder):
         [1, 8, 4]
     """
 
-    def __init__(self, *segments):
-        super().__init__(*segments)
+    def __init__(self, *descriptors):
+        super().__init__(*descriptors)
 
     @staticmethod
     def __gray_encode(num):

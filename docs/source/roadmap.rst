@@ -5,7 +5,7 @@ The LEAP development roadmap is as follows:
 
 1. pre-Minimally Viable Product -- released 1/14/2020 as ``0.1-pre``
     * basic support for binary representations
-        * bit flip mutation
+        * bit bitflip mutation
         * point-wise crossover
         * uniform crossover
     * basic support for real-valued representations

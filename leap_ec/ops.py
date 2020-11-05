@@ -795,13 +795,14 @@ class CooperativeEvaluate(Operator):
 ##############################
 # function compute_expected_probability
 ##############################
-def compute_expected_probability(expected: float, individual_genome: List) \
+def compute_expected_probability(expected_num_mutations: float,
+                                 individual_genome: List) \
         -> float:
     """ Computed the probability of mutation based on the desired average
     expected mutation and genome length.
 
-    :param expected: times individual is to be mutated on average
+    :param expected_num_mutations: times individual is to be mutated on average
     :param individual_genome: genome for which to compute the probability
     :return: the corresponding probability of mutation
     """
-    return 1.0 / len(individual_genome) * expected
+    return 1.0 / len(individual_genome) * expected_num_mutations

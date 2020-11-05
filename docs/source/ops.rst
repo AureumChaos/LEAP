@@ -105,7 +105,7 @@ together a series of operators to do the following:
 
 #. binary tournament_selection selection on a set of parents
 #. clone those that were selected
-#. perform mutation bit-flip on the clones
+#. perform mutation bit-bitflip on the clones
 #. evaluate the offspring
 #. accumulate as many offspring as there are parents
 
