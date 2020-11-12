@@ -13,6 +13,22 @@ from leap_ec import util
 from leap_ec.ops import compute_expected_probability, iteriter_op
 
 
+@curry
+def perform_mutation_guassian(genome: list,
+                              expected_num_mutations: float = 1) -> Iterator:
+    """ Perform actual Gaussian mutation on real-valued genes
+
+    This used to be inside `mutate_bitflip`, but was moved outside it so that
+    `leap_ec.segmented.ops.apply_mutation` could directly use this function,
+    thus saving us from doing a copy-n-paste of the same code to the segmented
+    sub-package.
+
+    :param genome: of real-valued numbers that will potentially be mutated
+    :param expected_num_mutations: on average how many mutations are expected
+    :return: mutated genom
+    """
+
+
 ##############################
 # Function mutate_gaussian
 ##############################
