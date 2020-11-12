@@ -45,9 +45,13 @@ def apply_mutation(next_individual: Iterator,
 
         # Apply mutation function using the expected probability to create a
         # new sequence of sequences to be assigned to the genome.
-        mutated_genome = [mutator(segment, expected_num_mutations=per_segment_expected_prob)
+        mutated_genome = [mutator(segment,
+                                  expected_num_mutations=per_segment_expected_prob)
                           for segment in individual.genome]
 
         individual.genome = mutated_genome
+
+        # invalidate the fitness since we have a new genome
+        individual.fitness= None
 
         yield individual
