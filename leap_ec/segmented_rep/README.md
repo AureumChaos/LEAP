@@ -1,5 +1,7 @@
 Support for segmented representations
 
+THIS IS A NEW sentence
+
 A "segment" is a fixed-length set of values, and a representation can have a 
 statically set number of segments or a variable number.
 
