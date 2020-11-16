@@ -3,12 +3,14 @@ for various robotics and behavior tasks provided by OpenAI Gym."""
 import sys
 
 import click
+from dask.distributed import Client
 import gym
 from matplotlib import pyplot as plt
 import numpy as np
 
 from leap_ec.context import context
-from leap_ec.executable_rep import problem, rules, neural_network, executable
+from leap_ec.distributed import synchronous
+from leap_ec.executable_rep import problems, rules, neural_network, executable
 from leap_ec.individual import Individual
 from leap_ec import probe, ops
 from leap_ec.representation import Representation
@@ -21,7 +23,10 @@ from leap_ec.algorithm import generational_ea
 def cli():
     """This LEAP example program evolves agent controllers for the problems 
     in the OpenAI Gym problem set.  It supports a couple of different 
-    evolutionary representations."""
+    evolutionary representations.
+    
+    Note that you may need to install OpenGL packages for your system (such as 
+    'freeglut' or 'glu' in order for the visualizations to work."""
     pass
 
 
@@ -76,25 +81,29 @@ def evolve(runs, steps, env, rep, gens, pop_size,
 
         probes = get_probes(genomes_file, environment, rep)
 
-        ea = generational_ea(generations=gens, pop_size=pop_size,
-                             # Solve a problem that executes agents in the
-                             # environment and obtains fitness from it
-                             problem=problem.ExecutableProblem(
-                                 runs, steps, environment, 'reward', gui),
+        from leap_ec.problem import ConstantProblem
+        with Client() as dask_client:
+            ea = generational_ea(generations=gens, pop_size=pop_size,
+                                # Solve a problem that executes agents in the
+                                # environment and obtains fitness from it
+                                #problem=ConstantProblem(),
+                                problem=problems.EnvironmentProblem(
+                                    runs, steps, environment, 'reward', gui),
 
-                             representation=representation,
+                                representation=representation,
 
-                             # The operator pipeline.
-                             pipeline=[
-                                 ops.tournament_selection,
-                                 ops.clone,
-                                 mutate_gaussian(
-                                     std=mutate_std, hard_bounds=(-1, 1)),
-                                 ops.evaluate,
-                                 ops.pool(size=pop_size),
-                                 *probes  # Inserting all the probes at the end
-                             ])
-        list(ea)
+                                # The operator pipeline.
+                                pipeline=[
+                                    ops.tournament_selection,
+                                    ops.clone,
+                                    mutate_gaussian(
+                                        std=mutate_std, hard_bounds=(-1, 1)),
+                                    ops.evaluate,
+                                    ops.pool(size=pop_size),
+                                    #synchronous.eval_pool(client=dask_client, size=pop_size),
+                                    *probes  # Inserting all the probes at the end
+                                ])
+            list(ea)
 
 
 def check_rep(rep):
@@ -224,7 +233,7 @@ def run(evals, runs, steps, rep, env, num_nodes, gui):
 
     controller = decoder.decode(rule_set)
     for i in range(evals):
-        p = problem.ExecutableProblem(runs, steps, environment, 'reward', gui)
+        p = problems.EnvironmentProblem(runs, steps, environment, 'reward', gui)
         print(p.evaluate(controller))
 
 
@@ -251,7 +260,7 @@ def keyboard(evals, steps, env):
         environment.unwrapped.viewer.window.on_key_press = controller.key_press
         environment.unwrapped.viewer.window.on_key_release = controller.key_release
         # Hand over control of the environment to the Problem
-        p = problem.ExecutableProblem(1, steps, environment, 'reward', gui=True)
+        p = problems.EnvironmentProblem(1, steps, environment, 'reward', gui=True)
         print(p.evaluate(controller))
     
     environment.close()
@@ -276,7 +285,7 @@ def random(evals, runs, steps, env):
                     environment.observation_space,
                     environment.action_space)
     for i in range(evals):
-        p = problem.ExecutableProblem(runs, steps, environment, 'reward', guit=True)
+        p = problems.EnvironmentProblem(runs, steps, environment, 'reward', guit=True)
         print(p.evaluate(controller))
 
 

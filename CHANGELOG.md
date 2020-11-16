@@ -4,9 +4,11 @@ Being a terse compilation by version of changes.
 
 ## 0.5.0
 
-* Added support for static and variable length segments, which are fixed-length "chunks" of values
+* Added support for static- and variable-length segments, which are fixed-length "chunks" of values
 * Added a simple neural network representation, `executable_rep.neural_network`, and made it the default for `examples/openai_gym.py`
 * Changed the `Executable` interface to act as a `Callable` object (rather than using a custom `output()` method)
+* Added support for integer representations, via the `int_rep` package
+* Added a Cartesian genetic programming (CGP) representation, `executable_rep.cgp`, with example in `examples/cgp.py`
 
 ## 0.4.0, 9/19/2020
 

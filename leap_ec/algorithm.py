@@ -4,6 +4,7 @@
 
     * generational_ea() for a typical generational model
     * multi_population_ea() for invoking an EA using sub-populations
+    * random_search() for a more naive strategy
 """
 from leap_ec import util
 from toolz import pipe
@@ -11,10 +12,11 @@ from toolz import pipe
 from leap_ec.context import context
 from leap_ec.individual import Individual
 
+
 ##############################
 # Function generational_ea
 ##############################
-def generational_ea(generations, pop_size, representation, problem, pipeline):
+def generational_ea(generations, pop_size, problem, representation, pipeline, context=context):
     """
     This function provides an evolutionary algorithm with a generational
     population model.
@@ -60,7 +62,6 @@ def generational_ea(generations, pop_size, representation, problem, pipeline):
     >>> from leap_ec.decoder import IdentityDecoder
     >>> from leap_ec.individual import Individual
     >>> import leap_ec.ops as ops
-    >>> l = 10  # The length of the genome
     >>> pop_size = 5
     >>> ea = generational_ea(generations=100, pop_size=pop_size,
     ...                      problem=MaxOnes(),      # Solve a MaxOnes Boolean optimization problem
@@ -130,8 +131,8 @@ def generational_ea(generations, pop_size, representation, problem, pipeline):
 ##############################
 def multi_population_ea(generations, num_populations, pop_size, problem,
                         representation, shared_pipeline,
-                        subpop_pipelines=None, context=context,
-                        init_evaluate=Individual.evaluate_population):
+                        subpop_pipelines=None,
+                        init_evaluate=Individual.evaluate_population, context=context):
     """
     An EA that maintains multiple (interacting) subpopulations, i.e. for
     implementing island models.
@@ -267,3 +268,73 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
 
         # Output the best-of-gen individuals for each generation
         yield (generation_counter.generation(), bsf)
+
+
+##############################
+# Function random_search
+##############################
+def random_search(evaluations, problem, representation, pipeline=(), context=context):
+    """This function performs random search of a solution space using the 
+    given representation and problem.
+    
+    Random search is often used as a control in evolutionary algorithm experiments:
+    if your pet algorithm can't perform better than random search, then it's a sign
+    that you've barked up the wrong tree!
+
+    This implementation also allows you to pass in an operator pipeline, which will 
+    be applied to each individual.  You'd usually use this to pass in probes, for 
+    example, to take measurements of the population.  But you could also use it to 
+    hybridize random search with, say, a local refinement procedure.
+    
+
+    >>> from leap_ec.binary_rep.problems import MaxOnes
+    >>> from leap_ec.binary_rep.initializers import create_binary_sequence
+    >>> from leap_ec.decoder import IdentityDecoder
+    >>> from leap_ec.representation import Representation
+    >>> from leap_ec.individual import Individual
+    >>> ea = random_search(evaluations=100,
+    ...                    problem=MaxOnes(),      # Solve a MaxOnes Boolean optimization problem
+    ...
+    ...                    representation=Representation(
+    ...                        individual_cls=Individual,     # Use the standard Individual as the prototype for the population
+    ...                        decoder=IdentityDecoder(),     # Genotype and phenotype are the same for this task
+    ...                        initialize=create_binary_sequence(length=10)  # Initial genomes are random binary sequences
+    ...                    ))
+    >>> ea # doctest:+ELLIPSIS
+    <generator ...>
+
+    The algorithm evaluates lazily when you query the generator:
+
+    >>> print(*list(ea), sep='\\n') # doctest:+ELLIPSIS
+    (1, Individual(...))
+    (2, Individual(...))
+    ...
+    (100, Individual(...))
+
+    The best individual reported from the initial population  is reported at
+    generation 0) followed by the best-so-far individual at each subsequent
+    generation.
+    """
+    # Set up an evaluation counter that records the current generation to
+    # context
+    evaluation_counter = util.inc_generation(context=context)
+    bsf = None
+
+    while evaluation_counter.generation() < evaluations:
+        # Use the representation to sample a new individual
+        population = representation.create_population(1, problem=problem)
+
+        # Fitness evaluation
+        population = Individual.evaluate_population(population)
+
+        # Apply some operators to the new individual.
+        # For example, we'd put probes here.
+        population = pipe(population, *pipeline)
+
+        if max(population) > bsf:  # Update the best-so-far individual
+            bsf = max(population)
+
+        evaluation_counter()  # Increment to the next evaluation
+
+        # Output the best-so-far individual for each generation
+        yield (evaluation_counter.generation(), bsf)
