@@ -630,7 +630,7 @@ def pool(next_individual: Iterator, size: int) -> List:
 # Function migrate
 ##############################
 def migrate(context, topology, emigrant_selector,
-            replacement_selector, migration_gap, customs_stamp=lambda x: x):
+            replacement_selector, migration_gap, customs_stamp=lambda x, _: x):
 
     num_islands = topology.number_of_nodes()
 
@@ -644,20 +644,18 @@ def migrate(context, topology, emigrant_selector,
 
         # Immigration
         for imm in immigrants[current_subpop]:
+            # Do island-specific transformation
+            # For example, this callback might update the individuals 'problem'
+            # field to point to a new fitness function for the island, and
+            # re-evalute its fitness.
+            imm = customs_stamp(imm, current_subpop)
             # Compete for a place in the new population
             contestant = next(replacement_selector(population))
-            # FIXME In multi-task IMs, this will always compare the source fitness
-            # against target fitness.  Perhaps we should run the customs_stamp
-            # before performing this competition?
             if imm > contestant:
                 # FIXME This is fishy!  What if there are two copies of
                 # contestant?  What if contestant.__eq()__ is not properly
                 # implemented?
                 population.remove(contestant)
-                # Do island-specific transformation
-                # For example, this callback might update the individuals 'problem'
-                # field to point to a new fitness function for the island, etc.
-                imm = customs_stamp(imm, current_subpop)
                 population.append(imm)
 
         immigrants[current_subpop] = []

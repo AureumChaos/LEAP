@@ -138,7 +138,7 @@ if __name__ == '__main__':
                                              topology=topology,
                                              emigrant_selector=ops.tournament_selection,
                                              replacement_selector=ops.random_selection,
-                                             migration_gap=50,
+                                             migration_gap=5,
                                              customs_stamp=problem_stamp(problems)),
                                  probe.FitnessStatsCSVProbe(
                                      context, stream=sys.stdout)
