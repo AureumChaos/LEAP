@@ -10,6 +10,7 @@ Being a terse compilation by version of changes.
 * Added `statistical_helpers` to assist with writing unit tests for stochastic algorithms
 * Added support for integer representations, via the `int_rep` package
 * Added a Cartesian genetic programming (CGP) representation, `executable_rep.cgp`, with example in `examples/cgp.py`
+* Added support for heterogeneous island models, demoed in `examples/multitask_island_model.py`
 
 ## 0.4.0, 9/19/2020
 
