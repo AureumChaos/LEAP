@@ -1,5 +1,6 @@
 """
-    Provides an island model example.
+An an example of an island model with a heterogenous configuration: each island
+holds a separate fitness function.
 """
 import math
 import sys
@@ -17,7 +18,7 @@ import leap_ec.ops as ops
 from leap_ec import probe
 from leap_ec.algorithm import multi_population_ea
 
-from leap_ec.real_rep.problems import SchwefelProblem
+from leap_ec.real_rep import problems
 from leap_ec.real_rep.ops import mutate_gaussian
 from leap_ec.real_rep.initializers import create_real_vector
 
@@ -77,10 +78,17 @@ if __name__ == '__main__':
 
     topology = nx.complete_graph(3)
     nx.draw(topology)
-    problem = SchwefelProblem(maximize=False)
 
-    genotype_probes, fitness_probes = viz_plots(
-        [problem] * topology.number_of_nodes(), modulo=10)
+    bounds = (0, 1)
+
+    # Island-specific fitness functions
+    topology.nodes[0]['problem'] = problems.ScaledProblem(problems.SpheroidProblem(), new_bounds=(0, 1))
+    topology.nodes[1]['problem'] = problems.ScaledProblem(problems.RastriginProblem(), new_bounds=(0, 1))
+    topology.nodes[2]['problem'] = problems.ScaledProblem(problems.AckleyProblem(), new_bounds=(0, 1))
+    
+    # Probes and visualization
+    problems = [ n['problem'] for n in topology.nodes ]
+    genotype_probes, fitness_probes = viz_plots(problems, modulo=10)
     subpop_probes = list(zip(genotype_probes, fitness_probes))
 
     l = 2
@@ -94,7 +102,7 @@ if __name__ == '__main__':
                              representation=Representation(
                                  individual_cls=Individual,
                                  initialize=create_real_vector(
-                                     bounds=[problem.bounds] * l),
+                                     bounds=bounds * l),
                                  decoder=IdentityDecoder()
                              ),
 
@@ -103,7 +111,7 @@ if __name__ == '__main__':
                                  ops.tournament_selection,
                                  ops.clone,
                                  mutate_gaussian(
-                                     std=30, hard_bounds=problem.bounds),
+                                     std=30, hard_bounds=bounds),
                                  ops.evaluate,
                                  ops.pool(size=pop_size),
                                  ops.migrate(context,

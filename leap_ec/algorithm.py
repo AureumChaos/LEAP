@@ -229,10 +229,14 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
     context to learn which subpopulation they are currently working with.
 
     """
+    
+    if not hasattr(problem, '__len__'):
+        problem = [ problem for _ in range(num_populations)]
+
     # Initialize populations of pop_size individuals of the same type as
     # individual_cls
-    pops = [representation.create_population(pop_size, problem=problem)
-            for _ in range(num_populations)]
+    pops = [representation.create_population(pop_size, problem=problem[i])
+            for i in range(num_populations)]
     # Include a reference to the populations in the context object.
     # This allows operators to see all of the subpopulations.
     context['leap']['subpopulations'] = pops

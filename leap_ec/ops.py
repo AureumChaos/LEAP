@@ -668,6 +668,9 @@ def migrate(context, topology, emigrant_selector,
             dest = random.choice(list(neighbors))
             # Add the emigrant to its immigration list
             immigrants[dest].append(emi)
+            # FIXME In a heterogeneous island model, we also need to 
+            # set the emigrant's decoder and/or problem to match the
+            # new islan'ds decoder and/or problem.
 
         return population
 
