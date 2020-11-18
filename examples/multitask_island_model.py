@@ -7,6 +7,7 @@ import sys
 
 from matplotlib import pyplot as plt
 import networkx as nx
+from toolz import curry
 
 from leap_ec.individual import Individual
 from leap_ec.decoder import IdentityDecoder
@@ -18,7 +19,7 @@ import leap_ec.ops as ops
 from leap_ec import probe
 from leap_ec.algorithm import multi_population_ea
 
-from leap_ec.real_rep import problems
+from leap_ec.real_rep. problems import ScaledProblem, TranslatedProblem, SpheroidProblem, RastriginProblem, AckleyProblem
 from leap_ec.real_rep.ops import mutate_gaussian
 from leap_ec.real_rep.initializers import create_real_vector
 
@@ -71,6 +72,22 @@ def viz_plots(problems, modulo):
 
 
 ##############################
+# function problem_stamp()
+##############################
+def problem_stamp(problems):
+    """This closure returns a callback that stamps individuals with the current
+    island's problem as they go past.  This catches immigrants as they arrive,
+    and notifies them that future fitness evaluations should be conducted on
+    a new island's function instead of their home fitness function."""
+    def stamp(ind, subpop_id):
+        ind.problem = problems[subpop_id]
+        ind.evaluate()
+        return ind
+
+    return stamp
+    
+
+##############################
 # main
 ##############################
 if __name__ == '__main__':
@@ -79,30 +96,33 @@ if __name__ == '__main__':
     topology = nx.complete_graph(3)
     nx.draw(topology)
 
+    l = 2
     bounds = (0, 1)
 
+    def transform(problem):
+        return TranslatedProblem.random(ScaledProblem(problem, new_bounds=bounds), (-0.5, 0.5), l)
+
     # Island-specific fitness functions
-    topology.nodes[0]['problem'] = problems.ScaledProblem(problems.SpheroidProblem(), new_bounds=(0, 1))
-    topology.nodes[1]['problem'] = problems.ScaledProblem(problems.RastriginProblem(), new_bounds=(0, 1))
-    topology.nodes[2]['problem'] = problems.ScaledProblem(problems.AckleyProblem(), new_bounds=(0, 1))
+    problems = [ transform(SpheroidProblem(maximize=False)),
+                 transform(RastriginProblem(maximize=False)),
+                 transform(AckleyProblem(maximize=False))
+               ]
     
     # Probes and visualization
-    problems = [ n['problem'] for n in topology.nodes ]
     genotype_probes, fitness_probes = viz_plots(problems, modulo=10)
     subpop_probes = list(zip(genotype_probes, fitness_probes))
 
-    l = 2
     pop_size = 10
     ea = multi_population_ea(generations=1000,
                              num_populations=topology.number_of_nodes(),
                              pop_size=pop_size,
-                             problem=problem,  # Fitness function
+                             problem=problems,  # Fitness function
 
                              # Representation
                              representation=Representation(
                                  individual_cls=Individual,
                                  initialize=create_real_vector(
-                                     bounds=bounds * l),
+                                     bounds=[bounds] * l),
                                  decoder=IdentityDecoder()
                              ),
 
@@ -111,14 +131,15 @@ if __name__ == '__main__':
                                  ops.tournament_selection,
                                  ops.clone,
                                  mutate_gaussian(
-                                     std=30, hard_bounds=bounds),
+                                     std=0.03, hard_bounds=bounds),
                                  ops.evaluate,
                                  ops.pool(size=pop_size),
                                  ops.migrate(context,
                                              topology=topology,
                                              emigrant_selector=ops.tournament_selection,
                                              replacement_selector=ops.random_selection,
-                                             migration_gap=50),
+                                             migration_gap=50,
+                                             customs_stamp=problem_stamp(problems)),
                                  probe.FitnessStatsCSVProbe(
                                      context, stream=sys.stdout)
                              ],
