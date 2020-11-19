@@ -83,6 +83,11 @@ if __name__ == '__main__':
         [problem] * topology.number_of_nodes(), modulo=10)
     subpop_probes = list(zip(genotype_probes, fitness_probes))
 
+    def get_island(context):
+        """Closure that returns a callback for retrieving the current island
+        ID during logging."""
+        return lambda _: context['leap']['current_subpopulation']
+    
     l = 2
     pop_size = 10
     ea = multi_population_ea(generations=1000,
@@ -111,8 +116,8 @@ if __name__ == '__main__':
                                              emigrant_selector=ops.tournament_selection,
                                              replacement_selector=ops.random_selection,
                                              migration_gap=50),
-                                 probe.FitnessStatsCSVProbe(
-                                     context, stream=sys.stdout)
+                                 probe.FitnessStatsCSVProbe(context, stream=sys.stdout,
+                                        extra_columns={ 'island': get_island(context) })
                              ],
                              subpop_pipelines=subpop_probes)
 
