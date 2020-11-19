@@ -13,8 +13,6 @@ from leap_ec import util
 from leap_ec.ops import compute_expected_probability, iteriter_op
 
 
-
-
 ##############################
 # Function mutate_gaussian
 ##############################
@@ -27,13 +25,11 @@ def mutate_gaussian(next_individual: Iterator,
                        (-math.inf, math.inf)) -> Iterator:
     """Mutate and return an individual with a real-valued representation.
 
-
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.real_rep.ops import mutate_gaussian
 
     >>> original = Individual([1.0,0.0])
     >>> mutated = next(mutate_gaussian(iter([original]), 1.0))
-
 
     TODO hard_bounds should also be able to take a sequence —Siggy
 
@@ -48,11 +44,10 @@ def mutate_gaussian(next_individual: Iterator,
     while True:
         individual = next(next_individual)
 
-        individual.genome = genome_mutate_guassian(individual.genome,
+        individual.genome = genome_mutate_gaussian(individual.genome,
                                                    std,
                                                    expected_num_mutations,
                                                    hard_bounds)
-
         # invalidate fitness since we have new genome
         individual.fitness = None
 
@@ -62,7 +57,7 @@ def mutate_gaussian(next_individual: Iterator,
 
 
 @curry
-def genome_mutate_guassian(genome: list,
+def genome_mutate_gaussian(genome: list,
                            std: float,
                            expected_num_mutations: float = 1,
                            hard_bounds: Tuple[float, float] =
@@ -90,7 +85,7 @@ def genome_mutate_guassian(genome: list,
     # compute actual probability of mutation based on expected number of
     # mutations and the genome length
     if expected_num_mutations is None:
-        # Default to expected probablity of 1.0
+        # Default to expected probability of 1.0
         p = compute_expected_probability(1.0, genome)
     else:
         p = compute_expected_probability(expected_num_mutation, genome)
