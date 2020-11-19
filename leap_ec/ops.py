@@ -630,7 +630,7 @@ def pool(next_individual: Iterator, size: int) -> List:
 # Function migrate
 ##############################
 def migrate(context, topology, emigrant_selector,
-            replacement_selector, migration_gap):
+            replacement_selector, migration_gap, customs_stamp=lambda x, _: x):
 
     num_islands = topology.number_of_nodes()
 
@@ -644,6 +644,11 @@ def migrate(context, topology, emigrant_selector,
 
         # Immigration
         for imm in immigrants[current_subpop]:
+            # Do island-specific transformation
+            # For example, this callback might update the individuals 'problem'
+            # field to point to a new fitness function for the island, and
+            # re-evalute its fitness.
+            imm = customs_stamp(imm, current_subpop)
             # Compete for a place in the new population
             contestant = next(replacement_selector(population))
             if imm > contestant:
@@ -668,6 +673,9 @@ def migrate(context, topology, emigrant_selector,
             dest = random.choice(list(neighbors))
             # Add the emigrant to its immigration list
             immigrants[dest].append(emi)
+            # FIXME In a heterogeneous island model, we also need to 
+            # set the emigrant's decoder and/or problem to match the
+            # new islan'ds decoder and/or problem.
 
         return population
 

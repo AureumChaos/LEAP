@@ -85,17 +85,20 @@ class BestSoFarProbe(op.Operator):
 # Class PopFitnessStatsProbe
 ##############################
 class FitnessStatsCSVProbe(op.Operator):
-    def __init__(self, context, stream=sys.stdout, header=True):
+    def __init__(self, context, stream=sys.stdout, header=True, extra_columns={}):
         assert (stream is not None)
         assert (hasattr(stream, 'write'))
         assert (context is not None)
+        assert(extra_columns is not None)
 
         self.stream = stream
         self.context = context
         self.bsf_ind = None
+        self.extra_columns = extra_columns
         if header:
             stream.write(
-                'step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness\n')
+                'step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness'
+                + ', '.join(extra_columns.keys()) + '\n')
 
     def __call__(self, population):
         assert (population is not None)
@@ -114,6 +117,8 @@ class FitnessStatsCSVProbe(op.Operator):
         self.stream.write(str(np.std(fitnesses)) + ', ')
         self.stream.write(str(np.min(fitnesses)) + ', ')
         self.stream.write(str(np.max(fitnesses)))
+        for _, f in self.extra_columns.items():
+            self.stream.write(', ' + str(f(population)))
         self.stream.write('\n')
         return population
 

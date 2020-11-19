@@ -32,7 +32,6 @@ def perform_mutation_guassian(genome: list,
 ##############################
 # Function mutate_gaussian
 ##############################
-@curry
 def mutate_gaussian(std: float, expected_num_mutation: float = None,
                     hard_bounds: Tuple[float, float] = (-math.inf, math.inf)):
     """Mutate and return an individual with a real-valued representation.
