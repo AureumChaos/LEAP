@@ -34,8 +34,8 @@ def mutate_bitflip(next_individual: Iterator,
     while True:
         individual = next(next_individual)
 
-        individual.genome = individual_mutate_bitflip(individual.genome,
-                                                   expected_num_mutations=expected_num_mutations)
+        individual.genome = genome_mutate_bitflip(individual.genome,
+                                                  expected_num_mutations=expected_num_mutations)
 
         individual.fitness = None  # invalidate fitness since we have new genome
 
@@ -46,13 +46,13 @@ def mutate_bitflip(next_individual: Iterator,
 # Function perform_mutate_bitflip
 ##############################
 @curry
-def individual_mutate_bitflip(genome: Iterator,
-                           expected_num_mutations: float = 1) -> Iterator:
+def genome_mutate_bitflip(genome: list,
+                          expected_num_mutations: float = 1) -> list:
     """Perform bitflip mutation on a particular genome.
 
     This function can be used by more complex operators to mutate a full population
     (as in `mutate_bitflip`), to work with genome segments (as in
-    `leap_ec.segmented.ops.apply_mutation`), etc.  This way we don't have to 
+    `leap_ec.segmented.ops.apply_mutation`), etc.  This way we don't have to
     copy-and-paste the same code for related operators.
 
     :param genome: of binary digits that we will be mutating

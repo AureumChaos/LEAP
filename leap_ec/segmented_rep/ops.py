@@ -25,9 +25,9 @@ def apply_mutation(next_individual: Iterator,
     all components, on average.
 
     >>> from leap_ec.individual import Individual
-    >>> from leap_ec.binary_rep.ops import individual_mutate_bitflip
+    >>> from leap_ec.binary_rep.ops import genome_mutate_bitflip
     >>> original = Individual([[0,0],[1,1]])
-    >>> mutated = next(apply_mutation(iter([original]), mutator=individual_mutate_bitflip))
+    >>> mutated = next(apply_mutation(iter([original]), mutator=genome_mutate_bitflip))
 
     :param next_individual: to mutation
     :param mutator: function to be applied to each segment in the
