@@ -88,7 +88,7 @@ def genome_mutate_gaussian(genome: list,
         # Default to expected probability of 1.0
         p = compute_expected_probability(1.0, genome)
     else:
-        p = compute_expected_probability(expected_num_mutation, genome)
+        p = compute_expected_probability(expected_num_mutations, genome)
 
     if util.is_sequence(std):
         # We're given a vector of "shadow standard deviations" so apply
