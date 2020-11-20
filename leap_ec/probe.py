@@ -96,9 +96,10 @@ class FitnessStatsCSVProbe(op.Operator):
         self.bsf_ind = None
         self.extra_columns = extra_columns
         if header:
+            extras = '' if not extra_columns else ', ' + ', '.join(extra_columns.keys())
             stream.write(
                 'step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness'
-                + ', '.join(extra_columns.keys()) + '\n')
+                + extras + '\n')
 
     def __call__(self, population):
         assert (population is not None)
