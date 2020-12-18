@@ -3,19 +3,20 @@ import pytest
 
 from leap_ec.segmented_rep.initializers import create_segmented_sequence
 
+test_sequence = [1111]
+
+def gen_sequence():
+    """ return an arbitrary static test_sequence """
+    return test_sequence
 
 def test_segmented_initializer_fixed_length():
     """ created fixed length segments """
-    sequence = [1111]
-    def test_sequence():
-        """ return an arbitrary static sequence """
-        return sequence
 
-    segments = create_segmented_sequence(1, test_sequence)
-    assert segments == [sequence]
+    segments = create_segmented_sequence(1, gen_sequence)
+    assert segments == [test_sequence]
 
-    segments = create_segmented_sequence(2, test_sequence)
-    assert segments == [sequence, sequence]
+    segments = create_segmented_sequence(2, gen_sequence)
+    assert segments == [test_sequence, test_sequence]
 
-    segments = create_segmented_sequence(3, test_sequence)
-    assert segments == [sequence, sequence, sequence]
+    segments = create_segmented_sequence(3, gen_sequence)
+    assert segments == [test_sequence, test_sequence, test_sequence]

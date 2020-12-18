@@ -46,7 +46,7 @@ class CGPExecutable(Executable):
         # Assign the input values
         for i in range(self.num_inputs):
             self.graph.nodes[i]['output'] = input_[i]
-        
+
         # Compute the values of hidden nodes, going in order so preprequisites are computed first
         num_hidden = len(self.graph.nodes) - self.num_inputs - self.num_outputs
         for i in range(self.num_inputs, self.num_inputs + num_hidden):
@@ -73,15 +73,15 @@ class CGPExecutable(Executable):
 ##############################
 class CGPDecoder(Decoder):
     """Implements the genotype-phenotype decoding for Cartesian genetic programming (CGP).
-    
-    A CGP genome is linear, but made up of one sub-sequence for each circuit elements.  In our
-    version here, the first gene in each sub-sequence indicates the primitive (i.e., function) that node computes, 
+
+    A CGP genome is linear, but made up of one sub-test_sequence for each circuit elements.  In our
+    version here, the first gene in each sub-test_sequence indicates the primitive (i.e., function) that node computes,
     and the subsequence genes indicate the inputs to that primitive.
 
     That is, each node is specified by three genes `[p_id, i_1, i_2]`, where `p_id` is the index of the node's
     primitive, and `i_1, i_2` are the indices of the nodes that feed into it.
-    
-    The sequence `[ 0, 2, 3 ]` indicates an element that computes the 0th primitive
+
+    The test_sequence `[ 0, 2, 3 ]` indicates an element that computes the 0th primitive
     (as an index of the `primitives` list) and takes its inputs from nodes 2 and 3, respectively.
     """
 
@@ -109,7 +109,7 @@ class CGPDecoder(Decoder):
 
         For example, a 2x2 CGP individual with 2 outputs an a `max_arity` of 2 will have 14 genes: $3*4 = 12$ genes to
         specify the primitive and inputs (1 + 2) for each internal node, plus 2 genes to specify the circuit outputs.
-        
+
         >>> decoder = CGPDecoder([sum], num_inputs=2, num_outputs=2, num_layers=2, nodes_per_layer=2, max_arity=2, levels_back=1)
         >>> decoder.num_genes()
         14
@@ -128,7 +128,7 @@ class CGPDecoder(Decoder):
         return self.num_inputs + self.num_layers*self.nodes_per_layer + self.num_outputs
 
     def get_primitive(self, genome, layer, node):
-        """Given a linear CGP genome, return the primitive object for the given node in the 
+        """Given a linear CGP genome, return the primitive object for the given node in the
         given layer."""
         assert(genome is not None)
         assert(layer >= 0)
@@ -138,10 +138,10 @@ class CGPDecoder(Decoder):
         primitive_id = genome[(layer*self.nodes_per_layer + node)*(self.max_arity + 1)]
         assert(primitive_id < len(self.primitives)), f"The gene for node {node} of layer {layer} specifies a primitive function id {primitive_id}, but that's out of range: we only have {len(self.primitives)} primitive(s)!"
         return self.primitives[primitive_id]
-    
+
 
     def get_input_sources(self, genome, layer, node):
-        """Given a linear CGP genome, return the list of all of the input sources (as integers) 
+        """Given a linear CGP genome, return the list of all of the input sources (as integers)
         which feed into the given node in the given layer."""
         assert(genome is not None)
         assert(layer >= 0)
@@ -154,7 +154,7 @@ class CGPDecoder(Decoder):
             """Helper function that tells us which gene defines the ith input of
             the element at a given layer and node in a Cartesian circuit."""
             return (layer*self.nodes_per_layer + node)*(self.max_arity + 1) + 1 + i
-        
+
         input_sources = []
         for i in range(self.max_arity):
             gene_id = ith_input_gene(genome, layer, node, i)
@@ -174,14 +174,14 @@ class CGPDecoder(Decoder):
 
         These values should be used by initialization and mutation operators to ensure that CGP's constraints are met.
 
-        For example, in a 2x2 CGP grid with two inputs and `levels_back=1`, nodes in the first layer can take inputs 
+        For example, in a 2x2 CGP grid with two inputs and `levels_back=1`, nodes in the first layer can take inputs
         from nodes 0 or greater (i.e., any of the input nodes), while nodes in the second layer take inputs from node
         2 or greater (i.e. any of the nodes in layer 1).
 
         This is expressed in the following min-bounds for each gene (recall that each node takes three genes
         `[p_id, i_1, i_2]`, where `p_id` is the index of the node's primitive, and `i_1, i_2` are the indices of the
         nodes that feed into it).
-        
+
         >>> decoder = CGPDecoder([sum], num_inputs=2, num_outputs=2, num_layers=2, nodes_per_layer=2, max_arity=2, levels_back=1)
         >>> decoder._min_bounds()
         [0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 2, 2, 0, 0]
@@ -200,26 +200,26 @@ class CGPDecoder(Decoder):
             for _ in range(self.nodes_per_layer):
                 mins.append(0)  # The gene that defines the node's primitive
                 for _ in range(self.max_arity):  # The node's input sources
-                    mins.append(min_source_value_for_layer) 
+                    mins.append(min_source_value_for_layer)
 
         # Outputs can connect to any node in the entire circuit
         for _ in range(self.num_outputs):
             mins.append(0)
         return mins
-    
+
     def _max_bounds(self):
         """Return the maximum allowed value they every gene may assume, taking into account the levels structure.
 
         These values should be used by initialization and mutation operators to ensure that CGP's constraints are met.
 
-        For example, in a 2x2 CGP grid with two inputs, nodes in the first layer can take inputs 
+        For example, in a 2x2 CGP grid with two inputs, nodes in the first layer can take inputs
         from up to node 1 (i.e., any of the input nodes), while nodes in the second layer take inputs from up to node
         3 (i.e. any of inputs or nodes in layer 1).
 
         This is expressed in the following max-bounds for each gene (recall that each node takes three genes
         `[p_id, i_1, i_2]`, where `p_id` is the index of the node's primitive, and `i_1, i_2` are the indices of the
         nodes that feed into it).
-        
+
         >>> primitives = [ sum, lambda x: x[0] - x[1], lambda x: x[0] * x[1] ]
         >>> decoder = CGPDecoder(primitives, num_inputs=2, num_outputs=2, num_layers=2, nodes_per_layer=2, max_arity=2, levels_back=1)
         >>> decoder._max_bounds()
@@ -278,7 +278,7 @@ class CGPDecoder(Decoder):
         graph.add_edges_from(zip(output_sources, output_nodes))
 
         return CGPExecutable(self.primitives, self.num_inputs, self.num_outputs, graph)
-                
+
 
 ##############################
 # Function cgp_mutate
@@ -289,13 +289,13 @@ def cgp_mutate(cgp_decoder,
     that are implied by the parameters of the given CGPDecoder.
     """
     assert(cgp_decoder is not None)
-    
+
     mutator = mutate_randint(bounds=cgp_decoder.bounds(), expected_num_mutations=expected_num_mutations)
 
     @ops.iteriter_op
     def mutate(next_individual: Iterator):
         return mutator(next_individual)
-    
+
     return mutate
 
 
@@ -343,4 +343,3 @@ class CGPGraphProbe():
             nx.draw(best.decode().graph, ax=self.ax)
 
         return population
-    

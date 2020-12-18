@@ -13,7 +13,7 @@ import inspect
 # Function is_sequence
 ###############################
 def is_sequence(obj):
-    """ :return: True if obj is a sequence
+    """ :return: True if obj is a test_sequence
 
         Cribbed from https://stackoverflow.com/questions/2937114/python-check-if-an-object-is-a-sequence?lq=1
 
@@ -245,7 +245,7 @@ def birth_brander():
                 # We're being passed in a single individual in a pipeline
                 next_thing = next(next_thing)
             else:
-                # We're being passed a sequence/population
+                # We're being passed a test_sequence/population
                 if iterator is None:
                     iterator = iter(next_thing)
                 next_thing = next(iterator)

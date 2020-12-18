@@ -52,8 +52,8 @@ def individual_mutate_randint(genome: list,
         >>> bounds = [(0,50), (-10,20)]
         >>> new_genome = individual_mutate_randint(genome, bounds)
 
-        :param genome: sequence of integers to be mutated
-        :param bounds: sequence of bounds tuples; e.g., [(1,2),(3,4)]
+        :param genome: test_sequence of integers to be mutated
+        :param bounds: test_sequence of bounds tuples; e.g., [(1,2),(3,4)]
         :param expected_num_mutations: on average how many mutations done
     """
     def randomint_mutate(value, bound, probability):

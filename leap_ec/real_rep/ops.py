@@ -31,7 +31,7 @@ def mutate_gaussian(next_individual: Iterator,
     >>> original = Individual([1.0,0.0])
     >>> mutated = next(mutate_gaussian(iter([original]), 1.0))
 
-    TODO hard_bounds should also be able to take a sequence —Siggy
+    TODO hard_bounds should also be able to take a test_sequence —Siggy
 
     :param next_individual: to be mutated
     :param std: standard deviation to be equally applied to all individuals;

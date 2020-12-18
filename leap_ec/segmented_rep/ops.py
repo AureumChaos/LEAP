@@ -19,8 +19,8 @@ def apply_mutation(next_individual: Iterator,
                    expected_num_mutation: float = 1.0) -> Iterator:
     """
     This expects next_individual to have a segmented representation; i.e.,
-    a sequence of sequences.  `mutator_func` will be applied to each
-    sub-sequence with the expected probability.  The expected probability
+    a test_sequence of sequences.  `mutator_func` will be applied to each
+    sub-test_sequence with the expected probability.  The expected probability
     applies to *all* the sequences, and defaults to a single mutation among
     all components, on average.
 
@@ -44,7 +44,7 @@ def apply_mutation(next_individual: Iterator,
             expected_num_mutation, individual.genome)
 
         # Apply mutation function using the expected probability to create a
-        # new sequence of sequences to be assigned to the genome.
+        # new test_sequence of sequences to be assigned to the genome.
         mutated_genome = [mutator(segment,
                                   expected_num_mutations=per_segment_expected_prob)
                           for segment in individual.genome]

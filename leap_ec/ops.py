@@ -372,10 +372,10 @@ def n_ary_crossover(next_individual: Iterator,
                 'Invalid number of crossover points for n_ary_crossover')
 
         children = [child1, child2]
-        genome1 = child1.genome[0:0]  # empty sequence - maintain type
+        genome1 = child1.genome[0:0]  # empty test_sequence - maintain type
         genome2 = child2.genome[0:0]
 
-        # Used to toggle which sub-sequence is copied between offspring
+        # Used to toggle which sub-test_sequence is copied between offspring
         src1, src2 = 0, 1
 
         # Pick crossover points
@@ -521,7 +521,7 @@ def insertion_selection(offspring: List, parents: List) -> List:
 @curry
 @listiter_op
 def naive_cyclic_selection(population: List) -> Iterator:
-    """ Deterministically returns individuals, and repeats the same sequence
+    """ Deterministically returns individuals, and repeats the same test_sequence
     when exhausted.
 
     This is "naive" because it doesn't shuffle the population between complete
@@ -551,7 +551,7 @@ def naive_cyclic_selection(population: List) -> Iterator:
 @listiter_op
 def cyclic_selection(population: List) -> Iterator:
     """ Deterministically returns individuals in order, then shuffles the
-    sequence, returns the individuals in that new order, and repeats this
+    test_sequence, returns the individuals in that new order, and repeats this
     process.
 
     >>> from leap_ec.individual import Individual
@@ -566,13 +566,13 @@ def cyclic_selection(population: List) -> Iterator:
     :return: the next selected individual
     """
     # this is essentially itertools.cycle() that just shuffles
-    # the saved sequence between cycles.
+    # the saved test_sequence between cycles.
     saved = []
     for individual in population:
         yield individual
         saved.append(individual)
     while saved:
-        # randomize the sequence between cycles to remove this source of sample
+        # randomize the test_sequence between cycles to remove this source of sample
         # bias
         random.shuffle(saved)
         for individual in saved:
@@ -673,7 +673,7 @@ def migrate(context, topology, emigrant_selector,
             dest = random.choice(list(neighbors))
             # Add the emigrant to its immigration list
             immigrants[dest].append(emi)
-            # FIXME In a heterogeneous island model, we also need to 
+            # FIXME In a heterogeneous island model, we also need to
             # set the emigrant's decoder and/or problem to match the
             # new islan'ds decoder and/or problem.
 
