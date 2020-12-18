@@ -2,13 +2,9 @@
 import pytest
 import random
 import functools
-
 from collections import Counter
 
-from scipy.stats import chisquare
-
 from leap_ec import statistical_helpers as stat
-
 from leap_ec.segmented_rep.initializers import create_segmented_sequence
 
 
@@ -36,8 +32,7 @@ def test_segmented_initializer_fixed_length():
 def test_segmented_initializer_variable_length():
     """ created variable length segments
 
-        We generate segments with length drawn from  U(1,5) and we also generate
-        a uniform sequence from the same distribution.  We would therefore
+        We generate segments with length drawn from  U(1,5).  We would therefore
         expect the distribution of the number of segments and the distribution
         that was generated to be statistically significantly similar.
     """
