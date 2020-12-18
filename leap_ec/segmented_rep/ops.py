@@ -52,7 +52,7 @@ def apply_mutation(next_individual: Iterator,
         individual.genome = mutated_genome
 
         # invalidate the fitness since we have a modified genome
-        individual.fitness= None
+        individual.fitness = None
 
         yield individual
 
@@ -99,7 +99,7 @@ def add_segment(next_individual: Iterator,
                 individual.genome.insert(insertion_point, new_segment)
 
             # invalidate the fitness since we have a modified genome
-            individual.fitness= None
+            individual.fitness = None
 
         yield individual
 
@@ -122,6 +122,7 @@ def remove_segment(next_individual: Iterator,
     >>> assert mutated.genome == [[0,0]] or mutated.genome == [[1,1]]
 
         :param next_individual: to have a segment possibly removed
+        :param probability: likelihood of removing a segment
         :returns: the next individual
     """
     while True:
@@ -139,3 +140,42 @@ def remove_segment(next_individual: Iterator,
 
         yield individual
 
+
+##############################
+# copy_segment
+##############################
+@curry
+@iteriter_op
+def copy_segment(next_individual: Iterator,
+                 probability: float,
+                 append: bool = False) -> Iterator:
+    """ with a given probability, randomly select and copy a segment
+
+    >>> from leap_ec.individual import Individual
+    >>> original = Individual([[0,0]])
+    >>> mutated = next(copy_segment(iter([original]), probability=1.0))
+    >>> assert mutated.genome == [[0,0],[0,0]]
+
+        :param next_individual: to have a segment possibly removed
+        :param probability: likelihood of doing this
+        :param append: if True, always append any new segments
+        :returns: the next individual
+    """
+    while True:
+        individual = next(next_individual)
+
+        if random.random() < probability:
+            copied_segment = \
+                individual.genome[random.randrange(len(individual.genome))]
+
+            if append:
+                individual.genome.append(copied_segment)
+            else:
+                # + 1 to allow for appending new segment
+                insertion_point = random.randrange(len(individual.genome) + 1)
+                individual.genome.insert(insertion_point, copied_segment)
+
+            # invalidate the fitness since we have a modified genome
+            individual.fitness = None
+
+        yield individual
