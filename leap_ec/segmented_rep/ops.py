@@ -29,7 +29,7 @@ def apply_mutation(next_individual: Iterator,
     >>> original = Individual([[0,0],[1,1]])
     >>> mutated = next(apply_mutation(iter([original]), mutator=genome_mutate_bitflip))
 
-    :param next_individual: to mutation
+    :param next_individual: to possibly mutate
     :param mutator: function to be applied to each segment in the
         individual's genome; first argument is a segment, the second the
         expected probability of mutating each segment element.
@@ -51,7 +51,54 @@ def apply_mutation(next_individual: Iterator,
 
         individual.genome = mutated_genome
 
-        # invalidate the fitness since we have a new genome
+        # invalidate the fitness since we have a modified genome
         individual.fitness= None
+
+        yield individual
+
+
+##############################
+# add_segment
+##############################
+@curry
+@iteriter_op
+def add_segment(next_individual: Iterator,
+                seq_initializer: Callable,
+                probability: float,
+                append: bool = False) -> Iterator:
+    """ Possibly add a segment to the given individual
+
+    New segments can be always appended, or randomly inserted within the
+    individual's genome.
+
+    TODO add a parameter for accepting a function that will yield a distribution
+    for the number of segments to be randomly inserted.
+
+    >>> from leap_ec.individual import Individual
+    >>> from leap_ec.binary_rep.initializers import create_binary_sequence
+    >>> original = Individual([[0,0],[1,1]])
+    >>> mutated = next(add_segment(iter([original]), seq_initializer=create_binary_sequence(2), probability=1.0))
+
+    :param next_individual: to possibly add a segment
+    :param seq_initializer: callable for initializing any new segments
+    :param probability: likelihood of adding a segment
+    :param append: if True, always append any new segments
+    :return: yielded individual with a possible new segment
+    """
+    while True:
+        individual = next(next_individual)
+
+        if random.random() < probability:
+            new_segment = seq_initializer()
+
+            if append:
+                individual.genome.append(new_segment)
+            else:
+                # + 1 to allow for appending new segment
+                insertion_point = random.randrange(len(individual.genome) + 1)
+                individual.genome.insert(insertion_point, new_segment)
+
+            # invalidate the fitness since we have a modified genome
+            individual.fitness= None
 
         yield individual
