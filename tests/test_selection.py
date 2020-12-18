@@ -1,11 +1,20 @@
 """
     Unit test for selection operators.
 """
+import random
+
 from leap_ec.individual import Individual
 from leap_ec.decoder import IdentityDecoder
 from leap_ec.binary_rep.problems import MaxOnes
 import leap_ec.ops as ops
 
+# Set seed so that we get consistent test results.  I.e., it is possible by
+# happenstance for some tests to fail even though they're actually ok.  E.g.,
+# the cyclic selection tests will test if the sequence shuffles between a
+# complete cycle, but there's a chance that the same sequence may come up in
+# the random shuffle, so the test will fail.  However, if we set a random seed
+# ahead of time, then we can control for those pathological scenarios.
+random.seed(123)
 
 def test_naive_cyclic_selection():
     """ Test of the naive deterministic cyclic selection """
