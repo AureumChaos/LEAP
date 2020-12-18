@@ -102,3 +102,40 @@ def add_segment(next_individual: Iterator,
             individual.fitness= None
 
         yield individual
+
+
+##############################
+# remove_segment
+##############################
+@curry
+@iteriter_op
+def remove_segment(next_individual: Iterator,
+                   probability: float) -> Iterator:
+    """ for some chance, remove a segment
+
+        Nothing happens if the individual has a single segment; i.e., there is
+        no chance for an empty individual to be returned.
+
+    >>> from leap_ec.individual import Individual
+    >>> original = Individual([[0,0],[1,1]])
+    >>> mutated = next(remove_segment(iter([original]), probability=1.0))
+    >>> assert mutated.genome == [[0,0]] or mutated.genome == [[1,1]]
+
+        :param next_individual: to have a segment possibly removed
+        :returns: the next individual
+    """
+    while True:
+        individual = next(next_individual)
+
+        if len(individual.genome) > 1:
+            # we ignore empty genomes, or genomes with a single segment
+
+            if random.random() < probability:
+                removed_segment = random.randrange(len(individual.genome))
+                del individual.genome[removed_segment]
+
+                # invalidate the fitness since we have a modified genome
+                individual.fitness = None
+
+        yield individual
+
