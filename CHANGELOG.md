@@ -2,6 +2,10 @@
 
 Being a terse compilation by version of changes.
 
+## 0.4.1, 12/17/2020
+
+* minor fix for controlling random see for cyclic selection test
+
 ## 0.4.0, 9/19/2020
 
 * Significantly added to online [documentation](https://leap-gmu.readthedocs.io/en/latest/index.html)
