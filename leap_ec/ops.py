@@ -364,13 +364,6 @@ def n_ary_crossover(next_individual: Iterator,
         return xpts
 
     def _n_ary_crossover(child1, child2, num_points):
-        # Sanity checks
-        if len(child1.genome) != len(child2.genome):
-            raise RuntimeError('Invalid length for n_ary_crossover')
-        elif len(child1.genome) < num_points + 1:
-            raise RuntimeError(
-                'Invalid number of crossover points for n_ary_crossover')
-
         children = [child1, child2]
         genome1 = child1.genome[0:0]  # empty test_sequence - maintain type
         genome2 = child2.genome[0:0]
