@@ -7,6 +7,7 @@ from collections import Counter
 from leap_ec.individual import Individual
 
 from leap_ec import statistical_helpers as stat
+from leap_ec.ops import n_ary_crossover
 from leap_ec.segmented_rep.initializers import create_segmented_sequence
 from leap_ec.segmented_rep.ops import remove_segment, add_segment, copy_segment
 
@@ -74,3 +75,48 @@ def test_segmented_copy():
                                     append=False))
 
         assert mutated.genome in possible_outcomes
+
+
+def test_segmented_crossover():
+    """ test that k-ary crossover works as expected for fixed and variable
+        length segments
+    """
+    a = Individual([[0, 0], [1, 1]])
+    b = Individual([[1, 1], [0, 0]])
+
+    result = n_ary_crossover(iter([a,b]))
+    c = next(result)
+    d = next(result)
+
+    possible_outcomes = [[[0, 0], [1, 1]],
+                         [[1, 1], [0, 0]],
+                         [[0, 0], [0, 0]],
+                         [[1, 1], [1, 1]]]
+
+    assert c.genome in possible_outcomes and d.genome in possible_outcomes
+
+    # Now for genomes of different lengths
+    # TODO I need to *carefully* review the possible crossover possibilities
+    possible_outcomes = [[],
+                         [[0, 0]],
+                         [[1, 1]],
+                         [[2, 2]],
+                         [[0, 0], [1, 1]],
+                         [[1, 1], [2, 2]],
+                         [[0, 0], [1, 1]],
+                         [[2, 2], [1, 1]],
+                         [[2, 2], [0, 0], [1, 1]],
+                         [[0, 0], [2, 2], [1, 1]],
+                         [[0, 0], [1, 1], [2, 2]],
+                         ]
+
+    for _ in range(20):
+        a = Individual([[0, 0], [1, 1]])
+        b = Individual([[2, 2]])
+
+        result = n_ary_crossover(iter([a, b]))
+        c = next(result)
+        d = next(result)
+
+        assert c.genome in possible_outcomes
+        assert d.genome in possible_outcomes
