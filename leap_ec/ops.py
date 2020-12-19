@@ -72,6 +72,7 @@ def iteriter_op(f):
 
     :param f function: the function to wrap
     """
+
     @wraps(f)
     def typecheck_f(next_individual: Iterator, *args, **kwargs) -> Iterator:
         if not isinstance(next_individual, collections.abc.Iterator):
@@ -103,6 +104,7 @@ def listlist_op(f):
 
     :param f function: the function to wrap
     """
+
     @wraps(f)
     def typecheck_f(population: List, *args, **kwargs) -> List:
         if not isinstance(population, list):
@@ -134,6 +136,7 @@ def listiter_op(f):
 
     :param f function: the function to wrap
     """
+
     @wraps(f)
     def typecheck_f(population: List, *args, **kwargs) -> Iterator:
         if not isinstance(population, list):
@@ -165,6 +168,7 @@ def iterlist_op(f):
 
     :param f function: the function to wrap
     """
+
     @wraps(f)
     def typecheck_f(next_individual: Iterator, *args, **kwargs) -> List:
         if not isinstance(next_individual, collections.abc.Iterator):
@@ -289,6 +293,7 @@ def uniform_crossover(next_individual: Iterator,
     :param p_swap: how likely are we to swap each pair of genes
     :return: two recombined individuals
     """
+
     def _uniform_crossover(ind1, ind2, p_swap):
         """ Recombination operator that can potentially swap any matching pair of
         genes between two individuals with some probability.
@@ -351,6 +356,7 @@ def n_ary_crossover(next_individual: Iterator,
     :param num_points: how many crossing points do we allow?
     :return: two recombined
     """
+
     def _pick_crossover_points(num_points, genome_size):
         """
         Randomly choose (without replacement) crossover points.
@@ -364,6 +370,11 @@ def n_ary_crossover(next_individual: Iterator,
         return xpts
 
     def _n_ary_crossover(child1, child2, num_points):
+        if len(child1.genome) < num_points + 1 or \
+           len(child2.genome) < num_points + 1:
+            raise RuntimeError(
+                'Invalid number of crossover points for n_ary_crossover')
+
         children = [child1, child2]
         genome1 = child1.genome[0:0]  # empty test_sequence - maintain type
         genome2 = child2.genome[0:0]
@@ -396,13 +407,13 @@ def n_ary_crossover(next_individual: Iterator,
         yield child2
 
 
-
 ##############################
 # Function truncation_selection
 ##############################
 @curry
 @listlist_op
-def truncation_selection(offspring: List, size: int, parents: List = None) -> List:
+def truncation_selection(offspring: List, size: int,
+                         parents: List = None) -> List:
     """ return the `size` best individuals from the given population
 
         This defaults to (mu, lambda) if `parents` is not given.
@@ -503,7 +514,8 @@ def insertion_selection(offspring: List, parents: List) -> List:
     for child in offspring:
         selected_parent_index = random.randrange(len(copied_parents))
         copied_parents[selected_parent_index] = max(child,
-                                                    copied_parents[selected_parent_index])
+                                                    copied_parents[
+                                                        selected_parent_index])
 
         return copied_parents
 
@@ -624,7 +636,6 @@ def pool(next_individual: Iterator, size: int) -> List:
 ##############################
 def migrate(context, topology, emigrant_selector,
             replacement_selector, migration_gap, customs_stamp=lambda x, _: x):
-
     num_islands = topology.number_of_nodes()
 
     # We wrap a closure around some persistent state to keep trag of
@@ -765,32 +776,36 @@ class CooperativeEvaluate(Operator):
                 # Select a fellow collaborator from the other subpopulations
                 ind = next(selectors[i])
                 # Make sure we actually got something with a genome back
-                assert(hasattr(ind, 'genome'))
+                assert (hasattr(ind, 'genome'))
                 collaborators.append(ind)
             else:
                 # Stick this subpop's individual in as-is
                 collaborators.append(current_ind)
 
-        assert(len(collaborators) == len(subpopulations))
+        assert (len(collaborators) == len(subpopulations))
         return collaborators
 
     @staticmethod
     def _log_trial(writer, context, collaborators, combined_ind, trial_id):
         """Record information about a batch of collaborators to a CSV writer."""
         for i, collab in enumerate(collaborators):
-            writer.writerow({'generation': context['leap']['generation'],
-                             'subpopulation': context['leap']['current_subpopulation'],
-                             'individual_type': 'Collaborator',
+            writer.writerow({'generation'                : context['leap'][
+                'generation'],
+                             'subpopulation'             : context['leap'][
+                                 'current_subpopulation'],
+                             'individual_type'           : 'Collaborator',
                              'collaborator_subpopulation': i,
-                             'genome': collab.genome,
-                             'fitness': collab.fitness})
+                             'genome'                    : collab.genome,
+                             'fitness'                   : collab.fitness})
 
-        writer.writerow({'generation': context['leap']['generation'],
-                         'subpopulation': context['leap']['current_subpopulation'],
-                         'individual_type': 'Combined Individual',
+        writer.writerow({'generation'                : context['leap'][
+            'generation'],
+                         'subpopulation'             : context['leap'][
+                             'current_subpopulation'],
+                         'individual_type'           : 'Combined Individual',
                          'collaborator_subpopulation': None,
-                         'genome': combined_ind.genome,
-                         'fitness': combined_ind.fitness})
+                         'genome'                    : combined_ind.genome,
+                         'fitness'                   : combined_ind.fitness})
 
 
 ##############################
