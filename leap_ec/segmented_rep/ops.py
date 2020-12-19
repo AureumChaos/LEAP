@@ -169,7 +169,7 @@ def copy_segment(next_individual: Iterator,
                 individual.genome[random.randrange(len(individual.genome))]
 
             if append:
-                individual.genome.append(copied_segment)
+                individual.genome.insert(len(individual.genome), copied_segment)
             else:
                 # + 1 to allow for appending new segment
                 insertion_point = random.randrange(len(individual.genome) + 1)
