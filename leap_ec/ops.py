@@ -370,8 +370,8 @@ def n_ary_crossover(next_individual: Iterator,
         return xpts
 
     def _n_ary_crossover(child1, child2, num_points):
-        if len(child1.genome) < num_points + 1 or \
-           len(child2.genome) < num_points + 1:
+        if len(child1.genome) < num_points  or \
+           len(child2.genome) < num_points :
             raise RuntimeError(
                 'Invalid number of crossover points for n_ary_crossover')
 
