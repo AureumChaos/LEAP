@@ -15,6 +15,7 @@ Pipeline Operators
     another selection operator returns the final set of individuals based
     on the offspring pool and optionally the parents.
 
+
 Overview
 --------
 
@@ -47,7 +48,7 @@ return the next set of prospective parents.
 
 Or, more explicitly:
 
-#. Start with a collection of `Individuals` that are prospective parents
+#. Start with a collection of `Individuals` that are prospective parents as the pipeline "source"
 #. A selection operator for selecting one or more parents to begin the creation of a new offspring
 #. A clone operator that makes a copy of the selected parents to ensure the following operators don't overwrite those parents
 #. A set of mutation, crossover, or other operators that perturb the cloned individual's genome, thus (hopefully) giving the new offspring unique values
@@ -258,41 +259,49 @@ state would be continually be updated with book-keeping information as
 
 Table of Pipeline Operators
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-+--------------------------------+--------------------------+---------------------------+
-| Representation Specificity     | Input -> Output          | Operator                  |
-+================================+==========================+===========================+
-| Representation                 |  Iterator → Iterator     | clone()                   |
-|                                |                          +---------------------------+
-| Agnostic                       |                          | evaluate()                |
-|                                |                          +---------------------------+
-|                                |                          | uniform_crossover()       |
-|                                |                          +---------------------------+
-|                                |                          | n_ary_crossover()         |
-|                                |                          +---------------------------+
-|                                |                          | CooperativeEvaluate       |
-|                                +--------------------------+---------------------------+
-|                                |  Iterator → population   | pool()                    |
-|                                +--------------------------+---------------------------+
-|                                |  population → population | truncation_selection()    |
-|                                |                          +---------------------------+
-|                                |                          | const_evaluate()          |
-|                                |                          +---------------------------+
-|                                |                          | insertion_selection()     |
-|                                |                          +---------------------------+
-|                                |                          | migrate()                 |
-|                                +--------------------------+---------------------------+
-|                                |  population → Iterator   | tournament_selection()    |
-|                                |                          +---------------------------+
-|                                |                          | naive_cyclic_selection()  |
-|                                |                          +---------------------------+
-|                                |                          | cyclic_selection()        |
-|                                |                          +---------------------------+
-|                                |                          | random_selection()        |
-+-------------------+------------+--------------------------+---------------------------+
-| Representation    | binary_rep |  Iterator → Iterator     | mutate_bitflip()          |
-| Dependent         +------------+--------------------------+---------------------------+
-|                   | real_rep   |  Iterator → Iterator     | mutate_gaussian()         |
-+-------------------+------------+--------------------------+---------------------------+
++------------------------------------+--------------------------+---------------------------+
+| Representation Specificity         | Input -> Output          | Operator                  |
++====================================+==========================+===========================+
+| Representation                     |  Iterator → Iterator     | clone()                   |
+|                                    |                          +---------------------------+
+| Agnostic                           |                          | evaluate()                |
+|                                    |                          +---------------------------+
+|                                    |                          | uniform_crossover()       |
+|                                    |                          +---------------------------+
+|                                    |                          | n_ary_crossover()         |
+|                                    |                          +---------------------------+
+|                                    |                          | CooperativeEvaluate       |
+|                                    +--------------------------+---------------------------+
+|                                    |  Iterator → population   | pool()                    |
+|                                    +--------------------------+---------------------------+
+|                                    |  population → population | truncation_selection()    |
+|                                    |                          +---------------------------+
+|                                    |                          | const_evaluate()          |
+|                                    |                          +---------------------------+
+|                                    |                          | insertion_selection()     |
+|                                    |                          +---------------------------+
+|                                    |                          | migrate()                 |
+|                                    +--------------------------+---------------------------+
+|                                    |  population → Iterator   | tournament_selection()    |
+|                                    |                          +---------------------------+
+|                                    |                          | naive_cyclic_selection()  |
+|                                    |                          +---------------------------+
+|                                    |                          | cyclic_selection()        |
+|                                    |                          +---------------------------+
+|                                    |                          | random_selection()        |
++-------------------+----------------+--------------------------+---------------------------+
+| Representation    | binary_rep     |  Iterator → Iterator     | mutate_bitflip()          |
+| Dependent         +----------------+--------------------------+---------------------------+
+|                   | real_rep       |  Iterator → Iterator     | mutate_gaussian()         |
+|                   +----------------+--------------------------+---------------------------+
+|                   | segmented_rep  |  Iterator → Iterator     | apply_mutation()          |
+|                   +----------------+--------------------------+---------------------------+
+|                   |                |                          | add_segment()             |
+|                   +----------------+--------------------------+---------------------------+
+|                   |                |                          | remove_segment()          |
+|                   +----------------+--------------------------+---------------------------+
+|                   |                |                          | copy_segment()            |
++-------------------+----------------+--------------------------+---------------------------+
 
 Admittedly it can be confusing when considering the full suite of LEAP pipeline operators,
 especially in remembering what kind of operators "connect" to what.  With that in mind,
@@ -383,6 +392,13 @@ Pipeline operators for binary representations
 Pipeline operators for real-valued representations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. automodule:: leap_ec.real_rep.ops
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Pipeline operators for segmented representations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. automodule:: leap_ec.segmented_rep.ops
     :members:
     :undoc-members:
     :show-inheritance:
