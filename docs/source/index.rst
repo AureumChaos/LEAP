@@ -18,6 +18,7 @@ Welcome to LEAP: Library for Evolutionary Algorithms in Python's documentation!
    Building New Algorithms <building>
    Cookbook <cookbook>
    Roadmap <roadmap>
+   API <leap_ec>
 
 
 Indices and tables

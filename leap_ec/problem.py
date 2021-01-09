@@ -3,9 +3,11 @@ Defines the abstract-base classes Problem, ScalarProblem,
 and FunctionProblem.
 
 """
-from math import nan
+from math import nan, floor
 import random
 from abc import ABC, abstractmethod
+
+from leap_ec.context import context
 
 
 ##############################
@@ -73,7 +75,7 @@ class ScalarProblem(Problem):
         # always be the worse possible with regards to ordering.
         if first_fitness is nan:
             if second_fitness is nan:
-                # both are nan, so to reduce bias flip a coin to arbitrarily
+                # both are nan, so to reduce bias bitflip a coin to arbitrarily
                 # select one that is worst.
                 return random.choice([True, False])
             # Doesn't matter how awful second_fitness is, nan will already be
@@ -171,3 +173,36 @@ class ConstantProblem(ScalarProblem):
 
     def __str__(self):
         return ConstantProblem.__name__
+
+
+########################
+# Class AlternatingProblem
+########################
+class AlternatingProblem(Problem):
+    def __init__(self, problems, modulo, context=context):
+        assert(len(problems) > 0)
+        assert(modulo > 0)
+        assert(context is not None)
+        self.problems = problems
+        self.modulo = modulo
+        self.context = context
+        self.current_problem_idx = 0
+
+    def _get_current_problem(self):
+        assert('leap' in self.context)
+        assert('generation' in self.context['leap'])
+        step = self.context['leap']['generation']
+
+        i = floor(step / self.modulo) % len(self.problems)
+
+        return self.problems[i]
+
+    def evaluate(self, phenome):
+        return self._get_current_problem().evaluate(phenome)
+
+    def worse_than(self, first_fitness, second_fitness):
+        return self._get_current_problem().worse_than(first_fitness, second_fitness)
+
+    def equivalent(self, first_fitness, second_fitness):
+        return self._get_current_problem().equivalent(first_fitness, second_fitness)
+    

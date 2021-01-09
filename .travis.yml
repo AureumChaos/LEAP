@@ -6,6 +6,7 @@ python:
  - "3.6"
  - "3.7"
  - "3.8"
+ - "3.9"
 
 # Install dependencies into Travis-CI's virtualenv
 install:
@@ -15,8 +16,8 @@ install:
 # The command to run our test suite
 script:
  - make setup
- - make test
  - make test-jupyter
+ - make test
 
 # For coveralls.io
 after_success:

@@ -1,10 +1,12 @@
-""" This module provides machinery for representing executable objects
-of various kinds—ex. functions, agent controllers, etc.—that serve as problem 
-¯solutions.
+"""This module provides executable object representations.  An `Executable` in
+LEAP represents problem solutions as functions, agent controllers, etc.
 
-A LEAP `Executable` is a kind of phenotype, and it is constructed when we use a
-:class:`~leap_ec.core.Decoder` from the `executable.decoder` module to convert a 
+A LEAP `Executable` is a kind of phenotype, typically constructed when we use a
+:class:`~leap_ec.core.Decoder` to convert a 
 genotypic representation of the object into an executable phenotype.
+
+Executable are also just callable functors, so you can use them in your code 
+like any other function.
 """
 
 import abc
@@ -21,7 +23,7 @@ from leap_ec.decoder import Decoder
 ##############################
 class Executable(abc.ABC):
     @abc.abstractmethod
-    def output(self, input):
+    def __call__(self, input):
         pass
 
 
@@ -44,7 +46,7 @@ class RandomExecutable(Executable):
         self.input_space = input_space
         self.output_space = output_space
 
-    def output(self, input):
+    def __call__(self, input_):
         """
         Return a random output.
 
@@ -60,7 +62,7 @@ class RandomExecutable(Executable):
         Then this method will sample a random 2-D point in that box:
 
         >>> b = RandomExecutable(None, output_space)
-        >>> b.output(input='whatever')
+        >>> b('whatever')
         array([..., ...], dtype=float32)
         """
         return self.output_space.sample()
@@ -106,6 +108,65 @@ class KeyboardExecutable(Executable):
         if self.keymap(key) == self.action:
             self.action = 0
 
-    def output(self, input):
+    def __call__(self, input_):
         time.sleep(0.05)
         return self.action
+
+
+##############################
+# Class ArgmaxExecutable
+##############################
+class ArgmaxExecutable(Executable):
+    """Wraps another `Executable` with logic that returns the
+    index of the highest output.
+    
+    For example, we can use this to convert the class selection 
+    distribution output by a softmax layer to an integer representing
+    the index of the most likely class:
+
+    >>> executable = lambda x: [ x[0] ^ x[1], x[0] & x[1], x[0] + x[1] ]
+    >>> wrapped = ArgmaxExecutable(executable)
+
+    >>> executable([1, 1])
+    [0, 1, 2]
+
+    >>> wrapped([1, 1])
+    2
+    """
+    def __init__(self, wrapped_executable):
+        assert(wrapped_executable is not None)
+        self.wrapped_executable = wrapped_executable
+
+    def __call__(self, input_):
+        assert(input_ is not None)
+        #print(f"I: {input_}")
+        value = self.wrapped_executable(input_)
+        #print(f"V: {value}")
+        converted = np.argmax(value)
+        #print(f"C: {converted}")
+        return converted
+
+
+########################
+# Class WrapperDecoder
+########################
+class WrapperDecoder(Decoder):
+    """A decoder that takes an executable object output by the wrapped
+    `Decoder`, and then wrapps that `Executable` with an additional decorator
+    function.
+    
+    For example, if we have a `Decoder` that produces `Executable` objects
+    whose output is governed by a softmax layer (i.e. a distribution),
+    we can use this class to decorate them with an `ArgmaxExecutable` to 
+    transform their output into an integer.
+    """
+    def __init__(self, wrapped_decoder, decorator):
+        assert(wrapped_decoder is not None)
+        assert(decorator is not None)
+        self.wrapped_decoder = wrapped_decoder
+        self.decorator = decorator
+
+    def decode(self, genome, *args, **kwargs):
+        value = self.wrapped_decoder.decode(genome)
+        converted = self.decorator(value)
+        return converted

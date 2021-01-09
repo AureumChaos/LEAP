@@ -16,7 +16,7 @@ def create_real_vector(bounds):
     Having a closure allows us to just call the returned function N times
     in `Individual.create_population()`.
 
-    TODO Allow either a single tuple or a sequence of tuples for bounds. —Siggy
+    TODO Allow either a single tuple or a test_sequence of tuples for bounds. —Siggy
 
     :param bounds: a list of (min, max) values bounding the uniform sampline
         of each element

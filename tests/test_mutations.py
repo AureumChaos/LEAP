@@ -12,8 +12,8 @@ def test_mutate_bitflip():
     ind = [Individual([1, 1], decoder=IdentityDecoder(),
                            problem=MaxOnes())]
 
-    # Now mutate the individual such that we *expect both bits to flip*
-    mutated_ind = next(ops.mutate_bitflip(iter(ind), expected=2))
+    # Now mutate the individual such that we *expect both bits to bitflip*
+    mutated_ind = next(ops.mutate_bitflip(iter(ind), expected_num_mutations=2))
 
     assert mutated_ind.genome == [0, 0]
 

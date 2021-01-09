@@ -13,14 +13,14 @@ class BinaryToIntDecoder(Decoder):
     """A decoder that converts a Boolean-vector genome into an integer-vector
     phenome. """
 
-    def __init__(self, *segments):
+    def __init__(self, *descriptors):
         """Constructs a decoder that will convert a binary representation
         into a corresponding int-value vector.
 
-        :param segments: is a sequence of integer that determine how the
-            binary sequence is to be broken up into chunks for interpretation
+        :param descriptors: is a test_sequence of integer that determine how the
+            binary test_sequence is to be broken up into chunks for interpretation
 
-        :return: a function for real-value phenome decoding of a sequence of
+        :return: a function for real-value phenome decoding of a test_sequence of
             binary digits
 
         The `segments` parameter indicates the number of (genome) bits per (
@@ -36,7 +36,7 @@ class BinaryToIntDecoder(Decoder):
         [0, 7]
         """
         super().__init__()
-        self.segments = segments
+        self.descriptors = descriptors
 
     def decode(self, genome, *args, **kwargs):
         """
@@ -61,13 +61,13 @@ class BinaryToIntDecoder(Decoder):
         #  some of my code from elsewhere that I knew worked.
 
         values = []
-        offset = 0  # how far are we into the binary sequence
+        offset = 0  # how far are we into the binary test_sequence
 
-        for segment in self.segments:
-            # snip out the next sequence
-            cur_sequence = genome[offset:offset + segment]
+        for descriptor in self.descriptors:
+            # snip out the next test_sequence
+            cur_sequence = genome[offset:offset + descriptor]
             values.append(BinaryToIntDecoder.__binary_to_int(cur_sequence))
-            offset += segment
+            offset += descriptor
 
         return values
 
@@ -107,10 +107,10 @@ class BinaryToRealDecoderCommon(Decoder):
 
     def __init__(self, *segments):
         """
-        :param segments: is a sequence of tuples of the form (number of bits,
+        :param segments: is a test_sequence of tuples of the form (number of bits,
             minimum, maximum) values
 
-        :return: a function for real-value phenome decoding of a sequence of
+        :return: a function for real-value phenome decoding of a test_sequence of
             binary digits
         """
         super().__init__()
@@ -166,10 +166,10 @@ class BinaryToRealDecoder(BinaryToRealDecoderCommon):
         collection of tuples that indicate how many bits per segment, and the
         corresponding real-value bounds for that segment.
 
-        :param segments: is a sequence of tuples of the form (number of bits,
+        :param segments: is a test_sequence of tuples of the form (number of bits,
             minimum, maximum) values
 
-        :return: a function for real-value phenome decoding of a sequence of
+        :return: a function for real-value phenome decoding of a test_sequence of
             binary digits
 
         For example, if we construct the decoder
@@ -205,8 +205,8 @@ class BinaryToIntGreyDecoder(BinaryToIntDecoder):
         [1, 8, 4]
     """
 
-    def __init__(self, *segments):
-        super().__init__(*segments)
+    def __init__(self, *descriptors):
+        super().__init__(*descriptors)
 
     @staticmethod
     def __gray_encode(num):
@@ -245,9 +245,9 @@ class BinaryToRealGreyDecoder(BinaryToRealDecoderCommon):
         collection of tuples that indicate how many bits per segment, and the
         corresponding real-value bounds for that segment.
 
-        :param segments: is a sequence of tuples of the form (number of bits,
+        :param segments: is a test_sequence of tuples of the form (number of bits,
             minimum, maximum) values :return: a function for real-value phenome
-            decoding of a sequence of binary digits
+            decoding of a test_sequence of binary digits
 
         For example, if we construct the decoder then it will look for
         a genome of length 8, with the first 4 bits mapped to the first

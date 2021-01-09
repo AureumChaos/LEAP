@@ -2,9 +2,19 @@
 
 Being a terse compilation by version of changes.
 
-## 0.4.1, 12/17/2020
+## 0.6.0
 
-* minor fix for controlling random see for cyclic selection test
+## 0.5.0, 1/9/2021
+
+* Added probability parameter for the `n_ary_crossover` operator
+* Greatly improved test coverage
+* Added support for static- and variable-length segments, which are fixed-length "chunks" of values
+* Added a simple neural network representation, `executable_rep.neural_network`, and made it the default for `examples/openai_gym.py`
+* Changed the `Executable` interface to act as a `Callable` object (rather than using a custom `output()` method)
+* Added `statistical_helpers` to assist with writing unit tests for stochastic algorithms
+* Added support for integer representations, via the `int_rep` package
+* Added a Cartesian genetic programming (CGP) representation, `executable_rep.cgp`, with example in `examples/cgp.py`
+* Added support for heterogeneous island models, demoed in `examples/multitask_island_model.py`
 
 ## 0.4.0, 9/19/2020
 
@@ -25,15 +35,15 @@ Being a terse compilation by version of changes.
 
 ## 0.3.1
 
-* Apply `Representation` consistently throughout LEAP, particulary the top-level monolithic functions
-* Added probe to `leap_ec.distributed.asynchronous.stead_state()` to take regular snapshots of the population
+* Apply `Representation` consistently throughout LEAP, particularly the top-level monolithic functions
+* Added probe to `leap_ec.distributed.asynchronous.steady_state()` to take regular snapshots of the population
 
-## 0.3
+## 0.3, 6/14/2020
 
-* fix how non-viable individuals sort themselves when compared since the prior method of comparing math.nan to math.nan yielded non-ideal behavior 
+* fix how non-viable individuals sort themselves when compared since the prior method of comparing `math.nan` to `math.nan` yielded non-ideal behavior 
 * minor maintenance tweaks
 
-## 0.2
+## 0.2, 6/14/2020
 
 * changed package name to `leap_ec` from `leap` to mitigate pypi namespace collisions
 * minor maintenance tweaks

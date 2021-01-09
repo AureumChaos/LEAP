@@ -10,10 +10,25 @@ import inspect
 
 
 ###############################
+# Function print_population
+###############################
+def print_population(population, generation):
+    """ Convenience function for pretty printing a population that's
+    associated with a given generation
+
+    :param population:
+    :param generation:
+    :return: None
+    """
+    for individual in population:
+        print(generation, individual.genome, individual.fitness)
+
+
+###############################
 # Function is_sequence
 ###############################
 def is_sequence(obj):
-    """ :return: True if obj is a sequence
+    """ :return: True if obj is a test_sequence
 
         Cribbed from https://stackoverflow.com/questions/2937114/python-check-if-an-object-is-a-sequence?lq=1
 
@@ -29,6 +44,9 @@ def is_sequence(obj):
     return isinstance(obj, collections.abc.Sequence)
 
 
+###############################
+# Function is_iterable
+###############################
 def is_iterable(obj):
     """
     :param obj: that we want to determine is a generator
@@ -103,6 +121,27 @@ def inc_births(context, start=0, callbacks=()):
     >>> from leap_ec.context import context
     >>> my_inc_births = inc_births(context)
 
+    Each time we call the object, the birth count is incremented and returned:
+
+    >>> my_inc_births()
+    1
+
+    >>> my_inc_births()
+    2
+
+    >>> my_inc_births()
+    3
+
+    The count can be viewed without changing it like so:
+
+    >>> my_inc_births.births()
+    3
+
+    And decremented like so:
+
+    >>> my_inc_births.do_decrement()
+    2
+
     :param context: will set ['leap']['births'] to the incremented births
     :param start: if we want to start counter at a higher value; e.g., take
         into consideration births of an initial population
@@ -143,6 +182,8 @@ def inc_births(context, start=0, callbacks=()):
 
         # Update the context
         context['leap']['births'] -= 1
+
+        return curr_births
 
     do_increment.births = births
     do_increment.do_decrement = do_decrement
@@ -245,7 +286,7 @@ def birth_brander():
                 # We're being passed in a single individual in a pipeline
                 next_thing = next(next_thing)
             else:
-                # We're being passed a sequence/population
+                # We're being passed a test_sequence/population
                 if iterator is None:
                     iterator = iter(next_thing)
                 next_thing = next(iterator)

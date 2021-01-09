@@ -7,6 +7,7 @@ import pytest
 
 from leap_ec.individual import Individual
 import leap_ec.ops as ops
+import leap_ec.statistical_helpers as stat
 
 
 def test_uniform_crossover():
@@ -28,31 +29,32 @@ def test_uniform_crossover():
     assert pop[0].genome == [1,1]
     assert pop[1].genome == [0,0]
 
+# These tests are now moot given the advent of variable length segments.
 
-def test_uniform_crossover_bad_len():
-    """ Test assertion for mis-matched genome lengths
-    """
-    pop = [Individual([0, 0, 1]),
-           Individual([1, 1])]
-
-    i = ops.naive_cyclic_selection(pop)
-
-    with pytest.raises(RuntimeError):
-        new_pop = list(itertools.islice(ops.uniform_crossover(i), 2))
-
-
-def test_n_ary_crossover_bad_lengths():
-    """ Genomes should be the same length for crossover
-
-    (Separate tests for variable length crossover.)
-    """
-    pop = [Individual([0, 0, 1]),
-           Individual([1, 1])]
-
-    i = ops.naive_cyclic_selection(pop)
-
-    with pytest.raises(RuntimeError):
-        new_pop = list(itertools.islice(ops.n_ary_crossover(i), 2))
+# def test_uniform_crossover_bad_len():
+#     """ Test assertion for mis-matched genome lengths
+#     """
+#     pop = [Individual([0, 0, 1]),
+#            Individual([1, 1])]
+#
+#     i = ops.naive_cyclic_selection(pop)
+#
+#     with pytest.raises(RuntimeError):
+#         new_pop = list(itertools.islice(ops.uniform_crossover(i), 2))
+#
+#
+# def test_n_ary_crossover_bad_lengths():
+#     """ Genomes should be the same length for crossover
+#
+#     (Separate tests for variable length crossover.)
+#     """
+#     pop = [Individual([0, 0, 1]),
+#            Individual([1, 1])]
+#
+#     i = ops.naive_cyclic_selection(pop)
+#
+#     with pytest.raises(RuntimeError):
+#         new_pop = list(itertools.islice(ops.n_ary_crossover(i), 2))
 
 
 def test_n_ary_crossover_bad_crossover_points():
@@ -67,7 +69,8 @@ def test_n_ary_crossover_bad_crossover_points():
 
 
 def test_n_ary_crossover():
-    """ Does n-point crossover even work? """
+    """If we crossover two individuals with two bits each, the children should either be swapped copies of their parents,
+    or they should exchange the second bit and keep the first bit unmodified."""
     pop = [Individual([0, 0]),
            Individual([1, 1])]
 
@@ -80,3 +83,24 @@ def test_n_ary_crossover():
     # point crossover.
     assert pop[0].genome == [1,1] or pop[0].genome == [0,1]
     assert pop[1].genome == [0,0] or pop[1].genome == [1,0]
+
+
+@pytest.mark.stochastic
+def test_n_ary_crossover_probability():
+    """If we perform crossover with a probabilty of 0.5, then the individuals will be unmodified 50% of the time."""
+    N = 1000
+    unmodified_count = 0
+
+    for i in range(N):
+
+        pop = [Individual([0, 0]),
+               Individual([1, 1])]
+        i = ops.naive_cyclic_selection(pop)
+        new_pop = list(itertools.islice(ops.n_ary_crossover(i, p=0.5), 2))
+
+        if new_pop[0].genome == [0, 0] and new_pop[1].genome == [1, 1]:
+            unmodified_count += 1
+
+    p = 0.01
+    observed_dist = {'Unmodified': unmodified_count, 'Modified': N - unmodified_count }
+    assert(stat.equals_uniform(observed_dist, p=p))

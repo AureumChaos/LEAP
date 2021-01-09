@@ -68,5 +68,5 @@ Class API
     :members:
     :undoc-members:
 
-    .. authomethod:: __init__
+    .. automethod:: __init__
 
