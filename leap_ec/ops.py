@@ -14,6 +14,7 @@ import random
 from statistics import mean
 from typing import Iterator, List, Tuple, Callable
 
+import numpy as np
 import toolz
 from toolz import curry
 
@@ -329,7 +330,8 @@ def uniform_crossover(next_individual: Iterator,
 @curry
 @iteriter_op
 def n_ary_crossover(next_individual: Iterator,
-                    num_points: int = 1) -> Iterator:
+                    num_points: int = 1,
+                    p=1.0) -> Iterator:
     """ Do crossover between individuals between N crossover points.
 
     1 < n < genome length - 1
@@ -397,10 +399,14 @@ def n_ary_crossover(next_individual: Iterator,
         parent1 = next(next_individual)
         parent2 = next(next_individual)
 
-        child1, child2 = _n_ary_crossover(parent1, parent2, num_points)
-
-        yield child1
-        yield child2
+        # Return the parents unmodified if we're not performing crossover
+        if np.random.uniform() > p:
+            yield parent1
+            yield parent2
+        else:  # Else cross them over
+            child1, child2 = _n_ary_crossover(parent1, parent2, num_points)
+            yield child1
+            yield child2
 
 
 
