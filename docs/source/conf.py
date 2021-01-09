@@ -133,12 +133,15 @@ latex_elements = {
     # 'figure_align': 'htbp',
 }
 
+bibtex_bibfiles = ['leap.bib']
+
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'LEAPLibraryforEvolutionaryAlgorithmsinPython.tex', 'LEAP: Library for Evolutionary Algorithms in Python Documentation',
-     'Jeffrey K. Bassett, Mark Coletti, and Eric O. Scott', 'manual'),
+    (master_doc, 'LEAPLibraryforEvolutionaryAlgorithmsinPython.tex',
+     'LEAP: Library for Evolutionary Algorithms in Python Documentation',
+     'Mark Coletti, Eric O. Scott, and Jeffrey K. Bassett', 'manual'),
 ]
 
 
@@ -147,7 +150,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'leaplibraryforevolutionaryalgorithmsinpython', 'LEAP: Library for Evolutionary Algorithms in Python Documentation',
+    (master_doc, 'leaplibraryforevolutionaryalgorithmsinpython',
+     'LEAP: Library for Evolutionary Algorithms in Python Documentation',
      [author], 1)
 ]
 
@@ -158,8 +162,10 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'LEAPLibraryforEvolutionaryAlgorithmsinPython', 'LEAP: Library for Evolutionary Algorithms in Python Documentation',
-     author, 'LEAPLibraryforEvolutionaryAlgorithmsinPython', 'One line description of project.',
+    (master_doc, 'LEAPLibraryforEvolutionaryAlgorithmsinPython',
+     'LEAP: Library for Evolutionary Algorithms in Python Documentation',
+     author, 'LEAPLibraryforEvolutionaryAlgorithmsinPython',
+     'Library for Evolutionary Algorithms in Python',
      'Miscellaneous'),
 ]
 
