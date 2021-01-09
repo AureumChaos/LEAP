@@ -7,11 +7,11 @@
 # Closure create_segmented_sequence
 ##############################
 def create_segmented_sequence(length, seq_initializer):
-    """ Create a segmented sequence
+    """ Create a segmented test_sequence
 
     A segment is a list of lists.  `seq_initializer` is used to create `length`
     individual segments, which allows for the using any of the pre-supplied
-    initializers for a regular genomic sequence, or for making your own.
+    initializers for a regular genomic test_sequence, or for making your own.
 
     `length` denotes how many segments to generate.  If it's an integer, then
     we will create `length` segments.  However, if it's a function that draws
@@ -27,7 +27,7 @@ def create_segmented_sequence(length, seq_initializer):
     :type length: int or Callable
     :param seq_initializer: initializer for creating individual sequences
     :type seq_initializer: Callable
-    :return: sequence of segments
+    :return: test_sequence of segments
     :rtype: list
     """
     if callable(length):

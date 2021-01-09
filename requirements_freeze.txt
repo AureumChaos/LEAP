@@ -20,7 +20,7 @@ docutils==0.16
 entrypoints==0.3
 flake8==3.8.3
 future==0.18.2
-gym==0.17.2
+gym==0.18.0
 HeapDict==1.0.1
 idna==2.9
 imagesize==1.2.0
@@ -37,7 +37,6 @@ jupyter-client==6.1.3
 jupyter-console==6.1.0
 jupyter-core==4.6.3
 kiwisolver==1.2.0
--e git+https://github.com/AureumChaos/LEAP.git@65e698d0362c84de5a984bea2215b5a5aedafa4c#egg=leap_ec
 MarkupSafe==1.1.1
 matplotlib==3.2.1
 mccabe==0.6.1

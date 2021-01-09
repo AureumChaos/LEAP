@@ -28,31 +28,32 @@ def test_uniform_crossover():
     assert pop[0].genome == [1,1]
     assert pop[1].genome == [0,0]
 
+# These tests are now moot given the advent of variable length segments.
 
-def test_uniform_crossover_bad_len():
-    """ Test assertion for mis-matched genome lengths
-    """
-    pop = [Individual([0, 0, 1]),
-           Individual([1, 1])]
-
-    i = ops.naive_cyclic_selection(pop)
-
-    with pytest.raises(RuntimeError):
-        new_pop = list(itertools.islice(ops.uniform_crossover(i), 2))
-
-
-def test_n_ary_crossover_bad_lengths():
-    """ Genomes should be the same length for crossover
-
-    (Separate tests for variable length crossover.)
-    """
-    pop = [Individual([0, 0, 1]),
-           Individual([1, 1])]
-
-    i = ops.naive_cyclic_selection(pop)
-
-    with pytest.raises(RuntimeError):
-        new_pop = list(itertools.islice(ops.n_ary_crossover(i), 2))
+# def test_uniform_crossover_bad_len():
+#     """ Test assertion for mis-matched genome lengths
+#     """
+#     pop = [Individual([0, 0, 1]),
+#            Individual([1, 1])]
+#
+#     i = ops.naive_cyclic_selection(pop)
+#
+#     with pytest.raises(RuntimeError):
+#         new_pop = list(itertools.islice(ops.uniform_crossover(i), 2))
+#
+#
+# def test_n_ary_crossover_bad_lengths():
+#     """ Genomes should be the same length for crossover
+#
+#     (Separate tests for variable length crossover.)
+#     """
+#     pop = [Individual([0, 0, 1]),
+#            Individual([1, 1])]
+#
+#     i = ops.naive_cyclic_selection(pop)
+#
+#     with pytest.raises(RuntimeError):
+#         new_pop = list(itertools.islice(ops.n_ary_crossover(i), 2))
 
 
 def test_n_ary_crossover_bad_crossover_points():
