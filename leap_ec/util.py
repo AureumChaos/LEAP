@@ -10,6 +10,21 @@ import inspect
 
 
 ###############################
+# Function print_population
+###############################
+def print_population(population, generation):
+    """ Convenience function for pretty printing a population that's
+    associated with a given generation
+
+    :param population:
+    :param generation:
+    :return: None
+    """
+    for individual in population:
+        print(generation, individual.genome, individual.fitness)
+
+
+###############################
 # Function is_sequence
 ###############################
 def is_sequence(obj):
@@ -29,6 +44,9 @@ def is_sequence(obj):
     return isinstance(obj, collections.abc.Sequence)
 
 
+###############################
+# Function is_iterable
+###############################
 def is_iterable(obj):
     """
     :param obj: that we want to determine is a generator

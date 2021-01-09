@@ -58,28 +58,90 @@ and binary tournament_selection selection:
 
 ```Python
 from leap_ec.algorithm import generational_ea
-from leap_ec import core, ops, binary_problems
+from leap_ec import ops, decoder, representation
+from leap_ec.binary_rep import initializers
+from leap_ec.binary_rep import problems
+from leap_ec.binary_rep.ops import mutate_bitflip
+
 pop_size = 5
-ea = generational_ea(generations=100, pop_size=pop_size,
-                     problem=binary_problems.MaxOnes(),             # Solve a MaxOnes Boolean optimization problem
-                     
-                     representation=core.Representation(
-                        decoder=core.IdentityDecoder(),             # Genotype and phenotype are the same for this task
-                        initialize=core.create_binary_sequence(length=10)  # Initial genomes are random binary sequences
+ea = generational_ea(generations=10, pop_size=pop_size,
+
+                     # Solve a MaxOnes Boolean optimization problem
+                     problem=problems.MaxOnes(),
+
+                     representation=representation.Representation(
+                         # Genotype and phenotype are the same for this task
+                         decoder=decoder.IdentityDecoder(),
+                         # Initial genomes are random binary sequences
+                         initialize=initializers.create_binary_sequence(length=10)
                      ),
 
                      # The operator pipeline
-                     pipeline=[ops.tournament_selection,                     # Select parents via tournament_selection selection
-                               ops.clone,                          # Copy them (just to be safe)
-                               ops.mutate_bitflip,                 # Basic mutation: defaults to a 1/L mutation rate
-                               ops.uniform_crossover(p_swap=0.4),  # Crossover with a 40% chance of swapping each gene
-                               ops.evaluate,                       # Evaluate fitness
-                               ops.pool(size=pop_size)             # Collect offspring into a new population
-                     ])
+                     pipeline=[ops.tournament_selection,
+                               # Select parents via tournament_selection selection
+                               ops.clone,  # Copy them (just to be safe)
+                               # Basic mutation: defaults to a 1/L mutation rate
+                                   mutate_bitflip,
+                               # Crossover with a 40% chance of swapping each gene
+                               ops.uniform_crossover(p_swap=0.4),
+                               ops.evaluate,  # Evaluate fitness
+                               # Collect offspring into a new population
+                               ops.pool(size=pop_size)
+                               ])
 
 print('Generation, Best_Individual')
 for i, best in ea:
     print(f"{i}, {best}")
+```
+
+## Low-level Example
+
+However, it may sometimes be necessary to have access to low-level details of
+an EA implementation, in which case the programmer can arbitrarily connect
+individual components of the EA workflow for maximum tailorability.   For
+example:
+
+```python
+from toolz import pipe
+
+from leap_ec.individual import Individual
+from leap_ec.decoder import IdentityDecoder
+from leap_ec.context import context
+
+import leap_ec.ops as ops
+from leap_ec.binary_rep.problems import MaxOnes
+from leap_ec.binary_rep.initializers import create_binary_sequence
+from leap_ec.binary_rep.ops import mutate_bitflip
+from leap_ec import util
+
+# create initial rand population of 5 individuals
+parents = Individual.create_population(5,
+                                       initialize=create_binary_sequence(4),
+                                       decoder=IdentityDecoder(),
+                                       problem=MaxOnes())
+# Evaluate initial population
+parents = Individual.evaluate_population(parents)
+
+# print initial, random population
+util.print_population(parents, generation=0)
+
+# generation_counter is an optional convenience for generation tracking
+generation_counter = util.inc_generation(context=context)
+
+while generation_counter.generation() < 6:
+    offspring = pipe(parents,
+                     ops.tournament_selection,
+                     ops.clone,
+                     mutate_bitflip,
+                     ops.uniform_crossover(p_swap=0.2),
+                     ops.evaluate,
+                     ops.pool(size=len(parents)))  # accumulate offspring
+
+    parents = offspring
+
+    generation_counter()  # increment to the next generation
+
+    util.print_population(parents, context['leap']['generation'])
 ```
 
 ## More Examples
