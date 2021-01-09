@@ -18,17 +18,6 @@ from leap_ec import util
 from leap_ec import probe
 
 
-def print_population(population, generation):
-    """ Convenience function for pretty printing a population that's
-    associated with a given generation
-
-    :param population:
-    :param generation:
-    :return: None
-    """
-    for individual in population:
-        print(generation, individual.genome, individual.fitness)
-
 
 if __name__ == '__main__':
     parents = Individual.create_population(5,
@@ -41,7 +30,7 @@ if __name__ == '__main__':
     parents = Individual.evaluate_population(parents)
 
     # print initial, random population
-    print_population(parents, generation=0)
+    util.print_population(parents, generation=0)
 
     max_generation = 6
 
@@ -68,4 +57,4 @@ if __name__ == '__main__':
 
         # Just to demonstrate that we can also get the current generation from
         # the context
-        print_population(parents, context['leap']['generation'])
+        util.print_population(parents, context['leap']['generation'])
