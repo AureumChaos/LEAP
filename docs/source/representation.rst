@@ -49,7 +49,7 @@ Real-valued representations
 ---------------------------
 Another common representation is a vector of real-values.
 
-.. automodule:: leap_ec.eral_rep.initializers
+.. automodule:: leap_ec.real_rep.initializers
     :members:
     :undoc-members:
     :show-inheritance:
