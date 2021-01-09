@@ -29,7 +29,7 @@ from an existing set of prospective parents that can be in a new set of
 prospective parents.
 
 Fig.2 is shown again here to depict a typical set of LEAP pipeline
-operators.  The pipeline generally starts with a "sink", or a parent population,
+operators.  The pipeline generally starts with a "source", or a parent population,
 from which the next operator typically selects for creating offspring. This is
 followed by a clone operator that ensure the subsequent pertubation operators
 do not modify the selected parents.  (And so it is critically important that
@@ -38,7 +38,9 @@ pipeline before any mutation, crossover, or other genome altering operators.)
 The pertubation operators can be mutation or also include a crossover
 operator. At this point in the pipeline we have a completed offspring with no
 fitness, so the next operator evaluates the offspring to assign that fitness.
-Then the evaluated offspring is collected into a pool of offspring.  Once the
+Then the evaluated offspring is collected into a pool of offspring that acts as a
+"sink" for new individuals, and is the principal driving for the pipeline; i.e.,
+it is the need to fill the sink that "pulls" individuals down the pipeline.  Once the
 offspring pool reaches a desired size it returns all the offspring to another
 selection operator to cull the offspring, and optionally the parents, to
 return the next set of prospective parents.
