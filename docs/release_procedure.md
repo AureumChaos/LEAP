@@ -5,7 +5,7 @@ These are the things to do when performing a release.
 1. git checkout develop
 1. git pull 
     > to ensure in sync with develop latest
-1. git flow release finish 'new release number'
+1. git flow release start 'new release number'
 1. update release number everywhere
     1. `setup.py`
     1. `docs/source/conf.py`
