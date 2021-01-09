@@ -121,6 +121,27 @@ def inc_births(context, start=0, callbacks=()):
     >>> from leap_ec.context import context
     >>> my_inc_births = inc_births(context)
 
+    Each time we call the object, the birth count is incremented and returned:
+
+    >>> my_inc_births()
+    1
+
+    >>> my_inc_births()
+    2
+
+    >>> my_inc_births()
+    3
+
+    The count can be viewed without changing it like so:
+
+    >>> my_inc_births.births()
+    3
+
+    And decremented like so:
+
+    >>> my_inc_births.do_decrement()
+    2
+
     :param context: will set ['leap']['births'] to the incremented births
     :param start: if we want to start counter at a higher value; e.g., take
         into consideration births of an initial population
@@ -161,6 +182,8 @@ def inc_births(context, start=0, callbacks=()):
 
         # Update the context
         context['leap']['births'] -= 1
+
+        return curr_births
 
     do_increment.births = births
     do_increment.do_decrement = do_decrement
