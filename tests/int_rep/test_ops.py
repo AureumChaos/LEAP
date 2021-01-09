@@ -58,10 +58,11 @@ def test_mutate_randint1():
 
     # Use a chi2 test to see if the observed gene-value counts are 
     # differ significantly from the expected distributions.
-    assert(stat.stochastic_equals(expected_ind0_gene0, ind0_gene0_counts))
-    assert(stat.stochastic_equals(expected_ind0_gene1, ind0_gene1_counts))
-    assert(stat.stochastic_equals(expected_ind1_gene0, ind1_gene0_counts))
-    assert(stat.stochastic_equals(expected_ind1_gene1, ind1_gene1_counts))
+    p = 0.001
+    assert(stat.stochastic_equals(expected_ind0_gene0, ind0_gene0_counts, p=p))
+    assert(stat.stochastic_equals(expected_ind0_gene1, ind0_gene1_counts, p=p))
+    assert(stat.stochastic_equals(expected_ind1_gene0, ind1_gene0_counts, p=p))
+    assert(stat.stochastic_equals(expected_ind1_gene1, ind1_gene1_counts, p=p))
 
 
 @pytest.mark.stochastic
@@ -106,8 +107,8 @@ def test_mutate_randint2():
     # two genes, our mutation probability is 2/L = 1.0.  So all four genes
     # should be sampled uniformly from the set {0, 1}.
     expected = { 0: 0.5*N, 1: 0.5*N }
-
-    assert(stat.stochastic_equals(expected, ind0_gene0_counts))
-    assert(stat.stochastic_equals(expected, ind0_gene1_counts))
-    assert(stat.stochastic_equals(expected, ind1_gene0_counts))
-    assert(stat.stochastic_equals(expected, ind1_gene1_counts))
+    p = 0.001
+    assert(stat.stochastic_equals(expected, ind0_gene0_counts, p=p))
+    assert(stat.stochastic_equals(expected, ind0_gene1_counts, p=p))
+    assert(stat.stochastic_equals(expected, ind1_gene0_counts, p=p))
+    assert(stat.stochastic_equals(expected, ind1_gene1_counts, p=p))
