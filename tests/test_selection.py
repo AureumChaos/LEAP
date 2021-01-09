@@ -8,13 +8,7 @@ from leap_ec.decoder import IdentityDecoder
 from leap_ec.binary_rep.problems import MaxOnes
 import leap_ec.ops as ops
 
-# Set seed so that we get consistent test results.  I.e., it is possible by
-# happenstance for some tests to fail even though they're actually ok.  E.g.,
-# the cyclic selection tests will test if the test_sequence shuffles between a
-# complete cycle, but there's a chance that the same test_sequence may come up in
-# the random shuffle, so the test will fail.  However, if we set a random seed
-# ahead of time, then we can control for those pathological scenarios.
-random.seed(123)
+
 
 def test_naive_cyclic_selection():
     """ Test of the naive deterministic cyclic selection """
@@ -39,6 +33,14 @@ def test_naive_cyclic_selection():
 
 def test_cyclic_selection():
     """ Test of the deterministic cyclic selection """
+
+    # Set seed so that we get consistent test results.  I.e., it is possible by
+    # happenstance for some tests to fail even though they're actually ok.  E.g.,
+    # the cyclic selection tests will test if the test_sequence shuffles between a
+    # complete cycle, but there's a chance that the same test_sequence may come up in
+    # the random shuffle, so the test will fail.  However, if we set a random seed
+    # ahead of time, then we can control for those pathological scenarios.
+    random.seed(123)
 
     # We're just going to use integers for the population as that's sufficient for testing this selection
     # operator; we don't want to get in the weeds with comparing individuals for test_sequence equivalency testing.
