@@ -61,17 +61,22 @@ class SpheroidProblem(ScalarProblem):
         """
         We minimize by default:
 
-        >>> s = NoisyQuarticProblem()
+        >>> s = SpheroidProblem()
         >>> s.worse_than(100, 10)
         True
 
-        >>> s = NoisyQuarticProblem(maximize=True)
+        >>> s = SpheroidProblem(maximize=True)
         >>> s.worse_than(100, 10)
         False
         """
         return super().worse_than(first_fitness, second_fitness)
 
     def __str__(self):
+        """Returns the name of the class.
+
+        >>> str(SpheroidProblem())
+        'SpheroidProblem'
+        """
         return SpheroidProblem.__name__
 
 
@@ -129,17 +134,22 @@ class RastriginProblem(ScalarProblem):
         """
         We minimize by default:
 
-        >>> s = NoisyQuarticProblem()
+        >>> s = RastriginProblem()
         >>> s.worse_than(100, 10)
         True
 
-        >>> s = NoisyQuarticProblem(maximize=True)
+        >>> s = RastriginProblem(maximize=True)
         >>> s.worse_than(100, 10)
         False
         """
         return super().worse_than(first_fitness, second_fitness)
 
     def __str__(self):
+        """Returns the name of the class.
+
+        >>> str(RastriginProblem())
+        'RastriginProblem'
+        """
         return RastriginProblem.__name__
 
 
@@ -196,17 +206,22 @@ class RosenbrockProblem(ScalarProblem):
         """
         We minimize by default:
 
-        >>> s = NoisyQuarticProblem()
+        >>> s = RosenbrockProblem()
         >>> s.worse_than(100, 10)
         True
 
-        >>> s = NoisyQuarticProblem(maximize=True)
+        >>> s = RosenbrockProblem(maximize=True)
         >>> s.worse_than(100, 10)
         False
         """
         return super().worse_than(first_fitness, second_fitness)
 
     def __str__(self):
+        """Returns the name of the class.
+
+        >>> str(RosenbrockProblem())
+        'RosenbrockProblem'
+        """
         return RosenbrockProblem.__name__
 
 
@@ -271,6 +286,11 @@ class StepProblem(ScalarProblem):
         return super().worse_than(first_fitness, second_fitness)
 
     def __str__(self):
+        """Returns the name of the class.
+
+        >>> str(StepProblem())
+        'StepProblem'
+        """
         return StepProblem.__name__
 
 
@@ -335,6 +355,11 @@ class NoisyQuarticProblem(ScalarProblem):
         return super().worse_than(first_fitness, second_fitness)
 
     def __str__(self):
+        """Returns the name of the class.
+
+        >>> str(NoisyQuarticProblem())
+        'NoisyQuarticProblem'
+        """
         return NoisyQuarticProblem.__name__
 
 
@@ -424,6 +449,11 @@ class ShekelProblem(ScalarProblem):
         return super().worse_than(first_fitness, second_fitness)
 
     def __str__(self):
+        """Returns the name of the class.
+
+        >>> str(ShekelProblem())
+        'ShekelProblem'
+        """
         return ShekelProblem.__name__
 
 
@@ -477,6 +507,11 @@ class GriewankProblem(ScalarProblem):
         return t1 - t2 + 1
 
     def __str__(self):
+        """Returns the name of the class.
+
+        >>> str(GriewankProblem())
+        'GriewankProblem'
+        """
         return GriewankProblem.__name__
 
 
@@ -529,6 +564,11 @@ class AckleyProblem(ScalarProblem):
         return t1 - t2 + self.a + np.e
 
     def __str__(self):
+        """Returns the name of the class.
+
+        >>> str(AckleyProblem())
+        'AckleyProblem'
+        """
         return AckleyProblem.__name__
 
 
@@ -588,6 +628,11 @@ class WeierstrassProblem(ScalarProblem):
         return result
 
     def __str__(self):
+        """Returns the name of the class.
+
+        >>> str(WeierstrassProblem())
+        'WeierstrassProblem'
+        """
         return WeierstrassProblem.__name__
 
 
@@ -675,6 +720,11 @@ class LangermannProblem(ScalarProblem):
         return result
 
     def __str__(self):
+        """Returns the name of the class.
+
+        >>> str(LangermannProblem())
+        'LangermannProblem'
+        """
         return LangermannProblem.__name__
 
 
@@ -764,6 +814,11 @@ class LunacekProblem(ScalarProblem):
         return min(sphere1, sphere2) + sinusoid
 
     def __str__(self):
+        """Returns the name of the class.
+
+        >>> str(LunacekProblem(N=2))
+        'LunacekProblem'
+        """
         return LunacekProblem.__name__
 
 
@@ -815,6 +870,11 @@ class SchwefelProblem(ScalarProblem):
                       ) + self.alpha * len(phenome)
 
     def __str__(self):
+        """Returns the name of the class.
+
+        >>> str(SchwefelProblem())
+        'SchwefelProblem'
+        """
         return SchwefelProblem.__name__
 
 
@@ -852,6 +912,14 @@ class GaussianProblem(ScalarProblem):
         phenome = np.array(phenome)
 
         return self.height * np.exp(-np.sum(np.power(phenome/self.width, 2)))
+
+    def __str__(self):
+        """Returns the name of the class.
+
+        >>> str(GaussianProblem())
+        'GaussianProblem'
+        """
+        return GaussianProblem.__name__
 
 
 ##############################
@@ -932,6 +1000,11 @@ class CosineFamilyProblem(ScalarProblem):
         return -2 / (self.alpha + 1) * value
 
     def __str__(self):
+        """Returns the name of the class.
+
+        >>> str(CosineFamilyProblem(alpha=0.5, global_optima_counts=[2, 2], local_optima_counts=[2, 2]))
+        'CosineFamilyProblem'
+        """
         return CosineFamilyProblem.__name__
 
 
@@ -1022,6 +1095,12 @@ class TranslatedProblem(ScalarProblem):
         return self.problem.evaluate(new_phenome)
 
     def __str__(self):
+        """Returns the name of this class, followed by the `__str__ of the wrapped class
+        in parentheses.
+
+        >>> str(TranslatedProblem(problem=SpheroidProblem(), offset=[5, 5, 5]))
+        'TranslatedProblem(SpheroidProblem)'
+        """
         return f"{TranslatedProblem.__name__}({str(self.problem)})"
 
 
@@ -1053,6 +1132,12 @@ class ScaledProblem(ScalarProblem):
         return self.problem.evaluate(transformed_phenome)
 
     def __str__(self):
+        """Returns the name of this class, followed by the `__str__ of the wrapped class
+        in parentheses.
+
+        >>> str(ScaledProblem(problem=SpheroidProblem(), new_bounds=[[0, 1], [0, 1]]))
+        'ScaledProblem(SpheroidProblem)'
+        """
         return f"{ScaledProblem.__name__}({str(self.problem)})"
 
 
@@ -1214,6 +1299,12 @@ class MatrixTransformedProblem(ScalarProblem):
         return self.problem.evaluate(new_point)
 
     def __str__(self):
+        """Returns the name of this class, followed by the `__str__ of the wrapped class
+        in parentheses.
+
+        >>> str(MatrixTransformedProblem.random_orthonormal(problem=SpheroidProblem(), dimensions=10))
+        'MatrixTransformedProblem(SpheroidProblem)'
+        """
         return f"{MatrixTransformedProblem.__name__}({str(self.problem)})"
 
 
