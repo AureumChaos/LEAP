@@ -17,10 +17,11 @@ install:
 script:
  - make setup
  - make test
- - make test-jupyter
+# - make test-jupyter
 
 # For coveralls.io
 after_success:
  # Re-run doctests manually, since coveralls can't pick them up by hand
- - coverage run --source leap_ec tests/test_doctests.py
+# - coverage run --parallel-mode --source leap_ec tests/test_doctests.py
+# - coverage combine
  - coveralls
