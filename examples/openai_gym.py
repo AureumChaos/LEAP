@@ -81,12 +81,10 @@ def evolve(runs, steps, env, rep, gens, pop_size,
 
         probes = get_probes(genomes_file, environment, rep)
 
-        from leap_ec.problem import ConstantProblem
         with Client() as dask_client:
             ea = generational_ea(generations=gens, pop_size=pop_size,
                                 # Solve a problem that executes agents in the
                                 # environment and obtains fitness from it
-                                #problem=ConstantProblem(),
                                 problem=problems.EnvironmentProblem(
                                     runs, steps, environment, 'reward', gui),
 

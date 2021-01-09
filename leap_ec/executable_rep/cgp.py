@@ -245,6 +245,9 @@ class CGPDecoder(Decoder):
 
     def bounds(self):
         """
+        Return the (min, max) allowed value they every gene may assume, taking into account the levels structure.
+
+        These values should be used by initialization and mutation operators to ensure that CGP's constraints are met.
 
         >>> primitives = [ sum, lambda x: x[0] - x[1], lambda x: x[0] * x[1] ]
         >>> decoder = CGPDecoder(primitives, num_inputs=2, num_outputs=2, num_layers=2, nodes_per_layer=2, max_arity=2, levels_back=1)
@@ -297,7 +300,6 @@ def cgp_mutate(cgp_decoder,
         return mutator(next_individual)
 
     return mutate
-
 
 
 ##############################

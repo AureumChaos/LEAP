@@ -179,6 +179,7 @@ def test_cgp_mutate1(test_2layer_circuit):
     expected[4] = { 0: floor(p_mut*0.5*N), 1: ceil((p_stay + p_mut*0.5)*N) }
     expected[5] = { 0: floor((p_stay + p_mut*0.5)*N), 1: ceil(p_mut*0.5*N) }
 
+    p = 0.001
     for i in range(7):
         print(f"Gene {i}, expected={expected[i]}, observed={observed[i]}")
-        assert(stat.stochastic_equals(expected[i], observed[i]))
+        assert(stat.stochastic_equals(expected[i], observed[i], p=p))

@@ -1,4 +1,6 @@
 """Helpers for testing the output of stochastic functions."""
+from typing import Dict
+
 from scipy.stats import chisquare
 
 
@@ -38,7 +40,7 @@ def _normalize_dicts(dict1, dict2):
 
 
 def stochastic_chisquare(expected_distribution, distribution):
-    """Use a $\chi^2$ distribution to compute a p-value for the probability of
+    """Use a $\\chi^2$ distribution to compute a p-value for the probability of
     rejecting the hypothesis that the given distribution matches the expected
     distribution.
     
@@ -57,8 +59,8 @@ def stochastic_chisquare(expected_distribution, distribution):
     return p_value
 
 
-def stochastic_equals(expected_distribution, observed_distribution, p=0.001):
-    """Use a $\chi^2$ test to determine whether two discrete distributions are
+def stochastic_equals(expected_distribution: Dict, observed_distribution: Dict, p: float) -> bool:
+    """Use a $\\chi^2$ test to determine whether two discrete distributions are
     equal.
 
     For example, we do not reject the hypothesis that `[5060, 4940]` comes from a uniform
@@ -66,17 +68,17 @@ def stochastic_equals(expected_distribution, observed_distribution, p=0.001):
 
     >>> expected = { 0: 5000, 1: 5000 }
     >>> observed = { 0: 5060, 1: 4940 }
-    >>> stochastic_equals(expected, observed)
+    >>> stochastic_equals(expected, observed, p=0.01)
     True
 
     Here we also do not reject the hypothesis that a 6-sided die is unbiased:
     
     >>> expected = { 1: 10, 2: 10, 3: 10, 4: 10, 5: 10, 6: 10}
     >>> observed = { 1: 5, 2: 8, 3: 9, 4: 8, 5: 10, 6: 20}
-    >>> stochastic_equals(expected, observed)
+    >>> stochastic_equals(expected, observed, p=0.01)
     True
 
-    But we would have if we used a 95% significant level instead of the default 99%:
+    But we would have if we used a 95% significance level instead of 99%:
     >>> stochastic_equals(expected, observed, p=0.05)
     False
     
@@ -92,5 +94,27 @@ def stochastic_equals(expected_distribution, observed_distribution, p=0.001):
     return p_value > p
 
 
+def equals_uniform(observed_distribution: Dict, p: float) -> bool:
+    """Use a $\\chi^2$ test to determine whether the observed distribution is uniform.
+    
+    This offers convenience over stochastic_equals(), because the expected distribution
+    doesn't have to be manually specified.
 
+    For example, we do not reject the hypothesis that `[5060, 4940]` comes from a uniform
+    distribution:
 
+    >>> observed = { 0: 5060, 1: 4940 }
+    >>> equals_uniform(observed, p=0.01)
+    True
+
+    The keys are arbitrary, so we can use them to clearly express what we are testing:
+
+    >>> observed = { 'Left': 101, 'Right': 100, 'Up': 99, 'Down': 100 }
+    >>> equals_uniform(observed, p=0.01)
+    True
+
+    """
+    n = sum( v for k, v in observed_distribution.items() )
+    num_keys = len(observed_distribution.keys())
+    expected_distribution = { k: n/num_keys for k in observed_distribution.keys() }
+    return stochastic_equals(expected_distribution, observed_distribution, p)

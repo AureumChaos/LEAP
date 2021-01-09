@@ -29,5 +29,6 @@ def test_create_int_vector():
 
     # Use a chi2 test to see if the observed gene-value counts are 
     # differ significantly from the expected distributions.
-    assert(stat.stochastic_equals(expected_dist0, dist0))
-    assert(stat.stochastic_equals(expected_dist1, dist1))
+    p = 0.001
+    assert(stat.stochastic_equals(expected_dist0, dist0, p=p))
+    assert(stat.stochastic_equals(expected_dist1, dist1, p=p))
