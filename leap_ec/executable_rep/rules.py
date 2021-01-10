@@ -6,15 +6,39 @@ import uuid
 from matplotlib import pyplot as plt
 from matplotlib import patches
 
+from leap_ec import context
 from leap_ec.decoder import Decoder
 from leap_ec.executable_rep.executable import Executable
+from leap_ec.executable_rep.problems import EnvironmentProblem
+
 
 ##############################
 # Class PittRulesDecoder
 ##############################
 class PittRulesDecoder(Decoder):
-    """Construct a Pitt-approach rule system (phenotype) out of a real-valued 
-    genome.
+    """A Decoder that contructs a Pitt-approach rule system phenotype (`PittRulesExecutable`)
+    out of a real-valued genome.
+
+    We use the OpenAI Gym `spaces` API to define the types and dimensionality of the 
+    rule system's inputs and outputs.
+
+    :param input_space: an OpenAI-gym-style space defining the inputs
+    :param output_space: an OpenAI-gym-style space defining the outputs
+    :param priority_metric: a PittRulesExecutable.PriorityMetric enum value defining how 
+        matching rules are deconflicted within the controller
+    :param num_memory_registers: the number of stateful memory registers that
+        each rule considers as additional inputs
+
+    If, for example, we want to evolve controllers for a robot that has 3 real-valued sensor
+    inputs and 4 mutually exclusive actions to choose from, we might use a Box and Discrete
+    space, respectively, from `gym.spaces`:
+
+    >>> from gym import spaces
+    >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 3), dtype=np.float32)
+    >>> out_ = spaces.Discrete(4)
+    >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_,
+    ...                            priority_metric=PittRulesExecutable.PriorityMetric.RULE_ORDER,
+    ...                            num_memory_registers=2)
     """
     def __init__(self, input_space, output_space, priority_metric,
                  num_memory_registers):
@@ -22,13 +46,35 @@ class PittRulesDecoder(Decoder):
         assert (output_space is not None)
         assert (num_memory_registers >= 0)
         self.input_space = input_space
-        self.num_inputs = int(np.prod(input_space.shape))
+        self.num_inputs = EnvironmentProblem.space_dimensions(input_space)
         self.output_space = output_space
-        self.num_outputs = int(np.prod(output_space.shape))
+        self.num_outputs = EnvironmentProblem.space_dimensions(output_space)
         self.priority_metric = priority_metric
         self.num_memory_registers = num_memory_registers
 
     def decode(self, genome, *args, **kwargs):
+        """Decodes a real-valued genome into a PittRulesExecutable.
+        
+        For example, say we have a Decoder that takes continuous inputs from a 2-D box and selects between
+        two discrete actions:
+
+        >>> import numpy as np
+        >>> from gym import spaces
+        >>> in_ = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
+        >>> out_ = spaces.Discrete(2)
+        >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_,
+        ...                            priority_metric=PittRulesExecutable.PriorityMetric.RULE_ORDER,
+        ...                            num_memory_registers=0)
+
+        Now we can take genomes that represent each rule as `(low, high, low, high, action)` and convert
+        them into executable controllers:
+
+        >>> genome = [ 0.0,0.6, 0.0,0.4, 0,
+        ...            0.4,1.0, 0.6,1.0, 1 ]
+        >>> decoder.decode(genome)
+        <leap_ec.executable_rep.rules.PittRulesExecutable object at ...>
+
+        """
         assert (genome is not None)
         assert (len(genome) > 0)
         rule_length = self.num_inputs * 2 + \
@@ -92,9 +138,9 @@ class PittRulesExecutable(Executable):
                 PittRulesExecutable.PriorityMetric.__members__.values())
 
         self.input_space = input_space
-        self.num_inputs = int(np.prod(input_space.shape))
+        self.num_inputs = EnvironmentProblem.space_dimensions(input_space)
         self.output_space = output_space
-        self.num_outputs = int(np.prod(output_space.shape))
+        self.num_outputs = EnvironmentProblem.space_dimensions(output_space)
         self.memory_registers = np.array(init_mem)
         self.num_memory = len(self.memory_registers)
         self.rules = rules
@@ -151,9 +197,10 @@ class PittRulesExecutable(Executable):
 
     def __call__(self, input_):
         """
+        Executes the rule system on the given input, and returns its output action.
 
-        :param input:
-        :return:
+        :param input: the 'sensor' inputs
+        :return: the action decided by the rules
 
         For example, take this set of two rules:
 
@@ -234,7 +281,53 @@ class PittRulesExecutable(Executable):
 # PlotPittRuleProbe class
 ##############################
 class PlotPittRuleProbe:
-    def __init__(self, context, num_inputs, num_outputs, plot_dimensions: (int, int), ax=None, xlim=(0, 1), ylim=(0, 1), modulo=1):
+    """A visualization operator that takes the best individual in the population and plots
+    the condition bounds for each rule, i.e. as boxes over the input space.
+
+    :param int num_inputs: the number of inputs in the sensor space
+    :param int num_outputs: the number of output actions
+    :param (int, int) plot_dimensions: which two dimensions of the input space to visualize along the x and y axes; defaults to the first two dimensions, (0, 1)
+    :param ax: the matplotlib axis to plot to; if None (the default), new Axes are created
+    :param (float, float) xlim: bounds for the horizontal axis
+    :param (float, float) ylim: bounds for the vertical axis
+    :param int modulo: the interval (in generations) to go between each visualization; i.e. if set to 10, then the visualization will be updated every 10 generations
+    :param context: the context objected that the generation count is read from (should be updated by the algorithm at each generation)
+
+    This probe works directly with the rule system genomes.  It needs to know the dimensionality of the inputs and outputs so it can parse the genomes:
+
+    >>> probe = PlotPittRuleProbe(num_inputs=2, num_outputs=1)
+
+    If we feed it a population of a single individual, we'll see all that individual's rules visualized.  Like all LEAP probes, it
+    returns the population unmodified.  This allows the probe to be inserted into an EA's operator pipeline:
+
+    >>> from leap_ec.individual import Individual
+    >>> ruleset = [ 0.0,0.6, 0.0,0.5, 0,
+    ...             0.4,1.0, 0.3,1.0, 1,
+    ...             0.1,0.2, 0.1,0.2, 0,
+    ...             0.5,0.6, 0.8,1.0, 1 ]
+    >>> pop = [ Individual(genome=ruleset) ]
+    >>> probe(pop)
+    [Individual([0.0, 0.6, 0.0, 0.5, 0, 0.4, 1.0, 0.3, 1.0, 1, 0.1, 0.2, 0.1, 0.2, 0, 0.5, 0.6, 0.8, 1.0, 1], None, None)]
+
+
+    .. plot::
+
+        from leap_ec.executable_rep.rules import PlotPittRuleProbe
+        from leap_ec.individual import Individual
+
+        probe = PlotPittRuleProbe(num_inputs=2, num_outputs=1)
+
+        ruleset = [ 0.0,0.6, 0.0,0.5, 0,
+                    0.4,1.0, 0.3,1.0, 1,
+                    0.1,0.2, 0.1,0.2, 0,
+                    0.5,0.6, 0.8,1.0, 1 ]
+        pop = [ Individual(genome=ruleset) ]
+
+        probe(pop)
+
+    """
+
+    def __init__(self, num_inputs: int, num_outputs: int, plot_dimensions: (int, int) = (0, 1), ax=None, xlim=(0, 1), ylim=(0, 1), modulo=1, context=context.context):
         assert(context is not None)
         assert(num_inputs > 0)
         assert(num_outputs > 0)
@@ -262,10 +355,11 @@ class PlotPittRuleProbe:
     def __call__(self, population: List) -> List:
         assert(population is not None)
         assert ('leap' in self.context)
-        assert ('generation' in self.context['leap'])
-        step = self.context['leap']['generation']
+        if self.modulo > 1:
+            assert ('generation' in self.context['leap'])
+            step = self.context['leap']['generation']
 
-        if step % self.modulo == 0:
+        if self.modulo == 1 or step % self.modulo == 0:
             for p in reversed(self.ax.patches):
                 p.remove()
 
