@@ -11,6 +11,7 @@ import pandas as pd
 from toolz import curry
 
 from leap_ec import ops as op
+from leap_ec import context
 from leap_ec.ops import iteriter_op
 
 
@@ -82,29 +83,99 @@ class BestSoFarProbe(op.Operator):
 
 
 ##############################
-# Class PopFitnessStatsProbe
+# Class FitnessStatsCSVProbe
 ##############################
 class FitnessStatsCSVProbe(op.Operator):
-    def __init__(self, context, stream=sys.stdout, header=True, extra_columns={}):
+    """A probe that records basic fitness statistics for a population
+    to a text stream in CSV format.
+
+    This is meant to capture the "bread and butter" values you'll typically
+    want to see in any population-based optimization experiment.  If you 
+    want additional columns with custom values, you can pass in a dict of
+    `extra_columns` with functions to compute them.
+    
+    :param stream: the file object to write to (defaults to sys.stdout)
+    :param header: whether to print column names in the first line
+    :param extra_columns: a dict of `'column_name': function` pairs, to compute
+        optional extra columns.  The functions take a the population as input
+        as a list of individuals, and their return value is printed in the column.
+    :param job: optional constat job ID, which will if present be printed as the
+        first column if present
+    :param contex: a LEAP context object, used to retrieve the current generation
+        from the EA state (i.e. from `context['leap']['generation']`)
+
+    In this example, we'll set up two three inputs for the probe: an output stream,
+    the generation number, and a population.
+    
+    We use a `StringIO` stream to print the results here, but in practice you
+    often want to use `sys.stdout` (the default) or a file object:
+
+    >>> import io
+    >>> stream = io.StringIO()
+
+    The probe also relies on LEAP's algorithm `context` to determine the generation number:
+
+    >>> from leap_ec.context import context
+    >>> context['leap']['generation'] = 100
+
+    Here's how we'd compute fitness statistics for a test population.  The population
+    is unmodified:
+
+    >>> from leap_ec.data import test_population
+    >>> probe = FitnessStatsCSVProbe(stream=stream, job="15")
+    >>> probe(test_population) == test_population
+    True
+
+    and the output has the following columns:
+    >>> print(stream.getvalue())
+    job, step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness
+    15, 100, 4, 2.5, 1.11803..., 1, 4
+    <BLANKLINE>
+
+    To add custom columns, use the `extra_columns` dict.  For example, here's a function
+    that computes the median fitness value of a population:
+
+    >>> import numpy as np
+    >>> median = lambda p: np.median([ ind.fitness for ind in p ])
+
+    We can include it in the fitness stats report like so:
+
+    >>> stream = io.StringIO()
+    >>> extras_probe = FitnessStatsCSVProbe(stream=stream, job="15", extra_columns={'median_fitness': median})
+    >>> extras_probe(test_population) == test_population
+    True
+
+    >>> print(stream.getvalue())
+    job, step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness, median_fitness
+    15, 100, 4, 2.5, 1.11803..., 1, 4, 2.5
+    <BLANKLINE>
+
+    """
+
+    def __init__(self, stream=sys.stdout, header=True, extra_columns=None, job=None, context=context.context):
         assert (stream is not None)
         assert (hasattr(stream, 'write'))
         assert (context is not None)
-        assert(extra_columns is not None)
 
         self.stream = stream
         self.context = context
         self.bsf_ind = None
-        self.extra_columns = extra_columns
+        self.extra_columns = extra_columns if extra_columns else {}
+        self.job = job
         if header:
+            job_header = 'job, ' if job else ''
             extras = '' if not extra_columns else ', ' + ', '.join(extra_columns.keys())
             stream.write(
-                'step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness'
+                job_header + 'step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness'
                 + extras + '\n')
 
     def __call__(self, population):
         assert (population is not None)
         assert ('leap' in self.context)
         assert ('generation' in self.context['leap'])
+
+        if self.job:
+            self.stream.write(self.job + ', ')
 
         self.stream.write(str(self.context['leap']['generation']) + ', ')
 
@@ -153,7 +224,7 @@ class AttributesCSVProbe(op.Operator):
 
     >>> from leap_ec.context import context
     >>> from leap_ec.data import test_population
-    >>> probe = AttributesCSVProbe(context, do_dataframe=True, best_only=True, do_fitness=True, do_genome=True)
+    >>> probe = AttributesCSVProbe(do_dataframe=True, best_only=True, do_fitness=True, do_genome=True)
     >>> context['leap']['generation'] = 100
     >>> probe(test_population) == test_population
     True
@@ -174,9 +245,8 @@ class AttributesCSVProbe(op.Operator):
     how to use the probe without a dataframe:
 
     >>> import io
-    >>> from leap_ec.context import context
     >>> stream = io.StringIO()
-    >>> probe = AttributesCSVProbe(context, attributes=['foo', 'bar'], stream=stream)
+    >>> probe = AttributesCSVProbe(attributes=['foo', 'bar'], stream=stream)
     >>> context['leap']['generation'] = 100
     >>> r = probe(test_population)
     >>> print(stream.getvalue())
@@ -188,12 +258,10 @@ class AttributesCSVProbe(op.Operator):
     <BLANKLINE>
     """
 
-    def __init__(self, context, attributes=(), stream=sys.stdout,
-                 do_dataframe=False, best_only=False, header=True,
-                 do_fitness=False,
-                 do_genome=False, notes={}, computed_columns={}, job=None):
+    def __init__(self, attributes=(), stream=sys.stdout, do_dataframe=False,
+                 best_only=False, header=True, do_fitness=False, do_genome=False,
+                 notes=None, computed_columns=None, job=None, context=context.context):
         assert ((stream is None) or hasattr(stream, 'write'))
-        assert (len(attributes) >= 0)
         self.context = context
         self.stream = stream
         self.attributes = attributes
@@ -201,8 +269,8 @@ class AttributesCSVProbe(op.Operator):
 
         self.do_fitness = do_fitness
         self.do_genome = do_genome
-        self.notes = notes
-        self.computed_columns = computed_columns
+        self.notes = notes if notes else {}
+        self.computed_columns = computed_columns if computed_columns else {}
         self.job = job
         self.do_dataframe = do_dataframe
 
@@ -213,13 +281,13 @@ class AttributesCSVProbe(op.Operator):
         fieldnames = ['step'] + list(attributes)
         if job:
             fieldnames.append('job')
-        for name in notes.keys():
+        for name in self.notes.keys():
             fieldnames.append(name)
         if do_fitness:
             fieldnames.append('fitness')
         if do_genome:
             fieldnames.append('genome')
-        for name in computed_columns.keys():
+        for name in self.computed_columns.keys():
             fieldnames.append(name)
 
         self.fieldnames = fieldnames
@@ -315,15 +383,55 @@ class PopulationPlotProbe:
     Attach this probe to matplotlib :class:`Axes` and then insert it into an
     EA's operator pipeline.
 
+    >>> import matplotlib.pyplot as plt
+    >>> from leap_ec.probe import PopulationPlotProbe
+    >>> from leap_ec.context import context
+    >>> from leap_ec.representation import Representation
+
+    >>> f = plt.figure()  # Setup a figure to plot to
+    >>> plot_probe = PopulationPlotProbe(context, ylim=(0, 70), ax=plt.gca())
+
+
+    >>> # Create an algorithm that contains the probe in the operator pipeline
+    >>> from leap_ec.individual import Individual
+    >>> from leap_ec.decoder import IdentityDecoder
+    >>> from leap_ec import ops
+    >>> from leap_ec.real_rep.problems import SpheroidProblem
+    >>> from leap_ec.real_rep.ops import mutate_gaussian
+    >>> from leap_ec.real_rep.initializers import create_real_vector
+
+    >>> from leap_ec.algorithm import generational_ea
+
+    >>> l = 10
+    >>> pop_size = 10
+    >>> ea = generational_ea(generations=100, pop_size=pop_size,
+    ...                      problem=SpheroidProblem(maximize=False),
+    ...
+    ...                      representation=Representation(
+    ...                         individual_cls=Individual,
+    ...                         decoder=IdentityDecoder(),
+    ...                         initialize=create_real_vector(bounds=[[-5.12, 5.12]] * l)
+    ...                      ),
+    ...
+    ...                      pipeline=[
+    ...                         plot_probe,  # Insert the probe into the pipeline like so
+    ...                         ops.tournament_selection,
+    ...                         ops.clone,
+    ...                         mutate_gaussian(std=1.0),
+    ...                         ops.evaluate,
+    ...                         ops.pool(size=pop_size)
+    ...                      ])
+    >>> result = list(ea);
+
+
     .. plot::
-       :include-source:
 
         import matplotlib.pyplot as plt
         from leap_ec.probe import PopulationPlotProbe
         from leap_ec.context import context
         from leap_ec.representation import Representation
 
-        plt.figure()  # Setup a figure to plot to
+        f = plt.figure()  # Setup a figure to plot to
         plot_probe = PopulationPlotProbe(context, ylim=(0, 70), ax=plt.gca())
 
 
@@ -356,7 +464,7 @@ class PopulationPlotProbe:
                                  ops.evaluate,
                                  ops.pool(size=pop_size)
                              ])
-        list(ea);
+        result = list(ea);
 
 
 
@@ -440,8 +548,50 @@ class PlotTrajectoryProbe:
     EA's operator pipeline to get a live fitness plot that updates every
     `modulo` steps.
 
+    >>> import matplotlib.pyplot as plt
+    >>> from leap_ec.probe import PlotTrajectoryProbe
+    >>> from leap_ec.representation import Representation
+
+    >>> from leap_ec.individual import Individual
+    >>> from leap_ec.algorithm import generational_ea
+
+    >>> from leap_ec import ops
+    >>> from leap_ec.decoder import IdentityDecoder
+    >>> from leap_ec.real_rep.problems import CosineFamilyProblem
+    >>> from leap_ec.real_rep.initializers import create_real_vector
+    >>> from leap_ec.real_rep.ops import mutate_gaussian
+
+    >>> # The fitness landscape
+    >>> problem = CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
+
+    >>> # If no axis is provided, a new figure will be created for the probe to write to
+    >>> trajectory_probe = PlotTrajectoryProbe(contours=problem,
+    ...                                        xlim=(0, 1), ylim=(0, 1),
+    ...                                        granularity=0.025)
+
+    >>> # Create an algorithm that contains the probe in the operator pipeline
+
+    >>> pop_size = 100
+    >>> ea = generational_ea(generations=20, pop_size=pop_size,
+    ...                      problem=problem,
+    ...
+    ...                      representation=Representation(
+    ...                         individual_cls=Individual,
+    ...                         initialize=create_real_vector(bounds=[[0.4, 0.6]] * 2),
+    ...                         decoder=IdentityDecoder()
+    ...                      ),
+    ...
+    ...                      pipeline=[
+    ...                         trajectory_probe,  # Insert the probe into the pipeline like so
+    ...                         ops.tournament_selection,
+    ...                         ops.clone,
+    ...                         mutate_gaussian(std=0.1, hard_bounds=(0, 1)),
+    ...                         ops.evaluate,
+    ...                         ops.pool(size=pop_size)
+    ...                      ])
+    >>> result = list(ea);
+
     .. plot::
-       :include-source:
 
         import matplotlib.pyplot as plt
         from leap_ec.probe import PlotTrajectoryProbe
@@ -449,7 +599,6 @@ class PlotTrajectoryProbe:
 
         from leap_ec.individual import Individual
         from leap_ec.algorithm import generational_ea
-        from leap_ec.context import context
 
         from leap_ec import ops
         from leap_ec.decoder import IdentityDecoder
@@ -461,8 +610,7 @@ class PlotTrajectoryProbe:
         problem = CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
 
         # If no axis is provided, a new figure will be created for the probe to write to
-        trajectory_probe = PlotTrajectoryProbe(context=context,
-                                               contours=problem,
+        trajectory_probe = PlotTrajectoryProbe(contours=problem,
                                                xlim=(0, 1), ylim=(0, 1),
                                                granularity=0.025)
 
@@ -486,14 +634,14 @@ class PlotTrajectoryProbe:
                                  ops.evaluate,
                                  ops.pool(size=pop_size)
                              ])
-        list(ea);
+        result = list(ea);
 
 
     """
 
-    def __init__(self, context, ax=None, xlim=(-5.12, 5.12), ylim=(-5.12, 5.12),
+    def __init__(self, ax=None, xlim=(-5.12, 5.12), ylim=(-5.12, 5.12),
                  contours=None, granularity=None,
-                 modulo=1):
+                 modulo=1, context=context.context):
         if ax is None:
             ax = plt.subplot(111)
         if contours:

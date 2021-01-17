@@ -30,7 +30,7 @@ def test_AttributesCSVProbe_1():
 
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
-    probe = AttributesCSVProbe(context, ['my_value'], stream)
+    probe = AttributesCSVProbe(['my_value'], stream)
 
     # Set the generation in the context
     context['leap']['generation'] = 10
@@ -66,7 +66,7 @@ def test_AttributesCSVProbe_2():
 
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
-    probe = AttributesCSVProbe(context, ['foo', 'bar'], stream)
+    probe = AttributesCSVProbe(['foo', 'bar'], stream)
 
     # Set the generation in the context
     context['leap']['generation'] = 10
@@ -101,7 +101,7 @@ def test_AttributesCSVProbe_3():
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
     # Passing params in reverse order from the other test above
-    probe = AttributesCSVProbe(context, ['bar', 'foo'], stream)
+    probe = AttributesCSVProbe(['bar', 'foo'], stream)
 
     # Set the generation in the context
     context['leap']['generation'] = 10
@@ -135,7 +135,7 @@ def test_AttributesCSVProbe_4():
 
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
-    probe = AttributesCSVProbe(context, ['bar', 'baz'], stream)
+    probe = AttributesCSVProbe(['bar', 'baz'], stream)
 
     # Set the generation in the context
     context['leap']['generation'] = 10
