@@ -99,9 +99,11 @@ class FitnessStatsCSVProbe(op.Operator):
     :param extra_columns: a dict of `'column_name': function` pairs, to compute
         optional extra columns.  The functions take a the population as input
         as a list of individuals, and their return value is printed in the column.
-    :param job: optional constat job ID, which will if present be printed as the
-        first column if present
-    :param contex: a LEAP context object, used to retrieve the current generation
+    :param job: optional constant job ID, which will be printed as the
+        first column
+    :param str note: an additional optional string that will be included as a
+        constant-value column in all rows (ex. to identify and experiment or parameters)
+    :param context: a LEAP context object, used to retrieve the current generation
         from the EA state (i.e. from `context['leap']['generation']`)
 
     In this example, we'll set up two three inputs for the probe: an output stream,
@@ -122,14 +124,14 @@ class FitnessStatsCSVProbe(op.Operator):
     is unmodified:
 
     >>> from leap_ec.data import test_population
-    >>> probe = FitnessStatsCSVProbe(stream=stream, job="15")
+    >>> probe = FitnessStatsCSVProbe(stream=stream, job='15', note='just a test')
     >>> probe(test_population) == test_population
     True
 
     and the output has the following columns:
     >>> print(stream.getvalue())
-    job, step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness
-    15, 100, 4, 2.5, 1.11803..., 1, 4
+    job, note, step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness
+    15, just a test, 100, 4, 2.5, 1.11803..., 1, 4
     <BLANKLINE>
 
     To add custom columns, use the `extra_columns` dict.  For example, here's a function
@@ -152,7 +154,7 @@ class FitnessStatsCSVProbe(op.Operator):
 
     """
 
-    def __init__(self, stream=sys.stdout, header=True, extra_columns=None, job=None, context=context.context):
+    def __init__(self, stream=sys.stdout, header=True, extra_columns=None, job: str=None, note: str=None, context=context.context):
         assert (stream is not None)
         assert (hasattr(stream, 'write'))
         assert (context is not None)
@@ -162,11 +164,13 @@ class FitnessStatsCSVProbe(op.Operator):
         self.bsf_ind = None
         self.extra_columns = extra_columns if extra_columns else {}
         self.job = job
+        self.note = note
         if header:
             job_header = 'job, ' if job else ''
+            note_header = 'note, ' if note else ''
             extras = '' if not extra_columns else ', ' + ', '.join(extra_columns.keys())
             stream.write(
-                job_header + 'step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness'
+                job_header + note_header + 'step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness'
                 + extras + '\n')
 
     def __call__(self, population):
@@ -176,6 +180,8 @@ class FitnessStatsCSVProbe(op.Operator):
 
         if self.job:
             self.stream.write(self.job + ', ')
+        if self.note:
+            self.stream.write(self.note + ', ')
 
         self.stream.write(str(self.context['leap']['generation']) + ', ')
 
@@ -204,13 +210,30 @@ class AttributesCSVProbe(op.Operator):
     (or just the best individual) in `population` in CSV-format to the
     specified stream.
 
-    :param population: list of individuals to take measurements from
-    :param context: an optional context
-    :param attributes: list of attribute names to record, as found in
+    :param attributes: list of attribute names to record, as found in the
         individuals' `attributes` field
-
-    :return: `(population, context)`, unmodified (this allows you to place
-        probes directly in an operator pipeline)
+    :param stream: a file object to write the CSV rows to (defaults to sys.stdout).
+        Can be `None` if you only want a DataFrame
+    :param bool do_dataframe: if True, data will be collected in memory as a 
+        Pandas DataFrame, which can be retrieved by calling the `dataframe` property
+        after (or during) the algorithm run. Defaults to False, since this can
+        consume a lot of memory for long-running algorithms.
+    :param bool best_only: if True, attributes will only be recorded
+        for the best-fitness individual; otherwise a row is recorded for every
+        individual in the population
+    :param bool header: if True (the default), a CSV header is printed as the
+        first row with the column names
+    :param bool do_fitness: if True, the individuals' fitness is 
+        included as one of the columns
+    :param bool do_genomes: if True, the individuals' genome is
+        included as one of the columns
+    :param str note: an optional string that will be included as a constant-value
+        column in all rows (ex. to identify and experiment or parameters)
+    :param computed_columns: 
+    :param int job: a job ID that will be included as a constant-value column in 
+        all rows (ex. typically an integer, indicating the ith run out of many)
+    :param context: the algorithm context we use to read the current generation
+        from (so we can write it to a column)
 
     Individuals contain some build-in attributes (namely fitness, genome),
     and also a `dict` of additional custom attributes called, well,
