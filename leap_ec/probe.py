@@ -3,7 +3,7 @@ pipeline such as populations or individuals. """
 import csv
 import sys
 
-from typing import Iterator
+from typing import Dict, Iterator
 
 from matplotlib import pyplot as plt
 import numpy as np
@@ -23,7 +23,6 @@ def print_probe(population, probe, stream=sys.stdout, prefix=''):
     """ pipeline operator for printing the given population
 
     :param population:
-    :param context:
     :param probe:
     :param stream:
     :param prefix:
@@ -92,17 +91,18 @@ class FitnessStatsCSVProbe(op.Operator):
     This is meant to capture the "bread and butter" values you'll typically
     want to see in any population-based optimization experiment.  If you 
     want additional columns with custom values, you can pass in a dict of
-    `extra_columns` with functions to compute them.
+    `notes` with constant values or `computed_columns` with functions to
+    compute them.
     
     :param stream: the file object to write to (defaults to sys.stdout)
     :param header: whether to print column names in the first line
-    :param extra_columns: a dict of `'column_name': function` pairs, to compute
+    :param computed_columns: a dict of `'column_name': function` pairs, to compute
         optional extra columns.  The functions take a the population as input
         as a list of individuals, and their return value is printed in the column.
     :param job: optional constant job ID, which will be printed as the
         first column
-    :param str note: an additional optional string that will be included as a
-        constant-value column in all rows (ex. to identify and experiment or parameters)
+    :param str notes: a dict of optional constant-value columns to include in
+        all rows (ex. to identify and experiment or parameters)
     :param context: a LEAP context object, used to retrieve the current generation
         from the EA state (i.e. from `context['leap']['generation']`)
 
@@ -124,17 +124,17 @@ class FitnessStatsCSVProbe(op.Operator):
     is unmodified:
 
     >>> from leap_ec.data import test_population
-    >>> probe = FitnessStatsCSVProbe(stream=stream, job='15', note='just a test')
+    >>> probe = FitnessStatsCSVProbe(stream=stream, job=15, notes={'description': 'just a test'})
     >>> probe(test_population) == test_population
     True
 
     and the output has the following columns:
     >>> print(stream.getvalue())
-    job, note, step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness
+    job, description, step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness
     15, just a test, 100, 4, 2.5, 1.11803..., 1, 4
     <BLANKLINE>
 
-    To add custom columns, use the `extra_columns` dict.  For example, here's a function
+    To add custom columns, use the `computed_columns` dict.  For example, here's a function
     that computes the median fitness value of a population:
 
     >>> import numpy as np
@@ -143,7 +143,7 @@ class FitnessStatsCSVProbe(op.Operator):
     We can include it in the fitness stats report like so:
 
     >>> stream = io.StringIO()
-    >>> extras_probe = FitnessStatsCSVProbe(stream=stream, job="15", extra_columns={'median_fitness': median})
+    >>> extras_probe = FitnessStatsCSVProbe(stream=stream, job="15", computed_columns={'median_fitness': median})
     >>> extras_probe(test_population) == test_population
     True
 
@@ -154,7 +154,7 @@ class FitnessStatsCSVProbe(op.Operator):
 
     """
 
-    def __init__(self, stream=sys.stdout, header=True, extra_columns=None, job: str=None, note: str=None, context=context.context):
+    def __init__(self, stream=sys.stdout, header=True, computed_columns=None, job: str=None, notes: Dict=None, context=context.context):
         assert (stream is not None)
         assert (hasattr(stream, 'write'))
         assert (context is not None)
@@ -162,15 +162,15 @@ class FitnessStatsCSVProbe(op.Operator):
         self.stream = stream
         self.context = context
         self.bsf_ind = None
-        self.extra_columns = extra_columns if extra_columns else {}
+        self.notes = notes if notes else {}
+        self.computed_columns = computed_columns if computed_columns else {}
         self.job = job
-        self.note = note
         if header:
-            job_header = 'job, ' if job else ''
-            note_header = 'note, ' if note else ''
-            extras = '' if not extra_columns else ', ' + ', '.join(extra_columns.keys())
+            job_header = 'job, ' if job is not None else ''
+            note_extras = '' if not notes else ', '.join(notes.keys()) + ', '
+            extras = '' if not computed_columns else ', ' + ', '.join(computed_columns.keys())
             stream.write(
-                job_header + note_header + 'step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness'
+                job_header + note_extras + 'step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness'
                 + extras + '\n')
 
     def __call__(self, population):
@@ -178,10 +178,10 @@ class FitnessStatsCSVProbe(op.Operator):
         assert ('leap' in self.context)
         assert ('generation' in self.context['leap'])
 
-        if self.job:
-            self.stream.write(self.job + ', ')
-        if self.note:
-            self.stream.write(self.note + ', ')
+        if self.job is not None:
+            self.stream.write(str(self.job) + ', ')
+        for _, v in self.notes.items():
+            self.stream.write(str(v) + ', ')
 
         self.stream.write(str(self.context['leap']['generation']) + ', ')
 
@@ -195,7 +195,7 @@ class FitnessStatsCSVProbe(op.Operator):
         self.stream.write(str(np.std(fitnesses)) + ', ')
         self.stream.write(str(np.min(fitnesses)) + ', ')
         self.stream.write(str(np.max(fitnesses)))
-        for _, f in self.extra_columns.items():
+        for _, f in self.computed_columns.items():
             self.stream.write(', ' + str(f(population)))
         self.stream.write('\n')
         return population
@@ -227,8 +227,8 @@ class AttributesCSVProbe(op.Operator):
         included as one of the columns
     :param bool do_genomes: if True, the individuals' genome is
         included as one of the columns
-    :param str note: an optional string that will be included as a constant-value
-        column in all rows (ex. to identify and experiment or parameters)
+    :param str notes: a dict of optional constant-value columns to include in
+        all rows (ex. to identify and experiment or parameters)
     :param computed_columns: 
     :param int job: a job ID that will be included as a constant-value column in 
         all rows (ex. typically an integer, indicating the ith run out of many)
@@ -301,9 +301,7 @@ class AttributesCSVProbe(op.Operator):
             raise ValueError(
                 "Both 'stream'=None and 'do_dataframe'=False, but at least one must be enabled.")
 
-        fieldnames = ['step'] + list(attributes)
-        if job:
-            fieldnames.append('job')
+        fieldnames = (['job'] if job is not None else []) + ['step'] + list(attributes)
         for name in self.notes.keys():
             fieldnames.append(name)
         if do_fitness:
@@ -369,7 +367,7 @@ class AttributesCSVProbe(op.Operator):
                         attr, ind.__repr__()))
             row[attr] = ind.__dict__[attr]
 
-        if self.job:
+        if self.job is not None:
             row['job'] = self.job
         for k, v in self.notes.items():
             row[k] = v
