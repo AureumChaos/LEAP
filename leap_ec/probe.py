@@ -301,9 +301,13 @@ class AttributesCSVProbe(op.Operator):
             raise ValueError(
                 "Both 'stream'=None and 'do_dataframe'=False, but at least one must be enabled.")
 
-        fieldnames = (['job'] if job is not None else []) + ['step'] + list(attributes)
+        fieldnames = []
+        if job is not None:
+            fieldnames.append('job')
         for name in self.notes.keys():
             fieldnames.append(name)
+        fieldnames.append('step')
+        fieldnames.extend(list(attributes))
         if do_fitness:
             fieldnames.append('fitness')
         if do_genome:
