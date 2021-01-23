@@ -113,7 +113,7 @@ def test_segmented_crossover():
         a = Individual([[0, 0], [1, 1]])
         b = Individual([[2, 2]])
 
-        result = n_ary_crossover(iter([a, b]))
+        result = n_ary_crossover(iter([a, b]), num_points=1)
         c = next(result)
         d = next(result)
 

@@ -275,9 +275,16 @@ def clone(next_individual: Iterator) -> Iterator:
 @curry
 @iteriter_op
 def uniform_crossover(next_individual: Iterator,
-                      p_swap: float = 0.5) -> Iterator:
-    """ Generator for recombining two individuals and passing them down the
-    line.
+                      p_swap: float = 0.2, p_xover: float = 1.0) -> Iterator:
+    """Parameterized uniform crossover iterates through two parents' genomes
+    and swaps each of their genes with the given probability.
+
+    In a classic paper, De Jong and Spears showed that this operator works
+    particularly well when the swap probability `p_swap` is set to about 0.2.  LEAP 
+    thus uses this value as its default.
+
+        De Jong, Kenneth A., and W. Spears. "On the virtues of parameterized uniform crossover."
+        *Proceedings of the 4th international conference on genetic algorithms.* Morgan Kaufmann Publishers, 1991.
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.ops import uniform_crossover
@@ -290,9 +297,17 @@ def uniform_crossover(next_individual: Iterator,
     >>> new_first = next(result)
     >>> new_second = next(result)
 
+    The probability can be tuned via the `p_swap` parameter:
+
+    >>> result = uniform_crossover(i, p_swap=0.1)
+
     :param next_individual: where we get the next individual
-    :param p_swap: how likely are we to swap each pair of genes
-    :return: two recombined individuals
+    :param p_swap: how likely are we to swap each pair of genes when crossover
+        is performed
+    :param float p_xover: the probability that crossover is performed in the 
+        first place
+    :return: two recombined individuals (with probability p_xover), or two 
+        unmodified individuals (with probability 1 - p_xover)
     """
 
     def _uniform_crossover(ind1, ind2, p_swap):
@@ -303,7 +318,8 @@ def uniform_crossover(next_individual: Iterator,
 
         :param ind1: The first individual
         :param ind2: The second individual
-        :param p_swap:
+        :param p_swap: how likely are we to swap each pair of genes when crossover
+            is performed
 
         :return: a copy of both individuals with individual.genome bits
                  swapped based on probability
@@ -322,11 +338,14 @@ def uniform_crossover(next_individual: Iterator,
     while True:
         parent1 = next(next_individual)
         parent2 = next(next_individual)
-
-        child1, child2 = _uniform_crossover(parent1, parent2, p_swap)
-
-        yield child1
-        yield child2
+        # Return the parents unmodified if we're not performing crossover
+        if np.random.uniform() > p_xover:
+            yield parent1
+            yield parent2
+        else:  # Else do crossover
+            child1, child2 = _uniform_crossover(parent1, parent2, p_swap)
+            yield child1
+            yield child2
 
 
 ##############################
@@ -335,7 +354,7 @@ def uniform_crossover(next_individual: Iterator,
 @curry
 @iteriter_op
 def n_ary_crossover(next_individual: Iterator,
-                    num_points: int = 1,
+                    num_points: int = 2,
                     p=1.0) -> Iterator:
     """ Do crossover between individuals between N crossover points.
 
@@ -355,7 +374,10 @@ def n_ary_crossover(next_individual: Iterator,
     >>> new_second = next(result)
 
     :param next_individual: where we get the next individual from the pipeline
-    :param num_points: how many crossing points do we allow?
+    :param num_points: how many crossing points do we use?  Defaults to 2, since
+        2-point crossover has been shown to be the least disruptive choice for
+        this value.
+    :param p: the probability that crossover is performed.
     :return: two recombined
     """
 

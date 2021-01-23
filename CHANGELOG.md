@@ -4,6 +4,16 @@ Being a terse compilation by version of changes.
 
 ## 0.6.0
 
+* Incremental changes:
+  * Added probability parameter for the `uniform_crossover` operator
+  * Set default `p_swap = 0.2` for `uniform_crossover`, instead of 0.5
+  * Set default `num_points = 2` for `n_ary_crossover`, instead of 1
+  * Added `notes` parameter to `FitnessStatsCSVProbe`
+  * Set default value for `context` parameter on probes
+  * Added a `pad_inputs` parameter to `TruthTableProblem` to handle varying-dimension inputs
+  * Improved test coverage
+
+
 ## 0.5.0, 1/9/2021
 
 * Added probability parameter for the `n_ary_crossover` operator
@@ -15,6 +25,7 @@ Being a terse compilation by version of changes.
 * Added support for integer representations, via the `int_rep` package
 * Added a Cartesian genetic programming (CGP) representation, `executable_rep.cgp`, with example in `examples/cgp.py`
 * Added support for heterogeneous island models, demoed in `examples/multitask_island_model.py`
+
 
 ## 0.4.0, 9/19/2020
 
@@ -33,20 +44,24 @@ Being a terse compilation by version of changes.
   that could be used to name output files and directories, yet do not have a 
   direct impact on fitness
 
+
 ## 0.3.1
 
 * Apply `Representation` consistently throughout LEAP, particularly the top-level monolithic functions
 * Added probe to `leap_ec.distributed.asynchronous.steady_state()` to take regular snapshots of the population
+
 
 ## 0.3, 6/14/2020
 
 * fix how non-viable individuals sort themselves when compared since the prior method of comparing `math.nan` to `math.nan` yielded non-ideal behavior 
 * minor maintenance tweaks
 
+
 ## 0.2, 6/14/2020
 
 * changed package name to `leap_ec` from `leap` to mitigate pypi namespace collisions
 * minor maintenance tweaks
+
 
 ## 0.1
 
