@@ -442,7 +442,7 @@ class PopulationPlotProbe:
     ...                         plot_probe,  # Insert the probe into the pipeline like so
     ...                         ops.tournament_selection,
     ...                         ops.clone,
-    ...                         mutate_gaussian(std=1.0),
+    ...                         mutate_gaussian(std=0.2),
     ...                         ops.evaluate,
     ...                         ops.pool(size=pop_size)
     ...                      ])
@@ -485,7 +485,7 @@ class PopulationPlotProbe:
                                  plot_probe,  # Insert the probe into the pipeline like so
                                  ops.tournament_selection,
                                  ops.clone,
-                                 mutate_gaussian(std=1.0),
+                                 mutate_gaussian(std=0.2),
                                  ops.evaluate,
                                  ops.pool(size=pop_size)
                              ])
@@ -610,7 +610,7 @@ class PlotTrajectoryProbe:
     ...                         trajectory_probe,  # Insert the probe into the pipeline like so
     ...                         ops.tournament_selection,
     ...                         ops.clone,
-    ...                         mutate_gaussian(std=0.1, hard_bounds=(0, 1)),
+    ...                         mutate_gaussian(std=0.05, hard_bounds=(0, 1)),
     ...                         ops.evaluate,
     ...                         ops.pool(size=pop_size)
     ...                      ])
@@ -655,7 +655,7 @@ class PlotTrajectoryProbe:
                                  trajectory_probe,  # Insert the probe into the pipeline like so
                                  ops.tournament_selection,
                                  ops.clone,
-                                 mutate_gaussian(std=0.1, hard_bounds=(0, 1)),
+                                 mutate_gaussian(std=0.05, hard_bounds=(0, 1)),
                                  ops.evaluate,
                                  ops.pool(size=pop_size)
                              ])

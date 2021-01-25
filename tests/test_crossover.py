@@ -33,9 +33,12 @@ def test_uniform_crossover():
     assert pop[1].genome == [0,0]
 
 
-@pytest.mark.stochastic
 def test_uniform_crossover_probability1():
-    """If we perform uniform rossover with a probabilty of 0.0, then the individuals will always be unmodified."""
+    """If we perform uniform rossover with a probabilty of 0.0, then the individuals will always be unmodified.
+    
+    This test calls the crossover opererator, which is stochastic, but we haven't marked it as part of the 
+    stochastic test suite because there is no chance of a false failure (i.e. a test that fails even when
+    there is no fault in the code) in this case."""
     N = 20
     unmodified_count = 0
 
@@ -56,7 +59,7 @@ def test_uniform_crossover_probability1():
 def test_n_ary_crossover_probability2():
     """If we perform uniform crossover with a probabilty of 1.0, then we should see genes swapped
     by default with probability 0.2."""
-    N = 1000
+    N = 5000
     observed_dist = {'Unmodified': 0, 'Only left swapped': 0, 'Only right swapped': 0, 'Both swapped': 0 }
 
     # Run crossover N times on a fixed pair of two-gene individuals

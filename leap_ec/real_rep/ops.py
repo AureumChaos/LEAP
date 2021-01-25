@@ -5,7 +5,7 @@
 import math
 import random
 from typing import Tuple, Iterator
-from typing import Iterator, List, Tuple
+from typing import Iterator, List, Tuple, Union
 
 from toolz import curry
 
@@ -20,7 +20,7 @@ from leap_ec.ops import compute_expected_probability, iteriter_op
 @iteriter_op
 def mutate_gaussian(next_individual: Iterator,
                     std: float,
-                    expected_num_mutations: float = None,
+                    expected_num_mutations: Union[int, str] = 'isotropic',
                     hard_bounds: Tuple[float, float] =
                        (-math.inf, math.inf)) -> Iterator:
     """Mutate and return an individual with a real-valued representation.
@@ -31,13 +31,13 @@ def mutate_gaussian(next_individual: Iterator,
     >>> original = Individual([1.0,0.0])
     >>> mutated = next(mutate_gaussian(iter([original]), 1.0))
 
-    TODO hard_bounds should also be able to take a test_sequence —Siggy
+    TODO hard_bounds should also be able to take a sequence —Siggy
 
     :param next_individual: to be mutated
     :param std: standard deviation to be equally applied to all individuals;
         this can be a scalar value or a "shadow vector" of standard deviations
-    :param expected_num_mutations: the *expected* number of mutations per
-        individual, on average.  If None, all genes will be mutated.
+    :param expected_num_mutations: if an int, the *expected* number of mutations per
+        individual, on average.  If 'isotropic', all genes will be mutated.
     :param hard_bounds: to clip for mutations; defaults to (- ∞, ∞)
     :return: a generator of mutated individuals.
     """
@@ -53,13 +53,11 @@ def mutate_gaussian(next_individual: Iterator,
 
         yield individual
 
-    return mutate
-
 
 @curry
 def genome_mutate_gaussian(genome: list,
                            std: float,
-                           expected_num_mutations: float = 1,
+                           expected_num_mutations,
                            hard_bounds: Tuple[float, float] =
                              (-math.inf, math.inf)) -> list:
     """ Perform actual Gaussian mutation on real-valued genes
@@ -84,9 +82,9 @@ def genome_mutate_gaussian(genome: list,
 
     # compute actual probability of mutation based on expected number of
     # mutations and the genome length
-    if expected_num_mutations is None:
-        # Default to expected probability of 1.0
-        p = compute_expected_probability(1.0, genome)
+    if expected_num_mutations == 'isotropic':
+        # Default to isotropic Gaussian mutation
+        p = 1.0
     else:
         p = compute_expected_probability(expected_num_mutations, genome)
 
