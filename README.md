@@ -201,5 +201,3 @@ make test-slow
 respectively.
 
 ![pytest output example](_static/pytest_output.png)
-
-
