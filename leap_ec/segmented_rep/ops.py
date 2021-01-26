@@ -16,7 +16,7 @@ from leap_ec.ops import compute_expected_probability, iteriter_op
 @iteriter_op
 def apply_mutation(next_individual: Iterator,
                    mutator: Callable[[list, float], list],
-                   expected_num_mutation: float = 1.0) -> Iterator:
+                   expected_num_mutations: float = 1.0) -> Iterator:
     """
     This expects next_individual to have a segmented representation; i.e.,
     a test_sequence of sequences.  `mutator_func` will be applied to each
@@ -24,10 +24,12 @@ def apply_mutation(next_individual: Iterator,
     applies to *all* the sequences, and defaults to a single mutation among
     all components, on average.
 
-    >>> from leap_ec.individual import Individual
     >>> from leap_ec.binary_rep.ops import genome_mutate_bitflip
+    >>> mutation_op = apply_mutation(mutator=genome_mutate_bitflip)
+
+    >>> from leap_ec.individual import Individual
     >>> original = Individual([[0,0],[1,1]])
-    >>> mutated = next(apply_mutation(iter([original]), mutator=genome_mutate_bitflip))
+    >>> mutated = next(mutation_op(iter([original])))
 
     :param next_individual: to possibly mutate
     :param mutator: function to be applied to each segment in the
@@ -41,7 +43,7 @@ def apply_mutation(next_individual: Iterator,
 
         # compute expected probability of mutation _per segment_
         per_segment_expected_prob = compute_expected_probability(
-            expected_num_mutation, individual.genome)
+            expected_num_mutations, individual.genome)
 
         # Apply mutation function using the expected probability to create a
         # new test_sequence of sequences to be assigned to the genome.
