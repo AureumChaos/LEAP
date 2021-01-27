@@ -410,11 +410,10 @@ class PopulationPlotProbe:
 
     >>> import matplotlib.pyplot as plt
     >>> from leap_ec.probe import PopulationPlotProbe
-    >>> from leap_ec.context import context
     >>> from leap_ec.representation import Representation
 
     >>> f = plt.figure()  # Setup a figure to plot to
-    >>> plot_probe = PopulationPlotProbe(context, ylim=(0, 70), ax=plt.gca())
+    >>> plot_probe = PopulationPlotProbe(ylim=(0, 70), ax=plt.gca())
 
 
     >>> # Create an algorithm that contains the probe in the operator pipeline
@@ -453,11 +452,10 @@ class PopulationPlotProbe:
 
         import matplotlib.pyplot as plt
         from leap_ec.probe import PopulationPlotProbe
-        from leap_ec.context import context
         from leap_ec.representation import Representation
 
         f = plt.figure()  # Setup a figure to plot to
-        plot_probe = PopulationPlotProbe(context, ylim=(0, 70), ax=plt.gca())
+        plot_probe = PopulationPlotProbe(ylim=(0, 70), ax=plt.gca())
 
 
         # Create an algorithm that contains the probe in the operator pipeline
@@ -500,8 +498,8 @@ class PopulationPlotProbe:
 
     """
 
-    def __init__(self, context, ax=None, f=lambda x: best_of_gen(
-        x).fitness, xlim=(0, 100), ylim=(0, 1), modulo=1):
+    def __init__(self, ax=None, f=lambda x: best_of_gen(
+        x).fitness, xlim=(0, 100), ylim=(0, 1), modulo=1, context=context.context):
 
         if ax is None:
             ax = plt.subplot(111)
