@@ -502,7 +502,7 @@ class PopulationPlotProbe:
         x).fitness, xlim=(0, 100), ylim=(0, 1), modulo=1, context=context.context):
 
         if ax is None:
-            ax = plt.subplot(111)
+            _, ax = plt.subplots() 
         ax.plot([], [])
         ax.set_ylim(ylim)
         ax.set_xlim(xlim)
@@ -666,7 +666,7 @@ class PlotTrajectoryProbe:
                  contours=None, granularity=None,
                  modulo=1, context=context.context):
         if ax is None:
-            ax = plt.subplot(111)
+            _, ax = plt.subplots() 
         if contours:
             @np.vectorize
             def v_fun(x, y):
