@@ -2,6 +2,7 @@
 from collections import Counter
 
 import pytest
+from scipy import stats
 
 from leap_ec.individual import Individual
 import leap_ec.int_rep.ops as ops
@@ -112,3 +113,80 @@ def test_mutate_randint2():
     assert(stat.stochastic_equals(expected, ind0_gene1_counts, p=p))
     assert(stat.stochastic_equals(expected, ind1_gene0_counts, p=p))
     assert(stat.stochastic_equals(expected, ind1_gene1_counts, p=p))
+
+
+##############################
+# Tests for mutate_binomial
+##############################
+def test_binomial_bounds():
+    """If we apply a wide mutation distribution repeatedly, it should never stray
+    outside of the provided bounds.
+    
+    This test runs the stochastic function repeatedly, but we don't mark it as a 
+    stochastic test because it's and should never fail unless there is actually a
+    fault."""
+    operator = ops.mutate_binomial(std=20, bounds=[(0, 10), (2, 20)])
+
+    N = 100
+    for i in range(N):
+        population = iter([ Individual([5,10]) ])
+        mutated = next(operator(population))
+        assert(mutated.genome[0] >= 0)
+        assert(mutated.genome[0] <= 10)
+        assert(mutated.genome[1] >= 2)
+        assert(mutated.genome[1] <= 20)
+
+
+@pytest.mark.stochastic
+def test_binomial_dist():
+    """When we apply binomial mutation repeatedly, the resulting distribution
+    of offspring should follow the expected theoretical distribution."""
+
+    N = 5000  # Number of mutantes to generate
+    binom_n = 10000  # "coin flips" parameter for the binomial
+    std = 2.5  # Standard deviation of the mutation distribution
+
+    # We'll set up our operator with infinite bounds, so we needn't worry about clipping
+    operator = ops.mutate_binomial(std=std, expected_num_mutations=2,
+                                   bounds=[(-float('inf'), float('inf')), (-float('inf'), float('inf'))])
+
+    # Any value could appear, but we'll focus on measuring just a few
+    # nearby values
+    genome = [5, 10]
+    gene0_observed_dist = { '3': 0, '4': 0, '5': 0, '6': 0, '7':0 }
+    gene1_observed_dist = { '8': 0, '9': 0, '10': 0, '11': 0, '12': 0 }
+
+    # Count the observed mutations in N trials
+    for i in range(N):
+        population = iter([ Individual(genome) ])
+        mutated = next(operator(population))
+        gene0, gene1 = mutated.genome
+        gene0, gene1 = str(gene0), str(gene1)
+
+        # Count the observed values of the first gene
+        if gene0 in gene0_observed_dist.keys():
+            gene0_observed_dist[gene0] += 1
+
+        # Count the observed values of the second gene
+        if gene1 in gene1_observed_dist.keys():
+            gene1_observed_dist[gene1] += 1
+
+    # Set up the expected distribution by using SciPy's binomial PMF function
+    binom_p = ops._binomial_p_from_std(binom_n, std)
+    binom = stats.binom(binom_n, binom_p)
+    mu = binom_n * binom_p  # Mean of a binomial distribution is n*p
+    for k in gene0_observed_dist.keys():
+        print(f"k: {int(k)}, arg: {mu - (genome[0] - int(k))}, pmf: {binom.pmf(mu - (genome[0] - int(k)))}")
+
+    gene0_expected_dist = { k: int(N*binom.pmf(int(mu - (genome[0] - int(k))))) for k in gene0_observed_dist.keys() }
+    gene1_expected_dist = { k: int(N*binom.pmf(int(mu - (genome[1] - int(k))))) for k in gene1_observed_dist.keys() }
+
+    # Toss all the other values under one value
+    gene0_observed_dist['other'] = N - sum(gene0_observed_dist.values())
+    gene1_observed_dist['other'] = N - sum(gene1_observed_dist.values())
+    gene0_expected_dist['other'] = N - sum(gene0_expected_dist.values())
+    gene1_expected_dist['other'] = N - sum(gene1_expected_dist.values())
+
+    p = 0.01
+    assert(stat.stochastic_equals(gene0_expected_dist, gene0_observed_dist, p=p))
+    assert(stat.stochastic_equals(gene1_expected_dist, gene1_observed_dist, p=p))
