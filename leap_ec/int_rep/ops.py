@@ -33,7 +33,7 @@ def mutate_randint(next_individual: Iterator, bounds,
             return
 
         individual.genome = individual_mutate_randint(individual.genome, bounds,
-                                                   expected_num_mutations=expected_num_mutations)
+                                                      expected_num_mutations=expected_num_mutations)
 
         individual.fitness = None  # invalidate fitness since we have new genome
 
@@ -57,6 +57,7 @@ def individual_mutate_randint(genome: list,
         :param bounds: test_sequence of bounds tuples; e.g., [(1,2),(3,4)]
         :param expected_num_mutations: on average how many mutations done
     """
+
     def randomint_mutate(value, bound, probability):
         """ mutate an integer given a probability
         """
@@ -67,7 +68,8 @@ def individual_mutate_randint(genome: list,
 
     probability = compute_expected_probability(expected_num_mutations, genome)
 
-    genome = [randomint_mutate(gene, bound, probability) for gene, bound in zip(genome,bounds)]
+    genome = [randomint_mutate(gene, bound, probability) for gene, bound in
+              zip(genome, bounds)]
 
     return genome
 

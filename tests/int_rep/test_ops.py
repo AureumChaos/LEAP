@@ -3,9 +3,11 @@ from collections import Counter
 
 import pytest
 from scipy import stats
+import toolz
 
 from leap_ec.individual import Individual
-import leap_ec.int_rep.ops as ops
+import leap_ec.ops
+import leap_ec.int_rep.ops as intrep_ops
 from leap_ec import statistical_helpers as stat
 
 
@@ -14,8 +16,8 @@ from leap_ec import statistical_helpers as stat
 ##############################
 @pytest.mark.stochastic
 def test_mutate_randint1():
-    """If you send me two individuals with two genes each and keep the 
-    default mutation rate, then on average, each gene has a probability 
+    """If you send me two individuals with two genes each and keep the
+    default mutation rate, then on average, each gene has a probability
     of 0.5 of being mutated."""
 
     N = 1000  # We'll sample 1,000 independent genomes
@@ -33,7 +35,7 @@ def test_mutate_randint1():
         population = iter([ind1, ind2])
 
         # Mutate the parents
-        result = ops.mutate_randint(population, bounds=[(0, 1), (0, 1)])
+        result = intrep_ops.mutate_randint(population, bounds=[(0, 1), (0, 1)])
         result = list(result)  # Pulse the iterator
 
         # Collect the values of each of the genes after mutation
@@ -57,7 +59,7 @@ def test_mutate_randint1():
     expected_ind1_gene0 = { 0: 0.25*N, 1: 0.5*N + 0.25*N }
     expected_ind1_gene1 = expected_ind1_gene0
 
-    # Use a chi2 test to see if the observed gene-value counts are 
+    # Use a chi2 test to see if the observed gene-value counts are
     # differ significantly from the expected distributions.
     p = 0.001
     assert(stat.stochastic_equals(expected_ind0_gene0, ind0_gene0_counts, p=p))
@@ -87,7 +89,7 @@ def test_mutate_randint2():
         population = iter([ind1, ind2])
 
         # Mutate the parents
-        result = ops.mutate_randint(population, bounds=[(0, 1), (0, 1)], expected_num_mutations=2)
+        result = intrep_ops.mutate_randint(population, bounds=[(0, 1), (0, 1)], expected_num_mutations=2)
         result = list(result)  # Pulse the iterator
 
         # Collect the values of each of the genes after mutation
@@ -115,6 +117,29 @@ def test_mutate_randint2():
     assert(stat.stochastic_equals(expected, ind1_gene1_counts, p=p))
 
 
+def test_mutate_randint_pipe():
+    """  This tests pipeline integration
+    """
+    ind1 = Individual([0, 0, 0])
+    ind2 = Individual([1, 1, 1])
+    population = iter([ind1, ind2])
+
+    bounds = [(-100, 100), (0, 25), (-10, 10)]
+
+    # Test that mutate_randint can be plugged into a pipeline since we
+    # were experiencing an error when trying to do this.  The error turned out
+    # to be that `bounds=` wasn't included in the call, which meant that python
+    # tried to immediately invoke the `mutate_randint` instead of delaying
+    # execution per the pipeline calls.
+    results = toolz.pipe(population,
+                         leap_ec.ops.clone,
+                         intrep_ops.mutate_randint(bounds=bounds),
+                         # intrep_ops.mutate_randint(bounds), INCORRECT USAGE
+                         leap_ec.ops.pool(size=2))
+
+    assert len(results)
+
+
 ##############################
 # Tests for mutate_binomial
 ##############################
@@ -125,7 +150,7 @@ def test_binomial_bounds():
     This test runs the stochastic function repeatedly, but we don't mark it as a 
     stochastic test because it's and should never fail unless there is actually a
     fault."""
-    operator = ops.mutate_binomial(std=20, bounds=[(0, 10), (2, 20)])
+    operator = intrep_ops.mutate_binomial(std=20, bounds=[(0, 10), (2, 20)])
 
     N = 100
     for i in range(N):
@@ -147,7 +172,7 @@ def test_binomial_dist():
     std = 2.5  # Standard deviation of the mutation distribution
 
     # We'll set up our operator with infinite bounds, so we needn't worry about clipping
-    operator = ops.mutate_binomial(std=std, expected_num_mutations=2,
+    operator = intrep_ops.mutate_binomial(std=std, expected_num_mutations=2,
                                    bounds=[(-float('inf'), float('inf')), (-float('inf'), float('inf'))])
 
     # Any value could appear, but we'll focus on measuring just a few
@@ -172,7 +197,7 @@ def test_binomial_dist():
             gene1_observed_dist[gene1] += 1
 
     # Set up the expected distribution by using SciPy's binomial PMF function
-    binom_p = ops._binomial_p_from_std(binom_n, std)
+    binom_p = intrep_ops._binomial_p_from_std(binom_n, std)
     binom = stats.binom(binom_n, binom_p)
     mu = binom_n * binom_p  # Mean of a binomial distribution is n*p
     for k in gene0_observed_dist.keys():
