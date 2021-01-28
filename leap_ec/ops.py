@@ -233,6 +233,9 @@ def evaluate(next_individual: Iterator) -> Iterator:
 def const_evaluate(population: List, value) -> List:
     """An evaluator that assigns a constant fitness to every individual.
 
+    This ignores the `Problem` associated with each individual for the 
+    purpose of assigning a constant fitness.
+
     This is useful for algorithms that need to assign an arbitrary initial
     fitness value before using their normal evaluation method.  Some forms of
     cooperative coevolution are an example.
