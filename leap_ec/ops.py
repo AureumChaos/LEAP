@@ -3,7 +3,12 @@
 This module provides many of the most important functions that we string
 together to create EAs out of operator pipelines. You'll find many
 traditional selection and reproduction strategies here, as well as components
-for classic algorithms like island models and cooperative coevolution. """
+for classic algorithms like island models and cooperative coevolution.
+
+Representation-specific operators tend to reside within their own subpackages,
+rather than here.  See for example :py:mod:`leap_ec.real_rep.ops` and 
+:py:mod:`leap_ec.binary_rep.ops`.
+"""
 import abc
 import collections
 from copy import copy

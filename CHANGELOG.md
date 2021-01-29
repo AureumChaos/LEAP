@@ -6,11 +6,13 @@ Being a terse compilation by version of changes.
 
 * Added a new example demonstrating integer representations
 * Added a `mutate_binomial()` for integer representations
+* Significantly refactored the `executable_rep.rules` package to simplify learning classifier systems
 * Incremental changes:
   * `Representation` now uses a phenotypic representation (`IdentityDecoder`) by default
   * Added probability parameter for the `uniform_crossover` operator
   * Set default `p_swap = 0.2` for `uniform_crossover`, instead of 0.5
   * Set default `num_points = 2` for `n_ary_crossover`, instead of 1
+  * `mutate_gaussian` now accepts a list of gene-wise hard bounds
   * Added `notes` columns parameter to `FitnessStatsCSVProbe`
   * Set default value for `context` parameter on probes, so users needn't set it
   * Added a `pad_inputs` parameter to `TruthTableProblem` to handle varying-dimension inputs

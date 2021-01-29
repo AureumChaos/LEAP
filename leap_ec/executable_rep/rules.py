@@ -11,6 +11,7 @@ define input and output spaces for rule conditions and actions, respectively.
 """
 from dataclasses import dataclass
 from enum import Enum
+import logging
 import numpy as np
 from typing import List, Tuple
 import uuid
@@ -143,14 +144,19 @@ class PittRulesDecoder(Decoder):
         range between 0 and 1.5:
 
         >>> decoder.condition_bounds
-        [(0.0, 1.5), (0.0, 1.5), (0.0, 1.5)]
+        [(0.0, 1.5), (0.0, 1.5), (0.0, 1.5), (0.0, 1.5), (0.0, 1.5), (0.0, 1.5)]
 
         """
         # XXX This only works with Box input spaces; doesn't generalize to, say, discrete inputs
-        return list(zip(
-                    self.input_space.low.flatten(),
-                    self.input_space.high.flatten()
-                ))
+        one_bound_each = list(zip(
+                            self.input_space.low.flatten(),
+                            self.input_space.high.flatten()
+                        ))
+        
+        # Now we duplicate each bound once, since each condition has two genes (low, high)
+        bounds = sum(zip(one_bound_each, one_bound_each), ())  # Sum trick to flatten the resulting pairs
+        return list(bounds)
+
         
     @property
     def action_bounds(self):
@@ -163,14 +169,16 @@ class PittRulesDecoder(Decoder):
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
 
-        allows just one output value gene in each rule, with a maximum value of 4:
+        allows just one output value gene in each rule, with a maximum value of 4.
+
+        Bounds are inclusive, so they look like this:
 
         >>> decoder.action_bounds
-        [(0, 4)]
+        [(0, 3)]
         """
         # XXX This only works with a one-dimensional Discrete input space;
         # doesn't generalize to, say, Tuple spaces, or continuous Box spaces
-        return [ (0, self.output_space.n) ]
+        return [ (0, self.output_space.n - 1) ]
 
     def bounds(self, num_rules):
         """Return the (low, high) bounds that it makes sense for each gene to vary within.
@@ -180,7 +188,7 @@ class PittRulesDecoder(Decoder):
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
         >>> decoder.bounds(num_rules=4)
-        [[(0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0, 4)], [(0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0, 4)], [(0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0, 4)], [(0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0, 4)]]
+        [[(0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0, 3)], [(0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0, 3)], [(0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0, 3)], [(0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0, 3)]]
         """
         # TODO memory
         # memory_bounds = [ (0, mem.n) for mem in self.memory_space ]
@@ -224,14 +232,17 @@ class PittRulesDecoder(Decoder):
                 condition_pairs = list(zip(low, high))
                 condition_genes = list(np.array(condition_pairs).flatten())
 
+
                 # TODO do the same for memory registers
                 #memory_genes = self.memory_space.sample()
                 if self.num_memory_registers > 0:
                     raise ValueError("Memory registers on Pitt rules are not fully support.")
 
                 action_genes = [ self.output_space.sample() ]
-            
-                return condition_genes + action_genes #+ memory_genes
+                segment = condition_genes + action_genes #+ memory_genes
+                assert(len(segment) == self.num_genes_per_rule)
+
+                return segment
             
             return create_segmented_sequence(num_rules, create_rule)
 
@@ -322,6 +333,7 @@ class PittRulesDecoder(Decoder):
             # Mutate each separately
             c_mutated = condition_mutator(condition_genes)
             a_mutated = action_mutator(action_genes)
+            assert((None not in c_mutated) and (None not in a_mutated)), f"Null values found in newly created rule genome segment: {c_mutated + a_mutated}.\nParent segment was: {segment}."
 
             # Concatenate the results back together
             return c_mutated + a_mutated
@@ -341,7 +353,7 @@ class PittRulesDecoder(Decoder):
 
         return _rulset_mutate
 
-    def _genome_to_rules(self, genome):
+    def genome_to_rules(self, genome):
         """Convert a genome into a list of Rules.
         
         Usage example:
@@ -357,7 +369,7 @@ class PittRulesDecoder(Decoder):
 
         >>> genome = [ [ 0.0,0.6, 0.0,0.4, 0],
         ...            [ 0.4,1.0, 0.6,1.0, 1] ]
-        >>> decoder._genome_to_rules(genome)
+        >>> decoder.genome_to_rules(genome)
         [Rule(conditions=[(0.0, 0.6), (0.0, 0.4)], actions=[0]), Rule(conditions=[(0.4, 1.0), (0.6, 1.0)], actions=[1])]
         
         """
@@ -368,6 +380,8 @@ class PittRulesDecoder(Decoder):
         for segment in genome:
             assert(len(segment) == self.num_genes_per_rule), f"The following genome segment has length {len(segment)}, but rules are expected to have {self.num_genes_per_rule} genes: {segment}."
             condition_genes, action_genes, _ = self._split_rule(segment)
+            assert(None not in condition_genes), f"Null values found in rule genome {genome}"
+            assert(None not in action_genes), f"Null values found in rule genome {genome}"
 
             # Zip trick to pair conditions, two-by-two
             it = iter(condition_genes)
@@ -399,7 +413,9 @@ class PittRulesDecoder(Decoder):
         <leap_ec.executable_rep.rules.PittRulesExecutable object at ...>
 
         """
-        rules = self._genome_to_rules(genome)
+        assert(genome is not None)
+        assert(len(genome) > 0), f"Got a genome {genome} of zero length."
+        rules = self.genome_to_rules(genome)
         return PittRulesExecutable(self.input_space, self.output_space, rules, self.priority_metric)
 
 
@@ -490,6 +506,10 @@ class PittRulesExecutable(Executable):
 
     def _match_set(self, input):
         """Build the match set for a set of rules.
+
+        :param input: list of inputs to the rule system
+        :return: a `matches, best_score` tuple, where `matches` is the set of indices of the matched
+            rules, and `best_score` is the highest match-score found
         
         For example, if we've got the following set of rules:
 
@@ -508,33 +528,43 @@ class PittRulesExecutable(Executable):
         >>> rules = PittRulesExecutable(input_space, output_space, rules,
         ...                             priority_metric=PittRulesExecutable.PriorityMetric.RULE_ORDER)
 
-        Then the match sets for different inputs are computed like so:
+        Then the match sets for different inputs are computed as follows.
 
-        >>> rules._match_set([0.1, 0.5])
-        [Rule(conditions=[(0.0, 0.6), (0.0, 0.4)], actions=[0])]
+        Here's an input that just matches the 0th rule:
+
+        >>> rules._match_set([0.1, 0.3])
+        ([0], ...)
+
+        This one matches two rules:
 
         >>> rules._match_set([0.5, 1.0])
-        [Rule(conditions=[(0.4, 1.0), (0.6, 1.0)], actions=[1]), Rule(conditions=[(0.5, 0.4), (0.6, 1.0)], actions=[0])]
+        ([1, 3], ...)
 
-        Note that the last rule in this example has a condition of `(low, high) = (0.5, 0.4)`.
+        Note that the last rule in our example ruleset has a condition of `(low, high) = (0.5, 0.4)`.
         Because `low` > `high`, this is interpreted as matching any value for that input:
 
         >>> rules._match_set([0.0, 0.9])
-        [Rule(conditions=[(0.5, 0.4), (0.6, 1.0)], actions=[0])]
+        ([3], ...)
 
+        This rule interpreter impelment *partial matching.*  So if no rule
+        matches the input, then the rule(s) that come closest to matching
+        it are chosen.  Here's one that is almost (but not quite!) matched by
+        the 0th rule, so the 0th rule is selected:
+
+        >>> rules._match_set([0.1, 0.45])
+        ([0], ...)
 
         """
+        def compute_match_score(rule):
+            """Return a score denoting how well this rule matches the input.
 
-        all_input = np.append(input, self.memory_registers)
-        best_match_score = -1
-        match_list = []  # indices of matchedrules
-
-        for (r, rule) in enumerate(self.rules):
+            0 means we match perfectly: the higher the value, the worse the match.
+            """
             match_score = 0
             for c in range(len(all_input)):  # Loop through all conditions
                 # TODO Normalize this, in case the possible ranges
                 # differ greatly
-                low, high = (rule[c * 2], rule[c * 2 + 1])
+                low, high = rule.conditions[c]
                 if low > high:
                     diff = 0  # Treat an inconsistent condition like a "wildcard": it matches antyhing
                 elif all_input[c] >= low and all_input[c] <= high:
@@ -542,21 +572,53 @@ class PittRulesExecutable(Executable):
                 else:
                     diff = min(abs(low - all_input[c]), abs(high - all_input[c]))
                 match_score += diff * diff  # Distance w/o sqrt
+            return match_score
 
-            if match_list == [] or match_score < best_match_score:
-                best_match_score = match_score
+        all_input = np.append(input, self.memory_registers)
+        best_match_score = -1
+        match_list = []  # indices of matchedrules
+
+        for (r, rule) in enumerate(self.rules):
+            score = compute_match_score(rule)
+
+            if match_list == [] or score < best_match_score:
+                best_match_score = score
                 match_list = [r]
-            elif match_score == best_match_score:
+            elif score == best_match_score:
                 match_list.append(r)
         return match_list, best_match_score
 
-    def __fire(self, rule_index):
+    def _fire(self, rule_index):
+        """Fire the rule specified by the given index.  This both updates the 
+        memory registers (if any) and returns the rule's outputted action(s).
+
+        For example, given the following rule system:
+
+        >>> import numpy as np
+        >>> from gym import spaces
+        >>> input_space = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
+        >>> output_space = spaces.Discrete(2)
+        >>> rules = [ Rule(conditions=[(0.0, 0.6), (0.0, 0.4)], actions=[0]),
+        ...           Rule(conditions=[(0.4, 1.0), (0.6, 1.0)], actions=[2])
+        ...         ]
+        >>> rules = PittRulesExecutable(input_space, output_space, rules,
+        ...                             priority_metric=PittRulesExecutable.PriorityMetric.RULE_ORDER)
+
+        We can fire a rule like so:
+
+        >>> rules._fire(0)
+        [0]
+
+        >>> rules._fire(1)
+        [2]
+
+        """
         winner = self.rules[rule_index]
-        if self.num_memory == 0:
-            return winner[-self.num_outputs:]
-        else:
-            self.memory_registers = winner[-self.num_memory:]
-            return winner[-self.num_outputs - self.num_memory:-self.num_memory]
+        if self.num_memory > 0:
+            #self.memory_registers = winner.memory_actions
+            raise ValueError("Memory registers not fully supported.")
+        assert(len(winner.actions) == self.num_outputs)
+        return winner.actions
 
     def __call__(self, input_):
         """
@@ -567,7 +629,7 @@ class PittRulesExecutable(Executable):
 
         For example, take this set of two rules:
 
-        >>> rules = [ Rule(conditions=[(0.0, 0.6), (0.0, 0.4)], actions=[0]),
+        >>> rules = [ Rule(conditions=[(0.0, 0.6), (0.0, 0.5)], actions=[0]),
         ...           Rule(conditions=[(0.4, 1.0), (0.6, 1.0)], actions=[1])
         ...         ]
 
@@ -608,14 +670,14 @@ class PittRulesExecutable(Executable):
         ...           Rule(conditions=[(0.4, 1.0), (0.3, 1.0)], actions=[1, 0])
         ...         ]
         >>> output_space = spaces.MultiBinary(2)  # A space with two binary outputs
-        >>> rules = PittRulesExecutable(input_space, output_space, rules,
-        ...                             priority_metric=PittRulesExecutable.PriorityMetric.RULE_ORDER)
+        >>> rule_system = PittRulesExecutable(input_space, output_space, rules,
+        ...                                   priority_metric=PittRulesExecutable.PriorityMetric.RULE_ORDER)
         >>> rule_system([0.1, 0.1])
         [0, 1]
 
         """
         # Compute the match set
-        match_list, best_match_score = self.__match_set(input_)
+        match_list, best_match_score = self._match_set(input_)
 
         # If our best-matching rules are exact matches
         if best_match_score == 0:
@@ -634,7 +696,7 @@ class PittRulesExecutable(Executable):
 
         # TODO advocating for it (i.e. vote).
         winner = np.random.choice(match_list)
-        output = np.round(self.__fire(winner)).astype(int).tolist()
+        output = np.round(self._fire(winner)).astype(int).tolist()
         assert (len(output) == self.num_outputs)
         if self.num_outputs > 1:
             return output  # Return a list of outputs if there are more than one
@@ -658,27 +720,42 @@ class PlotPittRuleProbe:
     :param int modulo: the interval (in generations) to go between each visualization; i.e. if set to 10, then the visualization will be updated every 10 generations
     :param context: the context objected that the generation count is read from (should be updated by the algorithm at each generation)
 
-    This probe works directly with the rule system genomes.  It needs to know the dimensionality of the inputs and outputs so it can parse the genomes:
+    This probe requires a `decoder`, which it uses to parse individual genomes into sets of rules that it can visualize:
 
-    >>> probe = PlotPittRuleProbe(num_inputs=2, num_outputs=1)
+    >>> import numpy as np
+    >>> from gym import spaces
+    >>> in_ = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
+    >>> out_ = spaces.Discrete(2)
+    >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
+
+    Now we can create the probe itself:
+
+    >>> probe = PlotPittRuleProbe(decoder)
 
     If we feed it a population of a single individual, we'll see all that individual's rules visualized.  Like all LEAP probes, it
-    returns the population unmodified.  This allows the probe to be inserted into an EA's operator pipeline:
+    returns the population unmodified.  This allows the probe to be inserted into an EA's operator pipeline.
 
     >>> from leap_ec.individual import Individual
-    >>> ruleset = [ 0.0,0.6, 0.0,0.5, 0,
-    ...             0.4,1.0, 0.3,1.0, 1,
-    ...             0.1,0.2, 0.1,0.2, 0,
-    ...             0.5,0.6, 0.8,1.0, 1 ]
+    >>> ruleset = [ [ 0.0,0.6, 0.0,0.5, 0 ],
+    ...             [ 0.4,1.0, 0.3,1.0, 1 ],
+    ...             [ 0.1,0.2, 0.1,0.2, 0 ],
+    ...             [ 0.5,0.6, 0.8,1.0, 1 ] ]
     >>> pop = [ Individual(genome=ruleset) ]
     >>> probe(pop)
-    [Individual([0.0, 0.6, 0.0, 0.5, 0, 0.4, 1.0, 0.3, 1.0, 1, 0.1, 0.2, 0.1, 0.2, 0, 0.5, 0.6, 0.8, 1.0, 1], None, None)]
+    [Individual([[0.0, 0.6, 0.0, 0.5, 0], [0.4, 1.0, 0.3, 1.0, 1], [0.1, 0.2, 0.1, 0.2, 0], [0.5, 0.6, 0.8, 1.0, 1]], None, None)]
 
 
     .. plot::
 
+        import numpy as np
+        from gym import spaces
+
         from leap_ec.executable_rep.rules import PlotPittRuleProbe
         from leap_ec.individual import Individual
+
+        input_space = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
+        output_space = spaces.Discrete(2)
+        decoder = PittRulesDecoder(input_space=in_, output_space=out_)
 
         probe = PlotPittRuleProbe(num_inputs=2, num_outputs=1)
 
@@ -692,14 +769,17 @@ class PlotPittRuleProbe:
 
     """
 
-    def __init__(self, num_inputs: int, num_outputs: int, plot_dimensions: (int, int) = (0, 1), ax=None, xlim=(0, 1), ylim=(0, 1), modulo=1, context=context.context):
+    def __init__(self, decoder, plot_dimensions: (int, int) = (0, 1), ax=None, xlim=(0, 1), ylim=(0, 1), modulo=1, context=context.context):
         assert(context is not None)
-        assert(num_inputs > 0)
-        assert(num_outputs > 0)
+        assert(decoder is not None)
         assert(plot_dimensions is not None)
         assert(len(plot_dimensions) == 2)
-        self.num_inputs = num_inputs
-        self.num_outputs = num_outputs
+        self.decoder = decoder
+        if self.decoder.num_inputs > 2:
+            logging.warn(f"The given rule system specification has more than 2 dimensions per rule, but {PlotPittRuleProbe.__name__} will only visualize the first two conditions on each rule.")
+        if self.decoder.num_outputs > 1:
+            logging.warn(f"The given rule system specification has more than 1 output action per rule, but {PlotPittRuleProbe.__name__} will only use the first action to determine box color.")
+
         self.plot_dimensions = plot_dimensions
         if ax is None:
             _, ax = plt.subplots() 
@@ -716,39 +796,59 @@ class PlotPittRuleProbe:
         self.y = np.array([])
         self.modulo = modulo
         self.context = context
+
+    def __plot_rules(self, population):
+        """Plot a population's rules to this object's axes."""
+
+        # Erase any rules from last time we were called
+        for p in reversed(self.ax.patches):
+            p.remove()
+
+        # Select the best-fitness individual
+        best = max(population)
+
+        # Partially decode it, into a list of rules
+        rules = self.decoder.genome_to_rules(best.genome)
+
+        for rule in rules:
+            if len(rule.conditions) < 2:
+                raise ValueError(f"Found a rule with less than two input dimensions when trying to run {PlotPittRuleProbe.__name__}.  We need at least two conditions to plot a rule box!")
+                
+            # Get bounds for the first two conditions
+            x_low, x_high = rule.conditions[0]
+            y_low, y_high = rule.conditions[1]
+
+            # Visualize wildcard rules as covering the whole range
+            if x_low > x_high:
+                x_low, x_high = self.xlim
+            if y_low > y_high:
+                y_low, y_high = self.ylim
+
+            width = x_high - x_low
+            height = y_high - y_low
+            action = rule.actions[0]
+            color = 'blue' if np.round(action) == 0 else 'red'
+            self.ax.add_patch(patches.Rectangle((x_low, y_low), width, height, fill=False, color=color))
+        
+        self.ax.figure.canvas.draw()
+        plt.pause(0.000001)
+
     
     def __call__(self, population: List) -> List:
+        """Update the plot with the rules in a current population, if the
+        current generation ID found in the `context` object is divisible
+        by our `modulo` parameter."""
         assert(population is not None)
         assert ('leap' in self.context)
+
+        # If we're between measurement intervals, skip plotting
         if self.modulo > 1:
             assert ('generation' in self.context['leap'])
             step = self.context['leap']['generation']
+            if step % modulo == 0:
+                return population
 
-        if self.modulo == 1 or step % self.modulo == 0:
-            for p in reversed(self.ax.patches):
-                p.remove()
-
-            best = max(population)
-            rule_length = (self.num_inputs*2 + self.num_outputs)
-            if 0 != len(best.genome) % rule_length:
-                raise ValueError(f"Found the wrong number of genes when trying to run {PlotPittRuleProbe.__name__}.  Are you sure these rules have {self.num_inputs} input(s) and {self.num_outputs} output(s)?")
-            num_rules = int(len(best.genome)/rule_length)
-            for i in range(num_rules):
-                x_low = best.genome[i*rule_length + 2*self.plot_dimensions[0]]
-                x_high = best.genome[i*rule_length + 2*self.plot_dimensions[0] + 1]
-                y_low = best.genome[i*rule_length + 2*self.plot_dimensions[1]]
-                y_high = best.genome[i*rule_length + 2*self.plot_dimensions[1] + 1]
-                if x_low > x_high:
-                   x_low, x_high = self.xlim
-                if y_low > y_high:
-                   y_low, y_high = self.ylim
-                width = x_high - x_low
-                height = y_high - y_low
-                action = best.genome[i*rule_length + self.num_inputs]
-                color = 'blue' if np.round(action) == 0 else 'red'
-                self.ax.add_patch(patches.Rectangle((x_low, y_low), width, height, fill=False, color=color))
-            
-            self.ax.figure.canvas.draw()
-            plt.pause(0.000001)
+        # Otherwise, do our thang!
+        self.__plot_rules(population)
 
         return population
