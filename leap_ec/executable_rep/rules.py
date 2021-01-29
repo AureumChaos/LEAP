@@ -750,19 +750,19 @@ class PlotPittRuleProbe:
         import numpy as np
         from gym import spaces
 
-        from leap_ec.executable_rep.rules import PlotPittRuleProbe
+        from leap_ec.executable_rep.rules import PittRulesDecoder, PlotPittRuleProbe
         from leap_ec.individual import Individual
 
-        input_space = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
-        output_space = spaces.Discrete(2)
+        in_ = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
+        out_ = spaces.Discrete(2)
         decoder = PittRulesDecoder(input_space=in_, output_space=out_)
 
-        probe = PlotPittRuleProbe(num_inputs=2, num_outputs=1)
+        probe = PlotPittRuleProbe(decoder)
 
-        ruleset = [ 0.0,0.6, 0.0,0.5, 0,
-                    0.4,1.0, 0.3,1.0, 1,
-                    0.1,0.2, 0.1,0.2, 0,
-                    0.5,0.6, 0.8,1.0, 1 ]
+        ruleset = [ [ 0.0,0.6, 0.0,0.5, 0 ],
+                    [ 0.4,1.0, 0.3,1.0, 1 ],
+                    [ 0.1,0.2, 0.1,0.2, 0 ],
+                    [ 0.5,0.6, 0.8,1.0, 1 ] ]
         pop = [ Individual(genome=ruleset) ]
 
         probe(pop)
