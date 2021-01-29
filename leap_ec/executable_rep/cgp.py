@@ -1,4 +1,9 @@
-"""Cartesian genetic programming (CGP) representation."""
+"""Cartesian genetic programming (CGP) representation.
+
+The CGPDecoder does most of the work here: it converts a linear genome
+into a graph structure, and wraps the latter in a CGPExecutable (which 
+knows how to execute the graph)."""
+
 from typing import Iterator, List
 
 from matplotlib import pyplot as plt
@@ -100,6 +105,15 @@ class CGPDecoder(Decoder):
         self.nodes_per_layer = nodes_per_layer
         self.max_arity = max_arity
         self.levels_back = levels_back if levels_back is not None else num_layers
+
+    def initializer(self):
+        """Convenience method that returns an initialization function for creating
+        integer-vector genomes that obey this CGP representation's constraints."""
+
+        def create():
+            return create_int_vector(self.bounds())()
+
+        return create
 
     def num_genes(self):
         """The number of genes we expect to find in each genome.  This will equal the number of outputs plus the total number
@@ -303,22 +317,12 @@ def cgp_mutate(cgp_decoder,
 
 
 ##############################
-# Function create_cgp_vector
-##############################
-def create_cgp_vector(cgp_decoder):
-    assert(cgp_decoder is not None)
-
-    def create():
-        return create_int_vector(cgp_decoder.bounds())()
-
-    return create
-
-
-##############################
 # Class CGPGraphProb
 ##############################
 class CGPGraphProbe():
-    """Visualize the graph for the best CGP individual in the population."""
+    """Visualize the graph for the best CGP individual in the population.
+    
+    """
 
     def __init__(self, modulo=1, ax=None, context=context):
         assert(modulo > 0)

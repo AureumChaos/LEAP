@@ -35,6 +35,8 @@ cgp_decoder = cgp.CGPDecoder(
                 )
 
 
+# Our fitness function will compare our circuits to the
+# full truth table for XOR
 xor_problem = problems.TruthTableProblem(
                     boolean_function=lambda x: [ x[0] ^ x[1] ],  # XOR
                     num_inputs = 2,
@@ -45,14 +47,14 @@ xor_problem = problems.TruthTableProblem(
 cgp_representation = Representation(
                         decoder=cgp_decoder,
                         # We use a sepecial initializer that obeys the CGP constraints
-                        initialize=cgp.create_cgp_vector(cgp_decoder)
+                        initialize=cgp_decoder.initializer()
                     )
 
 
 def cgp_visual_probes(modulo):
     """Set up the graphical probes that we'll use."""
     plt.figure()
-    p1 = probe.PopulationPlotProbe(context.context, modulo=modulo, ax=plt.gca())
+    p1 = probe.PopulationPlotProbe(modulo=modulo, ax=plt.gca())
     plt.figure()
     p2 = cgp.CGPGraphProbe(modulo=modulo, ax=plt.gca())
     return [ p1, p2 ]
@@ -88,7 +90,7 @@ def cgp_cmd(gens):
                 cgp.cgp_mutate(cgp_decoder),
                 ops.evaluate,
                 ops.pool(size=pop_size),
-                probe.FitnessStatsCSVProbe(context.context, stream=sys.stdout)
+                probe.FitnessStatsCSVProbe(stream=sys.stdout)
             ] + cgp_visual_probes(modulo=10)
     )
 
@@ -109,7 +111,7 @@ def random(evals):
             problem=xor_problem,
 
             pipeline=[
-                probe.FitnessStatsCSVProbe(context.context, stream=sys.stdout)
+                probe.FitnessStatsCSVProbe(stream=sys.stdout)
             ] + cgp_visual_probes(modulo=10)
     )
 
