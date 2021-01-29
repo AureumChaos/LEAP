@@ -227,8 +227,8 @@ class PittRulesDecoder(Decoder):
             def create_rule():
                 "Initialize a rule by sampling all its conditions and actions."
                 # Sample values uniformly within each variable's range
-                low = self.input_space.sample().flatten()
-                high = self.input_space.sample().flatten()
+                low = self.input_space.sample()
+                high = self.input_space.sample()
                 condition_pairs = list(zip(low, high))
                 condition_genes = list(np.array(condition_pairs).flatten())
 
