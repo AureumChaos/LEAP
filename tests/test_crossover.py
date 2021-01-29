@@ -162,7 +162,7 @@ def test_n_ary_crossover():
 @pytest.mark.stochastic
 def test_n_ary_crossover_probability():
     """If we perform crossover with a probabilty of 0.5, then the individuals will be unmodified 50% of the time."""
-    N = 1000
+    N = 5000
     unmodified_count = 0
 
     for i in range(N):

@@ -200,8 +200,6 @@ def test_binomial_dist():
     binom_p = intrep_ops._binomial_p_from_std(binom_n, std)
     binom = stats.binom(binom_n, binom_p)
     mu = binom_n * binom_p  # Mean of a binomial distribution is n*p
-    for k in gene0_observed_dist.keys():
-        print(f"k: {int(k)}, arg: {mu - (genome[0] - int(k))}, pmf: {binom.pmf(mu - (genome[0] - int(k)))}")
 
     gene0_expected_dist = { k: int(N*binom.pmf(int(mu - (genome[0] - int(k))))) for k in gene0_observed_dist.keys() }
     gene1_expected_dist = { k: int(N*binom.pmf(int(mu - (genome[1] - int(k))))) for k in gene1_observed_dist.keys() }

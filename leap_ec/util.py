@@ -44,6 +44,32 @@ def is_sequence(obj):
     return isinstance(obj, collections.abc.Sequence)
 
 
+##############################
+# Function is_flat
+##############################
+def is_flat(obj):
+    """
+    :return: True if obj is a flat collection (as opposed to, say, a hierarchical list of lists).
+
+    >>> is_flat((0, 1))
+    True
+
+    >>> is_flat(1)
+    False
+
+    >>> is_flat([(0, 1), (0, 1)])
+    False
+    """
+    if not is_sequence(obj):
+        return False
+
+    for e in obj:
+        if is_sequence(e):
+            return False
+
+    return True
+
+
 ###############################
 # Function is_iterable
 ###############################
