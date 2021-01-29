@@ -1,6 +1,18 @@
+"""Pitt-approach rule systems are one of the two basic approach to evolving rule-based programs 
+(alongside Michigan-approach systems).  In Pitt systems, every individual encodes a complete
+set of rules for producing an output given a set of inputs.
+
+Evolutionary rule systems (also known as learning classifier systems) are often used to create
+controller for agents (i.e. for reinforcement learning problems), or to evolve classifiers for
+pattern recognition (i.e. supervised learning).
+
+This module provides a basic Pitt-approach system that uses the `spaces` API from OpenAI Gym to 
+define input and output spaces for rule conditions and actions, respectively.
+"""
+from dataclass import dataclass
 from enum import Enum
 import numpy as np
-from typing import List
+from typing import List, Tuple
 import uuid
 
 from matplotlib import pyplot as plt
@@ -10,6 +22,8 @@ from leap_ec import context
 from leap_ec.decoder import Decoder
 from leap_ec.executable_rep.executable import Executable
 from leap_ec.executable_rep.problems import EnvironmentProblem
+from leap_ec.segmented_rep.initializers import create_segmented_sequence
+from leap_ec.segmented_rep.ops import apply_mutation
 
 
 ##############################
@@ -36,21 +50,315 @@ class PittRulesDecoder(Decoder):
     >>> from gym import spaces
     >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 3), dtype=np.float32)
     >>> out_ = spaces.Discrete(4)
-    >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_,
-    ...                            priority_metric=PittRulesExecutable.PriorityMetric.RULE_ORDER,
-    ...                            num_memory_registers=2)
+    >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
     """
-    def __init__(self, input_space, output_space, priority_metric,
-                 num_memory_registers):
+    def __init__(self, input_space, output_space, memory_space=None, priority_metric=None):
         assert (input_space is not None)
         assert (output_space is not None)
-        assert (num_memory_registers >= 0)
         self.input_space = input_space
-        self.num_inputs = EnvironmentProblem.space_dimensions(input_space)
         self.output_space = output_space
-        self.num_outputs = EnvironmentProblem.space_dimensions(output_space)
-        self.priority_metric = priority_metric
-        self.num_memory_registers = num_memory_registers
+        self.memory_space = memory_space
+        self.priority_metric = priority_metric if priority_metric is not None else PittRulesExecutable.PriorityMetric.RULE_ORDER
+
+    @property
+    def num_inputs(self):
+        """This property reports the number of dimensions in the system's input space.
+
+        For example, the following `decoder`
+
+        >>> from gym import spaces
+        >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 12), dtype=np.float32)
+        >>> out_ = spaces.Discrete(4)
+        >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
+
+        has a 12-dimensional input space:
+
+        >>> decoder.num_inputs
+        12
+
+        """
+        return EnvironmentProblem.space_dimensions(self.input_space)
+
+    @property
+    def num_outputs(self):
+        """This property reports the number of dimensions in the system's output space.
+
+        For example, the following `decoder`
+
+        >>> from gym import spaces
+        >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 12), dtype=np.float32)
+        >>> out_ = spaces.Discrete(4)
+        >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
+
+        has a 1-dimensional output space:
+
+        >>> decoder.num_outputs
+        1
+
+        """
+        return EnvironmentProblem.space_dimensions(self.output_space)
+
+    @property
+    def num_memory_registers(self):
+        if self.memory_space is None:
+            return 0
+        else:
+            return EnvironmentProblem.space_dimensions(self.memory_space)
+
+    @property
+    def num_genes_per_rule(self):
+        """This property reports the total number of genes that specify each rule.
+
+        For example, the following `decoder`
+
+        >>> from gym import spaces
+        >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 3), dtype=np.float32)
+        >>> out_ = spaces.Discrete(4)
+        >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
+
+        takes rule genomes that have 7 values in each segment: 6 to specify 
+        the condition ranges (`(low, high)` for each of 3 inputs), and 1 to 
+        specify the output action.
+
+        >>> decoder.num_genes_per_rule
+        7
+
+        """
+        condition_genes = self.num_inputs*2 + self.num_memory_registers*2
+        action_genes = self.num_outputs
+        return condition_genes + action_genes
+
+    @property
+    def condition_bounds(self):
+        """The bounds of permitted values on condition genes within each rule.
+        
+        For example, the following `decoder`
+
+        >>> from gym import spaces
+        >>> in_ = spaces.Box(low=0, high=1.5, shape=(1, 3), dtype=np.float32)
+        >>> out_ = spaces.Discrete(4)
+        >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
+
+        produces bounds that restrict the `low` and `high` value of each condition's
+        range between 0 and 1.5:
+
+        >>> decoder.condition_bounds
+        [(0.0, 1.5), (0.0, 1.5), (0.0, 1.5)]
+
+        """
+        # XXX This only works with Box input spaces; doesn't generalize to, say, discrete inputs
+        return list(zip(
+                    self.input_space.low.flatten(),
+                    self.input_space.high.flatten()
+                ))
+        
+    @property
+    def action_bounds(self):
+        """The bounds of permitted values on action genes within each rule.
+
+        For example, the following `decoder`
+
+        >>> from gym import spaces
+        >>> in_ = spaces.Box(low=0, high=1.5, shape=(1, 3), dtype=np.float32)
+        >>> out_ = spaces.Discrete(4)
+        >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
+
+        allows just one output value gene in each rule, with a maximum value of 4:
+
+        >>> decoder.action_bounds
+        [(0, 4)]
+        """
+        # XXX This only works with a one-dimensional Discrete input space;
+        # doesn't generalize to, say, Tuple spaces, or continuous Box spaces
+        return [ (0, self.output_space.n) ]
+
+    def bounds(self, num_rules):
+        """Return the (low, high) bounds that it makes sense for each gene to vary within.
+        
+        >>> from gym import spaces
+        >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 3), dtype=np.float32)
+        >>> out_ = spaces.Discrete(4)
+        >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
+        >>> decoder.bounds(num_rules=4)
+        [[(0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0, 4)], [(0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0, 4)], [(0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0, 4)], [(0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0, 4)]]
+        """
+        # TODO memory
+        # memory_bounds = [ (0, mem.n) for mem in self.memory_space ]
+        if self.num_memory_registers > 0:
+            raise ValueError("Memory registers on Pitt rules are not fully supported.")
+
+        rule_bounds = self.condition_bounds + self.action_bounds  # + memory_bounds
+        return [rule_bounds] * num_rules
+
+    def initializer(self, num_rules: int):
+        """Returns an initializer function that can generate genomes according
+        to the segmented scheme that we use for rule sets---i.e. with the 
+        appropriate number of segments, inputs, outputs, and hidden registers.
+        
+        For instance, if we have the following decoder:
+
+        >>> from gym import spaces
+        >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 3), dtype=np.float32)
+        >>> out_ = spaces.Discrete(4)
+        >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
+
+        Then we can get an initializer like so that creates genomes compatible with the decoder
+        when called:
+
+        >>> initialize = decoder.initializer(num_rules=4)
+        >>> initialize()
+        [[..., ..., ..., ..., ..., ..., ...], [..., ..., ..., ..., ..., ..., ...], [..., ..., ..., ..., ..., ..., ...], [..., ..., ..., ..., ..., ..., ...]]
+        
+        Notice that it creates four top-level segments (one for each rule), and that the condition bounds for 
+        each input within a rule are wrapped in tuple sub-segments.
+        """
+
+        def create_rule_set():
+            "Generate a random ruleset when called."
+
+            def create_rule():
+                "Initialize a rule by sampling all its conditions and actions."
+                # Sample values uniformly within each variable's range
+                low = self.input_space.sample().flatten()
+                high = self.input_space.sample().flatten()
+                condition_pairs = list(zip(low, high))
+                condition_genes = list(np.array(condition_pairs).flatten())
+
+                # TODO do the same for memory registers
+                #memory_genes = self.memory_space.sample()
+                if self.num_memory_registers > 0:
+                    raise ValueError("Memory registers on Pitt rules are not fully support.")
+
+                action_genes = [ self.output_space.sample() ]
+            
+                return condition_genes + action_genes #+ memory_genes
+            
+            return create_segmented_sequence(num_rules, create_rule)
+
+        return create_rule_set
+
+    def _split_rule(self, rule_segment):
+        """Split a segment into its condition, action, and memory register sections.
+        
+        For example, given a `decoder`
+
+        >>> from gym import spaces
+        >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 2), dtype=np.float32)
+        >>> out_ = spaces.Discrete(4)
+        >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
+
+        Now if we take the following genome segment-by-segment:
+
+        >>> seg1, seg2 = [ [ 0.0,0.6, 0.0,0.4, 0],
+        ...                [ 0.4,1.0, 0.6,1.0, 1] ]
+
+        Each segment parses out like so:
+
+        >>> condition_genes, action_genes, _ = decoder._split_rule(seg1)
+        >>> condition_genes
+        [0.0, 0.6, 0.0, 0.4]
+
+        >>> action_genes
+        [0]
+
+        >>> condition_genes, action_genes, _ = decoder._split_rule(seg2)
+        >>> condition_genes
+        [0.4, 1.0, 0.6, 1.0]
+
+        >>> action_genes
+        [1]
+        
+        """
+        assert(len(rule_segment) == self.num_genes_per_rule)
+
+        condition_genes = rule_segment[:self.num_inputs*2]
+
+        if self.num_memory_registers == 0:
+            action_genes = rule_segment[-self.num_outputs:]
+            memory_genes = []
+        else:
+            action_genes = rule_segment[-self.num_outputs - self.num_memory_registers:len(rule_segment)-self.num_memory_registers]
+            memory_genes = rule_segment[-self.num_memory_registers:]
+
+        assert(len(condition_genes) + len(action_genes) + len(memory_genes) == len(rule_segment))
+        return condition_genes, action_genes, memory_genes
+
+    def mutator(self, condition_mutator, action_mutator):
+        """Returns a mutation operator that properly handles the segmented genome
+        representation used for rule sets.
+
+        This wraps two different mutation operators you provide, so that mutation can
+        be configured differently for rule conditions and rule actions, respectively.
+
+        :param condition_mutator: a mutation operator to use for the condition genes in each rule.
+        :param action_mutator: a mutation operator to use for the action genes in each rule.
+
+        For example, often we'll apply a rule system to a real-valued observation space and an
+        integer-valued action space.
+
+        >>> from gym import spaces
+        >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 3), dtype=np.float32)
+        >>> out_ = spaces.Discrete(4)
+        >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
+
+        These two spaces call for different mutation strategies:
+
+        >>> from leap_ec.real_rep.ops import genome_mutate_gaussian
+        >>> from leap_ec.int_rep.ops import individual_mutate_randint
+        >>> mutator = decoder.mutator(
+        ...                     condition_mutator=genome_mutate_gaussian,
+        ...                     action_mutator=individual_mutate_randint
+        ... )
+
+        """
+        def _single_rule_mutator(segment):
+            """Take an single rule genome and mutate its conditions and actions
+            using seperate operators."""
+            assert(len(segment) == self.num_genes_per_rule), f"Expected Pitt-rules genomes to have {self.num_genes_per_rule} genes per rule, but this one has {len(segment)}."
+
+            # TODO We're ignore memory registers entirely here, and in fact removing them!
+            condition_genes, action_genes, _ = self._split_rule(segment)
+
+            # Mutate each separately
+            c_mutated = condition_mutator(condition_genes)
+            a_mutated = action_mutator(action_genes)
+
+            # Concatenate the results back together
+            return c_mutated + a_mutated
+
+        def _rulset_mutate(next_individual):
+            """Take a full ruleset individual and mutate its rules."""
+            while True:
+                individual = next(next_individual)
+
+                mutated_genome = [ _single_rule_mutator(segment) for segment in individual.genome ]
+                individual.genome = mutated_genome
+
+                # invalidate the fitness since we have a modified genome
+                individual.fitness = None
+
+                yield individual
+
+        return _rulset_mutate
+
+    def _genome_to_ruleset(self, genome):
+        """Convert a genome into a RuleSet."""
+        assert(genome is not None)
+        assert(len(genome) > 0)
+
+        rules = []
+        for segment in genome:
+            assert(len(segment) == self.num_genes_per_rule), f"The following genome segment has length {len(segment)}, but rules are expected to have {self.num_genes_per_rule} genes: {segment}."
+            condition_genes, action_genes, _ = self._split_rule(segment)
+
+            # Trick to pair conditions, two-by-two
+            it = iter(condition_genes)
+            conditions = zip(it, it)
+
+            rule = Rule(conditions=conditions, actions=action_genes)
+            rules.append(rule)
+        
+        return RuleSet(rules)
 
     def decode(self, genome, *args, **kwargs):
         """Decodes a real-valued genome into a PittRulesExecutable.
@@ -62,27 +370,83 @@ class PittRulesDecoder(Decoder):
         >>> from gym import spaces
         >>> in_ = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
         >>> out_ = spaces.Discrete(2)
-        >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_,
-        ...                            priority_metric=PittRulesExecutable.PriorityMetric.RULE_ORDER,
-        ...                            num_memory_registers=0)
+        >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
 
-        Now we can take genomes that represent each rule as `(low, high, low, high, action)` and convert
-        them into executable controllers:
+        Now we can take genomes that represent each rule as as segment of the form 
+        `[low, high, low, high, action]` and converts them into executable controllers:
 
-        >>> genome = [ 0.0,0.6, 0.0,0.4, 0,
-        ...            0.4,1.0, 0.6,1.0, 1 ]
+        >>> genome = [ [ 0.0,0.6, 0.0,0.4, 0],
+        ...            [ 0.4,1.0, 0.6,1.0, 1] ]
         >>> decoder.decode(genome)
         <leap_ec.executable_rep.rules.PittRulesExecutable object at ...>
 
         """
-        assert (genome is not None)
-        assert (len(genome) > 0)
-        rule_length = self.num_inputs * 2 + \
-                      self.num_outputs + self.num_memory_registers
-        assert (len(genome) % rule_length == 0)
-        rules = np.reshape(genome, (-1, rule_length))
-        return PittRulesExecutable(self.input_space, self.output_space, rules,
-                              self.priority_metric)
+        rule_set = self._genome_to_ruleset(genome)
+        return PittRulesExecutable(self.input_space, self.output_space, rule_set, self.priority_metric)
+
+
+##############################
+# Class Rule
+##############################
+@dataclass
+class Rule():
+    """A dataclass for storing rules.  Serves as a named tuple for getting at the parts of a rule."""
+    conditions: list
+    actions: list
+    # TODO memory actions
+
+
+##############################
+# Class RuleSet
+##############################
+class RuleSet():
+    """A datastructure that holds a set of rules and provides helpers
+    for accessing their parts.
+
+    This is built out of a list of triples, where each triple represent
+    the condition bounds, the actions, and the memory registers to write.
+
+    >>> rule1 = Rule(conditions=[ (0.0, 1.0), (0.0, 1.0) ], actions=[ 1 ])
+    >>> rule2 = Rule(conditions=[ (0.0, 0.5), (0.25, 0.3) ], actions=[ 0 ])
+    >>> rule_set = RuleSet([rule1, rule2])
+
+    """
+
+    def __init__(self, rule_list: List):
+        assert(rule_list is not None)
+        assert(len(rule_list) > 0)
+        self.rule_list = rule_list
+
+    @property
+    def num_rules(self):
+        """The number of rules in this rule set.
+        
+        So if we build a set with two rules, we'll get 2:
+        
+        >>> rule1 = Rule(conditions=[ (0.0, 1.0), (0.0, 1.0) ], actions=[ 1 ])
+        >>> rule2 = Rule(conditions=[ (0.0, 0.5), (0.25, 0.3) ], actions=[ 0 ])
+        >>> rule_set = RuleSet([rule1, rule2])
+
+        >>> rule_set.num_rules
+        2
+
+        """
+        return len(self.rule_list)
+
+    def __getitem__(self, rule_id: int) -> Tuple:
+        """Return the rule_idth rule.
+        
+        >>> rule1 = Rule(conditions=[ (0.0, 1.0), (0.0, 1.0) ], actions=[ 1 ])
+        >>> rule2 = Rule(conditions=[ (0.0, 0.5), (0.25, 0.3) ], actions=[ 0 ])
+        >>> rule_set = RuleSet([rule1, rule2])
+
+        >>> rule_set[0]
+        [[0.0, 1.0, 0.0, 1.0], [1], []]
+
+        """
+        assert(rule_id >= 0)
+        assert(rule_id < self.num_rules)
+        return self.rule_list[rule_id]
 
 
 ##############################
