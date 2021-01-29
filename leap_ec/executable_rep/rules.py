@@ -9,7 +9,7 @@ pattern recognition (i.e. supervised learning).
 This module provides a basic Pitt-approach system that uses the `spaces` API from OpenAI Gym to 
 define input and output spaces for rule conditions and actions, respectively.
 """
-from dataclass import dataclass
+from dataclasses import dataclass
 from enum import Enum
 import numpy as np
 from typing import List, Tuple
@@ -341,8 +341,26 @@ class PittRulesDecoder(Decoder):
 
         return _rulset_mutate
 
-    def _genome_to_ruleset(self, genome):
-        """Convert a genome into a RuleSet."""
+    def _genome_to_rules(self, genome):
+        """Convert a genome into a list of Rules.
+        
+        Usage example:
+
+        >>> import numpy as np
+        >>> from gym import spaces
+        >>> in_ = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
+        >>> out_ = spaces.Discrete(2)
+        >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
+
+        Now we can take genomes that represent each rule as as segment of the form 
+        `[low, high, low, high, action]` and converts them into `Rule` objects:
+
+        >>> genome = [ [ 0.0,0.6, 0.0,0.4, 0],
+        ...            [ 0.4,1.0, 0.6,1.0, 1] ]
+        >>> decoder._genome_to_rules(genome)
+        [Rule(conditions=[(0.0, 0.6), (0.0, 0.4)], actions=[0]), Rule(conditions=[(0.4, 1.0), (0.6, 1.0)], actions=[1])]
+        
+        """
         assert(genome is not None)
         assert(len(genome) > 0)
 
@@ -351,14 +369,14 @@ class PittRulesDecoder(Decoder):
             assert(len(segment) == self.num_genes_per_rule), f"The following genome segment has length {len(segment)}, but rules are expected to have {self.num_genes_per_rule} genes: {segment}."
             condition_genes, action_genes, _ = self._split_rule(segment)
 
-            # Trick to pair conditions, two-by-two
+            # Zip trick to pair conditions, two-by-two
             it = iter(condition_genes)
-            conditions = zip(it, it)
+            conditions = list(zip(it, it))
 
             rule = Rule(conditions=conditions, actions=action_genes)
             rules.append(rule)
         
-        return RuleSet(rules)
+        return rules
 
     def decode(self, genome, *args, **kwargs):
         """Decodes a real-valued genome into a PittRulesExecutable.
@@ -381,8 +399,8 @@ class PittRulesDecoder(Decoder):
         <leap_ec.executable_rep.rules.PittRulesExecutable object at ...>
 
         """
-        rule_set = self._genome_to_ruleset(genome)
-        return PittRulesExecutable(self.input_space, self.output_space, rule_set, self.priority_metric)
+        rules = self._genome_to_rules(genome)
+        return PittRulesExecutable(self.input_space, self.output_space, rules, self.priority_metric)
 
 
 ##############################
@@ -397,59 +415,6 @@ class Rule():
 
 
 ##############################
-# Class RuleSet
-##############################
-class RuleSet():
-    """A datastructure that holds a set of rules and provides helpers
-    for accessing their parts.
-
-    This is built out of a list of triples, where each triple represent
-    the condition bounds, the actions, and the memory registers to write.
-
-    >>> rule1 = Rule(conditions=[ (0.0, 1.0), (0.0, 1.0) ], actions=[ 1 ])
-    >>> rule2 = Rule(conditions=[ (0.0, 0.5), (0.25, 0.3) ], actions=[ 0 ])
-    >>> rule_set = RuleSet([rule1, rule2])
-
-    """
-
-    def __init__(self, rule_list: List):
-        assert(rule_list is not None)
-        assert(len(rule_list) > 0)
-        self.rule_list = rule_list
-
-    @property
-    def num_rules(self):
-        """The number of rules in this rule set.
-        
-        So if we build a set with two rules, we'll get 2:
-        
-        >>> rule1 = Rule(conditions=[ (0.0, 1.0), (0.0, 1.0) ], actions=[ 1 ])
-        >>> rule2 = Rule(conditions=[ (0.0, 0.5), (0.25, 0.3) ], actions=[ 0 ])
-        >>> rule_set = RuleSet([rule1, rule2])
-
-        >>> rule_set.num_rules
-        2
-
-        """
-        return len(self.rule_list)
-
-    def __getitem__(self, rule_id: int) -> Tuple:
-        """Return the rule_idth rule.
-        
-        >>> rule1 = Rule(conditions=[ (0.0, 1.0), (0.0, 1.0) ], actions=[ 1 ])
-        >>> rule2 = Rule(conditions=[ (0.0, 0.5), (0.25, 0.3) ], actions=[ 0 ])
-        >>> rule_set = RuleSet([rule1, rule2])
-
-        >>> rule_set[0]
-        [[0.0, 1.0, 0.0, 1.0], [1], []]
-
-        """
-        assert(rule_id >= 0)
-        assert(rule_id < self.num_rules)
-        return self.rule_list[rule_id]
-
-
-##############################
 # Class PittRulesExecutable
 ##############################
 class PittRulesExecutable(Executable):
@@ -460,8 +425,7 @@ class PittRulesExecutable(Executable):
     :param input_space: an OpenAI-gym-style space defining the inputs
     :param output_space: an OpenAI-gym-style space defining the outputs
     :param init_memory: a list of initial values for the memory registers
-    :param rules: a list of rules, each of the form `[ c1 c1'  c2 c2' ... cn
-        cn'  a1 ... am m1 ... mr]`
+    :param rules: a list of :py:class:`Rule` objects
     :param priority_metric: the rule prioritization strategy used to resolve
         conflicts
 
@@ -474,8 +438,9 @@ class PittRulesExecutable(Executable):
     square bounded by `(0.0, 0.6)' and `(0.0, 0.4)`, returning the output
     action `0` if the input falls within that range:
 
-    >>> rules = [[0.0,0.6, 0.0,0.4, 0],
-    ...          [0.4,1.0, 0.6,1.0, 1]]
+    >>> rules = [ Rule(conditions=[(0.0, 0.6), (0.0, 0.4)], actions=[0]),
+    ...           Rule(conditions=[(0.4, 1.0), (0.6, 1.0)], actions=[1])
+    ...         ]
 
     The input and output spaces are defined in the style of OpenAI gym.  For
     example, here's how you would set up a PittRulesExecutable with the above
@@ -498,8 +463,8 @@ class PittRulesExecutable(Executable):
         assert (output_space is not None)
         assert (rules is not None)
         assert (len(rules) > 0)
-        assert (priority_metric in \
-                PittRulesExecutable.PriorityMetric.__members__.values())
+        assert ((priority_metric is None) or \
+                (priority_metric in PittRulesExecutable.PriorityMetric.__members__.values()))
 
         self.input_space = input_space
         self.num_inputs = EnvironmentProblem.space_dimensions(input_space)
@@ -516,15 +481,49 @@ class PittRulesExecutable(Executable):
         if priority_metric == PittRulesExecutable.PriorityMetric.RULE_ORDER:
             return rule_order
         elif priority_metric == PittRulesExecutable.PriorityMetric.GENERALITY:
-            pass
+            raise ValueError(f"{PittRulesExecutable.PriorityMetric.GENERALITY} not yet implemented.")
         elif priority_metric == PittRulesExecutable.PriorityMetric.PERIMETER:
-            pass
+            raise ValueError(f"{PittRulesExecutable.PriorityMetric.PERIMETER} not yet implemented.")
         else:
             raise ValueError(
                 'Unrecognized priority_metric "{0}".'.format(priority_metric))
 
-    def __match_set(self, input):
-        """Build the match set for a set of rules."""
+    def _match_set(self, input):
+        """Build the match set for a set of rules.
+        
+        For example, if we've got the following set of rules:
+
+        >>> rules = [ Rule(conditions=[(0.0, 0.6), (0.0, 0.4)], actions=[0]),
+        ...           Rule(conditions=[(0.4, 1.0), (0.6, 1.0)], actions=[1]),
+        ...           Rule(conditions=[(0.1, 0.2), (0.8, 1.0)], actions=[1]),
+        ...           Rule(conditions=[(0.5, 0.4), (0.6, 1.0)], actions=[0])
+        ...         ]
+        
+        And we build a rule system out of it like so:
+
+        >>> import numpy as np
+        >>> from gym import spaces
+        >>> input_space = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
+        >>> output_space = spaces.Discrete(2)
+        >>> rules = PittRulesExecutable(input_space, output_space, rules,
+        ...                             priority_metric=PittRulesExecutable.PriorityMetric.RULE_ORDER)
+
+        Then the match sets for different inputs are computed like so:
+
+        >>> rules._match_set([0.1, 0.5])
+        [Rule(conditions=[(0.0, 0.6), (0.0, 0.4)], actions=[0])]
+
+        >>> rules._match_set([0.5, 1.0])
+        [Rule(conditions=[(0.4, 1.0), (0.6, 1.0)], actions=[1]), Rule(conditions=[(0.5, 0.4), (0.6, 1.0)], actions=[0])]
+
+        Note that the last rule in this example has a condition of `(low, high) = (0.5, 0.4)`.
+        Because `low` > `high`, this is interpreted as matching any value for that input:
+
+        >>> rules._match_set([0.0, 0.9])
+        [Rule(conditions=[(0.5, 0.4), (0.6, 1.0)], actions=[0])]
+
+
+        """
 
         all_input = np.append(input, self.memory_registers)
         best_match_score = -1
@@ -568,8 +567,9 @@ class PittRulesExecutable(Executable):
 
         For example, take this set of two rules:
 
-        >>> ruleset = [[0.0,0.6, 0.0,0.5, 0],
-        ...            [0.4,1.0, 0.3,1.0, 1]]
+        >>> rules = [ Rule(conditions=[(0.0, 0.6), (0.0, 0.4)], actions=[0]),
+        ...           Rule(conditions=[(0.4, 1.0), (0.6, 1.0)], actions=[1])
+        ...         ]
 
         We build an executable around it like so:
 
@@ -577,39 +577,40 @@ class PittRulesExecutable(Executable):
         >>> from gym import spaces
         >>> input_space = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
         >>> output_space = spaces.Discrete(2)
-        >>> rules = PittRulesExecutable(input_space, output_space, ruleset,
+        >>> rule_system = PittRulesExecutable(input_space, output_space, rules,
         ...                             priority_metric=PittRulesExecutable.PriorityMetric.RULE_ORDER)
 
         It outputs `0` for inputs that are covered by only the first rule:
 
-        >>> rules([0.1, 0.1])
+        >>> rule_system([0.1, 0.1])
         0
 
-        >>> rules([0.5, 0.3])
+        >>> rule_system([0.5, 0.3])
         0
 
         It outputs `1` for inputs that are covered by only the second rule:
 
-        >>> rules([0.9, 0.9])
+        >>> rule_system([0.9, 0.9])
         1
 
-        >>> rules([0.5, 0.6])
+        >>> rule_system([0.5, 0.6])
         1
 
         If a point is covered by both rules, the first rule fires (because we set `priority_metric` to `RULE_ORDER`),
         and it outputs `0`:
 
-        >>> rules([0.5, 0.5])
+        >>> rule_system([0.5, 0.5])
         0
 
         Note that if the system has more than one output, a list is returned:
 
-        >>> ruleset = [[0.0,0.6, 0.0,0.5, 0, 1],
-        ...            [0.4,1.0, 0.3,1.0, 1, 0]]
+        >>> rules = [ Rule(conditions=[(0.0, 0.6), (0.0, 0.5)], actions=[0, 1]),
+        ...           Rule(conditions=[(0.4, 1.0), (0.3, 1.0)], actions=[1, 0])
+        ...         ]
         >>> output_space = spaces.MultiBinary(2)  # A space with two binary outputs
-        >>> rules = PittRulesExecutable(input_space, output_space, ruleset,
+        >>> rules = PittRulesExecutable(input_space, output_space, rules,
         ...                             priority_metric=PittRulesExecutable.PriorityMetric.RULE_ORDER)
-        >>> rules([0.1, 0.1])
+        >>> rule_system([0.1, 0.1])
         [0, 1]
 
         """
