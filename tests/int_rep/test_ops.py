@@ -14,14 +14,9 @@ from leap_ec import statistical_helpers as stat
 ##############################
 # Tests for mutate_randint
 ##############################
-@pytest.mark.stochastic
-def test_mutate_randint1():
-    """If you send me two individuals with two genes each and keep the
-    default mutation rate, then on average, each gene has a probability
-    of 0.5 of being mutated."""
-
-    N = 1000  # We'll sample 1,000 independent genomes
-
+def collect_two_gene_mutation_counts(mutator, N: int):
+    """Helper to collect the distribution of results when we
+    apply mutation to two small individuals."""
     # Set up arrays to collect the values of 4 different loci after mutation
     ind0_gene0_values = []
     ind0_gene1_values = []
@@ -35,7 +30,7 @@ def test_mutate_randint1():
         population = iter([ind1, ind2])
 
         # Mutate the parents
-        result = intrep_ops.mutate_randint(population, bounds=[(0, 1), (0, 1)])
+        result = mutator(population)
         result = list(result)  # Pulse the iterator
 
         # Collect the values of each of the genes after mutation
@@ -50,6 +45,20 @@ def test_mutate_randint1():
     ind1_gene0_counts = Counter(ind1_gene0_values)
     ind1_gene1_counts = Counter(ind1_gene1_values)
 
+    return [ [ ind0_gene0_counts, ind0_gene1_counts ],
+             [ ind1_gene0_counts, ind1_gene1_counts ] ]
+
+
+@pytest.mark.stochastic
+def test_mutate_randint1():
+    """If you send me two individuals with two genes each and ask for 1 gene to
+    be mutated on average, then on average each gene has a probability
+    of 0.5 of being mutated."""
+
+    N = 1000  # We'll sample 1,000 independent genomes
+    mutator = intrep_ops.mutate_randint(bounds=[(0, 1), (0, 1)], expected_num_mutations=1)
+    observed = collect_two_gene_mutation_counts(mutator, N)
+    
     # Expected distribution of mutations.
     # We arrive at this by the following reasoning: each gene has a 1/L = 0.5
     # chance of not being mutated, in which case it keeps it original value.
@@ -62,10 +71,10 @@ def test_mutate_randint1():
     # Use a chi2 test to see if the observed gene-value counts are
     # differ significantly from the expected distributions.
     p = 0.001
-    assert(stat.stochastic_equals(expected_ind0_gene0, ind0_gene0_counts, p=p))
-    assert(stat.stochastic_equals(expected_ind0_gene1, ind0_gene1_counts, p=p))
-    assert(stat.stochastic_equals(expected_ind1_gene0, ind1_gene0_counts, p=p))
-    assert(stat.stochastic_equals(expected_ind1_gene1, ind1_gene1_counts, p=p))
+    assert(stat.stochastic_equals(expected_ind0_gene0, observed[0][0], p=p))
+    assert(stat.stochastic_equals(expected_ind0_gene1, observed[0][1], p=p))
+    assert(stat.stochastic_equals(expected_ind1_gene0, observed[1][0], p=p))
+    assert(stat.stochastic_equals(expected_ind1_gene1, observed[1][1], p=p))
 
 
 @pytest.mark.stochastic
@@ -75,35 +84,8 @@ def test_mutate_randint2():
      completely resampled from a uniform distribution."""
 
     N = 1000  # We'll sample 1,000 independent genomes
-
-    # Set up arrays to collect the values of 4 different loci after mutation
-    ind0_gene0_values = []
-    ind0_gene1_values = []
-    ind1_gene0_values = []
-    ind1_gene1_values = []
-
-    for _ in range(N):
-        # Set up two parents with fixed genomes, two genes each
-        ind1 = Individual([0, 0])
-        ind2 = Individual([1, 1])
-        population = iter([ind1, ind2])
-
-        # Mutate the parents
-        result = intrep_ops.mutate_randint(population, bounds=[(0, 1), (0, 1)], expected_num_mutations=2)
-        result = list(result)  # Pulse the iterator
-
-        # Collect the values of each of the genes after mutation
-        ind0_gene0_values.append(result[0].genome[0])
-        ind0_gene1_values.append(result[0].genome[1])
-        ind1_gene0_values.append(result[1].genome[0])
-        ind1_gene1_values.append(result[1].genome[1])
-
-    # Count the number of times that each gene value occurs at each locus
-    ind0_gene0_counts = Counter(ind0_gene0_values)
-    ind0_gene1_counts = Counter(ind0_gene1_values)
-    ind1_gene0_counts = Counter(ind1_gene0_values)
-    ind1_gene1_counts = Counter(ind1_gene1_values)
-
+    mutator = intrep_ops.mutate_randint(bounds=[(0, 1), (0, 1)], expected_num_mutations=2)
+    observed = collect_two_gene_mutation_counts(mutator, N)
 
     # Expected distribution of mutations.
     # We arrive at this by the following reasoning: since we only have
@@ -111,11 +93,95 @@ def test_mutate_randint2():
     # should be sampled uniformly from the set {0, 1}.
     expected = { 0: 0.5*N, 1: 0.5*N }
     p = 0.001
-    assert(stat.stochastic_equals(expected, ind0_gene0_counts, p=p))
-    assert(stat.stochastic_equals(expected, ind0_gene1_counts, p=p))
-    assert(stat.stochastic_equals(expected, ind1_gene0_counts, p=p))
-    assert(stat.stochastic_equals(expected, ind1_gene1_counts, p=p))
+    assert(stat.stochastic_equals(expected, observed[0][0], p=p))
+    assert(stat.stochastic_equals(expected, observed[0][1], p=p))
+    assert(stat.stochastic_equals(expected, observed[1][0], p=p))
+    assert(stat.stochastic_equals(expected, observed[1][1], p=p))
 
+
+@pytest.mark.stochastic
+def test_mutate_randint3():
+    """If you send me two individuals with two genes each and ask for a mutations
+    probability of 0.2, then that's what will happen."""
+
+    N = 1000  # We'll sample 1,000 independent genomes
+    mutator = intrep_ops.mutate_randint(bounds=[(0, 1), (0, 1)], probability=0.2)
+    observed = collect_two_gene_mutation_counts(mutator, N)
+    
+    # Expected distribution of mutations.
+    # We arrive at this by the following reasoning: each gene has a 0.8
+    # chance of not being mutated, in which case it keeps it original value.
+    # Otherwise, it's value is sampled uniformly from the set {0, 1}.
+    expected_ind0_gene0 = { 0: 0.8*N + 0.1*N, 1: 0.1*N }
+    expected_ind0_gene1 = expected_ind0_gene0
+    expected_ind1_gene0 = { 0: 0.1*N, 1: 0.8*N + 0.1*N }
+    expected_ind1_gene1 = expected_ind1_gene0
+
+    # Use a chi2 test to see if the observed gene-value counts are
+    # differ significantly from the expected distributions.
+    p = 0.001
+    assert(stat.stochastic_equals(expected_ind0_gene0, observed[0][0], p=p))
+    assert(stat.stochastic_equals(expected_ind0_gene1, observed[0][1], p=p))
+    assert(stat.stochastic_equals(expected_ind1_gene0, observed[1][0], p=p))
+    assert(stat.stochastic_equals(expected_ind1_gene1, observed[1][1], p=p))
+
+
+@pytest.mark.stochastic
+def test_mutate_randint4():
+    """If you send me two individuals with two genes each and ask for a mutations
+    probability of 1.0, then all genes should be completely resampled from a
+    uniform distribution."""
+
+    N = 1000  # We'll sample 1,000 independent genomes
+    mutator = intrep_ops.mutate_randint(bounds=[(0, 1), (0, 1)], probability=1.0)
+    observed = collect_two_gene_mutation_counts(mutator, N)
+    
+    # Expected distribution of mutations.
+    # We arrive at this by the following reasoning: each gene has a 0.8
+    # chance of not being mutated, in which case it keeps it original value.
+    # Otherwise, it's value is sampled uniformly from the set {0, 1}.
+    expected = { 0: 0.5*N, 1: 0.5*N }
+
+    # Use a chi2 test to see if the observed gene-value counts are
+    # differ significantly from the expected distributions.
+    p = 0.001
+    assert(stat.stochastic_equals(expected, observed[0][0], p=p))
+    assert(stat.stochastic_equals(expected, observed[0][1], p=p))
+    assert(stat.stochastic_equals(expected, observed[1][0], p=p))
+    assert(stat.stochastic_equals(expected, observed[1][1], p=p))
+
+
+def test_mutate_randint5():
+    """If we fail to provide either expected_num_mutations or a probability parameter,
+    an exception should occur when the operator is used."""
+
+    mutator = intrep_ops.mutate_randint(bounds=[(0, 1), (0, 1)])
+    ind1 = Individual([0, 0])
+    ind2 = Individual([1, 1])
+    population = iter([ind1, ind2])
+    result = mutator(population)
+
+    with pytest.raises(ValueError):
+        # Pulse the iterator so mutation gets executed
+        result = list(result)
+
+
+def test_mutate_randint6():
+    """If we provide a value for both expected_num_mutations and the probability parameter,
+    an exception should occur when the operator is used."""
+
+    mutator = intrep_ops.mutate_randint(bounds=[(0, 1), (0, 1)],
+                                        expected_num_mutations=1,
+                                        probability=0.1)
+    ind1 = Individual([0, 0])
+    ind2 = Individual([1, 1])
+    population = iter([ind1, ind2])
+    result = mutator(population)
+
+    with pytest.raises(ValueError):
+        # Pulse the iterator so mutation gets executed
+        result = list(result)
+    
 
 def test_mutate_randint_pipe():
     """  This tests pipeline integration
@@ -133,7 +199,7 @@ def test_mutate_randint_pipe():
     # execution per the pipeline calls.
     results = toolz.pipe(population,
                          leap_ec.ops.clone,
-                         intrep_ops.mutate_randint(bounds=bounds),
+                         intrep_ops.mutate_randint(bounds=bounds, expected_num_mutations=1),
                          # intrep_ops.mutate_randint(bounds), INCORRECT USAGE
                          leap_ec.ops.pool(size=2))
 

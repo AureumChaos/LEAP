@@ -13,19 +13,32 @@ from leap_ec.ops import compute_expected_probability, iteriter_op
 @curry
 @iteriter_op
 def mutate_randint(next_individual: Iterator, bounds,
-                   expected_num_mutations: float = 1) -> Iterator:
+                   expected_num_mutations = None,
+                   probability = None
+                   ) -> Iterator:
     """Perform randint mutation on each individual in an iterator (population).
 
     This operator replaces randomly selected genes with an integer samples
     from a uniform distribution.
 
+    :param bounds: test_sequence of bounds tuples; e.g., [(1,2),(3,4)]
+    :param expected_num_mutations: on average how many mutations done (specificy either this or probability, but not both)
+    :param probability: the probability of mutating any given gene (specificy either this or expected_num_mutations, but not both)
+
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.int_rep.ops import mutate_randint
 
     >>> population = iter([ Individual([1,1]) ])
-    >>> operator = mutate_randint(bounds=[(0, 10), (0, 10)])
+    >>> operator = mutate_randint(expected_num_mutations=1, bounds=[(0, 10), (0, 10)])
     >>> mutated = next(operator(population))
     """
+    if (expected_num_mutations is not None) and (probability is not None):
+        raise ValueError("Received parameters for 'probability' and 'expected_num_mutations', but can only use one or the other.")
+    if (expected_num_mutations is None) and (probability is None):
+        raise ValueError("Received no value for 'probability' or 'expected_num_mutations'.  Must have one.")
+    if (probability is not None) and ((probability < 0) or (probability > 1)):
+        raise ValueError(f"The value of 'probability' is {probability}, but must be >= 0 and <= 1.")
+
     while True:
         try:
             individual = next(next_individual)
@@ -33,7 +46,8 @@ def mutate_randint(next_individual: Iterator, bounds,
             return
 
         individual.genome = individual_mutate_randint(individual.genome, bounds,
-                                                      expected_num_mutations=expected_num_mutations)
+                                                      expected_num_mutations=expected_num_mutations,
+                                                      probability=probability)
 
         individual.fitness = None  # invalidate fitness since we have new genome
 
@@ -46,17 +60,22 @@ def mutate_randint(next_individual: Iterator, bounds,
 @curry
 def individual_mutate_randint(genome: list,
                               bounds: list,
-                              expected_num_mutations: float = 1) -> list:
+                              expected_num_mutations = None,
+                              probability = None) -> list:
     """ Perform random-integer mutation on a particular genome.
 
         >>> genome = [42, 12]
         >>> bounds = [(0,50), (-10,20)]
-        >>> new_genome = individual_mutate_randint(genome, bounds)
+        >>> new_genome = individual_mutate_randint(genome, bounds, expected_num_mutations=1)
 
         :param genome: test_sequence of integers to be mutated
         :param bounds: test_sequence of bounds tuples; e.g., [(1,2),(3,4)]
-        :param expected_num_mutations: on average how many mutations done
+        :param expected_num_mutations: on average how many mutations done (specificy either this or probability, but not both)
+        :param probability: the probability of mutating any given gene (specificy either this or expected_num_mutations, but not both)
     """
+    assert(bool(expected_num_mutations is not None) ^ bool(probability is not None))
+    assert((probability is None) or (probability >= 0))
+    assert((probability is None) or (probability <= 1))
 
     def randomint_mutate(value, bound, probability):
         """ mutate an integer given a probability
@@ -66,9 +85,12 @@ def individual_mutate_randint(genome: list,
         else:
             return value
 
-    probability = compute_expected_probability(expected_num_mutations, genome)
+    if probability is None:
+        p = compute_expected_probability(expected_num_mutations, genome)
+    else:
+        p = probability
 
-    genome = [randomint_mutate(gene, bound, probability) for gene, bound in
+    genome = [randomint_mutate(gene, bound, p) for gene, bound in
               zip(genome, bounds)]
 
     return genome
