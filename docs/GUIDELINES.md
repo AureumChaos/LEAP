@@ -69,7 +69,7 @@ and PyCharm, and sometimes those types of comment blocks stand out in those
 windows to make it easier to pick out module organization.
 
 (We confess we're not consistent in doing this ourselves, but we're trying 
-to get better at enforcemnt.)
+to get better at enforcement.)
 
 ## We encourage the use of doctests
 
@@ -82,3 +82,6 @@ the writing of doctests for any new functions.
 We also encourage the inclusion of unittests that will be regularly 
 exercised in our CI pipeline after pushing to the central repository.  You 
 can see examples of existing unit tests in `./tests`.
+
+Note that we also have stochastic unit tests, which are important for 
+evolutionary algorigthms because they're inherently stochastic.
