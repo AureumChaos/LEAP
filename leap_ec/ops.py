@@ -6,7 +6,7 @@ traditional selection and reproduction strategies here, as well as components
 for classic algorithms like island models and cooperative coevolution.
 
 Representation-specific operators tend to reside within their own subpackages,
-rather than here.  See for example :py:mod:`leap_ec.real_rep.ops` and 
+rather than here.  See for example :py:mod:`leap_ec.real_rep.ops` and
 :py:mod:`leap_ec.binary_rep.ops`.
 """
 import abc
@@ -238,7 +238,7 @@ def evaluate(next_individual: Iterator) -> Iterator:
 def const_evaluate(population: List, value) -> List:
     """An evaluator that assigns a constant fitness to every individual.
 
-    This ignores the `Problem` associated with each individual for the 
+    This ignores the `Problem` associated with each individual for the
     purpose of assigning a constant fitness.
 
     This is useful for algorithms that need to assign an arbitrary initial
@@ -288,7 +288,7 @@ def uniform_crossover(next_individual: Iterator,
     and swaps each of their genes with the given probability.
 
     In a classic paper, De Jong and Spears showed that this operator works
-    particularly well when the swap probability `p_swap` is set to about 0.2.  LEAP 
+    particularly well when the swap probability `p_swap` is set to about 0.2.  LEAP
     thus uses this value as its default.
 
         De Jong, Kenneth A., and W. Spears. "On the virtues of parameterized uniform crossover."
@@ -312,9 +312,9 @@ def uniform_crossover(next_individual: Iterator,
     :param next_individual: where we get the next individual
     :param p_swap: how likely are we to swap each pair of genes when crossover
         is performed
-    :param float p_xover: the probability that crossover is performed in the 
+    :param float p_xover: the probability that crossover is performed in the
         first place
-    :return: two recombined individuals (with probability p_xover), or two 
+    :return: two recombined individuals (with probability p_xover), or two
         unmodified individuals (with probability 1 - p_xover)
     """
 
@@ -484,6 +484,31 @@ def truncation_selection(offspring: List, size: int,
             size, itertools.chain(offspring, parents)))
     else:
         return list(toolz.itertoolz.topk(size, offspring))
+
+
+##############################
+# Function elitist_survival
+##############################
+@curry
+@listlist_op
+def elitist_survival(offspring: List, parents: List, k: int = 1) -> List:
+    """
+
+    :param offspring: list of created offpring, probably from pool()
+    :param parents: list of parents, usually the ones that offspring came from
+    :param k: how many elites from parents to keep?
+    :return: surviving population, which will be offspring with offspring
+        replaced by any superior parent elites
+    """
+    # We save this because we're going to truncate back down to this number
+    # for the final survivors
+    original_num_offspring = len(offspring)
+
+    elites = list(toolz.itertoolz.topk(k, parents))
+
+    offspring.extend(elites)
+
+    return list(toolz.itertoolz.topk(original_num_offspring, offspring))
 
 
 ##############################
