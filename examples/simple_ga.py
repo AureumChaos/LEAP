@@ -49,7 +49,11 @@ if __name__ == '__main__':
                          probe.print_individual(prefix='after mutation: '),
                          ops.uniform_crossover,
                          ops.evaluate,
-                         ops.pool(size=len(parents)))  # accumulate offspring
+                         ops.pool(size=len(parents)),  # accumulate offspring
+                         ops.elitist_survival(parents=parents)) # keep best
+                                                                # parent to
+                                                                # compete with
+                                                                # offspring
 
         parents = offspring
 
