@@ -23,6 +23,7 @@ import numpy as np
 import toolz
 from toolz import curry
 
+from leap_ec.context import context
 from leap_ec.individual import Individual
 
 
@@ -734,8 +735,10 @@ def pool(next_individual: Iterator, size: int) -> List:
 ##############################
 # Function migrate
 ##############################
-def migrate(context, topology, emigrant_selector,
-            replacement_selector, migration_gap, customs_stamp=lambda x, _: x):
+def migrate(topology, emigrant_selector,
+            replacement_selector, migration_gap,
+            customs_stamp=lambda x, _: x,
+            context=context):
     num_islands = topology.number_of_nodes()
 
     # We wrap a closure around some persistent state to keep trag of
@@ -810,8 +813,8 @@ class CooperativeEvaluate(Operator):
         subpopulation information.
     """
 
-    def __init__(self, context, num_trials, collaborator_selector,
-                 log_stream=None, combine=concat_combine):
+    def __init__(self, num_trials, collaborator_selector,
+                 log_stream=None, combine=concat_combine,context=context):
         self.context = context
         self.num_trials = num_trials
         self.collaborator_selector = collaborator_selector
@@ -867,8 +870,8 @@ class CooperativeEvaluate(Operator):
             yield current_ind
 
     @staticmethod
-    def _choose_collaborators(
-            current_ind, subpopulations, current_subpop, selectors):
+    def _choose_collaborators(current_ind, subpopulations,
+                              current_subpop, selectors):
         """Choose collaborators from the subpopulations."""
         collaborators = []
         for i in range(len(subpopulations)):
@@ -886,7 +889,8 @@ class CooperativeEvaluate(Operator):
         return collaborators
 
     @staticmethod
-    def _log_trial(writer, context, collaborators, combined_ind, trial_id):
+    def _log_trial(writer, collaborators, combined_ind, trial_id,
+                   context=context):
         """Record information about a batch of collaborators to a CSV writer."""
         for i, collab in enumerate(collaborators):
             writer.writerow({'generation'                : context['leap'][
