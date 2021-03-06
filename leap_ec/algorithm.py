@@ -16,7 +16,8 @@ from leap_ec.individual import Individual
 ##############################
 # Function generational_ea
 ##############################
-def generational_ea(generations, pop_size, problem, representation, pipeline, context=context):
+def generational_ea(generations, pop_size, problem, representation, pipeline,
+                    context=context):
     """
     This function provides an evolutionary algorithm with a generational
     population model.
@@ -132,7 +133,8 @@ def generational_ea(generations, pop_size, problem, representation, pipeline, co
 def multi_population_ea(generations, num_populations, pop_size, problem,
                         representation, shared_pipeline,
                         subpop_pipelines=None,
-                        init_evaluate=Individual.evaluate_population, context=context):
+                        init_evaluate=Individual.evaluate_population,
+                        context=context):
     """
     An EA that maintains multiple (interacting) subpopulations, i.e. for
     implementing island models.
@@ -229,9 +231,9 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
     context to learn which subpopulation they are currently working with.
 
     """
-    
+
     if not hasattr(problem, '__len__'):
-        problem = [ problem for _ in range(num_populations)]
+        problem = [problem for _ in range(num_populations)]
 
     # Initialize populations of pop_size individuals of the same type as
     # individual_cls
@@ -260,7 +262,7 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
             context['leap']['current_subpopulation'] = i
             # Execute the operators to create a new offspring population
             operators = list(shared_pipeline) + \
-                (list(subpop_pipelines[i]) if subpop_pipelines else [])
+                        (list(subpop_pipelines[i]) if subpop_pipelines else [])
             offspring = pipe(parents, *operators)
 
             if max(offspring) > bsf[i]:  # Update the best-so-far individual
@@ -277,19 +279,20 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
 ##############################
 # Function random_search
 ##############################
-def random_search(evaluations, problem, representation, pipeline=(), context=context):
-    """This function performs random search of a solution space using the 
+def random_search(evaluations, problem, representation, pipeline=(),
+                  context=context):
+    """This function performs random search of a solution space using the
     given representation and problem.
-    
+
     Random search is often used as a control in evolutionary algorithm experiments:
     if your pet algorithm can't perform better than random search, then it's a sign
     that you've barked up the wrong tree!
 
-    This implementation also allows you to pass in an operator pipeline, which will 
-    be applied to each individual.  You'd usually use this to pass in probes, for 
-    example, to take measurements of the population.  But you could also use it to 
+    This implementation also allows you to pass in an operator pipeline, which will
+    be applied to each individual.  You'd usually use this to pass in probes, for
+    example, to take measurements of the population.  But you could also use it to
     hybridize random search with, say, a local refinement procedure.
-    
+
 
     >>> from leap_ec.binary_rep.problems import MaxOnes
     >>> from leap_ec.binary_rep.initializers import create_binary_sequence
