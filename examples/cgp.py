@@ -10,7 +10,7 @@ import click
 from matplotlib import pyplot as plt
 
 from leap_ec.algorithm import generational_ea, random_search
-from leap_ec import ops, probe, context
+from leap_ec import ops, probe
 from leap_ec.representation import Representation
 from leap_ec.executable_rep import cgp, problems
 
@@ -52,7 +52,7 @@ cgp_representation = Representation(
 def cgp_visual_probes(modulo):
     """Set up the graphical probes that we'll use."""
     plt.figure()
-    p1 = probe.PopulationPlotProbe(context.context, modulo=modulo, ax=plt.gca())
+    p1 = probe.PopulationPlotProbe(modulo=modulo, ax=plt.gca())
     plt.figure()
     p2 = cgp.CGPGraphProbe(modulo=modulo, ax=plt.gca())
     return [ p1, p2 ]
@@ -85,10 +85,10 @@ def cgp_cmd(gens):
             pipeline=[
                 ops.tournament_selection,
                 ops.clone,
-                cgp.cgp_mutate(cgp_decoder),
+                cgp.cgp_mutate(cgp_decoder, expected_num_mutations=1),
                 ops.evaluate,
                 ops.pool(size=pop_size),
-                probe.FitnessStatsCSVProbe(context.context, stream=sys.stdout)
+                probe.FitnessStatsCSVProbe(stream=sys.stdout)
             ] + cgp_visual_probes(modulo=10)
     )
 
@@ -109,7 +109,7 @@ def random(evals):
             problem=xor_problem,
 
             pipeline=[
-                probe.FitnessStatsCSVProbe(context.context, stream=sys.stdout)
+                probe.FitnessStatsCSVProbe(stream=sys.stdout)
             ] + cgp_visual_probes(modulo=10)
     )
 
