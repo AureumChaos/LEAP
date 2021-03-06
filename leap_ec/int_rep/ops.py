@@ -73,7 +73,7 @@ def individual_mutate_randint(genome: list,
         :param expected_num_mutations: on average how many mutations done (specificy either this or probability, but not both)
         :param probability: the probability of mutating any given gene (specificy either this or expected_num_mutations, but not both)
     """
-    assert(bool(expected_num_mutations is not None) ^ bool(probability is not None))
+    assert(bool(expected_num_mutations is not None) ^ bool(probability is not None)), f"Got expected_num_mutations={expected_num_mutations} and probability={probability}.  One must be specified, but not both."
     assert((probability is None) or (probability >= 0))
     assert((probability is None) or (probability <= 1))
 
@@ -103,7 +103,9 @@ def individual_mutate_randint(genome: list,
 @curry
 @iteriter_op
 def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
-                    expected_num_mutations: float = 1, n: int = 10000) -> Iterator:
+                    expected_num_mutations: float = None,
+                    probability: float = None,
+                     n: int = 10000) -> Iterator:
     """Mutate genes by adding an integer offset sampled from a binomial distribution
     centered on the current gene value.
 
@@ -122,7 +124,9 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.int_rep.ops import mutate_binomial
     >>> population = iter([ Individual([1,1]) ])
-    >>> operator = mutate_binomial(std=2.5, bounds=[(0, 10), (0, 10)])
+    >>> operator = mutate_binomial(std=2.5,
+    ...                            bounds=[(0, 10), (0, 10)],
+    ...                            expected_num_mutations=1)
     >>> mutated = next(operator(population))
 
     .. note::
@@ -174,6 +178,13 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
 
             plt.gca().legend()
     """
+    if (expected_num_mutations is not None) and (probability is not None):
+        raise ValueError("Received parameters for 'probability' and 'expected_num_mutations', but can only use one or the other.")
+    if (expected_num_mutations is None) and (probability is None):
+        raise ValueError("Received no value for 'probability' or 'expected_num_mutations'.  Must have one.")
+    if (probability is not None) and ((probability < 0) or (probability > 1)):
+        raise ValueError(f"The value of 'probability' is {probability}, but must be >= 0 and <= 1.")
+    
     while True:
         try:
             individual = next(next_individual)
@@ -181,7 +192,8 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
             return
 
         individual.genome = individual_mutate_binomial(individual.genome, std, bounds,
-                                                   expected_num_mutations=expected_num_mutations)
+                                                      expected_num_mutations=expected_num_mutations,
+                                                      probability=probability)
 
         individual.fitness = None  # invalidate fitness since we have new genome
 
@@ -195,16 +207,21 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
 def individual_mutate_binomial(genome: list,
                                std: float,
                                bounds: list,
-                               expected_num_mutations: float = 1,
+                               expected_num_mutations: float = None,
+                               probability: float = None,
                                n: int = 10000,) -> list:
     """
     Perform additive binomial mutation of a particular genome.
 
     >>> genome = [42, 12]
     >>> bounds = [(0,50), (-10,20)]
-    >>> new_genome = individual_mutate_binomial(genome, std=0.5, bounds=bounds)
+    >>> new_genome = individual_mutate_binomial(genome, std=0.5, bounds=bounds,
+    ...                                         expected_num_mutations=1)
 
     """
+    assert(bool(expected_num_mutations is not None) ^ bool(probability is not None)), f"Got expected_num_mutations={expected_num_mutations} and probability={probability}.  One must be specified, but not both."
+    assert((probability is None) or (probability >= 0))
+    assert((probability is None) or (probability <= 1))
 
     def binomial_mutate(value, p, bound, probability):
         """Mutate an integer by adding a binomial value."""
@@ -218,7 +235,10 @@ def individual_mutate_binomial(genome: list,
         else:
             return value
 
-    probability = compute_expected_probability(expected_num_mutations, genome)
+    if probability is None:
+        probability = compute_expected_probability(expected_num_mutations, genome)
+    else:
+        probability = probability
 
     p = _binomial_p_from_std(n, std)
     genome = [binomial_mutate(gene, p, bound, probability) for gene, bound in zip(genome,bounds)]

@@ -101,7 +101,8 @@ if __name__ == '__main__':
                                                                 std=mutate_std,
                                                                 hard_bounds=decoder.condition_bounds,
                                                                 expected_num_mutations=1/num_rules),
-                                    action_mutator=individual_mutate_randint(bounds=decoder.action_bounds)
+                                    action_mutator=individual_mutate_randint(bounds=decoder.action_bounds,
+                                                                             probability=1.0)
                                 ),
                                 ops.evaluate,
                                 ops.pool(size=pop_size),

@@ -209,14 +209,15 @@ def test_mutate_randint_pipe():
 ##############################
 # Tests for mutate_binomial
 ##############################
-def test_binomial_bounds():
+def test_mutate_binomial_bounds():
     """If we apply a wide mutation distribution repeatedly, it should never stray
     outside of the provided bounds.
     
     This test runs the stochastic function repeatedly, but we don't mark it as a 
     stochastic test because it's and should never fail unless there is actually a
     fault."""
-    operator = intrep_ops.mutate_binomial(std=20, bounds=[(0, 10), (2, 20)])
+    operator = intrep_ops.mutate_binomial(std=20, bounds=[(0, 10), (2, 20)],
+                                          expected_num_mutations=1)
 
     N = 100
     for i in range(N):
@@ -229,7 +230,7 @@ def test_binomial_bounds():
 
 
 @pytest.mark.stochastic
-def test_binomial_dist():
+def test_mutate_binomial_dist():
     """When we apply binomial mutation repeatedly, the resulting distribution
     of offspring should follow the expected theoretical distribution."""
 
@@ -279,3 +280,34 @@ def test_binomial_dist():
     p = 0.01
     assert(stat.stochastic_equals(gene0_expected_dist, gene0_observed_dist, p=p))
     assert(stat.stochastic_equals(gene1_expected_dist, gene1_observed_dist, p=p))
+
+def test_mutate_binomial_err1():
+    """If we fail to provide either expected_num_mutations or a probability parameter,
+    an exception should occur when the operator is used."""
+
+    mutator = intrep_ops.mutate_binomial(std=1, bounds=[(0, 1), (0, 1)])
+    ind1 = Individual([0, 0])
+    ind2 = Individual([1, 1])
+    population = iter([ind1, ind2])
+    result = mutator(population)
+
+    with pytest.raises(ValueError):
+        # Pulse the iterator so mutation gets executed
+        result = list(result)
+
+
+def test_mutate_binomial_err2():
+    """If we provide a value for both expected_num_mutations and the probability parameter,
+    an exception should occur when the operator is used."""
+
+    mutator = intrep_ops.mutate_binomial(std=1, bounds=[(0, 1), (0, 1)],
+                                        expected_num_mutations=1,
+                                        probability=0.1)
+    ind1 = Individual([0, 0])
+    ind2 = Individual([1, 1])
+    population = iter([ind1, ind2])
+    result = mutator(population)
+
+    with pytest.raises(ValueError):
+        # Pulse the iterator so mutation gets executed
+        result = list(result)

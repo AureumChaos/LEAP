@@ -32,7 +32,7 @@ while generation_counter.generation() < 6:
     offspring = pipe(parents,
                      ops.tournament_selection,
                      ops.clone,
-                     mutate_bitflip,
+                     mutate_bitflip(expected_num_mutations=1),
                      ops.uniform_crossover(p_swap=0.2),
                      ops.evaluate,
                      ops.pool(size=len(parents)))  # accumulate offspring

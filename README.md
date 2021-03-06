@@ -80,8 +80,8 @@ ea = generational_ea(generations=10, pop_size=pop_size,
                      pipeline=[ops.tournament_selection,
                                # Select parents via tournament_selection selection
                                ops.clone,  # Copy them (just to be safe)
-                               # Basic mutation: defaults to a 1/L mutation rate
-                                   mutate_bitflip,
+                               # Basic mutation with a 1/L mutation rate
+                                   mutate_bitflip(expected_num_mutations=1),
                                # Crossover with a 40% chance of swapping each gene
                                ops.uniform_crossover(p_swap=0.4),
                                ops.evaluate,  # Evaluate fitness
@@ -132,7 +132,7 @@ while generation_counter.generation() < 6:
     offspring = pipe(parents,
                      ops.tournament_selection,
                      ops.clone,
-                     mutate_bitflip,
+                     mutate_bitflip(expected_num_mutations=1),
                      ops.uniform_crossover(p_swap=0.2),
                      ops.evaluate,
                      ops.pool(size=len(parents)))  # accumulate offspring
