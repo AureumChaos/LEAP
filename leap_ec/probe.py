@@ -11,7 +11,7 @@ import pandas as pd
 from toolz import curry
 
 from leap_ec import ops as op
-from leap_ec import context
+from leap_ec.context import context
 from leap_ec.ops import iteriter_op
 
 
@@ -60,7 +60,7 @@ def print_individual(next_individual: Iterator, prefix='',
 # BestSoFar probe
 ##############################
 class BestSoFarProbe(op.Operator):
-    def __init__(self, context, stream=sys.stdout, header=True):
+    def __init__(self, stream=sys.stdout, header=True, context=context):
         self.bsf = None
         self.context = context
         self.writer = csv.DictWriter(stream, fieldnames=['step', 'bsf'])
@@ -89,11 +89,11 @@ class FitnessStatsCSVProbe(op.Operator):
     to a text stream in CSV format.
 
     This is meant to capture the "bread and butter" values you'll typically
-    want to see in any population-based optimization experiment.  If you 
+    want to see in any population-based optimization experiment.  If you
     want additional columns with custom values, you can pass in a dict of
     `notes` with constant values or `computed_columns` with functions to
     compute them.
-    
+
     :param stream: the file object to write to (defaults to sys.stdout)
     :param header: whether to print column names in the first line
     :param computed_columns: a dict of `'column_name': function` pairs, to compute
@@ -108,7 +108,7 @@ class FitnessStatsCSVProbe(op.Operator):
 
     In this example, we'll set up two three inputs for the probe: an output stream,
     the generation number, and a population.
-    
+
     We use a `StringIO` stream to print the results here, but in practice you
     often want to use `sys.stdout` (the default) or a file object:
 
@@ -154,7 +154,8 @@ class FitnessStatsCSVProbe(op.Operator):
 
     """
 
-    def __init__(self, stream=sys.stdout, header=True, computed_columns=None, job: str=None, notes: Dict=None, context=context.context):
+    def __init__(self, stream=sys.stdout, header=True, computed_columns=None,
+                 job: str = None, notes: Dict = None, context=context.context):
         assert (stream is not None)
         assert (hasattr(stream, 'write'))
         assert (context is not None)
@@ -168,7 +169,8 @@ class FitnessStatsCSVProbe(op.Operator):
         if header:
             job_header = 'job, ' if job is not None else ''
             note_extras = '' if not notes else ', '.join(notes.keys()) + ', '
-            extras = '' if not computed_columns else ', ' + ', '.join(computed_columns.keys())
+            extras = '' if not computed_columns else ', ' + ', '.join(
+                computed_columns.keys())
             stream.write(
                 job_header + note_extras + 'step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness'
                 + extras + '\n')
@@ -214,7 +216,7 @@ class AttributesCSVProbe(op.Operator):
         individuals' `attributes` field
     :param stream: a file object to write the CSV rows to (defaults to sys.stdout).
         Can be `None` if you only want a DataFrame
-    :param bool do_dataframe: if True, data will be collected in memory as a 
+    :param bool do_dataframe: if True, data will be collected in memory as a
         Pandas DataFrame, which can be retrieved by calling the `dataframe` property
         after (or during) the algorithm run. Defaults to False, since this can
         consume a lot of memory for long-running algorithms.
@@ -223,14 +225,14 @@ class AttributesCSVProbe(op.Operator):
         individual in the population
     :param bool header: if True (the default), a CSV header is printed as the
         first row with the column names
-    :param bool do_fitness: if True, the individuals' fitness is 
+    :param bool do_fitness: if True, the individuals' fitness is
         included as one of the columns
     :param bool do_genomes: if True, the individuals' genome is
         included as one of the columns
     :param str notes: a dict of optional constant-value columns to include in
         all rows (ex. to identify and experiment or parameters)
-    :param computed_columns: 
-    :param int job: a job ID that will be included as a constant-value column in 
+    :param computed_columns:
+    :param int job: a job ID that will be included as a constant-value column in
         all rows (ex. typically an integer, indicating the ith run out of many)
     :param context: the algorithm context we use to read the current generation
         from (so we can write it to a column)
@@ -282,8 +284,10 @@ class AttributesCSVProbe(op.Operator):
     """
 
     def __init__(self, attributes=(), stream=sys.stdout, do_dataframe=False,
-                 best_only=False, header=True, do_fitness=False, do_genome=False,
-                 notes=None, computed_columns=None, job=None, context=context.context):
+                 best_only=False, header=True, do_fitness=False,
+                 do_genome=False,
+                 notes=None, computed_columns=None, job=None,
+                 context=context.context):
         assert ((stream is None) or hasattr(stream, 'write'))
         self.context = context
         self.stream = stream
@@ -498,11 +502,13 @@ class PopulationPlotProbe:
 
     """
 
-    def __init__(self, ax=None, f=lambda x: best_of_gen(
-        x).fitness, xlim=(0, 100), ylim=(0, 1), modulo=1, context=context.context):
+    def __init__(self, ax=None,
+                 f=lambda x: best_of_gen(x).fitness,
+                 xlim=(0, 100), ylim=(0, 1), modulo=1,
+                 context=context.context):
 
         if ax is None:
-            _, ax = plt.subplots() 
+            _, ax = plt.subplots()
         ax.plot([], [])
         ax.set_ylim(ylim)
         ax.set_xlim(xlim)
@@ -666,7 +672,7 @@ class PlotTrajectoryProbe:
                  contours=None, granularity=None,
                  modulo=1, context=context.context):
         if ax is None:
-            _, ax = plt.subplots() 
+            _, ax = plt.subplots()
         if contours:
             @np.vectorize
             def v_fun(x, y):
