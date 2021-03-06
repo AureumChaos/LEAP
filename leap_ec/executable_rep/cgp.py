@@ -287,13 +287,20 @@ class CGPDecoder(Decoder):
 # Function cgp_mutate
 ##############################
 def cgp_mutate(cgp_decoder,
-                   expected_num_mutations: float = 1):
+               expected_num_mutations: float = None,
+               probability: float = None):
     """A special integer-vector mutation operator that respects the constraints on valid genomes
     that are implied by the parameters of the given CGPDecoder.
+
+    :param cgp_decoder: the Decoder, which informs us about the bounds genes should obey
+    :param expected_num_mutations: on average how many mutations done (specificy either this or probability, but not both)
+    :param probability: the probability of mutating any given gene (specificy either this or expected_num_mutations, but not both)
     """
     assert(cgp_decoder is not None)
 
-    mutator = mutate_randint(bounds=cgp_decoder.bounds(), expected_num_mutations=expected_num_mutations)
+    mutator = mutate_randint(bounds=cgp_decoder.bounds(),
+                             expected_num_mutations=expected_num_mutations,
+                             probability=probability)
 
     @ops.iteriter_op
     def mutate(next_individual: Iterator):

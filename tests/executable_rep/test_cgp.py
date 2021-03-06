@@ -146,7 +146,7 @@ def test_cgp_mutate1(test_2layer_circuit):
     genome, _, decoder = test_2layer_circuit
 
     N = 5000
-    mutator = cgp.cgp_mutate(decoder)
+    mutator = cgp.cgp_mutate(decoder, expected_num_mutations=1)
     parents = ( Individual(genome[:]) for _ in range(N) )  # Copying the parent N times, since mutation is destructive
     offspring = list(mutator(parents))
 

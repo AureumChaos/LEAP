@@ -35,6 +35,16 @@ class EnvironmentProblem(ScalarProblem):
         else:
             raise ValueError(f"Unrecognized fitness type: '{fitness_type}'")
 
+    @property
+    def num_inputs(self):
+        """Return the number of dimensions in the environment's input space."""
+        self.space_dimensions(self.environment.observation_space)
+
+    @property
+    def num_outputs(self):
+        """Return the number of dimensions in the environment's action space."""
+        self.space_dimensions(self.environment.action_space)
+
     @classmethod
     def _reward_fitness(cls, observations, rewards):
         """Compute fitness by summing the rewards across all runs."""
