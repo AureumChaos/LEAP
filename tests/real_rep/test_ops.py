@@ -23,7 +23,7 @@ def test_mutate_gaussian():
         population = iter([ind1])
         
         # Mutate
-        result = ops.mutate_gaussian(population, std=1.0)
+        result = ops.mutate_gaussian(population, std=1.0, expected_num_mutations='isotropic')
         result = next(result)  # Pulse the iterator
 
         gene0_values.append(result.genome[0])

@@ -116,7 +116,8 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
     :param float std: standard deviation of the binomial distribution
     :param bounds: list of pairs of hard bounds to clip each gene by (to prevent mutation from
         carrying a gene value outside an allowed range)
-    :param int expected_num_mutations: the average number of genes to mutate (defaults to 1)
+    :param expected_num_mutations: on average how many mutations done (specificy either this or probability, but not both)
+    :param probability: the probability of mutating any given gene (specificy either this or expected_num_mutations, but not both)
     :param int n: the number of "coin flips" to use in the binomial process (defaults to 10000)
 
     Usage example:

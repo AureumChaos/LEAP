@@ -20,15 +20,16 @@ from leap_ec.ops import compute_expected_probability, iteriter_op
 @iteriter_op
 def mutate_gaussian(next_individual: Iterator,
                     std: float,
-                    expected_num_mutations: Union[int, str] = 'isotropic',
+                    expected_num_mutations: Union[int, str] = None,
                     hard_bounds=(-math.inf, math.inf)) -> Iterator:
     """Mutate and return an individual with a real-valued representation.
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.real_rep.ops import mutate_gaussian
 
-    >>> original = Individual([1.0,0.0])
-    >>> mutated = next(mutate_gaussian(iter([original]), 1.0))
+    >>> pop = iter([ Individual([1.0,0.0]) ])
+    >>> op = mutate_gaussian(std=1.0, expected_num_mutations='isotropic')
+    >>> mutated = next(op(pop))
 
     TODO hard_bounds should also be able to take a sequence —Siggy
 
@@ -40,6 +41,8 @@ def mutate_gaussian(next_individual: Iterator,
     :param hard_bounds: to clip for mutations; defaults to (- ∞, ∞)
     :return: a generator of mutated individuals.
     """
+    if expected_num_mutations is None:
+        raise ValueError("No value given for expected_num_mutations.  Must be either a float or the string 'isotropic'.")
     while True:
         individual = next(next_individual)
 
@@ -70,6 +73,8 @@ def genome_mutate_gaussian(genome: list,
     :param expected_num_mutations: on average how many mutations are expected
     :return: mutated genome
     """
+    assert(expected_num_mutations is not None)
+
     def add_gauss(x, std, probability):
         if random.random() < probability:
             return random.gauss(x, std)
