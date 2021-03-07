@@ -7,6 +7,7 @@ Being a terse compilation by version of changes.
 * Added a new example demonstrating integer representations
 * Added a `mutate_binomial()` for integer representations
 * Added elitism
+* Add visualization of ANN weights for `SimpleNeuralNetworkExecutable` phenotypes
 * Significantly refactored the `executable_rep.rules` package to simplify learning classifier systems
 * Incremental changes:
   * `Representation` now uses a phenotypic representation (`IdentityDecoder`) by default
