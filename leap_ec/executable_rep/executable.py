@@ -146,6 +146,11 @@ class ArgmaxExecutable(Executable):
         #print(f"C: {converted}")
         return converted
 
+    def __getattr__(self, attr):
+        """If somebody tries to access an attribute we don't have, pass the
+        request on to the wrapped object."""
+        return getattr(self.wrapped_executable, attr)
+
 
 ########################
 # Class WrapperDecoder

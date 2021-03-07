@@ -12,7 +12,7 @@ from matplotlib import pyplot as plt
 from leap_ec.algorithm import generational_ea, random_search
 from leap_ec import ops, probe
 from leap_ec.representation import Representation
-from leap_ec.executable_rep import cgp, problems
+from leap_ec.executable_rep import cgp, neural_network, problems
 
 
 ##############################
@@ -54,7 +54,7 @@ def cgp_visual_probes(modulo):
     plt.figure()
     p1 = probe.PopulationPlotProbe(modulo=modulo, ax=plt.gca())
     plt.figure()
-    p2 = cgp.CGPGraphProbe(modulo=modulo, ax=plt.gca())
+    p2 = neural_network.GraphPhenotypeProbe(modulo=modulo, ax=plt.gca())
     return [ p1, p2 ]
 
 

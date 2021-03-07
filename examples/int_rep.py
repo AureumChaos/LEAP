@@ -45,7 +45,7 @@ if __name__ == '__main__':
                                  # Apply binomial mutation: this is a lot like
                                  # additive Gaussian mutation, but adds an integer
                                  # value to each gene
-                                 mutate_binomial(std=1.1, bounds=[problem.bounds]*l,
+                                 mutate_binomial(std=1.5, bounds=[problem.bounds]*l,
                                                  expected_num_mutations=1),
                                  ops.evaluate,
                                  ops.pool(size=pop_size),
