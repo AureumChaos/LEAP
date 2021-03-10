@@ -3,9 +3,11 @@ Defines the abstract-base classes Problem, ScalarProblem,
 and FunctionProblem.
 
 """
+from abc import ABC, abstractmethod
 from math import nan, floor
 import random
-from abc import ABC, abstractmethod
+
+import numpy as np
 
 from leap_ec.context import context
 
@@ -56,6 +58,11 @@ class Problem(ABC):
 # Class ScalarProblem
 ##############################
 class ScalarProblem(Problem):
+    """A problem that compares individuals based on their scalar fitness values.
+    
+    Inherit from this class and implement the `evaluate()` method to implement
+    an objective function that returns a single real-valued fitness value.
+    """
     def __init__(self, maximize):
         super().__init__()
         self.maximize = maximize
@@ -68,11 +75,18 @@ class ScalarProblem(Problem):
             problem, else first_fitness > second_fitness if a minimization
             problem.  Please over-ride if this does not hold for your problem.
 
+            If both fitnesses are nan, a random Boolean is returned.
+
             :return: true if the first individual is less fit than the second
         """
         # NaN is assigned if the individual is non-viable, which can happen if
         # an exception is thrown during evaluation. We consider NaN fitnesses to
         # always be the worse possible with regards to ordering.
+
+        # XXX This seems like logic that was specific to a particular application.
+        # XXX It seems surprising here.  Move elsewhere, and perhaps replace with
+        # XXX something like assert(first_fitness is not nan)? -Siggy
+
         if first_fitness is nan:
             if second_fitness is nan:
                 # both are nan, so to reduce bias bitflip a coin to arbitrarily
@@ -111,10 +125,99 @@ class ScalarProblem(Problem):
 
 
 ##############################
+# Class MultiObjectiveProblem
+##############################
+class MultiObjectiveProblem(Problem):
+    """A problem that compares individuals based on Pareto dominance.
+    
+    Inherit from this class and implement the `evaluate()` method to implement
+    an objective function that returns a list of real-value fitness values.
+
+    In Pareto-dominance, an individual A is only considered "better than" an individual
+    B if A is unamibiguously better than B: i.e. it is at least as good as B on
+    all objectives, and it is strictly better than B on at least one objective.
+
+    .. plot::
+
+        from matplotlib import pyplot as plt
+        plt.rcParams.update({ "text.usetex": True })
+            
+        plt.figure(figsize=(8, 6))
+        plt.plot([1.0], [1.0], marker='o', markersize=10, color='black')
+        plt.annotate("$A$", (1.04, 0.9), fontsize='x-large')
+        plt.axvline(1.0, linestyle='dashed', color='black')
+        plt.axhline(1.0, linestyle='dashed', color='black')
+        plt.annotate("Dominates A", (1.3, 1.5), fontsize='xx-large')
+        plt.annotate("$\\succ A$", (1.45, 1.35), fontsize='xx-large')
+        plt.annotate("$\\prec A$", (0.45, 0.35), fontsize='xx-large')
+        plt.annotate("Neither dominated\\nnor dominating", (0.25, 1.4), fontsize='xx-large')
+        plt.annotate("Neither dominated\\nnor dominating", (1.25, 0.4), fontsize='xx-large')
+        plt.annotate("Dominated by A", (0.25, 0.5), fontsize='xx-large')
+        plt.axvspan(0, 1.0, ymin=0, ymax=0.5, alpha=0.5, color='red')
+        plt.axvspan(1.0, 2.0, ymin=0.5, ymax=1.0, alpha=0.5, color='blue')
+        plt.axvspan(1.0, 2.0, ymin=0, ymax=0.5, alpha=0.1, color='gray')
+        plt.axvspan(0, 1.0, ymin=0.5, ymax=1.0, alpha=0.1, color='gray')
+        plt.xlim(0, 2)
+        plt.ylim(0, 2)
+        plt.xlabel("Objective 1", fontsize=15)
+        plt.ylabel("Objective 2", fontsize=15)
+        plt.title("Pareto dominance in two dimensions", fontsize=20)
+
+    """
+    def __init__(self, maximize: list):
+        assert(maximize is not None)
+        assert(len(maximize) > 0)
+        # Represent maximize as a vector of 1's and -1's
+        self.maximize = 1 * np.array(maximize) - 1 * np.invert(maximize)
+
+    def worse_than(self, first_fitness, second_fitness):
+        """Return true if first_fitness is Pareto-dominated by second_fitness.
+
+        In the case of maximization over all objectives, a solution :math:`b` 
+        dominates :math:`a`, written :math:`b \succ a`, if and only if
+
+        .. math::
+
+              \\begin{array}{ll}
+                f_i(b) \\ge f_i(a) & \\forall i, \\text{ and} \\\\
+                f_i(b) > f_j(a) & \\text{ for some } j.
+              \\end{array}
+          
+        Here we may maximize over some objectives, and minimize over others, 
+        depending on the values in the `self.maximize` list.
+
+        """
+        assert(first_fitness is not None)
+        assert(second_fitness is not None)
+        assert(len(first_fitness) == len(self.maximize))
+        assert(len(second_fitness) == len(self.maximize))
+
+        # Negate the minimization problems, so we can treat all objectives as maximization
+        first_max = first_fitness * self.maximize
+        second_max = second_fitness * self.maximize
+
+        # Now check the two conditions for dominance using numpy comparisons
+        return all (second_max >= first_max) \
+                and any (second_max > first_max)
+
+    def equivalent(self, first_fitness, second_fitness):
+        """Return true if first_fitness and second_fitness are mutually
+        Pareto non-dominating.
+
+        .. math::
+            a \\not \\succ b \\text{ and } b \\not \\succ a
+
+        """
+        return not self.worse_than(first_fitness, second_fitness) \
+            and not self.worse_than(second_fitness, first_fitness)
+
+
+##############################
 # Class FunctionProblem
 ##############################
 class FunctionProblem(ScalarProblem):
-
+    """A convenience wrapper that takes a vanilla function that returns scalar
+    fitness values and makes it usable as an objective function."""
     def __init__(self, fitness_function, maximize):
         super().__init__(maximize)
         self.fitness_function = fitness_function
