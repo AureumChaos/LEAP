@@ -85,3 +85,10 @@ can see examples of existing unit tests in `./tests`.
 
 Note that we also have stochastic unit tests, which are important for 
 evolutionary algorigthms because they're inherently stochastic.
+
+## Use `leap_ec.context` to track state
+
+`leap_ec.context` to track state that needs to persist outside, say, pipeline
+operators or function invocations.  If you create a new operator or that
+function that relies on `leap_ec.context`, please make it the last argument
+and have it default to `leap_ec.context.context`.
