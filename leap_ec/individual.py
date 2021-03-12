@@ -165,7 +165,7 @@ class Individual:
 
     def __lt__(self, other):
         """
-        Because `Individual`s know about their `Problem`, the know how to
+        Because `Individual`s know about their `Problem`, they know how to
         compare themselves to one another.  One individual is better than
         another if and only if it is greater than the other:
 
@@ -212,6 +212,9 @@ class Individual:
                f"{self.decoder.__repr__()}, {self.problem.__repr__()})"
 
 
+##############################
+# Class RobustIndividual
+##############################
 class RobustIndividual(Individual):
     """
         This adds exception handling for evaluations
@@ -251,4 +254,3 @@ class RobustIndividual(Individual):
         # *return* it to give more options to the programmer for using the
         # newly evaluated fitness.
         return self.fitness
-
