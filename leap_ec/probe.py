@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 from toolz import curry
 
-from leap_ec import ops as op
 from leap_ec.context import context
+from leap_ec import ops as op
 from leap_ec.ops import iteriter_op
 
 
@@ -154,8 +154,12 @@ class FitnessStatsCSVProbe(op.Operator):
 
     """
 
-    def __init__(self, stream=sys.stdout, header=True, computed_columns=None,
-                 job: str = None, notes: Dict = None, context=context.context):
+    def __init__(self, stream=sys.stdout,
+                 header=True,
+                 computed_columns=None,
+                 job: str = None,
+                 notes: Dict = None,
+                 context: Dict = context):
         assert (stream is not None)
         assert (hasattr(stream, 'write'))
         assert (context is not None)
@@ -287,7 +291,7 @@ class AttributesCSVProbe(op.Operator):
                  best_only=False, header=True, do_fitness=False,
                  do_genome=False,
                  notes=None, computed_columns=None, job=None,
-                 context=context.context):
+                 context=context):
         assert ((stream is None) or hasattr(stream, 'write'))
         self.context = context
         self.stream = stream
@@ -505,7 +509,7 @@ class PopulationPlotProbe:
     def __init__(self, ax=None,
                  f=lambda x: best_of_gen(x).fitness,
                  xlim=(0, 100), ylim=(0, 1), modulo=1,
-                 context=context.context):
+                 context=context):
 
         if ax is None:
             _, ax = plt.subplots()
@@ -670,7 +674,7 @@ class PlotTrajectoryProbe:
 
     def __init__(self, ax=None, xlim=(-5.12, 5.12), ylim=(-5.12, 5.12),
                  contours=None, granularity=None,
-                 modulo=1, context=context.context):
+                 modulo=1, context=context):
         if ax is None:
             _, ax = plt.subplots()
         if contours:
