@@ -479,9 +479,9 @@ def truncation_selection(offspring: List, size: int,
     """
     if parents is not None:
         return list(toolz.itertoolz.topk(
-            size, itertools.chain(offspring, parents), key))
+            size, itertools.chain(offspring, parents), key=key))
     else:
-        return list(toolz.itertoolz.topk(size, offspring, key))
+        return list(toolz.itertoolz.topk(size, offspring, key=key))
 
 
 ##############################
@@ -542,7 +542,7 @@ def elitist_survival(offspring: List, parents: List, k: int = 1, key = None) -> 
     original_num_offspring = len(offspring)
 
     # Append the requested number of best parents to the offspring.
-    elites = list(toolz.itertoolz.topk(k, parents, key))
+    elites = list(toolz.itertoolz.topk(k, parents, key=key))
     offspring.extend(elites)
 
     # Now return the offspring (plus possibly an elite) truncating the least
@@ -583,7 +583,7 @@ def tournament_selection(population: List, k: int = 2, key = None) -> Iterator:
     """
     while True:
         choices = random.choices(population, k=k)
-        best = max(choices, key)
+        best = max(choices, key=key)
 
         yield best
 
@@ -618,7 +618,7 @@ def insertion_selection(offspring: List, parents: List, key = None) -> List:
         copied_parents[selected_parent_index] = max(child,
                                                     copied_parents[
                                                         selected_parent_index],
-                                                    key)
+                                                    key=key)
 
         return copied_parents
 
