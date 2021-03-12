@@ -309,3 +309,49 @@ class AlternatingProblem(Problem):
     def equivalent(self, first_fitness, second_fitness):
         return self._get_current_problem().equivalent(first_fitness, second_fitness)
     
+
+##############################
+# Class MultiObjectiveToolkitProblem
+##############################
+class MultiObjectiveToolkitProblem(MultiObjectiveProblem):
+    """A problem that implements Kalyanmoy Deb's popular tunable two-objective problem 'toolkit.'
+    
+    This allows us to create custom two-objective functions by defining three functions:
+    the first objective :math:`f_1(y)`, a second function :math:`g(x)`, and an extra
+    function :math:`h(f_1, g)` that governs how the functions interact to produce
+    the second objective :math:`f_2(x)`:
+
+    .. math::
+
+        \\begin{array}{ll}
+        \\text{Given} & \\mathbf{x} = \\{ x_1, \\dots, x_n \\} \\\\
+        \\text{Minimize} & (f_1(\\mathbf{y}), f_2(\\mathbf{y}, \\mathbf{z})) \\\\
+        \\text{where} & \\begin{aligned}[t]
+            f_2(\\mathbf{y}, \\mathbf{z}) &= g(\\mathbf{z}) \\times h(f_1(\\mathbf{y}), g(\\mathbf{z})) \\\\
+            \\mathbf{y} &= \\{ x_1, \dots, x_j \\} \\\\
+            \\mathbf{z} &= \\{ x_{j+1}, \dots, x_n \\}
+            \end{aligned}
+        \\end{array}
+    """
+    def __init__(self, f1, f1_input_length: int, g, h, maximize: list):
+        assert(f1 is not None)
+        assert(callable(f1))
+        assert(f1_input_length > 0)
+        assert(g is not None)
+        assert(callable(g))
+        assert(h is not None)
+        assert(callable(h))
+        super().__init__(maximize)
+        self.f1 = f1
+        self.f1_input_length = f1_input_length
+        self.g = g
+        self.h = h
+
+    def evaluate(self, phenome, *args, **kwargs):
+        y = phenome[:self.f1_input_length]
+        z = phenome[self.f1_input_length:]
+
+        o1 = self.f1(y)
+        g_out = self.g(z)
+        o2 = g_out * h(o1, g_out)
+        return (o1, o2)
