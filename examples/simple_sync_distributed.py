@@ -2,8 +2,8 @@
 """ Simple example of using leap_ec.distributed.synchronous
 
 """
-import toolz
 from dask.distributed import Client
+import toolz
 
 from leap_ec.decoder import IdentityDecoder
 import leap_ec.ops as ops
@@ -37,7 +37,8 @@ if __name__ == '__main__':
                                    ops.uniform_crossover,
                                    # Scatter offspring to be evaluated
                                    synchronous.eval_pool(client=client,
-                                                         size=len(parents)))
+                                                         size=len(parents)),
+                                   ops.elitist_survival(parents=parents))
 
             print('generation:', current_generation)
             [print(x.genome, x.fitness) for x in offspring]
