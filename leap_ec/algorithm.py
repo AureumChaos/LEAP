@@ -77,7 +77,7 @@ def generational_ea(generations, pop_size, problem, representation, pipeline,
     ...                      pipeline=[
     ...                          ops.tournament_selection,                     # Select parents via tournament selection
     ...                          ops.clone,                          # Copy them (just to be safe)
-    ...                          mutate_bitflip,                     # Basic mutation: defaults to a 1/L mutation rate
+    ...                          mutate_bitflip(expected_num_mutations=1),     # Basic mutation with a 1/L mutation rate
     ...                          ops.uniform_crossover(p_swap=0.4),  # Crossover with a 40% chance of swapping each gene
     ...                          ops.evaluate,                       # Evaluate fitness
     ...                          ops.pool(size=pop_size)             # Collect offspring into a new population
@@ -200,7 +200,9 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
     ...                         shared_pipeline=[
     ...                             ops.tournament_selection,
     ...                             ops.clone,
-    ...                             mutate_gaussian(std=30, hard_bounds=problem.bounds),
+    ...                             mutate_gaussian(std=30,
+    ...                                             expected_num_mutations='isotropic',
+    ...                                             hard_bounds=problem.bounds),
     ...                             ops.evaluate,
     ...                             ops.pool(size=pop_size),
     ...                             ops.migrate(topology=topology,

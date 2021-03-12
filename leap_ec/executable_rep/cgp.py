@@ -287,13 +287,20 @@ class CGPDecoder(Decoder):
 # Function cgp_mutate
 ##############################
 def cgp_mutate(cgp_decoder,
-                   expected_num_mutations: float = 1):
+               expected_num_mutations: float = None,
+               probability: float = None):
     """A special integer-vector mutation operator that respects the constraints on valid genomes
     that are implied by the parameters of the given CGPDecoder.
+
+    :param cgp_decoder: the Decoder, which informs us about the bounds genes should obey
+    :param expected_num_mutations: on average how many mutations done (specificy either this or probability, but not both)
+    :param probability: the probability of mutating any given gene (specificy either this or expected_num_mutations, but not both)
     """
     assert(cgp_decoder is not None)
 
-    mutator = mutate_randint(bounds=cgp_decoder.bounds(), expected_num_mutations=expected_num_mutations)
+    mutator = mutate_randint(bounds=cgp_decoder.bounds(),
+                             expected_num_mutations=expected_num_mutations,
+                             probability=probability)
 
     @ops.iteriter_op
     def mutate(next_individual: Iterator):
@@ -312,36 +319,3 @@ def create_cgp_vector(cgp_decoder):
         return create_int_vector(cgp_decoder.bounds())()
 
     return create
-
-
-##############################
-# Class CGPGraphProb
-##############################
-class CGPGraphProbe():
-    """Visualize the graph for the best CGP individual in the population."""
-
-    def __init__(self, modulo=1, ax=None, context=context):
-        assert(modulo > 0)
-        assert(context is not None)
-        self.modulo = modulo
-        if ax is None:
-            ax = plt.subplot(111)
-        self.ax = ax
-        self.context = context
-
-    def __call__(self, population: List) -> List:
-        """Take a population, plot the best individual (if `step % modulo == 0`),
-        and return the population unmodified.
-        """
-        assert(population is not None)
-        assert ('leap' in self.context)
-        assert ('generation' in self.context['leap'])
-        step = self.context['leap']['generation']
-
-        if step % self.modulo == 0:
-            best = max(population)
-            plt.cla()
-            # TODO The default network viz is just a jumble of nodes; not helpful
-            nx.draw(best.decode().graph, ax=self.ax)
-
-        return population

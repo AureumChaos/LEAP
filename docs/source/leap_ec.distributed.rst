@@ -29,7 +29,7 @@ leap\_ec.distributed.individual module
    :show-inheritance:
 
 leap\_ec.distributed.logger module
------------------------------------
+----------------------------------
 
 .. automodule:: leap_ec.distributed.logger
    :members:
@@ -51,7 +51,6 @@ leap\_ec.distributed.synchronous module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

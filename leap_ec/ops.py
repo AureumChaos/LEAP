@@ -221,10 +221,6 @@ def evaluate(next_individual: Iterator) -> Iterator:
     :return: the evaluated individual
     """
     while True:
-        # "combined" means combining any args, kwargs passed in to this
-        # function with those passed in from upstream in the pipeline.
-
-        # individual, pipe_args, pipe_kwargs = next(next_individual)
         individual = next(next_individual)
         individual.evaluate()
 

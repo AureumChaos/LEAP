@@ -9,7 +9,7 @@ pattern recognition (i.e. supervised learning).
 This module provides a basic Pitt-approach system that uses the `spaces` API from OpenAI Gym to 
 define input and output spaces for rule conditions and actions, respectively.
 """
-from dataclasses import dataclass
+from collections import namedtuple
 from enum import Enum
 import logging
 import numpy as np
@@ -420,14 +420,9 @@ class PittRulesDecoder(Decoder):
 
 
 ##############################
-# Class Rule
+# Tuple Rule
 ##############################
-@dataclass
-class Rule():
-    """A dataclass for storing rules.  Serves as a named tuple for getting at the parts of a rule."""
-    conditions: list
-    actions: list
-    # TODO memory actions
+Rule = namedtuple('Rule', 'conditions actions') # TODO memory actions
 
 
 ##############################

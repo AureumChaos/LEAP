@@ -46,6 +46,12 @@ def build_probes(genomes_file):
                         ylim=(0, 1), xlim=(0, 1),
                         modulo=1, ax=plt.gca()))
 
+    # Open a figure to plot the best-of-gen network graph to
+    plt.figure()
+    probes.append(neural_network.GraphPhenotypeProbe(
+                        modulo=1, ax=plt.gca(),
+                        weights=True, weight_multiplier=3.0))
+
     return probes
 
 
