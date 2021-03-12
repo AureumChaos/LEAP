@@ -3,7 +3,7 @@ Defines the abstract-base classes Problem, ScalarProblem,
 and FunctionProblem.
 
 """
-from math import nan, floor
+from math import nan, floor, isclose
 import random
 from abc import ABC, abstractmethod
 
@@ -105,9 +105,11 @@ class ScalarProblem(Problem):
         """
         if first_fitness is nan and second_fitness is nan:
             return True
-
-        # TODO Should we consider (abs(first_fitness-second_fitness) < epsilon)
-        return first_fitness == second_fitness
+        # Since we're comparing two real values, we need to be a little
+        # smarter about that.  This will return true if the difference
+        # between the two is within a small tolerance. This also handles
+        # NaNs, inf, and -inf.
+        return isclose(first_fitness, second_fitness)
 
 
 ##############################
@@ -205,4 +207,3 @@ class AlternatingProblem(Problem):
 
     def equivalent(self, first_fitness, second_fitness):
         return self._get_current_problem().equivalent(first_fitness, second_fitness)
-    
