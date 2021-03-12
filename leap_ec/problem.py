@@ -103,8 +103,7 @@ class ScalarProblem(Problem):
 
             :return: true if the first individual is equal to the second
         """
-        if first_fitness is nan and second_fitness is nan:
-            return True
+
         # Since we're comparing two real values, we need to be a little
         # smarter about that.  This will return true if the difference
         # between the two is within a small tolerance. This also handles
