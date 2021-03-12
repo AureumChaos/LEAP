@@ -1,4 +1,4 @@
-"""Example demonstrating the use of Cartesion genetic programming (CGP) to 
+"""Example demonstrating the use of Cartesion genetic programming (CGP) to
 evolve logic circuits to solve Boolean functions.
 
 This application provides both an evolutionary CGP solver, and an alternative
@@ -10,7 +10,7 @@ import click
 from matplotlib import pyplot as plt
 
 from leap_ec.algorithm import generational_ea, random_search
-from leap_ec import ops, probe, context
+from leap_ec import ops, probe
 from leap_ec.representation import Representation
 from leap_ec.executable_rep import cgp, problems
 
@@ -20,7 +20,7 @@ from leap_ec.executable_rep import cgp, problems
 ##############################
 
 # The CGPDecoder is the heart of our CGP representation.
-# We'll set it up first because it's needed as a parameter 
+# We'll set it up first because it's needed as a parameter
 # to a few different components.
 cgp_decoder = cgp.CGPDecoder(
                     primitives=[
@@ -52,7 +52,7 @@ cgp_representation = Representation(
 def cgp_visual_probes(modulo):
     """Set up the graphical probes that we'll use."""
     plt.figure()
-    p1 = probe.PopulationPlotProbe(context.context, modulo=modulo, ax=plt.gca())
+    p1 = probe.PopulationPlotProbe(modulo=modulo, ax=plt.gca())
     plt.figure()
     p2 = cgp.CGPGraphProbe(modulo=modulo, ax=plt.gca())
     return [ p1, p2 ]
@@ -75,7 +75,7 @@ def cgp_cmd(gens):
     """Use an evolutionary CGP approach to solve the XOR function."""
     pop_size = 5
 
-    ea = generational_ea(gens, pop_size, 
+    ea = generational_ea(gens, pop_size,
 
             representation=cgp_representation,
 
@@ -88,7 +88,7 @@ def cgp_cmd(gens):
                 cgp.cgp_mutate(cgp_decoder),
                 ops.evaluate,
                 ops.pool(size=pop_size),
-                probe.FitnessStatsCSVProbe(context.context, stream=sys.stdout)
+                probe.FitnessStatsCSVProbe(stream=sys.stdout)
             ] + cgp_visual_probes(modulo=10)
     )
 
@@ -102,14 +102,14 @@ def cgp_cmd(gens):
 @click.option('--evals', default=5000)
 def random(evals):
     """Use random search over a CGP representation to solve the XOR function."""
-    ea = random_search(evals, 
+    ea = random_search(evals,
             representation=cgp_representation,
 
             # Our fitness function will be to solve the XOR problem
             problem=xor_problem,
 
             pipeline=[
-                probe.FitnessStatsCSVProbe(context.context, stream=sys.stdout)
+                probe.FitnessStatsCSVProbe(stream=sys.stdout)
             ] + cgp_visual_probes(modulo=10)
     )
 
