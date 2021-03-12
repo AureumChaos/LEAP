@@ -92,3 +92,11 @@ evolutionary algorigthms because they're inherently stochastic.
 operators or function invocations.  If you create a new operator or that
 function that relies on `leap_ec.context`, please make it the last argument
 and have it default to `leap_ec.context.context`.
+
+
+## Add an optional `key` argument for new selection operators
+
+Add an optional `key` argument for selection operators as seen for `max()` 
+and `sort()` because this allows for passing in functions for changing the
+default selection criteria.  One common use for this is to add in parsimony
+pressure.
