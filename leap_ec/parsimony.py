@@ -16,6 +16,23 @@ def lexical_parsimony(ind):
     where if the fitnesses of two individuals are close, then break the tie
     with the smallest genome.
 
+    >>> import toolz
+    >>> from leap_ec.individual import Individual
+    >>> from leap_ec.decoder import IdentityDecoder
+    >>> from leap_ec.binary_rep.problems import MaxOnes
+    >>> import leap_ec.ops as ops
+    >>> problem = MaxOnes()
+    >>> decoder = IdentityDecoder()
+    >>> pop = [Individual([0, 0, 0, 1, 1, 1], problem=problem, decoder=decoder), Individual([0, 0], problem=problem, decoder=decoder), Individual([1, 1], problem=problem, decoder=decoder), Individual([1, 1, 1], decoder=decoder, problem=problem)]
+    >>> pop = Individual.evaluate_population(pop)
+    >>> best = ops.truncation_selection(pop, size=1)
+    >>> print(f'{best[0]!s}')
+    [0, 0, 0, 1, 1, 1] 3
+
+    >>> best = ops.truncation_selection(pop, size=1, key=lexical_parsimony)
+    >>> print(f'{best[0]!s}')
+    [1, 1, 1] 3
+
     .. [Luke2002]
         Luke, S., & Panait, L. (2002, July). Lexicographic parsimony pressure.
         In Proceedings of the 4th Annual Conference on Genetic and Evolutionary
@@ -33,8 +50,25 @@ def lexical_parsimony(ind):
 
 
 @curry
-def koza_parsimony(ind, *, constant):
+def koza_parsimony(ind, *, penalty):
     """ Penalize fitness by genome length times a constant
+
+    >>> import toolz
+    >>> from leap_ec.individual import Individual
+    >>> from leap_ec.decoder import IdentityDecoder
+    >>> from leap_ec.binary_rep.problems import MaxOnes
+    >>> import leap_ec.ops as ops
+    >>> problem = MaxOnes()
+    >>> decoder = IdentityDecoder()
+    >>> pop = [Individual([0, 0, 0, 1, 1, 1], problem=problem, decoder=decoder), Individual([0, 0], problem=problem, decoder=decoder), Individual([1, 1], problem=problem, decoder=decoder), Individual([1, 1, 1], decoder=decoder, problem=problem)]
+    >>> pop = Individual.evaluate_population(pop)
+    >>> best = ops.truncation_selection(pop, size=1)
+    >>> print(f'{best[0]!s}')
+    [0, 0, 0, 1, 1, 1] 3
+
+    >>> best = ops.truncation_selection(pop, size=1, key=koza_parsimony(penalty=.5))
+    >>> print(f'{best[0]!s}')
+    [1, 1, 1] 3
 
     .. [Koza1992]
         J. R. Koza. Genetic Programming: On the Programming of
@@ -48,7 +82,7 @@ def koza_parsimony(ind, *, constant):
         is the genome length.
 
     :param ind: to be compared
-    :param constant: for denoting penalty strength
+    :param penalty: for denoting penalty strength
     :return: altered comparison criteria
     """
-    return ind.fitness - constant * len(ind.genome)
+    return ind.fitness - penalty * len(ind.genome)
