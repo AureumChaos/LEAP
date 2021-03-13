@@ -48,8 +48,13 @@ def ea_solve(function, bounds, generations=100, pop_size=2,
 
     When `viz=True`, a live BSF plot will also display:
 
-    >>> ea_solve(sum, bounds=[(0, 1)]*5, viz=True)
+    >>> ea_solve(sum, bounds=[(0, 1)]*5, viz=True) # doctest:+ELLIPSIS
+    generation, bsf
+    0, ...
+    1, ...
     ...
+    100, ...
+    [..., ..., ..., ..., ...]
 
     .. plot::
 
