@@ -108,7 +108,10 @@ class ScalarProblem(Problem):
         # smarter about that.  This will return true if the difference
         # between the two is within a small tolerance. This also handles
         # NaNs, inf, and -inf.
-        return isclose(first_fitness, second_fitness)
+        if type(first_fitness) == float and type(second_fitness) == float:
+            return isclose(first_fitness, second_fitness)
+        else: # fallback if one or more are not floats
+            return first_fitness == second_fitness
 
 
 ##############################
