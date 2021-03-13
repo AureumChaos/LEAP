@@ -4,7 +4,7 @@
 """
 from matplotlib import pyplot as plt
 
-from leap_ec import ops
+from leap_ec import ops, probe
 from leap_ec.context import context
 from leap_ec.algorithm import generational_ea
 from leap_ec.real_rep.ops import mutate_gaussian
@@ -54,8 +54,7 @@ def ea_solve(function, bounds, generations=100, pop_size=2,
     ]
 
     if viz:
-        plot_probe = probe.PopulationPlotProbe(
-            context, ylim=viz_ylim, ax=plt.gca())
+        plot_probe = probe.PopulationPlotProbe(ylim=viz_ylim, ax=plt.gca())
         pipeline.append(plot_probe)
 
     ea = generational_ea(generations=generations, pop_size=pop_size,
