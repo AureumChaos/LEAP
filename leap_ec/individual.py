@@ -205,7 +205,7 @@ class Individual:
         return self.problem.worse_than(self.fitness, other.fitness)
 
     def __str__(self):
-        return self.genome.__str__()
+        return f'{self.genome!s} {self.fitness!s}'
 
     def __repr__(self):
         return f"{type(self).__name__}({self.genome.__repr__()}, " \
