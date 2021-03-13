@@ -477,11 +477,18 @@ def truncation_selection(offspring: List, size: int,
                                   with population for downsizing
         :return: truncated population
     """
-    if parents is not None:
-        return list(toolz.itertoolz.topk(
-            size, itertools.chain(offspring, parents), key=key))
+    if key:
+        if parents is not None:
+            return list(toolz.itertoolz.topk(
+                size, itertools.chain(offspring, parents), key=key))
+        else:
+            return list(toolz.itertoolz.topk(size, offspring, key=key))
     else:
-        return list(toolz.itertoolz.topk(size, offspring, key=key))
+        if parents is not None:
+            return list(toolz.itertoolz.topk(
+                size, itertools.chain(offspring, parents)))
+        else:
+            return list(toolz.itertoolz.topk(size, offspring))
 
 
 ##############################
@@ -542,12 +549,18 @@ def elitist_survival(offspring: List, parents: List, k: int = 1, key = None) -> 
     original_num_offspring = len(offspring)
 
     # Append the requested number of best parents to the offspring.
-    elites = list(toolz.itertoolz.topk(k, parents, key=key))
+    if key:
+        elites = list(toolz.itertoolz.topk(k, parents, key=key))
+    else:
+        elites = list(toolz.itertoolz.topk(k, parents))
     offspring.extend(elites)
 
     # Now return the offspring (plus possibly an elite) truncating the least
     # fit individual.
-    return list(toolz.itertoolz.topk(original_num_offspring, offspring, key))
+    if key:
+        return list(toolz.itertoolz.topk(original_num_offspring, offspring, key))
+    else:
+        return list(toolz.itertoolz.topk(original_num_offspring, offspring))
 
 
 ##############################
@@ -583,7 +596,10 @@ def tournament_selection(population: List, k: int = 2, key = None) -> Iterator:
     """
     while True:
         choices = random.choices(population, k=k)
-        best = max(choices, key=key)
+        if key:
+            best = max(choices, key=key)
+        else:
+            best = max(choices)
 
         yield best
 
@@ -615,10 +631,15 @@ def insertion_selection(offspring: List, parents: List, key = None) -> List:
     copied_parents = copy(parents)
     for child in offspring:
         selected_parent_index = random.randrange(len(copied_parents))
-        copied_parents[selected_parent_index] = max(child,
-                                                    copied_parents[
-                                                        selected_parent_index],
-                                                    key=key)
+        if key:
+            copied_parents[selected_parent_index] = max(child,
+                                                        copied_parents[
+                                                            selected_parent_index],
+                                                        key=key)
+        else:
+            copied_parents[selected_parent_index] = max(child,
+                                                        copied_parents[
+                                                            selected_parent_index])
 
         return copied_parents
 
