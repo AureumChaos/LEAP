@@ -34,7 +34,10 @@ def ea_solve(function, bounds, generations=100, pop_size=2,
     :param (float, float) viz_ylim: initial bounds to use of the plots
         vertical axis
 
-    >>> from leap_ec import simple
+    The basic call includes instrumentation that prints the best-so-far fitness
+    value of each generation to stdout:
+
+    >>> from leap_ec.simple import ea_solve
     >>> ea_solve(sum, bounds=[(0, 1)]*5) # doctest:+ELLIPSIS
     generation, bsf
     0, ...
@@ -42,6 +45,17 @@ def ea_solve(function, bounds, generations=100, pop_size=2,
     ...
     100, ...
     [..., ..., ..., ..., ...]
+
+    When `viz=True`, a live BSF plot will also display:
+
+    >>> ea_solve(sum, bounds=[(0, 1)]*5, viz=True)
+    ...
+
+    .. plot::
+
+        from leap_ec.simple import ea_solve
+        ea_solve(sum, bounds=[(0, 1)]*5, viz=True)
+
     """
 
     pipeline = [
