@@ -20,6 +20,11 @@ Being a terse compilation by version of changes.
   * Set default value for `context` parameter on probes, so users needn't set it
   * Added a `pad_inputs` parameter to `TruthTableProblem` to handle varying-dimension inputs
   * Improved test coverage
+  * standardized on making `context` last function argument that defaults to
+    `leap_ec.context.context`
+  * Added documentation on `leap_ec.context` and updated software development
+    guidelines to encourage its use if tracking persistent state outside of 
+    function calls was necessary.
 
 
 ## 0.5.0, 1/9/2021

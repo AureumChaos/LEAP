@@ -135,9 +135,9 @@ def steady_state(client, births, init_pop_size, pop_size,
                  problem, offspring_pipeline,
                  inserter=greedy_insert_into_pop,
                  count_nonviable=False,
-                 context=context,
                  evaluated_probe=None,
-                 pop_probe=None):
+                 pop_probe=None,
+                 context=context):
     """ Implements an asynchronous steady-state EA
 
     :param client: Dask client that should already be set-up
