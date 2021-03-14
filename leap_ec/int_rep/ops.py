@@ -105,7 +105,7 @@ def individual_mutate_randint(genome: list,
 def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
                     expected_num_mutations: float = None,
                     probability: float = None,
-                     n: int = 10000) -> Iterator:
+                    n: int = 10000) -> Iterator:
     """Mutate genes by adding an integer offset sampled from a binomial distribution
     centered on the current gene value.
 
