@@ -85,7 +85,7 @@ def iteriter_op(f):
         if not isinstance(next_individual, collections.abc.Iterator):
             if isinstance(next_individual, toolz.functoolz.curry):
                 raise ValueError(
-                    f"While executing operator {f}, an incompete curry object was received ({type(next_individual)}).\n" + \
+                    f"While executing operator {f}, an incomplete curry object was received ({type(next_individual)}).\n" + \
                     "This usually means that you forgot to specify a required argument for an upstream operator, " + \
                     "so a partly-curried function got passed down the pipeline instead of a population iterator."
                 )
@@ -124,7 +124,7 @@ def listlist_op(f):
         if not isinstance(population, list):
             if isinstance(population, toolz.functoolz.curry):
                 raise ValueError(
-                    f"While executing operator {f}, an incompete curry object was received ({type(population)}).\n" + \
+                    f"While executing operator {f}, an incomplete curry object was received ({type(population)}).\n" + \
                     "This usually means that you forgot to specify a required argument for an upstream operator, " + \
                     "so a partly-curried function got passed down the pipeline instead of a population list."
                 )
@@ -163,7 +163,7 @@ def listiter_op(f):
         if not isinstance(population, list):
             if isinstance(population, toolz.functoolz.curry):
                 raise ValueError(
-                    f"While executing operator {f}, an incompete curry object was received ({type(population)}).\n" + \
+                    f"While executing operator {f}, an incomplete curry object was received ({type(population)}).\n" + \
                     "This usually means that you forgot to specify a required argument for an upstream operator, " + \
                     "so a partly-curried function got passed down the pipeline instead of a population list."
                 )
@@ -202,7 +202,7 @@ def iterlist_op(f):
         if not isinstance(next_individual, collections.abc.Iterator):
             if isinstance(next_individual, toolz.functoolz.curry):
                 raise ValueError(
-                    f"While executing operator {f}, an incompete curry object was received ({type(next_individual)}).\n" + \
+                    f"While executing operator {f}, an incomplete curry object was received ({type(next_individual)}).\n" + \
                     "This usually means that you forgot to specify a required argument for an upstream operator, " + \
                     "so a partly-curried function got passed down the pipeline instead of a population iterator."
                 )
