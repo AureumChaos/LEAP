@@ -17,7 +17,7 @@ from leap_ec.real_rep.ops import mutate_gaussian
 from leap_ec import util
 
 BROOD_SIZE = 3  # how many offspring each parent will reproduce
-MAX_GENERATIONS = 10
+max_generation = 10
 
 
 def print_population(population, generation):
@@ -79,18 +79,17 @@ if __name__ == '__main__':
     # print initial, random population
     print_population(parents, generation=0)
 
-    while generation_counter.generation() < MAX_GENERATIONS:
+    while generation_counter.generation() < max_generation:
         offspring = pipe(parents,
                          ops.random_selection,
                          ops.clone,
                          mutate_gaussian(std=context['leap']['std']),
                          ops.evaluate,
-                         ops.pool(
-                             size=len(parents) * BROOD_SIZE),
                          # create the brood
+                         ops.pool(size=len(parents) * BROOD_SIZE),
+                         # mu + lambda
                          ops.truncation_selection(size=len(parents),
-                                                  parents=parents))  # mu + lambda
-
+                                                  parents=parents))
         parents = offspring
 
         generation_counter()  # increment to the next generation

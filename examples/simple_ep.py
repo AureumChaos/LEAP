@@ -67,12 +67,11 @@ if __name__ == '__main__':
                          ops.clone,
                          mutate_gaussian(std=.1),
                          ops.evaluate,
-                         ops.pool(
-                             size=len(parents) * BROOD_SIZE),
                          # create the brood
+                         ops.pool(size=len(parents) * BROOD_SIZE),
+                         # mu + lambda
                          ops.truncation_selection(size=len(parents),
-                                                  parents=parents))  # mu + lambda
-
+                                                  parents=parents))
         parents = offspring
 
         generation_counter()  # increment to the next generation
