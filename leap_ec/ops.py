@@ -349,6 +349,10 @@ def uniform_crossover(next_individual: Iterator,
             yield parent2
         else:  # Else do crossover
             child1, child2 = _uniform_crossover(parent1, parent2, p_swap)
+
+            # Invalidate fitness since the genomes have changed
+            child1.fitness = child2.fitness = None
+
             yield child1
             yield child2
 
