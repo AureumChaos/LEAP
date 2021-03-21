@@ -120,7 +120,7 @@ class RastriginProblem(ScalarProblem):
         Computes the function value from a real-valued list phenome:
 
         >>> phenome = [1.0/12, 0]
-        >>> RastriginProblem().evaluate(phenome) # +doctest: ELLIPSIS
+        >>> RastriginProblem().evaluate(phenome) # doctest: +ELLIPSIS
         0.1409190406...
 
         :param phenome: real-valued vector to be evaluated
