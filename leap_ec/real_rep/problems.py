@@ -1312,7 +1312,7 @@ class MatrixTransformedProblem(ScalarProblem):
 # Function plot_2d_problem
 ##############################
 def plot_2d_problem(problem, xlim, ylim, kind='surface',
-                    ax=None, granularity=None):
+                    ax=None, granularity=None, title=None):
     """
     Convenience function for plotting a :class:`~leap.problem.Problem` that
     accepts 2-D real-valued phenomes and produces a 1-D scalar fitness output.
@@ -1380,9 +1380,9 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
                              "granularity to plot the problem.")
 
     if kind == 'surface':
-        return plot_2d_function(call, xlim, ylim, granularity, ax)
+        return plot_2d_function(call, xlim, ylim, granularity, ax, title)
     elif kind == 'contour':
-        return plot_2d_contour(call, xlim, ylim, granularity, ax)
+        return plot_2d_contour(call, xlim, ylim, granularity, ax, title)
     else:
         raise ValueError(f'Unrecognized plot kind: "{kind}".')
 
@@ -1390,7 +1390,7 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
 ##############################
 # Function plot_2d_function
 ##############################
-def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None):
+def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None):
     """
     Convenience method for plotting a function that accepts 2-D real-valued
     imputs and produces a 1-D scalar output.
@@ -1435,13 +1435,16 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None):
     y = np.arange(ylim[0], ylim[1], granularity)
     xx, yy = np.meshgrid(x, y)
 
+    if title:
+        ax.set_title(title)
+
     return ax.plot_surface(xx, yy, v_fun(xx, yy))
 
 
 ##############################
 # Function plot_2d_contour
 ##############################
-def plot_2d_contour(fun, xlim, ylim, granularity, ax=None):
+def plot_2d_contour(fun, xlim, ylim, granularity, ax=None, title=None):
     """
     Convenience method for plotting contours for a function that accepts 2-D
     real-valued inputs and produces a 1-D scalar output.
@@ -1490,6 +1493,9 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None):
     x = np.arange(xlim[0], xlim[1], granularity)
     y = np.arange(ylim[0], ylim[1], granularity)
     xx, yy = np.meshgrid(x, y)
+
+    if title:
+        ax.set_title(title)
 
     return ax.contour(xx, yy, v_fun(xx, yy))
 
