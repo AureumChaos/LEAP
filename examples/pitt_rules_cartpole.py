@@ -61,8 +61,8 @@ if __name__ == '__main__':
     # Parameters
     runs_per_fitness_eval = 5
     simulation_steps = 500
-    generations = 1000
-    pop_size = 20
+    generations = 10
+    pop_size = 5
     num_rules = 20
     mutate_std = 0.05
     gui = True

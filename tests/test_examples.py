@@ -19,7 +19,7 @@ def test_script_execution(script):
     sys.argv = [ str(script) ]
 
     try:
-        runpy.run_path(script, run_name='__main__')
+        runpy.run_path(str(script), run_name='__main__')
     except SystemExit as e:
         # Some scripts may explicitly call `sys.exit()`, in which case we'll check the error code
         assert(e.code == 0)
