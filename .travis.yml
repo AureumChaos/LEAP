@@ -12,7 +12,7 @@ python:
 install:
  - pip install -r requirements_freeze.txt
  - python -m ipykernel install --user --name='LEAP_venv'
- - apt-get install python-opengl
+ - sudo apt-get install python-opengl
 
 # The command to run our test suite
 script:
