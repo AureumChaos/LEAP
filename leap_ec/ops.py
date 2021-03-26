@@ -882,10 +882,10 @@ class CooperativeEvaluate(Operator):
                 if self.log_writer is not None:
                     self._log_trial(
                         self.log_writer,
-                        self.context,
                         collaborators,
                         combined_ind,
-                        i)
+                        i,
+                        context=self.context)
 
                 fitnesses.append(fitness)
 
@@ -917,19 +917,15 @@ class CooperativeEvaluate(Operator):
                    context=context):
         """Record information about a batch of collaborators to a CSV writer."""
         for i, collab in enumerate(collaborators):
-            writer.writerow({'generation'                : context['leap'][
-                'generation'],
-                             'subpopulation'             : context['leap'][
-                                 'current_subpopulation'],
+            writer.writerow({'generation'                : context['leap']['generation'],
+                             'subpopulation'             : context['leap']['current_subpopulation'],
                              'individual_type'           : 'Collaborator',
                              'collaborator_subpopulation': i,
                              'genome'                    : collab.genome,
                              'fitness'                   : collab.fitness})
 
-        writer.writerow({'generation'                : context['leap'][
-            'generation'],
-                         'subpopulation'             : context['leap'][
-                             'current_subpopulation'],
+        writer.writerow({'generation'                : context['leap']['generation'],
+                         'subpopulation'             : context['leap']['current_subpopulation'],
                          'individual_type'           : 'Combined Individual',
                          'collaborator_subpopulation': None,
                          'genome'                    : combined_ind.genome,
