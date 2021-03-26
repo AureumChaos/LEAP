@@ -52,10 +52,10 @@ test:
 	python -m pytest -m "not jupyter"
 
 test-fast:
-	python -m pytest -m "not system and not jupyter"
+	python -m pytest -m "not slow and not jupyter"
 
 test-slow:
-	python -m pytest -m system
+	python -m pytest -m slow
 
 kernel:
 	# Setup a kernel for Jupyter with the name test-jupyter uses to find it

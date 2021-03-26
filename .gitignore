@@ -9,7 +9,7 @@ docker-nom/build/
 venv/
 *.egg-info/
 docs/build/
-.coverage
+.coverage*
 htmlcov/
 .ipynb_checkpoints/
 .pytest_cache

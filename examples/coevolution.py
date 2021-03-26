@@ -5,7 +5,6 @@ from leap_ec.individual import Individual
 from leap_ec.decoder import IdentityDecoder
 from leap_ec.representation import Representation
 from leap_ec.algorithm import multi_population_ea
-from leap_ec.context import context
 
 import leap_ec.ops as ops
 
@@ -37,7 +36,6 @@ if __name__ == '__main__':
                                      ops.clone,
                                      mutate_bitflip(expected_num_mutations=1),
                                      ops.CooperativeEvaluate(
-                                         context=context,
                                          num_trials=1,
                                          collaborator_selector=ops.random_selection,
                                          log_stream=log_stream),

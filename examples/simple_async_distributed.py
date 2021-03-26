@@ -49,10 +49,11 @@ import logging
 from pprint import pformat
 import argparse
 
+import multiprocessing.popen_spawn_posix  # Python 3.9 workaround for Dask.  See https://github.com/dask/distributed/issues/4168
 from dask.distributed import Client
 from dask.distributed import LocalCluster
 
-import leap_ec.ops as ops
+from leap_ec import ops, probe
 from leap_ec.decoder import IdentityDecoder
 from leap_ec.binary_rep.initializers import create_binary_sequence
 from leap_ec.binary_rep.problems import MaxOnes
@@ -176,7 +177,7 @@ if __name__ == '__main__':
                                               offspring_pipeline=[
                                                   ops.random_selection,
                                                   ops.clone,
-                                                  mutate_bitflip,
+                                                  mutate_bitflip(expected_num_mutations=1),
                                                   ops.pool(size=1)],
 
                                               evaluated_probe=track_workers_func,
@@ -185,6 +186,7 @@ if __name__ == '__main__':
         logger.info('Final pop: \n%s', pformat(final_pop))
     except Exception as e:
         logger.critical(str(e))
+        raise e
     finally:
         if client is not None:
             # Because an exception could have been thrown such that client does

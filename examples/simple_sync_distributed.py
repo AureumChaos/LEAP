@@ -2,6 +2,7 @@
 """ Simple example of using leap_ec.distributed.synchronous
 
 """
+import multiprocessing.popen_spawn_posix  # Python 3.9 workaround for Dask.  See https://github.com/dask/distributed/issues/4168
 from dask.distributed import Client
 import toolz
 
@@ -33,7 +34,7 @@ if __name__ == '__main__':
             offspring = toolz.pipe(parents,
                                    ops.tournament_selection,
                                    ops.clone,
-                                   mutate_bitflip,
+                                   mutate_bitflip(expected_num_mutations=1),
                                    ops.uniform_crossover,
                                    # Scatter offspring to be evaluated
                                    synchronous.eval_pool(client=client,

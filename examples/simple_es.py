@@ -83,7 +83,7 @@ if __name__ == '__main__':
         offspring = pipe(parents,
                          ops.random_selection,
                          ops.clone,
-                         mutate_gaussian(std=context['leap']['std']),
+                         mutate_gaussian(std=context['leap']['std'], expected_num_mutations=1),
                          ops.evaluate,
                          ops.pool(
                              size=len(parents) * BROOD_SIZE),
