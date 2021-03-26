@@ -66,7 +66,7 @@ if __name__ == '__main__':
     pop_size = 5
     num_hidden_nodes = 4
     mutate_std = 0.05
-    gui = True
+    gui = False  # Change to true to watch the cart-pole visualization
 
     # Load the OpenAI Gym simulation
     environment = gym.make('CartPole-v0')
