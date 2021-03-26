@@ -18,7 +18,6 @@ script:
  - make setup
  - make test-jupyter
  - make test
- - make test-slow
 
 # For coveralls.io
 after_success:
