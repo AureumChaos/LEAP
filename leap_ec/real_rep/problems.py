@@ -10,7 +10,7 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
-from leap_ec.problem import ScalarProblem
+from leap_ec.problem import MultiObjectiveToolkitProblem, ScalarProblem
 
 
 ##############################
@@ -1309,6 +1309,20 @@ class MatrixTransformedProblem(ScalarProblem):
 
 
 ##############################
+# Class ZTD1Problem
+##############################
+class ZDT1Problem(MultiObjectiveToolkitProblem):
+    def __init__(self):
+        super().__init__(
+            f1 = lambda x: x[0],
+            f1_input_length = 1,
+            f2 = lambda x: 1 + 9/(len(x) - 2) * np.sum(x),
+            h = lambda f, g: np.sqrt(f/g),
+            maximize = [ False, False ]
+        )
+
+
+##############################
 # Function plot_2d_problem
 ##############################
 def plot_2d_problem(problem, xlim, ylim, kind='surface',
@@ -1492,7 +1506,3 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None):
     xx, yy = np.meshgrid(x, y)
 
     return ax.contour(xx, yy, v_fun(xx, yy))
-
-
-if __name__ == '__main__':
-    pass
