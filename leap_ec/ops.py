@@ -83,9 +83,16 @@ def iteriter_op(f):
     @wraps(f)
     def typecheck_f(next_individual: Iterator, *args, **kwargs) -> Iterator:
         if not isinstance(next_individual, collections.abc.Iterator):
-            raise ValueError(
-                f"Operator {f} received a {type(next_individual)} as input, "
-                f"but expected an iterator.")
+            if isinstance(next_individual, toolz.functoolz.curry):
+                raise ValueError(
+                    f"While executing operator {f}, an incomplete curry object was received ({type(next_individual)}).\n" + \
+                    "This usually means that you forgot to specify a required argument for an upstream operator, " + \
+                    "so a partly-curried function got passed down the pipeline instead of a population iterator."
+                )
+            else:
+                raise ValueError(
+                    f"Operator {f} received a {type(next_individual)} as input, "
+                    f"but expected an iterator.")
 
         result = f(next_individual, *args, **kwargs)
 
@@ -115,9 +122,16 @@ def listlist_op(f):
     @wraps(f)
     def typecheck_f(population: List, *args, **kwargs) -> List:
         if not isinstance(population, list):
-            raise ValueError(
-                f"Operator {f} received a {type(population)} as input, but "
-                f"expected a list.")
+            if isinstance(population, toolz.functoolz.curry):
+                raise ValueError(
+                    f"While executing operator {f}, an incomplete curry object was received ({type(population)}).\n" + \
+                    "This usually means that you forgot to specify a required argument for an upstream operator, " + \
+                    "so a partly-curried function got passed down the pipeline instead of a population list."
+                )
+            else:
+                raise ValueError(
+                    f"Operator {f} received a {type(population)} as input, but "
+                    f"expected a list.")
 
         result = f(population, *args, **kwargs)
 
@@ -147,9 +161,16 @@ def listiter_op(f):
     @wraps(f)
     def typecheck_f(population: List, *args, **kwargs) -> Iterator:
         if not isinstance(population, list):
-            raise ValueError(
-                f"Operator {f} received a {type(population)} as input, but "
-                f"expected a list.")
+            if isinstance(population, toolz.functoolz.curry):
+                raise ValueError(
+                    f"While executing operator {f}, an incomplete curry object was received ({type(population)}).\n" + \
+                    "This usually means that you forgot to specify a required argument for an upstream operator, " + \
+                    "so a partly-curried function got passed down the pipeline instead of a population list."
+                )
+            else:
+                raise ValueError(
+                    f"Operator {f} received a {type(population)} as input, but "
+                    f"expected a list.")
 
         result = f(population, *args, **kwargs)
 
@@ -179,9 +200,16 @@ def iterlist_op(f):
     @wraps(f)
     def typecheck_f(next_individual: Iterator, *args, **kwargs) -> List:
         if not isinstance(next_individual, collections.abc.Iterator):
-            raise ValueError(
-                f"Operator {f} received a {type(next_individual)} as input, "
-                f"but expected an iterator.")
+            if isinstance(next_individual, toolz.functoolz.curry):
+                raise ValueError(
+                    f"While executing operator {f}, an incomplete curry object was received ({type(next_individual)}).\n" + \
+                    "This usually means that you forgot to specify a required argument for an upstream operator, " + \
+                    "so a partly-curried function got passed down the pipeline instead of a population iterator."
+                )
+            else:
+                raise ValueError(
+                    f"Operator {f} received a {type(next_individual)} as input, "
+                    f"but expected an iterator.")
 
         result = f(next_individual, *args, **kwargs)
 
@@ -854,10 +882,10 @@ class CooperativeEvaluate(Operator):
                 if self.log_writer is not None:
                     self._log_trial(
                         self.log_writer,
-                        self.context,
                         collaborators,
                         combined_ind,
-                        i)
+                        i,
+                        context=self.context)
 
                 fitnesses.append(fitness)
 
@@ -889,19 +917,15 @@ class CooperativeEvaluate(Operator):
                    context=context):
         """Record information about a batch of collaborators to a CSV writer."""
         for i, collab in enumerate(collaborators):
-            writer.writerow({'generation'                : context['leap'][
-                'generation'],
-                             'subpopulation'             : context['leap'][
-                                 'current_subpopulation'],
+            writer.writerow({'generation'                : context['leap']['generation'],
+                             'subpopulation'             : context['leap']['current_subpopulation'],
                              'individual_type'           : 'Collaborator',
                              'collaborator_subpopulation': i,
                              'genome'                    : collab.genome,
                              'fitness'                   : collab.fitness})
 
-        writer.writerow({'generation'                : context['leap'][
-            'generation'],
-                         'subpopulation'             : context['leap'][
-                             'current_subpopulation'],
+        writer.writerow({'generation'                : context['leap']['generation'],
+                         'subpopulation'             : context['leap']['current_subpopulation'],
                          'individual_type'           : 'Combined Individual',
                          'collaborator_subpopulation': None,
                          'genome'                    : combined_ind.genome,

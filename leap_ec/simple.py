@@ -4,7 +4,7 @@
 """
 from matplotlib import pyplot as plt
 
-from leap_ec import ops
+from leap_ec import ops, probe
 from leap_ec.context import context
 from leap_ec.algorithm import generational_ea
 from leap_ec.real_rep.ops import mutate_gaussian
@@ -34,7 +34,10 @@ def ea_solve(function, bounds, generations=100, pop_size=2,
     :param (float, float) viz_ylim: initial bounds to use of the plots
         vertical axis
 
-    >>> from leap_ec import simple
+    The basic call includes instrumentation that prints the best-so-far fitness
+    value of each generation to stdout:
+
+    >>> from leap_ec.simple import ea_solve
     >>> ea_solve(sum, bounds=[(0, 1)]*5) # doctest:+ELLIPSIS
     generation, bsf
     0, ...
@@ -42,6 +45,22 @@ def ea_solve(function, bounds, generations=100, pop_size=2,
     ...
     100, ...
     [..., ..., ..., ..., ...]
+
+    When `viz=True`, a live BSF plot will also display:
+
+    >>> ea_solve(sum, bounds=[(0, 1)]*5, viz=True) # doctest:+ELLIPSIS
+    generation, bsf
+    0, ...
+    1, ...
+    ...
+    100, ...
+    [..., ..., ..., ..., ...]
+
+    .. plot::
+
+        from leap_ec.simple import ea_solve
+        ea_solve(sum, bounds=[(0, 1)]*5, viz=True)
+
     """
 
     pipeline = [
@@ -54,8 +73,7 @@ def ea_solve(function, bounds, generations=100, pop_size=2,
     ]
 
     if viz:
-        plot_probe = probe.PopulationPlotProbe(
-            context, ylim=viz_ylim, ax=plt.gca())
+        plot_probe = probe.PopulationPlotProbe(ylim=viz_ylim, ax=plt.gca())
         pipeline.append(plot_probe)
 
     ea = generational_ea(generations=generations, pop_size=pop_size,

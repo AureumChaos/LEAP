@@ -45,7 +45,7 @@ if __name__ == '__main__':
                          ops.clone,
                          # these are optional probes to demonstrate their use
                          probe.print_individual(prefix='before mutation: '),
-                         mutate_bitflip,
+                         mutate_bitflip(expected_num_mutations=1),
                          probe.print_individual(prefix='after mutation: '),
                          ops.uniform_crossover,
                          ops.evaluate,

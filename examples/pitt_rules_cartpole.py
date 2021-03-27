@@ -61,11 +61,11 @@ if __name__ == '__main__':
     # Parameters
     runs_per_fitness_eval = 5
     simulation_steps = 500
-    generations = 1000
-    pop_size = 20
+    generations = 10
+    pop_size = 5
     num_rules = 20
     mutate_std = 0.05
-    gui = True
+    gui = False  # Change to true to watch the cart-pole visualization
 
     # Load the OpenAI Gym simulation
     environment = gym.make('CartPole-v0')

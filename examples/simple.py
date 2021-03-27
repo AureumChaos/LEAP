@@ -12,4 +12,5 @@ def function(values):
 if __name__ == '__main__':
     ea_solve(function,
             bounds=[(-5.12, 5.12) for _ in range(5)],
+            viz=True,
             mutation_std=0.1)
