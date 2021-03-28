@@ -332,6 +332,12 @@ class MultiObjectiveToolkitProblem(MultiObjectiveProblem):
             \\mathbf{z} &= \\{ x_{j+1}, \dots, x_n \\}
             \end{aligned}
         \\end{array}
+
+    This framework is used to define several classic multi-objective benchmark problems,
+    such as :py:class:`leap_ec.real_rep.problems.ZDT1Problem`, etc.
+
+    - Deb, Kalyanmoy. "Multi-objective genetic algorithms: Problem difficulties and 
+      construction of test problems." *Evolutionary computation* 7.3 (1999): 205-230.
     """
     def __init__(self, f1, f1_input_length: int, g, h, maximize: list):
         assert(f1 is not None)
