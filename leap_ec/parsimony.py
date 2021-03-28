@@ -86,6 +86,8 @@ def koza_parsimony(ind, *, penalty):
     :return: altered comparison criteria
     """
     if ind.problem.maximize:
-        return ind.fitness - penalty * len(ind.genome)
+        biased_fitness = ind.fitness - penalty * len(ind.genome)
     else:
-        return ind.fitness + penalty * len(ind.genome)
+        biased_fitness = ind.fitness + penalty * len(ind.genome)
+
+    return biased_fitness
