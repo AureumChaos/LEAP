@@ -46,7 +46,6 @@ def viz_plots(problems, modulo):
     for i, p in enumerate(problems):
         plt.subplot(true_rows, num_columns * 2, 2 * i + 1)
         tp = probe.PlotTrajectoryProbe(
-            context,
             contours=p,
             xlim=p.bounds,
             ylim=p.bounds,
@@ -55,9 +54,7 @@ def viz_plots(problems, modulo):
         genotype_probes.append(tp)
 
         plt.subplot(true_rows, num_columns * 2, 2 * i + 2)
-        fp = probe.PopulationPlotProbe(
-            context, ylim=(
-                0, 1), modulo=modulo, ax=plt.gca())
+        fp = probe.PopulationPlotProbe(ylim=(0, 1), modulo=modulo, ax=plt.gca())
         fitness_probes.append(fp)
 
     plt.subplots_adjust(
@@ -118,7 +115,7 @@ if __name__ == '__main__':
         return lambda _: context['leap']['current_subpopulation']
 
     pop_size = 10
-    ea = multi_population_ea(generations=1000,
+    ea = multi_population_ea(generations=100,
                              num_populations=topology.number_of_nodes(),
                              pop_size=pop_size,
                              problem=problems,  # Fitness function
@@ -135,20 +132,17 @@ if __name__ == '__main__':
                              shared_pipeline=[
                                  ops.tournament_selection,
                                  ops.clone,
-                                 mutate_gaussian(
-                                     std=0.03, hard_bounds=bounds),
+                                 mutate_gaussian(std=0.03, expected_num_mutations=1, hard_bounds=bounds),
                                  ops.evaluate,
                                  ops.pool(size=pop_size),
-                                 ops.migrate(context,
-                                             topology=topology,
+                                 ops.migrate(topology=topology,
                                              emigrant_selector=ops.tournament_selection,
                                              replacement_selector=ops.random_selection,
                                              migration_gap=5,
                                              customs_stamp=problem_stamp(problems)),
-                                 probe.FitnessStatsCSVProbe(context, stream=sys.stdout,
-                                        extra_columns={ 'island': get_island(context) })
+                                 probe.FitnessStatsCSVProbe(stream=sys.stdout,
+                                        computed_columns={ 'island': get_island(context) })
                              ],
                              subpop_pipelines=subpop_probes)
 
     list(ea)
-    plt.show()

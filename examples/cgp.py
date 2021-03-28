@@ -59,20 +59,9 @@ def cgp_visual_probes(modulo):
 
 
 ##############################
-# cli entry point
+# CGP algorithm
 ##############################
-@click.group()
-def cli():
-    """Example of Cartesian Genetic Programming."""
-
-
-##############################
-# cgp command
-##############################
-@cli.command(name='cgp')
-@click.option('--gens', default=1000)
-def cgp_cmd(gens):
-    """Use an evolutionary CGP approach to solve the XOR function."""
+def do_cgp(gens):
     pop_size = 5
 
     ea = generational_ea(gens, pop_size,
@@ -93,6 +82,25 @@ def cgp_cmd(gens):
     )
 
     list(ea)
+
+##############################
+# cli entry point
+##############################
+@click.group(invoke_without_command=True)
+def cli():
+    """Example of Cartesian Genetic Programming."""
+    # If no command is given, just run CGP
+    do_cgp(100)
+
+
+##############################
+# cgp command
+##############################
+@cli.command(name='cgp')
+@click.option('--gens', default=100)
+def cgp_cmd(gens):
+    """Use an evolutionary CGP approach to solve the XOR function."""
+    do_cgp(100)
 
 
 ##############################
