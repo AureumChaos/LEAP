@@ -14,6 +14,41 @@ from leap_ec.parsimony import koza_parsimony, lexical_parsimony
 
 decoder = IdentityDecoder()
 
+
+def test_koza_maximization():
+    """
+        Tests the koza_parsimony() function for maximization problems
+    """
+    problem = SpheroidProblem(maximize=True)
+
+    pop = []
+
+    # We set up three individuals in ascending order of fitness of
+    # [0, 1, 2]
+    pop.append(Individual([0], problem=problem, decoder=decoder))
+    pop.append(Individual([1], problem=problem, decoder=decoder))
+    pop.append(Individual([0,0,1,1], problem=problem, decoder=decoder))
+
+    pop = Individual.evaluate_population(pop)
+
+    # Now truncate down to the "best" that should be the third one
+    best = ops.truncation_selection(pop, size=1)
+    assert best[0].genome == [0,0,1,1]
+
+    # This is just to look at the influence of the parsimony pressure on
+    # the order of the individual.  You should observe that the order is now
+    # ([0,0,1,1], [0], [1]) because now their biased fitnesses are respectively
+    # (-2, -1, 0)
+    pop.sort(key=koza_parsimony(penalty=1))
+
+    # Ok, now we want to turn on parsimony pressure, which should knock the
+    # really really really long genome out of the running for "best"
+    best = ops.truncation_selection(pop, size=1, key=koza_parsimony(penalty=1))
+
+    assert best[0].genome == [1]
+
+
+
 def test_koza_minimization():
     """
         Tests the koza_parsimony() function
