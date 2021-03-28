@@ -46,7 +46,10 @@ def lexical_parsimony(ind):
     # know if this was a maximization or minimization problem.  If not
     # we can switch on ind.problem.maximization, but that is only supported
     # by ScalarProblems, which may not be a big deal.
-    return (ind.fitness, -len(ind.genome))
+    if ind.problem.maximize:
+        return (ind.fitness, -len(ind.genome))
+    else:
+        return (-ind.fitness, -len(ind.genome))
 
 
 @curry
@@ -88,6 +91,6 @@ def koza_parsimony(ind, *, penalty):
     if ind.problem.maximize:
         biased_fitness = ind.fitness - penalty * len(ind.genome)
     else:
-        biased_fitness = ind.fitness + penalty * len(ind.genome)
+        biased_fitness = - ind.fitness + penalty * len(ind.genome)
 
     return biased_fitness
