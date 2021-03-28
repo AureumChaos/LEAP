@@ -51,28 +51,29 @@ def test_koza_maximization():
 
 def test_koza_minimization():
     """
-        Tests the koza_parsimony() function
+        Tests the koza_parsimony() function for _minimization_ problems.
     """
     problem = SpheroidProblem(maximize=False)
 
     pop = []
 
-    pop.append(Individual([0,0,0,0,0,0,0,0], problem=problem, decoder=decoder))
-    pop.append(Individual([1,1,1], problem=problem, decoder=decoder))
-    pop.append(Individual([2,2,2], problem=problem, decoder=decoder))
+    # We set up three individuals in ascending order of fitness of
+    # [4, 1, 0]
+    pop.append(Individual([0], problem=problem, decoder=decoder))
+    pop.append(Individual([1], problem=problem, decoder=decoder))
+    pop.append(Individual([2], problem=problem, decoder=decoder))
 
     pop = Individual.evaluate_population(pop)
-    pop.sort() # sort by fitness
+    pop.sort() # sort by fitness so that we can observe order of [2,1,0]
 
     # Now truncate down to the "best" which should be the one with all zeroes.
     best = ops.truncation_selection(pop, size=1)
 
-    assert best[0].genome == [0,0,0,0,0,0,0,0]
+    assert best[0].genome == [0]
 
+    # FIXME observe that the sorted order is NOT what we expected
     pop.sort(key=koza_parsimony(penalty=1))
 
-    # Ok, now we want to turn on parsimony pressure, which should knock the
-    # really really really long genome out of the running for "best"
-    best = ops.truncation_selection(pop, size=2, key=koza_parsimony(penalty=1))
+    best = ops.truncation_selection(pop, size=1, key=koza_parsimony(penalty=1))
 
-    assert best[0].genome == [0,0,0,0,0,0,0,0]
+    assert best[0].genome == [0]
