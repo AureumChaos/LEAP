@@ -1344,6 +1344,7 @@ class ZDT1Problem(MultiObjectiveToolkitProblem):
             maximize = [ False, False ]
         )
 
+
 ##############################
 # Class ZTD2Problem
 ##############################
