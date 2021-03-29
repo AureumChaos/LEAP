@@ -89,5 +89,27 @@ def test_lexical_maximization():
 
     best = ops.truncation_selection(pop, size=1, key=lexical_parsimony)
 
-    # prefers the shorter of the 3 fitness genomes
+    # prefers the shorter of the 3 genomes
     assert best[0].genome == [1,1,1]
+
+
+def test_lexical_minimization():
+    """
+        Tests lexical_parsimony() for minimization problems
+    """
+    problem = SpheroidProblem(maximize=False)
+
+    pop = []
+
+    # fitness=4, len(genome)=1
+    pop.append(Individual([2], problem=problem, decoder=decoder))
+
+    # fitness=4, len(genome)=4
+    pop.append(Individual([1,1,1,1], problem=problem, decoder=decoder))
+
+    pop = Individual.evaluate_population(pop)
+
+    best = ops.truncation_selection(pop, size=1, key=lexical_parsimony)
+
+    # prefers the shorter of the genomes with equivalent fitness
+    assert best[0].genome == [2]
