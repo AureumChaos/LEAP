@@ -193,8 +193,15 @@ BiBTeX::
             Url = {https://doi.org/10.1145/3377929.3398147},
             Year = {2020}}
 
-.. bibliography:: leap.bib
-    :cited:
+
+
+Mark A. Coletti, Eric O. Scott, and Jeffrey K. Bassett. "Library for
+evolutionary algorithms in python (LEAP)."
+In Proceedings of the 2020 Genetic and Evolutionary Computation Conference
+Companion, GECCO '20, 1571–1579. New York, NY, USA, 2020. Association for
+Computing Machinery. URL: https://doi.org/10.1145/3377929.3398147,
+doi:10.1145/3377929.3398147.
+
 
 Acknowledgements
 ----------------
@@ -206,4 +213,3 @@ DE-AC05-00OR22725.
 
 We would also like to thank the Department of Energy's Vehicle Technologies
 Office (VTO) for their funding support.
-

@@ -79,8 +79,8 @@ def koza_parsimony(ind, *, penalty):
     .. math::
         f_p(x) = f(x) - cl(x)
 
-        Where f(x) is original fitness, c is a penalty constant, and l(x)
-        is the genome length.
+    Where f(x) is original fitness, c is a penalty constant, and l(x)
+    is the genome length.
 
     :param ind: to be compared
     :param penalty: for denoting penalty strength
