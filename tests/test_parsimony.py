@@ -9,6 +9,7 @@
 from leap_ec.individual import Individual
 from leap_ec.decoder import IdentityDecoder
 from leap_ec.real_rep.problems import SpheroidProblem
+from leap_ec.binary_rep.problems import MaxOnes
 import leap_ec.ops as ops
 from leap_ec.parsimony import koza_parsimony, lexical_parsimony
 
@@ -48,7 +49,6 @@ def test_koza_maximization():
     assert best[0].genome == [1]
 
 
-
 def test_koza_minimization():
     """
         Tests the koza_parsimony() function for _minimization_ problems.
@@ -68,3 +68,26 @@ def test_koza_minimization():
     best = ops.truncation_selection(pop, size=1, key=koza_parsimony(penalty=1))
 
     assert best[0].genome == [2]
+
+
+def test_lexical_maximization():
+    """
+        Tests the lexical_parsimony() for maximization problems
+    """
+    problem = MaxOnes()
+
+    # fitness=3, len(genome)=6
+    pop = [Individual([0, 0, 0, 1, 1, 1], problem=problem, decoder=decoder)]
+
+    # fitness=2, len(genome)=2
+    pop.append(Individual([1, 1], problem=problem, decoder=decoder))
+
+    # fitness=3, len(genome)=3
+    pop.append(Individual([1, 1, 1], decoder=decoder, problem=problem))
+
+    pop = Individual.evaluate_population(pop)
+
+    best = ops.truncation_selection(pop, size=1, key=lexical_parsimony)
+
+    # prefers the shorter of the 3 fitness genomes
+    assert best[0].genome == [1,1,1]
