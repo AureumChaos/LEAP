@@ -41,14 +41,12 @@ def lexical_parsimony(ind):
     :param ind: to be compared
     :return: altered comparison criteria
     """
-    # TODO I think this assumes for maximization only, but not if the
-    # first argument is handled by the associated Problem, which would
-    # know if this was a maximization or minimization problem.  If not
-    # we can switch on ind.problem.maximization, but that is only supported
-    # by ScalarProblems, which may not be a big deal.
     if ind.problem.maximize:
         return (ind.fitness, -len(ind.genome))
     else:
+        # Because we are using a key function we are bypassing the
+        # ScalarProblem.worse_than() that would invert the fitnesses, so we
+        # have to do this here by flipping the sign.
         return (-ind.fitness, -len(ind.genome))
 
 
@@ -91,6 +89,9 @@ def koza_parsimony(ind, *, penalty):
     if ind.problem.maximize:
         biased_fitness = ind.fitness - penalty * len(ind.genome)
     else:
-        biased_fitness = - ind.fitness + penalty * len(ind.genome)
+        # Because we are using a key function we are bypassing the
+        # ScalarProblem.worse_than() that would invert the fitnesses, so we
+        # have to do this here by flipping the sign.
+        biased_fitness = - ind.fitness - penalty * len(ind.genome)
 
     return biased_fitness
