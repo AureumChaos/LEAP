@@ -11,8 +11,12 @@ before solving it.
 There are dozens of traditional ELA features.  Most are described in the following two 
 seminal papers:
 
- * Mersmann, Olaf, et al. "`Exploratory landscape analysis <https://dl.acm.org/doi/abs/10.1145/2001576.2001690>`_." *Proceedings of the 13th annual conference on Genetic and evolutionary computation.* 2011.
- * Kerschke, Pascal, et al. "`Cell mapping techniques for exploratory landscape analysis <https://link.springer.com/chapter/10.1007/978-3-319-07494-8_9>`_." *EVOLVE-A Bridge between Probability, Set Oriented Numerics, and Evolutionary Computation V.* Springer, Cham, 2014. 115-131.
+ * Mersmann, Olaf, et al. "`Exploratory landscape analysis <https://dl.acm.org/doi/abs/10.1145/2001576.2001690>`_."
+   *Proceedings of the 13th annual conference on Genetic and evolutionary computation.* 2011.
+
+ * Kerschke, Pascal, et al. "`Cell mapping techniques for exploratory landscape analysis
+   <https://link.springer.com/chapter/10.1007/978-3-319-07494-8_9>`_." *EVOLVE-A Bridge between Probability, Set
+   Oriented Numerics, and Evolutionary Computation V.* Springer, Cham, 2014. 115-131.
 
 """
 import numpy as np
@@ -271,9 +275,14 @@ class ELAConvexity():
         :math:`| \\delta |` values."""
         return np.mean([ np.abs(d) for d in self.deltas ])
 
-    def results_table(self):
+    def results_table(self, function_name=None):
         """Return a Pandas dataframe as a convenience, with one row for each computed feature."""
-        return pd.DataFrame([   {'Feature': 'P(convex)', 'Value': self.convex_p() },
-                                {'Feature': 'Convex deviation', 'Value': self.convex_deviation() },
-                                {'Feature': 'P(linear)', 'Value': self.linear_p() },
-                                {'Feature': 'Linear deviation', 'Value': self.linear_deviation() } ])
+        if function_name is None:
+            function_name = str(self.problem)
+
+        return pd.DataFrame([{ 'Function': function_name,
+                               'P(convex)': self.convex_p(),
+                               'Convex_deviation': self.convex_deviation(),
+                               'P(linear)': self.linear_p(),
+                               'Linear_deviation': self.linear_deviation()
+                            }])
