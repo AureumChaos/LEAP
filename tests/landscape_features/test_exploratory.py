@@ -101,18 +101,18 @@ def test_spheroid_linear_deviation():
         }
 
 
-        x <- replicate(1000, do_features()$ela_conv.lin_dev.orig)
+        x <- replicate(100, do_features()$ela_conv.lin_dev.orig)
         hist(x)
         mean(x)
-        # Output: -29.106
+        # Output: -29.18858
         sd(x)
-        # Output: 0.6924963
+        # Output: 0.6097511
 
     
     """
-    reference_mean = -29.106
-    reference_std = 0.6924963
-    num_reference_observations = 1000
+    reference_mean = -29.18858
+    reference_std = 0.6097511
+    num_reference_observations = 100
     p = 0.05
 
     x = [ spheroid_convex().linear_deviation() for _ in range(num_reference_observations) ]
