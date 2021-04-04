@@ -5,6 +5,7 @@ from scipy import stats
 from leap_ec.individual import Individual
 from leap_ec.real_rep import ops
 
+
 ##############################
 # Tests for mutate_gaussian()
 ##############################
@@ -16,6 +17,7 @@ def test_mutate_gaussian():
 
     gene0_values = []
     gene1_values = []
+    op =ops.mutate_gaussian(std=1.0, expected_num_mutations='isotropic')
 
     for _ in range(N):
         # Set up two parents with fixed genomes, two genes each
@@ -23,7 +25,7 @@ def test_mutate_gaussian():
         population = iter([ind1])
         
         # Mutate
-        result = ops.mutate_gaussian(population, std=1.0, expected_num_mutations='isotropic')
+        result = op(population)
         result = next(result)  # Pulse the iterator
 
         gene0_values.append(result.genome[0])
