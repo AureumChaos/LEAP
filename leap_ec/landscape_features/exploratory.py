@@ -138,8 +138,6 @@ class ELAConvexity():
 
     >>> x = convex.convex_p()
 
-    >>> x = convex.convex_deviation()
-
     >>> x = convex.linear_p()
 
     >>> x = convex.linear_deviation()
@@ -194,9 +192,9 @@ class ELAConvexity():
         combinations = []
         deltas = []
         for _ in range(self.num_convexity_tests):
-            # Choose two individuals from the initial experiment design
-            x = np.random.choice(self.design_individuals)
-            y = np.random.choice(self.design_individuals)
+            # Choose two individuals from the initial experiment design without replacement
+            # (so the same individual is not chosen twice)
+            x, y = np.random.choice(self.design_individuals, size=2, replace=False)
             pairs.append((x, y))
 
             # Find the convex combination of the original fitnesses
@@ -205,8 +203,8 @@ class ELAConvexity():
             f = a*x.fitness + b*y.fitness
 
             # Sample another point by taking the same convex combination of x and y
-            x_genome = np.array(x.genome)
-            y_genome = np.array(y.genome)
+            x_genome = x.genome
+            y_genome = y.genome
             p_genome = a*x_genome + b*y_genome
 
             # Evalute the new point's fitness
@@ -242,11 +240,6 @@ class ELAConvexity():
         assert(ratio <= 1.0)
         return ratio
 
-    def convex_deviation(self):
-        """Estimate the deviation of the landscape from convexity by averaging the :math:`\\delta`
-        values."""
-        return np.mean(self.deltas)
-
     def linear_p(self, threshold: float=-0.0000000001):
         """Estimate the probability that the landscape is linear by calculating the frequency
         with which
@@ -271,9 +264,17 @@ class ELAConvexity():
         return ratio
 
     def linear_deviation(self):
-        """Estimate the deviation of the landscape from linearity by averaging over the
-        :math:`| \\delta |` values."""
-        return np.mean([ np.abs(d) for d in self.deltas ])
+        """Estimate the deviation of the landscape from linearity by averaging the :math:`\\delta`
+        values."""
+        return np.mean(self.deltas)
+
+    def linear_deviation_abs(self):
+        """Estimate the deviation of the landscape of linearity by averagin the absolute value
+        :math:`|\\delta|` of the computed deltas.
+        
+        Sometimes this is simply the negative of linear_deviation() (ex. when the function is
+        completely convex), but other times the two values differ considerably."""
+        return np.mean(np.abs(self.deltas))
 
     def results_table(self, function_name=None):
         """Return a Pandas dataframe as a convenience, with one row for each computed feature."""
@@ -282,7 +283,7 @@ class ELAConvexity():
 
         return pd.DataFrame([{ 'Function': function_name,
                                'P(convex)': self.convex_p(),
-                               'Convex_deviation': self.convex_deviation(),
                                'P(linear)': self.linear_p(),
-                               'Linear_deviation': self.linear_deviation()
+                               'Linear_deviation': self.linear_deviation(),
+                               'Linear_deviation_abs': self.linear_deviation_abs()
                             }])
