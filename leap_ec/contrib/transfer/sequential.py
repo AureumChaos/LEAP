@@ -106,11 +106,12 @@ def initialize_seeded(initialize, seed_pop):
     into the population, and fills the remaining space with newly generated
     individuals.
 
+    >>> import numpy as np
     >>> from leap_ec.real_rep.initializers import create_real_vector
     >>> random_init = create_real_vector(bounds=[[0, 0]] * 2)
-    >>> init = initialize_seeded(random_init, [[5.0, 5.0], [4.5, -6]])
+    >>> init = initialize_seeded(random_init, [np.array([5.0, 5.0]), np.array([4.5, -6])])
     >>> [init() for _ in range(5)]
-    [[5.0, 5.0], [4.5, -6], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
+    [array([5., 5.]), array([ 4.5, -6. ]), array([0., 0.]), array([0., 0.]), array([0., 0.])]
 
     """
     assert (initialize is not None)

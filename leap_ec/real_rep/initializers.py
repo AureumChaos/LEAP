@@ -2,7 +2,8 @@
 """
     Initializers for real values.
 """
-import random
+import numpy as np
+
 from leap_ec.individual import Individual
 
 ##############################
@@ -35,7 +36,10 @@ def create_real_vector(bounds):
 
     """
 
+    low = [ l for l, _ in bounds ]
+    high = [ h for _, h in bounds ]
+
     def create():
-        return [random.uniform(min_, max_) for min_, max_ in bounds]
+        return np.random.uniform(low, high, size=len(bounds))
 
     return create
