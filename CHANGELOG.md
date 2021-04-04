@@ -4,12 +4,13 @@ Being a terse compilation by version of changes.
 
 ## 0.6.0
 
+* Added `landscape_features` package with some initial exploratory landscape analysis tools
 * Added a new example demonstrating integer representations
 * Added a `mutate_binomial()` for integer representations
 * Added elitism
 * Add visualization of ANN weights for `SimpleNeuralNetworkExecutable` phenotypes
 * Significantly refactored the `executable_rep.rules` package to simplify learning classifier systems
-* Added a `make test-slow` harness that run the `examples/` scripts
+* Added a `make test-slow` harness that runs the `examples/` scripts
 * Incremental changes:
   * `Representation` now uses a phenotypic representation (`IdentityDecoder`) by default
   * Mutation operators no longer have default mutation rates (they must be explicitly set by the user).
