@@ -1312,7 +1312,7 @@ class MatrixTransformedProblem(ScalarProblem):
 # Function plot_2d_problem
 ##############################
 def plot_2d_problem(problem, xlim, ylim, kind='surface',
-                    ax=None, granularity=None, title=None):
+                    ax=None, granularity=None, title=None, pad=()):
     """
     Convenience function for plotting a :class:`~leap.problem.Problem` that
     accepts 2-D real-valued phenomes and produces a 1-D scalar fitness output.
@@ -1326,6 +1326,8 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
     :type ylim: (float, float)
     :param kind: The kind of plot to create: 'surface' or 'contour'
     :type kind: str
+    :param pad: A list of extra gene values, used to fill in the hidden 
+        dimensions with contants while drawing fitness contours.
 
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
         be created).
@@ -1380,9 +1382,9 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
                              "granularity to plot the problem.")
 
     if kind == 'surface':
-        return plot_2d_function(call, xlim, ylim, granularity, ax, title)
+        return plot_2d_function(call, xlim, ylim, granularity, ax, title, pad)
     elif kind == 'contour':
-        return plot_2d_contour(call, xlim, ylim, granularity, ax, title)
+        return plot_2d_contour(call, xlim, ylim, granularity, ax, title, pad)
     else:
         raise ValueError(f'Unrecognized plot kind: "{kind}".')
 
@@ -1390,7 +1392,7 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
 ##############################
 # Function plot_2d_function
 ##############################
-def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None):
+def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=()):
     """
     Convenience method for plotting a function that accepts 2-D real-valued
     imputs and produces a 1-D scalar output.
@@ -1402,6 +1404,8 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None):
     :type ylim: (float, float)
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will be created).
     :param float granularity: Spacing of the grid to sample points along.
+    :param pad: A list of extra gene values, used to fill in the hidden 
+        dimensions with contants while drawing fitness contours.
 
     The difference between this and :meth:`plot_2d_problem` is that this
     takes a raw function (instead of a :class:`~leap.problem.Problem` object).
@@ -1429,7 +1433,7 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None):
 
     @np.vectorize
     def v_fun(x, y):
-        return fun([x, y])
+        return fun([x, y] + list(pad))
 
     x = np.arange(xlim[0], xlim[1], granularity)
     y = np.arange(ylim[0], ylim[1], granularity)
@@ -1444,7 +1448,7 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None):
 ##############################
 # Function plot_2d_contour
 ##############################
-def plot_2d_contour(fun, xlim, ylim, granularity, ax=None, title=None):
+def plot_2d_contour(fun, xlim, ylim, granularity, ax=None, title=None, pad=()):
     """
     Convenience method for plotting contours for a function that accepts 2-D
     real-valued inputs and produces a 1-D scalar output.
@@ -1454,11 +1458,11 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None, title=None):
     :type xlim: (float, float)
     :param ylim: Bounds of the vertical axis.
     :type ylim: (float, float)
-
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
         be created).
-
     :param float granularity: Spacing of the grid to sample points along.
+    :param pad: A list of extra gene values, used to fill in the hidden 
+        dimensions with contants while drawing fitness contours.
 
     The difference between this and :meth:`plot_2d_problem` is that this
     takes a raw function (instead of a :class:`~leap.problem.Problem` object).
@@ -1488,7 +1492,7 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None, title=None):
 
     @np.vectorize
     def v_fun(x, y):
-        return fun([x, y])
+        return fun([x, y] + list(pad))
 
     x = np.arange(xlim[0], xlim[1], granularity)
     y = np.arange(ylim[0], ylim[1], granularity)
@@ -1498,7 +1502,3 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None, title=None):
         ax.set_title(title)
 
     return ax.contour(xx, yy, v_fun(xx, yy))
-
-
-if __name__ == '__main__':
-    pass
