@@ -1,9 +1,9 @@
 """
-    Tests for leap_ec.distributed.evaluate.
+    Tests for leap_ec.distrib.evaluate.
 """
 from leap_ec.individual import Individual
 from leap_ec.binary_rep.problems import MaxOnes
-from leap_ec.distributed.evaluate import evaluate
+from leap_ec.distrib.evaluate import evaluate
 
 # FIXME unable to use this standard import for Client, and I don't know why
 from dask.distributed import Client
@@ -12,7 +12,7 @@ from dask.distributed import Client
 def test_good_eval():
     """
         This is for testing a plain ole good individual to ensure that
-        leap_ec.distributed.evaluate works for normal circumstances.
+        leap_ec.distrib.evaluate works for normal circumstances.
     """
     # set up a basic dask local cluster
     # with Client() as client:

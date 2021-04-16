@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Simple example of using leap_ec.distributed.synchronous
+""" Simple example of using leap_ec.distrib.synchronous
 
 """
 import multiprocessing.popen_spawn_posix  # Python 3.9 workaround for Dask.  See https://github.com/dask/distributed/issues/4168
@@ -13,8 +13,8 @@ from leap_ec.binary_rep.problems import MaxOnes
 from leap_ec.binary_rep.initializers import create_binary_sequence
 from leap_ec.binary_rep.ops import mutate_bitflip
 
-from leap_ec.distributed.individual import DistributedIndividual
-from leap_ec.distributed import synchronous
+from leap_ec.distrib.individual import DistributedIndividual
+from leap_ec.distrib import synchronous
 
 if __name__ == '__main__':
 

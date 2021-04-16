@@ -22,7 +22,7 @@ def evaluate(individual, context=context):
 
     An individual is viable if an exception is NOT thrown, else it is NOT a
     viable individual.  If not viable, we increment the context['leap'][
-    'distributed']['non_viable'] count to track such instances.
+    'distrib']['non_viable'] count to track such instances.
 
     This function sets:
 
@@ -53,7 +53,7 @@ def evaluate(individual, context=context):
         # is_viable will be False if an exception was thrown during evaluation.
         # We track the number of such failures on the off chance that this
         # might be useful.
-        context['leap']['distributed']['non_viable'] += 1
+        context['leap']['distrib']['non_viable'] += 1
 
         if hasattr(worker, 'logger'):
             worker.logger.warning(

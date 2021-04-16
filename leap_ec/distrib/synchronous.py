@@ -57,7 +57,7 @@ def eval_pool(next_individual, client, size, context=context):
     If an exception is thrown while evaluating an individual, NaN is assigned
     as its fitness, individual.is_viable is set to False, and the associated
     exception is assigned to individual.exception as a post mortem aid; also
-    core.context['leap']['distributed']['non_viables'] count is incremented
+    core.context['leap']['distrib']['non_viables'] count is incremented
     if you want to track the number of non-viable individuals (i.e.,
     those that have an exception thrown during evaluation); just remember to
     reset that between runs if that variable has been updated.

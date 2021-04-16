@@ -41,7 +41,7 @@ def eval_population(population, client, context=context):
     :param population: to be evaluated
     :param client: dask client
     :param context: for storing count of non-viable individuals
-    :return: dask distributed iterator for futures
+    :return: dask distrib iterator for futures
     """
     # farm out population to worker nodes for evaluation
     worker_futures = client.map(evaluate(context=context), population)

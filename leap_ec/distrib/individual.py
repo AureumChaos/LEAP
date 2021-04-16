@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-    Subclass of core.Individual that adds some state relevant for distributed
+    Subclass of core.Individual that adds some state relevant for distrib
     runs.
 
     Adds:

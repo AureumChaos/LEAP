@@ -463,7 +463,7 @@ class ShekelProblem(ScalarProblem):
 class GriewankProblem(ScalarProblem):
     """The classic Griewank problem.  Like the
     :class:`~leap.RastriginProblem` function, the Griewank has
-    a quadratic global structure with many local optima that are distributed
+    a quadratic global structure with many local optima that are distrib
     in a regular pattern.
 
     .. math::
@@ -828,7 +828,7 @@ class LunacekProblem(ScalarProblem):
 class SchwefelProblem(ScalarProblem):
     """
     Schwefel's function is another traditional multimodal test function whose
-    local optima are distributed in a slightly irregular way, and whose
+    local optima are distrib in a slightly irregular way, and whose
     global optimum is out at the edge of the search space (with no gently
     sloping macrostructure to guide the algorithm toward it).
 
@@ -1326,7 +1326,7 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
     :type ylim: (float, float)
     :param kind: The kind of plot to create: 'surface' or 'contour'
     :type kind: str
-    :param pad: A list of extra gene values, used to fill in the hidden 
+    :param pad: A list of extra gene values, used to fill in the hidden
         dimensions with contants while drawing fitness contours.
 
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
@@ -1404,7 +1404,7 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=
     :type ylim: (float, float)
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will be created).
     :param float granularity: Spacing of the grid to sample points along.
-    :param pad: A list of extra gene values, used to fill in the hidden 
+    :param pad: A list of extra gene values, used to fill in the hidden
         dimensions with contants while drawing fitness contours.
 
     The difference between this and :meth:`plot_2d_problem` is that this
@@ -1461,7 +1461,7 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None, title=None, pad=()):
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
         be created).
     :param float granularity: Spacing of the grid to sample points along.
-    :param pad: A list of extra gene values, used to fill in the hidden 
+    :param pad: A list of extra gene values, used to fill in the hidden
         dimensions with contants while drawing fitness contours.
 
     The difference between this and :meth:`plot_2d_problem` is that this
