@@ -22,7 +22,7 @@ setup(
     python_requires='>=3.6',
     install_requires=[
         'dask[complete]', # Used for parallel and distributed algorithms
-        #'distributed',  # Used for parallel and distributed algorithms
+        'distributed',  # Used for parallel and distributed algorithms
         'matplotlib',   # Used in visualizations
         'networkx',     # Used to specify island model topologies
         'numpy',        # Used for vector math
