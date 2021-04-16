@@ -162,7 +162,7 @@ if __name__ == '__main__':
 
         final_pop = asynchronous.steady_state(client,
                                               births=args.max_births,
-                                              init_pop_size=5,
+                                              init_pop_size=args.init_pop_size,
                                               pop_size=args.pop_size,
 
                                               representation=Representation(

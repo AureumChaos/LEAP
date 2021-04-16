@@ -7,7 +7,7 @@ Welcome to LEAP: Library for Evolutionary Algorithms in Python's documentation!
 ===============================================================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
    Quickstart Guide <readme>
@@ -19,6 +19,7 @@ Welcome to LEAP: Library for Evolutionary Algorithms in Python's documentation!
    Cookbook <cookbook>
    Roadmap <roadmap>
    API <leap_ec>
+   References <bibliography>
 
 
 Indices and tables
