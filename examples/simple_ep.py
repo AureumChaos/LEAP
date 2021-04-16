@@ -65,7 +65,7 @@ if __name__ == '__main__':
         offspring = pipe(parents,
                          ops.cyclic_selection,
                          ops.clone,
-                         mutate_gaussian(std=.1),
+                         mutate_gaussian(std=.1, expected_num_mutations='isotropic'),
                          ops.evaluate,
                          # create the brood
                          ops.pool(size=len(parents) * BROOD_SIZE),

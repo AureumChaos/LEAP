@@ -576,6 +576,8 @@ class PlotTrajectoryProbe:
         `bounds` attribute.
     :param int modulo: take and plot a measurement every `modulo` steps (
         default 1).
+    :param pad: A list of extra gene values, used to fill in the hidden 
+        dimensions with contants while drawing fitness contours.
 
     Attach this probe to matplotlib :class:`Axes` and then insert it into an
     EA's operator pipeline to get a live fitness plot that updates every
@@ -674,13 +676,13 @@ class PlotTrajectoryProbe:
 
     def __init__(self, ax=None, xlim=(-5.12, 5.12), ylim=(-5.12, 5.12),
                  contours=None, granularity=None,
-                 modulo=1, context=context):
+                 modulo=1, context=context, pad=()):
         if ax is None:
             _, ax = plt.subplots()
         if contours:
             @np.vectorize
             def v_fun(x, y):
-                return contours.evaluate([x, y])
+                return contours.evaluate([x, y] + list(pad))
 
             if granularity is None:
                 granularity = (contours.bounds[1] - contours.bounds[0]) / 50.

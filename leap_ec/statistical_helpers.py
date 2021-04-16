@@ -1,7 +1,8 @@
 """Helpers for testing the output of stochastic functions."""
 from typing import Dict
 
-from scipy.stats import chisquare
+import numpy as np
+from scipy.stats import chisquare, ttest_ind_from_stats
 
 
 def collect_distribution(function, samples: int):
@@ -118,3 +119,21 @@ def equals_uniform(observed_distribution: Dict, p: float) -> bool:
     num_keys = len(observed_distribution.keys())
     expected_distribution = { k: n/num_keys for k in observed_distribution.keys() }
     return stochastic_equals(expected_distribution, observed_distribution, p)
+
+
+def equals_gaussian(observed_samples, reference_mean: float, reference_std: float, num_reference_observations: int, p: float) -> bool:
+    """A convenience function for computing a t-test for equality of two independent samples, using samples from one and test
+    statistics from the other.
+
+    Assumes equal variance samples.
+    
+    >>> import numpy as np
+    >>> observed = np.random.normal(15, 1, size=1000)
+    >>> equals_gaussian(observed, 15, 1, 1000, p=0.05)
+    True
+    """
+    mu, sigma = np.mean(observed_samples), np.std(observed_samples)
+    result = ttest_ind_from_stats(mu, sigma, len(observed_samples),
+                                  reference_mean, reference_std, num_reference_observations)
+
+    return result.pvalue > p

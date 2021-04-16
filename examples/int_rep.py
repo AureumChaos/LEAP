@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     l = 2
     pop_size = 10
-    ea = generational_ea(generations=1000,pop_size=pop_size,
+    ea = generational_ea(generations=100,pop_size=pop_size,
                              problem=problem,  # Fitness function
 
                              # Representation
@@ -58,4 +58,3 @@ if __name__ == '__main__':
                         )
 
     list(ea)
-    plt.show()

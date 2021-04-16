@@ -23,11 +23,12 @@ ea = generational_ea(generations=10, pop_size=pop_size,
                      ),
 
                      # The operator pipeline
-                     pipeline=[ops.tournament_selection,
+                     pipeline=[
                                # Select parents via tournament_selection selection
+                               ops.tournament_selection,
                                ops.clone,  # Copy them (just to be safe)
                                # Basic mutation with a 1/L mutation rate
-                                   mutate_bitflip(expected_num_mutations=1),
+                               mutate_bitflip(expected_num_mutations=1),
                                # Crossover with a 40% chance of swapping each gene
                                ops.uniform_crossover(p_swap=0.4),
                                ops.evaluate,  # Evaluate fitness

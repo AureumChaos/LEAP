@@ -174,3 +174,15 @@ def test_const_evaluate():
     for ind in pop:
         assert(pytest.approx(123456789.0) == ind.fitness)
 
+
+##############################
+# Test pool()
+##############################
+def test_pool():
+    """If a pool of size 3 is used, the first 3 individuals in the input iterator should be collected
+    into a list."""
+    pop = iter([ 'a', 'b', 'c', 'd', 'e' ])
+    pop = ops.pool(pop, size=3)
+
+    assert(len(pop) == 3)
+    assert(pop == [ 'a', 'b', 'c' ])

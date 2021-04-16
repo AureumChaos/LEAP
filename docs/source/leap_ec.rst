@@ -12,6 +12,7 @@ Subpackages
    leap_ec.distributed
    leap_ec.executable_rep
    leap_ec.int_rep
+   leap_ec.landscape_features
    leap_ec.real_rep
    leap_ec.segmented_rep
 
