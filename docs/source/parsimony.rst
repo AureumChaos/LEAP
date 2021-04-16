@@ -7,10 +7,10 @@ or the accumulation of "junk DNA" over time.
 
 LEAP currently provides two approaches to mitigating bloat.  First is a very
 simple "genome tax," or penalty by genome length, popularized by
-Koza :cite:`Koza1992`.  The second is lexicographical
+Koza [Koza1992]_.  The second is lexicographical
 parsimony, or "tie breaking parsimony," where the individual with the shortest
 genome is returned if their respective fitnesses happen to be
-equivalent :cite:`Luke2002`.
+equivalent [Luke2002]_.
 
 .. footbibliography::
 
