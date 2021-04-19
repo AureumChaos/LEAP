@@ -377,6 +377,10 @@ def uniform_crossover(next_individual: Iterator,
             yield parent2
         else:  # Else do crossover
             child1, child2 = _uniform_crossover(parent1, parent2, p_swap)
+
+            # Invalidate fitness since the genomes have changed
+            child1.fitness = child2.fitness = None
+
             yield child1
             yield child2
 
@@ -474,7 +478,8 @@ def n_ary_crossover(next_individual: Iterator,
 @curry
 @listlist_op
 def truncation_selection(offspring: List, size: int,
-                         parents: List = None) -> List:
+                         parents: List = None,
+                         key = None) -> List:
     """ return the `size` best individuals from the given population
 
         This defaults to (mu, lambda) if `parents` is not given.
@@ -504,11 +509,18 @@ def truncation_selection(offspring: List, size: int,
                                   with population for downsizing
         :return: truncated population
     """
-    if parents is not None:
-        return list(toolz.itertoolz.topk(
-            size, itertools.chain(offspring, parents)))
+    if key:
+        if parents is not None:
+            return list(toolz.itertoolz.topk(
+                size, itertools.chain(offspring, parents), key=key))
+        else:
+            return list(toolz.itertoolz.topk(size, offspring, key=key))
     else:
-        return list(toolz.itertoolz.topk(size, offspring))
+        if parents is not None:
+            return list(toolz.itertoolz.topk(
+                size, itertools.chain(offspring, parents)))
+        else:
+            return list(toolz.itertoolz.topk(size, offspring))
 
 
 ##############################
@@ -516,7 +528,7 @@ def truncation_selection(offspring: List, size: int,
 ##############################
 @curry
 @listlist_op
-def elitist_survival(offspring: List, parents: List, k: int = 1) -> List:
+def elitist_survival(offspring: List, parents: List, k: int = 1, key = None) -> List:
     """ This allows k best parents to compete with the offspring.
 
         >>> from leap_ec.individual import Individual
@@ -559,6 +571,8 @@ def elitist_survival(offspring: List, parents: List, k: int = 1) -> List:
     :param offspring: list of created offpring, probably from pool()
     :param parents: list of parents, usually the ones that offspring came from
     :param k: how many elites from parents to keep?
+    :param key: optional key criteria for selecting; e.g., can be used to impose
+        parsimony pressure
     :return: surviving population, which will be offspring with offspring
         replaced by any superior parent elites
     """
@@ -567,12 +581,18 @@ def elitist_survival(offspring: List, parents: List, k: int = 1) -> List:
     original_num_offspring = len(offspring)
 
     # Append the requested number of best parents to the offspring.
-    elites = list(toolz.itertoolz.topk(k, parents))
+    if key:
+        elites = list(toolz.itertoolz.topk(k, parents, key=key))
+    else:
+        elites = list(toolz.itertoolz.topk(k, parents))
     offspring.extend(elites)
 
     # Now return the offspring (plus possibly an elite) truncating the least
     # fit individual.
-    return list(toolz.itertoolz.topk(original_num_offspring, offspring))
+    if key:
+        return list(toolz.itertoolz.topk(original_num_offspring, offspring, key))
+    else:
+        return list(toolz.itertoolz.topk(original_num_offspring, offspring))
 
 
 ##############################
@@ -580,7 +600,7 @@ def elitist_survival(offspring: List, parents: List, k: int = 1) -> List:
 ##############################
 @curry
 @listiter_op
-def tournament_selection(population: List, k: int = 2) -> Iterator:
+def tournament_selection(population: List, k: int = 2, key = None) -> Iterator:
     """ Selects the best individual from k individuals randomly selected from
         the given population
 
@@ -600,15 +620,18 @@ def tournament_selection(population: List, k: int = 2) -> Iterator:
         >>> best = tournament_selection(pop)
 
         :param population: from which to select
-
         :param k: are randomly drawn from which to choose the best; by
-        default this is 2 for binary tournament selection
+            default this is 2 for binary tournament selection
+        :param key: optional max() key
 
         :return: the best of k individuals drawn from population
     """
     while True:
         choices = random.choices(population, k=k)
-        best = max(choices)
+        if key:
+            best = max(choices, key=key)
+        else:
+            best = max(choices)
 
         yield best
 
@@ -618,7 +641,7 @@ def tournament_selection(population: List, k: int = 2) -> Iterator:
 ##############################
 @curry
 @listlist_op
-def insertion_selection(offspring: List, parents: List) -> List:
+def insertion_selection(offspring: List, parents: List, key = None) -> List:
     """ do exclusive selection between offspring and parents
 
     This is typically used for Ken De Jong's EV algorithm for survival
@@ -633,14 +656,22 @@ def insertion_selection(offspring: List, parents: List) -> List:
     :param offspring: population to select from
     :param parents: parents that are copied and which the copies are
            potentially updated with better offspring
+    :param key: optional key for determining max() by other criteria such as
+        for parsimony pressure
     :return: the updated parent population
     """
     copied_parents = copy(parents)
     for child in offspring:
         selected_parent_index = random.randrange(len(copied_parents))
-        copied_parents[selected_parent_index] = max(child,
-                                                    copied_parents[
-                                                        selected_parent_index])
+        if key:
+            copied_parents[selected_parent_index] = max(child,
+                                                        copied_parents[
+                                                            selected_parent_index],
+                                                        key=key)
+        else:
+            copied_parents[selected_parent_index] = max(child,
+                                                        copied_parents[
+                                                            selected_parent_index])
 
         return copied_parents
 
