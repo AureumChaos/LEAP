@@ -1,8 +1,9 @@
-"""An example of an evolutionary algorithm that makes use of LEAP's integer
-representation.
+"""An example of an evolutionary algorithm with a basic real-vectored solution
+representation, and that logs several diversity metrics from the population to
+its CSV output.
 
-We use a generational EA with binomial mutation of integer genes to minimize an
-integer version of the Langermann function.
+We use a generational EA with Gaussian mutation of 2-D genomes to minimize
+the Langermann function.
 """
 import sys
 
@@ -11,8 +12,8 @@ from matplotlib import pyplot as plt
 from leap_ec.algorithm import generational_ea
 from leap_ec.representation import Representation
 from leap_ec import ops
-from leap_ec.int_rep.initializers import create_int_vector
-from leap_ec.int_rep.ops import mutate_binomial
+from leap_ec.real_rep.initializers import create_real_vector
+from leap_ec.real_rep.ops import mutate_gaussian
 from leap_ec import probe
 from leap_ec.real_rep.problems import LangermannProblem
 
@@ -34,7 +35,7 @@ if __name__ == '__main__':
                              # Representation
                              representation=Representation(
                                  # Initialize a population of integer-vector genomes
-                                 initialize=create_int_vector(
+                                 initialize=create_real_vector(
                                      bounds=[problem.bounds] * l)
                              ),
 
@@ -42,10 +43,9 @@ if __name__ == '__main__':
                              pipeline=[
                                  ops.tournament_selection(k=2),
                                  ops.clone,
-                                 # Apply binomial mutation: this is a lot like
-                                 # additive Gaussian mutation, but adds an integer
-                                 # value to each gene
-                                 mutate_binomial(std=1.5, bounds=[problem.bounds]*l,
+
+                                 # Apply Gaussian mutation
+                                 mutate_gaussian(std=1.5, hard_bounds=[problem.bounds]*l,
                                                  expected_num_mutations=1),
                                  ops.evaluate,
                                  ops.pool(size=pop_size),
@@ -57,11 +57,13 @@ if __name__ == '__main__':
                                         contours=problem),
                                  probe.FitnessPlotProbe(),
 
-                                 probe.PopulationMetricsPlotProbe(
-                                     metrics=[ probe.pairwise_squared_distance_metric ],
-                                     title='Population Diversity'),
-
-                                 probe.FitnessStatsCSVProbe(stream=sys.stdout)
+                                 # Collect diversity metrics along with the standard CSV columns
+                                 probe.FitnessStatsCSVProbe(stream=sys.stdout,
+                                    extra_metrics={
+                                        'diversity_pairwise_dist': probe.pairwise_squared_distance_metric,
+                                        'diversity_sum_variance': probe.sum_of_variances_metric,
+                                        'diversity_num_fixated': probe.num_fixated_metric
+                                        })
                              ]
                         )
 

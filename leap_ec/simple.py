@@ -73,7 +73,7 @@ def ea_solve(function, bounds, generations=100, pop_size=2,
     ]
 
     if viz:
-        plot_probe = probe.PopulationPlotProbe(ylim=viz_ylim, ax=plt.gca())
+        plot_probe = probe.FitnessPlotProbe(ylim=viz_ylim, ax=plt.gca())
         pipeline.append(plot_probe)
 
     ea = generational_ea(generations=generations, pop_size=pop_size,

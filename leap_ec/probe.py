@@ -91,12 +91,12 @@ class FitnessStatsCSVProbe(op.Operator):
     This is meant to capture the "bread and butter" values you'll typically
     want to see in any population-based optimization experiment.  If you
     want additional columns with custom values, you can pass in a dict of
-    `notes` with constant values or `computed_columns` with functions to
+    `notes` with constant values or `extra_metrics` with functions to
     compute them.
 
     :param stream: the file object to write to (defaults to sys.stdout)
     :param header: whether to print column names in the first line
-    :param computed_columns: a dict of `'column_name': function` pairs, to compute
+    :param extra_metrics: a dict of `'column_name': function` pairs, to compute
         optional extra columns.  The functions take a the population as input
         as a list of individuals, and their return value is printed in the column.
     :param job: optional constant job ID, which will be printed as the
@@ -134,7 +134,7 @@ class FitnessStatsCSVProbe(op.Operator):
     15, just a test, 100, 4, 2.5, 1.11803..., 1, 4
     <BLANKLINE>
 
-    To add custom columns, use the `computed_columns` dict.  For example, here's a function
+    To add custom columns, use the `extra_metrics` dict.  For example, here's a function
     that computes the median fitness value of a population:
 
     >>> import numpy as np
@@ -143,7 +143,7 @@ class FitnessStatsCSVProbe(op.Operator):
     We can include it in the fitness stats report like so:
 
     >>> stream = io.StringIO()
-    >>> extras_probe = FitnessStatsCSVProbe(stream=stream, job="15", computed_columns={'median_fitness': median})
+    >>> extras_probe = FitnessStatsCSVProbe(stream=stream, job="15", extra_metrics={'median_fitness': median})
     >>> extras_probe(test_population) == test_population
     True
 
@@ -156,7 +156,7 @@ class FitnessStatsCSVProbe(op.Operator):
 
     def __init__(self, stream=sys.stdout,
                  header=True,
-                 computed_columns=None,
+                 extra_metrics=None,
                  job: str = None,
                  notes: Dict = None,
                  context: Dict = context):
@@ -168,13 +168,13 @@ class FitnessStatsCSVProbe(op.Operator):
         self.context = context
         self.bsf_ind = None
         self.notes = notes if notes else {}
-        self.computed_columns = computed_columns if computed_columns else {}
+        self.extra_metrics = extra_metrics if extra_metrics else {}
         self.job = job
         if header:
             job_header = 'job, ' if job is not None else ''
             note_extras = '' if not notes else ', '.join(notes.keys()) + ', '
-            extras = '' if not computed_columns else ', ' + ', '.join(
-                computed_columns.keys())
+            extras = '' if not extra_metrics else ', ' + ', '.join(
+                extra_metrics.keys())
             stream.write(
                 job_header + note_extras + 'step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness'
                 + extras + '\n')
@@ -201,7 +201,7 @@ class FitnessStatsCSVProbe(op.Operator):
         self.stream.write(str(np.std(fitnesses)) + ', ')
         self.stream.write(str(np.min(fitnesses)) + ', ')
         self.stream.write(str(np.max(fitnesses)))
-        for _, f in self.computed_columns.items():
+        for _, f in self.extra_metrics.items():
             self.stream.write(', ' + str(f(population)))
         self.stream.write('\n')
         return population
@@ -235,7 +235,9 @@ class AttributesCSVProbe(op.Operator):
         included as one of the columns
     :param str notes: a dict of optional constant-value columns to include in
         all rows (ex. to identify and experiment or parameters)
-    :param computed_columns:
+    :param extra_metrics: a dict of `'column_name': function` pairs, to compute
+        optional extra columns.  The functions take a the population as input
+        as a list of individuals, and their return value is printed in the column.
     :param int job: a job ID that will be included as a constant-value column in
         all rows (ex. typically an integer, indicating the ith run out of many)
     :param context: the algorithm context we use to read the current generation
@@ -290,7 +292,7 @@ class AttributesCSVProbe(op.Operator):
     def __init__(self, attributes=(), stream=sys.stdout, do_dataframe=False,
                  best_only=False, header=True, do_fitness=False,
                  do_genome=False,
-                 notes=None, computed_columns=None, job=None,
+                 notes=None, extra_metrics=None, job=None,
                  context=context):
         assert ((stream is None) or hasattr(stream, 'write'))
         self.context = context
@@ -301,7 +303,7 @@ class AttributesCSVProbe(op.Operator):
         self.do_fitness = do_fitness
         self.do_genome = do_genome
         self.notes = notes if notes else {}
-        self.computed_columns = computed_columns if computed_columns else {}
+        self.extra_metrics = extra_metrics if extra_metrics else {}
         self.job = job
         self.do_dataframe = do_dataframe
 
@@ -320,7 +322,7 @@ class AttributesCSVProbe(op.Operator):
             fieldnames.append('fitness')
         if do_genome:
             fieldnames.append('genome')
-        for name in self.computed_columns.keys():
+        for name in self.extra_metrics.keys():
             fieldnames.append(name)
 
         self.fieldnames = fieldnames
@@ -387,25 +389,151 @@ class AttributesCSVProbe(op.Operator):
             row['fitness'] = ind.fitness
         if self.do_genome:
             row['genome'] = str(ind.genome)
-        for k, f in self.computed_columns.items():
+        for k, f in self.extra_metrics.items():
             row[k] = f(row)
 
         return row
 
+##############################
+# Class PopulationMetricsPlotProbe
+##############################
+class PopulationMetricsPlotProbe:
+
+    def __init__(self, ax=None,
+                 metrics=None,
+                 xlim=(0, 100), ylim=(0, 1), modulo=1, title='Population Metrics',
+                 context=context):
+
+        if ax is None:
+            _, ax = plt.subplots()
+
+        self.metrics = metrics
+        self.modulo = modulo
+        self.context = context
+        
+        # Create an empty line for each metric
+        self.x = np.array([])
+        self.y = [ np.array([]) for _ in range(len(metrics)) ]
+        for _ in range(len(metrics)):
+            ax.plot([], [])
+
+        # Set axis limits, and some variables we'll use for real-time scaling
+        ax.set_ylim(ylim)
+        ax.set_xlim(xlim)
+        self.ax = ax
+        self.left, self.right = xlim
+        self.bottom, self.top = ylim
+        plt.title(title)
+
+
+    def __call__(self, population):
+        assert (population is not None)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
+        step = self.context['leap']['generation']
+
+        if step % self.modulo == 0:
+            self.x = np.append(self.x, step)
+
+            for i, m in enumerate(self.metrics):
+                self.y[i] = np.append(self.y[i], m(population))
+                line = self.ax.lines[i]
+                line.set_xdata(self.x)
+                line.set_ydata(self.y[i])
+
+            self.__rescale_ax()
+            self.ax.figure.canvas.draw()
+            plt.pause(0.000001)
+        return population
+
+    def __rescale_ax(self):
+        if np.min(self.x) < self.left:
+            self.ax.set_xlim(left=np.min(self.x))
+        if np.max(self.x) > self.right:
+            self.ax.set_xlim(right=np.max(self.x))
+        if np.min(self.y) < self.bottom:
+            self.ax.set_ylim(bottom=np.min(self.y))
+        if np.max(self.y) > self.top:
+            self.ax.set_ylim(top=np.max(self.y))
 
 ##############################
-# Class PopulationPlotProbe
+# Function pairwise_distance_metric()
 ##############################
-class PopulationPlotProbe:
+def pairwise_squared_distance_metric(population: list):
+    """Computes the genetic diversity of a population by considering the
+    sum of squared Euclidean distances between individual genomes.
+
+    We compute this in :math:`O(n)` by writing the sum in terms of
+    distance from the population centroid :math:`c`:
+
+    .. math::
+
+       \\mathcal{D}(\\text{population}) = \\sum_{i=1}^n \\sum_{j=1}^n \\| x_i - x_j \\|^2 = 2n \\sum_{i=1}^n \\| x_i - c \\|^2
     """
-    Measure and plot a population's fitness trajectory (or some other scalar
-    value).
+    # Create one big matrix from the population
+    genomes = [ ind.genome for ind in population ]
+    genomes_matrix = np.stack(genomes)
+
+    centroid = np.mean(genomes_matrix, axis=0)  # Compute c
+    distances = genomes_matrix - centroid       # Compute x_i - c for all i
+    norms = np.linalg.norm(distances, axis=1)   # Compute \|x_i - c\|
+    sq_norms = np.power(norms, 2)               # Compute \|x_i - c\|^2
+
+    return 2*len(population)*np.sum(sq_norms)  # Return 2n\sum_{i=1}^n \|x_i - c\|^2
+
+
+##############################
+# Function sum_of_variances_metric()
+##############################
+def sum_of_variances_metric(population: list):
+    """Computes the genetic diversity of a population by considering the sum of
+    the variances of each variable in the genome.
+
+    .. math::
+
+        \\mathcal{D}(\\text{population}) = \\sum_{i=1}^L \\mathbb{E}_{j \\in P}\\left[ x_j[i] - \\mathbb{E}[x_j[i]] \\right]
+
+    This is a so-called "column-wise" metric, in the sense that it considers
+    each element of the solution vectors independently.
+    """
+    # Create one big matrix from the population
+    genomes = [ ind.genome for ind in population ]
+    genomes_matrix = np.stack(genomes)
+
+    variances = np.std(genomes_matrix, axis=0)**2
+
+    return sum(variances)
+
+
+##############################
+# Function num_fixated_metrics()
+##############################
+def num_fixated_metric(population: list):
+    """Computes the genetic diversity of the population by counting the number
+    of variables in the genome that have zero variance.
+
+    This is a so-called "column-wise" metric, in the sense that it considers
+    each element of the solution vectors independently.
+    """
+
+    # Create one big matrix from the population
+    genomes = [ ind.genome for ind in population ]
+    genomes_matrix = np.stack(genomes)
+
+    variances = np.std(genomes_matrix, axis=0)**2
+
+    return sum(np.isclose(variances, 0))
+
+
+##############################
+# Class FitnessPlotProbe
+##############################
+class FitnessPlotProbe(PopulationMetricsPlotProbe):
+    """
+    Measure and plot a population's fitness trajectory.
 
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
         be created).
-    :param function f: a function that takes a population and returns a
-        `float` value to plot on the y-axis (the default function plots the
-        best-of-generation individual's fitness).
     :param xlim: Bounds of the horizontal axis.
     :type xlim: (float, float)
     :param ylim: Bounds of the vertical axis.
@@ -417,11 +545,11 @@ class PopulationPlotProbe:
     EA's operator pipeline.
 
     >>> import matplotlib.pyplot as plt
-    >>> from leap_ec.probe import PopulationPlotProbe
+    >>> from leap_ec.probe import FitnessPlotProbe
     >>> from leap_ec.representation import Representation
 
     >>> f = plt.figure()  # Setup a figure to plot to
-    >>> plot_probe = PopulationPlotProbe(ylim=(0, 70), ax=plt.gca())
+    >>> plot_probe = FitnessPlotProbe(ylim=(0, 70), ax=plt.gca())
 
 
     >>> # Create an algorithm that contains the probe in the operator pipeline
@@ -459,11 +587,11 @@ class PopulationPlotProbe:
     .. plot::
 
         import matplotlib.pyplot as plt
-        from leap_ec.probe import PopulationPlotProbe
+        from leap_ec.probe import FitnessPlotProbe
         from leap_ec.representation import Representation
 
         f = plt.figure()  # Setup a figure to plot to
-        plot_probe = PopulationPlotProbe(ylim=(0, 70), ax=plt.gca())
+        plot_probe = FitnessPlotProbe(ylim=(0, 70), ax=plt.gca())
 
 
         # Create an algorithm that contains the probe in the operator pipeline
@@ -498,65 +626,22 @@ class PopulationPlotProbe:
         result = list(ea);
 
 
-
     To get a live-updated plot that words like a real-time video of the EA's
     progress, use this probe in conjunction with the `%matplotlib notebook`
     magic for Jupyter Notebook (as opposed to `%matplotlib inline`,
     which only allows static plots).
-
     """
-
-    def __init__(self, ax=None,
-                 f=lambda x: best_of_gen(x).fitness,
-                 xlim=(0, 100), ylim=(0, 1), modulo=1,
-                 context=context):
-
-        if ax is None:
-            _, ax = plt.subplots()
-        ax.plot([], [])
-        ax.set_ylim(ylim)
-        ax.set_xlim(xlim)
-        self.ax = ax
-        self.left, self.right = xlim
-        self.bottom, self.top = ylim
-        self.f = f
-        self.x = np.array([])
-        self.y = np.array([])
-        self.modulo = modulo
-        self.context = context
-
-    def __call__(self, population):
-        assert (population is not None)
-        assert ('leap' in self.context)
-        assert ('generation' in self.context['leap'])
-        step = self.context['leap']['generation']
-
-        if step % self.modulo == 0:
-            self.x = np.append(self.x, step)
-            self.y = np.append(self.y, self.f(population))
-            line = self.ax.lines[0]
-            line.set_xdata(self.x)
-            line.set_ydata(self.y)
-            self.__rescale_ax()
-            self.ax.figure.canvas.draw()
-            plt.pause(0.000001)
-        return population
-
-    def __rescale_ax(self):
-        if np.min(self.x) < self.left:
-            self.ax.set_xlim(left=np.min(self.x))
-        if np.max(self.x) > self.right:
-            self.ax.set_xlim(right=np.max(self.x))
-        if np.min(self.y) < self.bottom:
-            self.ax.set_ylim(bottom=np.min(self.y))
-        if np.max(self.y) > self.top:
-            self.ax.set_ylim(top=np.max(self.y))
+    def __init__(self, ax=None, xlim=(0, 100), ylim=(0, 1), modulo=1, context=context):
+        super().__init__(ax=ax,
+                 metrics=[ lambda pop: best_of_gen(pop).fitness ],
+                 xlim=xlim, ylim=ylim, modulo=modulo, title="Best-of-Generation Fitness",
+                 context=context)
 
 
 ##############################
-# Class PopTrajectoryProbe
+# Class CartesianPhenotypePlotProbe
 ##############################
-class PlotTrajectoryProbe:
+class CartesianPhenotypePlotProbe:
     """
     Measure and plot a scatterplot of the populations' location in a 2-D
     phenotype space.
@@ -584,7 +669,7 @@ class PlotTrajectoryProbe:
     `modulo` steps.
 
     >>> import matplotlib.pyplot as plt
-    >>> from leap_ec.probe import PlotTrajectoryProbe
+    >>> from leap_ec.probe import CartesianPhenotypePlotProbe
     >>> from leap_ec.representation import Representation
 
     >>> from leap_ec.individual import Individual
@@ -600,7 +685,7 @@ class PlotTrajectoryProbe:
     >>> problem = CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
 
     >>> # If no axis is provided, a new figure will be created for the probe to write to
-    >>> trajectory_probe = PlotTrajectoryProbe(contours=problem,
+    >>> trajectory_probe = CartesianPhenotypePlotProbe(contours=problem,
     ...                                        xlim=(0, 1), ylim=(0, 1),
     ...                                        granularity=0.025)
 
@@ -629,7 +714,7 @@ class PlotTrajectoryProbe:
     .. plot::
 
         import matplotlib.pyplot as plt
-        from leap_ec.probe import PlotTrajectoryProbe
+        from leap_ec.probe import CartesianPhenotypePlotProbe
         from leap_ec.representation import Representation
 
         from leap_ec.individual import Individual
@@ -645,9 +730,9 @@ class PlotTrajectoryProbe:
         problem = CosineFamilyProblem(alpha=1.0, global_optima_counts=[2, 2], local_optima_counts=[2, 2])
 
         # If no axis is provided, a new figure will be created for the probe to write to
-        trajectory_probe = PlotTrajectoryProbe(contours=problem,
-                                               xlim=(0, 1), ylim=(0, 1),
-                                               granularity=0.025)
+        trajectory_probe = CartesianPhenotypePlotProbe(contours=problem,
+                                                        xlim=(0, 1), ylim=(0, 1),
+                                                        granularity=0.025)
 
         # Create an algorithm that contains the probe in the operator pipeline
 
@@ -675,7 +760,7 @@ class PlotTrajectoryProbe:
     """
 
     def __init__(self, ax=None, xlim=(-5.12, 5.12), ylim=(-5.12, 5.12),
-                 contours=None, granularity=None,
+                 contours=None, granularity=None, title='Cartesian Phenotypes',
                  modulo=1, context=context, pad=()):
         if ax is None:
             _, ax = plt.subplots()
@@ -700,6 +785,7 @@ class PlotTrajectoryProbe:
         self.bottom, self.top = ylim
         self.x = np.array([])
         self.y = np.array([])
+        plt.title(title)
         self.modulo = modulo
         self.context = context
 

@@ -52,7 +52,7 @@ cgp_representation = Representation(
 def cgp_visual_probes(modulo):
     """Set up the graphical probes that we'll use."""
     plt.figure()
-    p1 = probe.PopulationPlotProbe(modulo=modulo, ax=plt.gca())
+    p1 = probe.FitnessPlotProbe(modulo=modulo, ax=plt.gca())
     plt.figure()
     p2 = neural_network.GraphPhenotypeProbe(modulo=modulo, ax=plt.gca())
     return [ p1, p2 ]

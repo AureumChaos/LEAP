@@ -39,13 +39,13 @@ def viz_plots(problems, modulo):
     num_rows = min(4, len(problems))
     num_columns = math.ceil(len(problems) / num_rows)
     true_rows = len(problems) / num_columns
-    fig = plt.figure(figsize=(6 * num_columns, 2 * true_rows))
+    fig = plt.figure(figsize=(6 * num_columns, 2.5 * true_rows))
     fig.tight_layout()
     genotype_probes = []
     fitness_probes = []
     for i, p in enumerate(problems):
         plt.subplot(true_rows, num_columns * 2, 2 * i + 1)
-        tp = probe.PlotTrajectoryProbe(
+        tp = probe.CartesianPhenotypePlotProbe(
             contours=p,
             xlim=p.bounds,
             ylim=p.bounds,
@@ -54,7 +54,7 @@ def viz_plots(problems, modulo):
         genotype_probes.append(tp)
 
         plt.subplot(true_rows, num_columns * 2, 2 * i + 2)
-        fp = probe.PopulationPlotProbe(ylim=(0, 1), modulo=modulo, ax=plt.gca())
+        fp = probe.FitnessPlotProbe(ylim=(0, 1), modulo=modulo, ax=plt.gca())
         fitness_probes.append(fp)
 
     plt.subplots_adjust(
@@ -63,7 +63,7 @@ def viz_plots(problems, modulo):
         right=0.95,
         top=0.95,
         wspace=0.2,
-        hspace=0.2)
+        hspace=0.3)
 
     return genotype_probes, fitness_probes
 
@@ -141,7 +141,7 @@ if __name__ == '__main__':
                                              migration_gap=5,
                                              customs_stamp=problem_stamp(problems)),
                                  probe.FitnessStatsCSVProbe(stream=sys.stdout,
-                                        computed_columns={ 'island': get_island(context) })
+                                        extra_metrics={ 'island': get_island(context) })
                              ],
                              subpop_pipelines=subpop_probes)
 
