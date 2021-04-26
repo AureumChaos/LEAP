@@ -217,7 +217,7 @@ class GraphPhenotypeProbe():
         self.weights = weights
         self.weight_multiplier = weight_multiplier
         if ax is None:
-            ax = plt.subplot(111)
+            _, ax = plt.subplots()
         self.ax = ax
         self.context = context
 
@@ -233,8 +233,7 @@ class GraphPhenotypeProbe():
         if step % self.modulo == 0:
             best = max(population)
             graph = best.decode().graph
-            plt.cla()
-            # TODO The default network viz is just a jumble of nodes; not helpful
+            self.ax.clear()
             if self.weights:
                 weights = list(nx.get_edge_attributes(graph,'weight').values())
                 weights = [ self.weight_multiplier*w for w in weights ]
