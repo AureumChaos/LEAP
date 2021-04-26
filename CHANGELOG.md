@@ -4,27 +4,32 @@ Being a terse compilation by version of changes.
 
 ## 0.6.0
 
-* Added `landscape_features` package with some initial exploratory landscape analysis tools
-* Added a new example demonstrating integer representations
-* Added a `mutate_binomial()` for integer representations
-* Added elitism
-* Added visualization of ANN weights for `SimpleNeuralNetworkExecutable` phenotypes
-* Added metrics for logging population diversity
-* Significantly refactored the `executable_rep.rules` package to simplify learning classifier systems
-* Added a `make test-slow` harness that runs the `examples/` scripts
-* Incremental changes:
-  * Improved test coverage
+* New features
+  * Added `landscape_features` package with some initial exploratory landscape analysis tools
+  * Added elitism
+  * Added a new example demonstrating integer representations
+  * Added a `mutate_binomial()` operator for integer representations
+  * Added visualization of ANN weights for `SimpleNeuralNetworkExecutable` phenotypes
+  * Added metrics for logging population diversity
+
+* Documentation
   * Added documentation on `leap_ec.context` and updated software development
-    guidelines to encourage its use if tracking persistent state outside of 
-    function calls was necessary.
-  * API changes
-    * Added probability parameter for the `uniform_crossover` operator
-    * `mutate_gaussian` now accepts a list of gene-wise hard bounds
-    * Added `notes` columns parameter to `FitnessStatsCSVProbe`
-    * Added a `pad_inputs` parameter to `TruthTableProblem` to handle varying-dimension inputs
-    * Renamed `PlotTrajectoryProbe` to the more descriptive `CartesianPhenotypePlotProbe`
-    * Renamed `PopulationPlotProbe` to the more descriptive `PopulationMetricsPlotProbe`
-    * Added `FitnessPlotProbe` as a convenience wrapper for `PoulationMetricsPlotProbe`
+  guidelines to encourage its use if tracking persistent state outside of 
+  function calls was necessary.
+
+* CI/CD
+  * Added a `make test-slow` harness that runs the `examples/` scripts
+  * Improved test coverage
+
+* API changes
+  * Significantly refactored the `executable_rep.rules` package to simplify learning classifier systems
+  * Added probability parameter for the `uniform_crossover` operator
+  * `mutate_gaussian` now accepts a list of gene-wise hard bounds
+  * Added `notes` columns parameter to `FitnessStatsCSVProbe`
+  * Added a `pad_inputs` parameter to `TruthTableProblem` to handle varying-dimension inputs
+  * Renamed `PlotTrajectoryProbe` to the more descriptive `CartesianPhenotypePlotProbe`
+  * Renamed `PopulationPlotProbe` to the more descriptive `PopulationMetricsPlotProbe`
+  * Added `FitnessPlotProbe` as a convenience wrapper for `PoulationMetricsPlotProbe`
   * Default behavior changes
     * `Representation` now uses a phenotypic representation (`IdentityDecoder`) by default
     * Mutation operators no longer have default mutation rates (they must be explicitly set by the user).
