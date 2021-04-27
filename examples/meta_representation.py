@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 
 from leap_ec.algorithm import generational_ea
 from leap_ec.decoder import IdentityDecoder
@@ -7,6 +8,7 @@ from leap_ec.real_rep.problems import SpheroidProblem, SchwefelProblem
 from leap_ec.real_rep.ops import mutate_gaussian
 from leap_ec.real_rep.initializers import create_real_vector
 from leap_ec.representation import Representation
+from leap_ec.probe import FitnessPlotProbe
 import leap_ec.ops as ops
 
 
@@ -75,7 +77,7 @@ class TwoSegmentMutator():
         dec_genome, ind_genome = ind.genome
         dec_genome = self.first_mutator(dec_genome)
         ind_genome = self.second_mutator(ind_genome)
-        
+
         ind.genome = [ dec_genome, ind_genome ]
         ind.fitness = None  # Reset fitness since we've borked with the genomes
         yield ind
@@ -85,18 +87,18 @@ class TwoSegmentMutator():
 # Entry point
 ##############################
 if __name__ == '__main__':
-    plot_probe = PopulationPlotProbe(ylim=(0, 70))
+    plot_probe = FitnessPlotProbe(ylim=(0, 70), ax=plt.gca())
 
     l=10
     pop_size=10
     ea = generational_ea(generations=100, pop_size=pop_size,
                         problem=SpheroidProblem(maximize=False),
-                        
+
                         representation=Representation(
                             individual_cls=Individual,
                             decoder=AdaptiveRepresentationDecoder(
                                 executable_decoder=neural_network.SimpleNeuralNetworkDecoder(
-                                    
+
                                 )
                             ),
                             initialize=create_real_vector(bounds=[[-5.12, 5.12]] * l)
