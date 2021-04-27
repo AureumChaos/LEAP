@@ -11,7 +11,7 @@ import random
 import logging
 import toolz
 
-import dask
+import distributed
 
 from leap_ec.context import context
 from leap_ec import util
@@ -49,7 +49,7 @@ def eval_population(population, client, context=context):
 
     # We'll need this later to catch eval tasks as they complete, and to
     # submit new tasks.
-    return dask.distributed.as_completed(worker_futures)
+    return distributed.as_completed(worker_futures)
 
 
 ##############################
