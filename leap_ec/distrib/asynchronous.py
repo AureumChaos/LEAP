@@ -11,7 +11,7 @@ import random
 import logging
 import toolz
 
-import dask
+import distributed
 
 from leap_ec.context import context
 from leap_ec import util
@@ -44,11 +44,12 @@ def eval_population(population, client, context=context):
     :return: dask distrib iterator for futures
     """
     # farm out population to worker nodes for evaluation
-    worker_futures = client.map(evaluate(context=context), population)
+    worker_futures = client.map(evaluate(context=context), population,
+                                pure=False)
 
     # We'll need this later to catch eval tasks as they complete, and to
     # submit new tasks.
-    return dask.distributed.as_completed(worker_futures)
+    return distributed.as_completed(worker_futures)
 
 
 ##############################
@@ -208,7 +209,8 @@ def steady_state(client, births, init_pop_size, pop_size,
 
             # Now asynchronously submit to dask
             for child in offspring:
-                future = client.submit(evaluate(context=context), child)
+                future = client.submit(evaluate(context=context), child,
+                                       pure=False)
                 as_completed_iter.add(future)
 
             birth_counter(len(offspring))

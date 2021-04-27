@@ -49,9 +49,10 @@ import logging
 from pprint import pformat
 import argparse
 
-import multiprocessing.popen_spawn_posix  # Python 3.9 workaround for Dask.  See https://github.com/dask/distributed/issues/4168
-from dask.distributed import Client
-from dask.distributed import LocalCluster
+# Python 3.9 workaround for Dask.
+# See https://github.com/dask/distributed/issues/4168
+import multiprocessing.popen_spawn_posix
+from distributed import Client, LocalCluster
 
 from leap_ec import ops, probe
 from leap_ec.decoder import IdentityDecoder

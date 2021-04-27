@@ -7,7 +7,7 @@ import platform
 import os
 from toolz import curry
 
-import dask
+import distributed
 
 from leap_ec.context import context
 
@@ -38,7 +38,7 @@ def evaluate(individual, context=context):
     :param individual: to be evaluated
     :return: evaluated individual
     """
-    worker = dask.distributed.get_worker()
+    worker = distributed.get_worker()
 
     individual.start_eval_time = time.time()
 
