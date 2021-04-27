@@ -8,6 +8,7 @@ from toolz import curry
 from leap_ec.context import context
 
 from .evaluate import evaluate
+from leap_ec import ops
 
 # Create unique logger for this namespace
 logger = logging.getLogger(__name__)
@@ -23,6 +24,8 @@ console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
 
+@curry
+@ops.listlist_op
 def eval_population(population, client, context=context):
     """ Concurrently evaluate all the individuals in the given population
 
@@ -45,6 +48,7 @@ def eval_population(population, client, context=context):
 
 
 @curry
+@ops.iterlist_op
 def eval_pool(next_individual, client, size, context=context):
     """ concurrently evaluate `size` individuals
 

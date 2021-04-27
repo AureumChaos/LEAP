@@ -67,6 +67,14 @@ leap\_ec.ops module
    :undoc-members:
    :show-inheritance:
 
+leap\_ec.parsimony module
+-------------------------
+
+.. automodule:: leap_ec.parsimony
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 leap\_ec.probe module
 ---------------------
 

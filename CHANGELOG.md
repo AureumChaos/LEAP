@@ -4,29 +4,40 @@ Being a terse compilation by version of changes.
 
 ## 0.6.0
 
-* Added `landscape_features` package with some initial exploratory landscape analysis tools
-* Added a new example demonstrating integer representations
-* Added a `mutate_binomial()` for integer representations
-* Added elitism
-* Add visualization of ANN weights for `SimpleNeuralNetworkExecutable` phenotypes
-* Significantly refactored the `executable_rep.rules` package to simplify learning classifier systems
-* Added a `make test-slow` harness that runs the `examples/` scripts
-* Incremental changes:
-  * `Representation` now uses a phenotypic representation (`IdentityDecoder`) by default
-  * Mutation operators no longer have default mutation rates (they must be explicitly set by the user).
+* New features
+  * Added `landscape_features` package with some initial exploratory landscape analysis tools
+  * Added elitism
+  * Added a new example demonstrating integer representations
+  * Added a `mutate_binomial()` operator for integer representations
+  * Added visualization of ANN weights for `SimpleNeuralNetworkExecutable` phenotypes
+  * Added metrics for logging population diversity
+
+* Documentation
+  * Added documentation on `leap_ec.context` and updated software development
+  guidelines to encourage its use if tracking persistent state outside of 
+  function calls was necessary.
+
+* CI/CD
+  * Added a `make test-slow` harness that runs the `examples/` scripts
+  * Improved test coverage
+
+* API changes
+  * Significantly refactored the `executable_rep.rules` package to simplify learning classifier systems
   * Added probability parameter for the `uniform_crossover` operator
-  * Set default `p_swap = 0.2` for `uniform_crossover`, instead of 0.5
-  * Set default `num_points = 2` for `n_ary_crossover`, instead of 1
   * `mutate_gaussian` now accepts a list of gene-wise hard bounds
   * Added `notes` columns parameter to `FitnessStatsCSVProbe`
-  * Set default value for `context` parameter on probes, so users needn't set it
   * Added a `pad_inputs` parameter to `TruthTableProblem` to handle varying-dimension inputs
-  * Improved test coverage
-  * standardized on making `context` last function argument that defaults to
+  * Renamed `PlotTrajectoryProbe` to the more descriptive `CartesianPhenotypePlotProbe`
+  * Renamed `PopulationPlotProbe` to the more descriptive `PopulationMetricsPlotProbe`
+  * Added `FitnessPlotProbe` as a convenience wrapper for `PoulationMetricsPlotProbe`
+  * Default behavior changes
+    * `Representation` now uses a phenotypic representation (`IdentityDecoder`) by default
+    * Mutation operators no longer have default mutation rates (they must be explicitly set by the user).
+    * Set default `p_swap = 0.2` for `uniform_crossover`, instead of 0.5
+    * Set default `num_points = 2` for `n_ary_crossover`, instead of 1
+    * Set default value for `context` parameter on probes, so users needn't set it
+    * standardized on making `context` last function argument that defaults to
     `leap_ec.context.context`
-  * Added documentation on `leap_ec.context` and updated software development
-    guidelines to encourage its use if tracking persistent state outside of 
-    function calls was necessary.
 
 
 ## 0.5.0, 1/9/2021

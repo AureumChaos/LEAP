@@ -42,7 +42,7 @@ def build_probes(genomes_file):
     plt.ylabel("Fitness")
     plt.xlabel("Generations")
     plt.title("Best-of-Generation Fitness")
-    probes.append(probe.PopulationPlotProbe(
+    probes.append(probe.FitnessPlotProbe(
                         ylim=(0, 1), xlim=(0, 1),
                         modulo=1, ax=plt.gca()))
 

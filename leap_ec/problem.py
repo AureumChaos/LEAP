@@ -30,7 +30,7 @@ class Problem(ABC):
     @abstractmethod
     def evaluate(self, phenome, *args, **kwargs):
         """
-        Decode and evaluate the given individual based on its genome.
+        Evaluate the given individual based on its decoded phenome.
 
         Practitioners *must* over-ride this member function.
 

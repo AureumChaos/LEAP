@@ -49,7 +49,7 @@ def evaluate(individual, context=context):
     # Any thrown exceptions are now handled inside Individual.evaluate()
     individual.evaluate()
 
-    if not individual.is_viable:
+    if hasattr(individual, 'is_viable') and not individual.is_viable:
         # is_viable will be False if an exception was thrown during evaluation.
         # We track the number of such failures on the off chance that this
         # might be useful.
