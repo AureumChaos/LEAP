@@ -3,7 +3,7 @@
 
 """
 import multiprocessing.popen_spawn_posix  # Python 3.9 workaround for Dask.  See https://github.com/dask/distributed/issues/4168
-from dask.distributed import Client
+from distributed import Client
 import toolz
 
 from leap_ec.decoder import IdentityDecoder
