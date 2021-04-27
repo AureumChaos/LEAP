@@ -15,12 +15,12 @@ batch, and progress in the EA only proceeds when all individuals have been evalu
 
 Components
 ^^^^^^^^^^
-`leap_ec.distributed.synchronous` provides two components to implement synchronous
+`leap_ec.distrib.synchronous` provides two components to implement synchronous
 individual parallel evaluations.
 
-:leap_ec.distributed.synchronous.eval_population:
+:leap_ec.distrib.synchronous.eval_population:
     which evaluates an entire population in parallel, and returns the evaluated population
-:leap_ec.distributed.synchronous.eval_pool:
+:leap_ec.distrib.synchronous.eval_pool:
     is a pipeline operator that will collect offspring and then evaluate them all
     at once in parallel; the evaluated offspring are returned
 
@@ -102,9 +102,9 @@ Example
     from leap_ec.binary_rep.initializers import create_binary_sequence
     from leap_ec.binary_rep.ops import mutate_bitflip
 
-    from leap_ec.distributed import asynchronous
-    from leap_ec.distributed.probe import log_worker_location, log_pop
-    from leap_ec.distributed.individual import DistributedIndividual
+    from leap_ec.distrib import asynchronous
+    from leap_ec.distrib.probe import log_worker_location, log_pop
+    from leap_ec.distrib.individual import DistributedIndividual
 
     MAX_BIRTHS = 500
     INIT_POP_SIZE = 20
@@ -170,7 +170,7 @@ selected parents to be modified by any applied mutation or crossover operators.)
 There are two optional callback function reporting parameters, `evaluated_probe` and `pop_probe`.
 `evaluated_probe` takes a single `Individual` class, or subclass, as an argument,
 and can be used to write out that individual's state in a desired format.
-`distributed.probe.log_worker_location` can be passed in as this argument to
+`distrib.probe.log_worker_location` can be passed in as this argument to
 write each individual's state as a CSV row to a file; by default it will write to
 `sys.stdout`.  The `pop_probe` parameter is similar, but allows for taking
 snapshots of the hidden population at preset intervals, also in CSV format.
@@ -226,7 +226,7 @@ state that may be useful for distributed fitness evaluations.
 :start_eval_time: is when evaluation began for this individul, and is in `time_t` format
 :stop_eval_time: when evaluation completed in `time_t` format
 
-This additional state is set in `distributed.evaluate.evaluate()` and
+This additional state is set in `distrib.evaluate.evaluate()` and
 `is_viable` and `exception` are set as with the base class, `core.Individual`.
 
 .. note:: The `uuid` is useful if one wanted to save, say, a model or some other

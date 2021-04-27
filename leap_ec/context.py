@@ -6,9 +6,9 @@ context.  Third party operators and functions will just add a new top-level
 dedicated key.
 context['leap'] is for storing general LEAP running state, such as current
    generation.
-context['leap']['distributed'] is for storing leap.distributed running state
-context['leap']['distributed']['non_viable'] accumulates counts of non-viable
-   individuals during distributed.eval_pool() and
-   distributed.async_eval_pool() runs.
+context['leap']['distrib'] is for storing leap.distrib running state
+context['leap']['distrib']['non_viable'] accumulates counts of non-viable
+   individuals during distrib.eval_pool() and
+   distrib.async_eval_pool() runs.
 """
-context = {'leap': {'distributed': {'non_viable': 0}}}
+context = {'leap': {'distrib': {'non_viable': 0}}}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""" Simple example of using leap_ec.distributed.asynchronous.steady_state()
+""" Simple example of using leap_ec.distrib.asynchronous.steady_state()
 
     usage: simple_async_distributed.py [-h] [--verbose]
                                    [--track-workers-file TRACK_WORKERS_FILE]
@@ -60,10 +60,10 @@ from leap_ec.binary_rep.problems import MaxOnes
 from leap_ec.binary_rep.ops import mutate_bitflip
 from leap_ec.representation import Representation
 
-from leap_ec.distributed import asynchronous
-from leap_ec.distributed.logger import WorkerLoggerPlugin
-from leap_ec.distributed.probe import log_worker_location, log_pop
-from leap_ec.distributed.individual import DistributedIndividual
+from leap_ec.distrib import asynchronous
+from leap_ec.distrib.logger import WorkerLoggerPlugin
+from leap_ec.distrib.probe import log_worker_location, log_pop
+from leap_ec.distrib.individual import DistributedIndividual
 
 # Create unique logger for this namespace
 logger = logging.getLogger(__name__)
@@ -140,10 +140,10 @@ if __name__ == '__main__':
             # them locally because we went through the trouble of specifying
             # a scheduler file that the scheduler and workers will use to
             # coordinate with one another.
-            logger.info('Using a remote distributed model')
+            logger.info('Using a remote distrib model')
             client = Client(scheduler_file=args.scheduler_file)
         else:
-            logger.info('Using a local distributed model')
+            logger.info('Using a local distrib model')
             cluster = LocalCluster(n_workers=args.workers, processes=False,
                                    silence_logs=logger.level)
             logger.info("Cluster: %s", cluster)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-    A collection of probe functions tailored for distributed evaluation
+    A collection of probe functions tailored for distrib evaluation
 """
 import csv
 import sys
@@ -13,7 +13,7 @@ def log_worker_location(stream=sys.stdout, header=True):
     individual.  Accumulates this information to the given stream as a CSV.
 
     Suitable for being passed as the `evaluated_probe` argument for
-    leap.distributed.asynchronous.steady_state().
+    leap.distrib.asynchronous.steady_state().
 
     :param stream: to which we want to write the machine details
     :param header: True if we want a header for the CSV file
@@ -32,7 +32,7 @@ def log_worker_location(stream=sys.stdout, header=True):
         """ This writes a row to the CSV for the given individual
 
         evaluate() will tack on the hostname and pid for the individual.  The
-        uuid should also be part of the distributed.Individual, too.
+        uuid should also be part of the distrib.Individual, too.
 
         :param individual: to be written to stream
         :return: None
