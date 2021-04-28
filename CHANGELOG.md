@@ -11,6 +11,7 @@ Being a terse compilation by version of changes.
   * Added a `mutate_binomial()` operator for integer representations
   * Added visualization of ANN weights for `SimpleNeuralNetworkExecutable` phenotypes
   * Added metrics for logging population diversity
+  * Added support for lexicographical and Koza-style parsimony pressure
 
 * Documentation
   * Added documentation on `leap_ec.context` and updated software development
@@ -24,7 +25,9 @@ Being a terse compilation by version of changes.
 * API changes
   * Significantly refactored the `executable_rep.rules` package to simplify learning classifier systems
   * Added probability parameter for the `uniform_crossover` operator
-  * `mutate_gaussian` now accepts a list of gene-wise hard bounds
+  * `mutate_gaussian` now accepts a list of gene-wise hard bound
+  * renamed `leap_ec.distributed` to `leap_ec.distrib` to reduce name space 
+    confusion with `dask.distributed`
   * Added `notes` columns parameter to `FitnessStatsCSVProbe`
   * Added a `pad_inputs` parameter to `TruthTableProblem` to handle varying-dimension inputs
   * Renamed `PlotTrajectoryProbe` to the more descriptive `CartesianPhenotypePlotProbe`
