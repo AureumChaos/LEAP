@@ -3,7 +3,7 @@ Defines the abstract-base classes Problem, ScalarProblem,
 and FunctionProblem.
 
 """
-from math import nan, floor, isclose
+from math import nan, floor, isclose, isnan
 import random
 from abc import ABC, abstractmethod
 
@@ -82,15 +82,15 @@ class ScalarProblem(Problem):
         # NaN is assigned if the individual is non-viable, which can happen if
         # an exception is thrown during evaluation. We consider NaN fitnesses to
         # always be the worse possible with regards to ordering.
-        if first_fitness is nan:
-            if second_fitness is nan:
+        if isnan(first_fitness):
+            if isnan(second_fitness):
                 # both are nan, so to reduce bias flip a coin to arbitrarily
                 # select one that is worst.
                 return random.choice([True, False])
             # Doesn't matter how awful second_fitness is, nan will already be
             # considered worse.
             return True
-        elif second_fitness is nan:
+        elif isnan(second_fitness):
             # No matter how awful the first_fitness is, if it's not a NaN the
             # NaN will always be worse
             return False
