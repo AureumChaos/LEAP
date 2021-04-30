@@ -82,7 +82,7 @@ def replace_if(new_individual, pop, index):
 ##############################
 # function insert_into_pop
 ##############################
-def insert_into_pop(indivdidual, pop, max_size):
+def insert_into_pop(individual, pop, max_size):
     """ Insert the given individual into the pop of evaluated individuals.
 
     Randomly select an individual in the pop, and the `individual` will
@@ -90,17 +90,17 @@ def insert_into_pop(indivdidual, pop, max_size):
 
     Just insert individuals if the pop isn't at capacity yet
 
-    :param indivdidual: that was just evaluated
+    :param individual: that was just evaluated
     :param pop: of already evaluated individuals
     :param max_size: of the pop
     :return: None
     """
     if len(pop) < max_size:
         logger.debug('pop not at capacity, so just inserting')
-        pop.append(indivdidual)
+        pop.append(individual)
     else:
         rand_index = random.randrange(len(pop))
-        replace_if(indivdidual, pop, rand_index)
+        replace_if(individual, pop, rand_index)
 
 
 ##############################
