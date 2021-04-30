@@ -256,6 +256,35 @@ def evaluate(next_individual: Iterator) -> Iterator:
 
 
 ##############################
+# evaluate operator
+##############################
+@curry
+@listlist_op
+def grouped_evaluate(population: list, problem, num_chunks: int = 1) -> list:
+    """Evaluate the population by sending groups of multiple individuals to
+    a fitness function so they can be evaluated simultaneously.
+
+    This is useful, for example, as a way to evaluate individuals in parallel
+    on a GPU."""
+
+    def chunks(lst, n):
+        """Yield successive n-sized chunks from lst."""
+        for i in range(0, len(lst), n):
+            yield lst[i:i + n]
+
+    fitnesses = []
+    for chunk in chunks(population, num_chunks):
+        phenomes = [ ind.decode() for ind in chunk ]
+        fit = problem.evaluate_multiple(phenomes)
+        fitnesses.extend(fit)
+
+    for fit, ind in zip(fitnesses, population):
+        ind.fitness = fit
+
+    return population
+
+
+##############################
 # const_evaluate operator
 ##############################
 @curry

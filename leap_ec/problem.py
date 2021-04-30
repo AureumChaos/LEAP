@@ -43,6 +43,15 @@ class Problem(ABC):
         """
         raise NotImplementedError
 
+    def evaluate_multiple(self, phenomes):
+        """Evaluate multiple individuals all at once, returning a list of fitness
+        values.
+        
+        By default this just calls `self.evaluate()` multiple times.  Override this
+        if you need to, say, send a group of individuals off to parallel """
+        return [ self.evaluate(p) for p in phenomes ]
+
+
     @abstractmethod
     def worse_than(self, first_fitness, second_fitness):
         raise NotImplementedError
