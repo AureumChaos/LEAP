@@ -21,7 +21,12 @@ Being a terse compilation by version of changes.
   * Added a `make test-slow` harness that runs the `examples/` scripts
   * Improved test coverage
 
+* Bugfixes
+  * Fix `viz` parameter when calling `simple.ea_solve()`
+  * Tell `dask` that functions are impure by default, to make sure it doesn't cache results
+
 * API changes
+  * Renamed `leap.distributed` package to `leap.distrib` (to avoid conflicts with ex. `dask.distributed`)
   * Significantly refactored the `executable_rep.rules` package to simplify learning classifier systems
   * Added probability parameter for the `uniform_crossover` operator
   * `mutate_gaussian` now accepts a list of gene-wise hard bounds
