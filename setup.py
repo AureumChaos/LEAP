@@ -27,6 +27,7 @@ setup(
         'networkx',     # Used to specify island model topologies
         'numpy',        # Used for vector math
         'pandas',       # Used to process CSV output for probes
+        'scipy',
         'toolz'         # Used for functional pipelines of operators
     ]
 )

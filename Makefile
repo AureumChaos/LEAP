@@ -37,7 +37,8 @@ doc:
 	cd docs && make html
 
 setup:
-	python setup.py develop
+	pip install -e .
+	pip install -r test_requirements.txt
 
 depend:
 	pip install -r requirements_freeze.txt
