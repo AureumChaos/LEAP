@@ -17,7 +17,7 @@ from leap_ec.individual import Individual
 # Function generational_ea
 ##############################
 def generational_ea(generations, pop_size, problem, representation, pipeline,
-                    context=context):
+                    init_evaluate=Individual.evaluate_population, context=context):
     """
     This function provides an evolutionary algorithm with a generational
     population model.
@@ -37,13 +37,16 @@ def generational_ea(generations, pop_size, problem, representation, pipeline,
 
     :param int generations: The number of generations to run the algorithm for.
     :param int pop_size: Size of the initial population
-    :param representation: How the problem is represented in individuals
     :param `Problem` problem: the Problem that should be used to evaluate
         individuals' fitness
-    :param initialize: a function that creates a new genome every time it is
-        called
+    :param representation: How the problem is represented in individuals
     :param list pipeline: a list of operators that are applied (in order) to
         create the offspring population at each generation
+    :param init_evaluate: a function used to evaluate the initial population,
+        before the main pipeline is run.  The default of
+        `Individual.evaluate_population` is suitable for many cases, but you
+        may wish to pass a different operator in for distributed evaluation
+        or other purposes.
 
     :return: a generator of `(int, individual_cls)` pairs representing the
         best individual at each generation.
@@ -103,7 +106,7 @@ def generational_ea(generations, pop_size, problem, representation, pipeline,
     parents = representation.create_population(pop_size, problem=problem)
 
     # Evaluate initial population
-    parents = Individual.evaluate_population(parents)
+    parents = init_evaluate(parents)
 
     # Set up a generation counter that records the current generation to
     # context
@@ -148,18 +151,20 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
     :param int generations: The number of generations to run the algorithm for.
     :param int num_populations: The number of separate populations to maintain.
     :param int pop_size: Size of the initial population
-    :param class individual_cls: class representing the (sub)type of
-        `Individual` the population should be generated from
-    :param `Decoder` decoder: the Decoder that should be used to convert
-        individual genomes into phenomes
     :param `Problem` problem: the Problem that should be used to evaluate
         individuals' fitness
-    :param initialize: a function that creates a new genome every time it is called
+    :param representation: the Decoder that should be used to convert
+        individual genomes into phenomes
     :param list shared_pipeline: a list of operators that every population
         will uses to create the offspring population at each generation
     :param list subpop_pipelines: a list of population-specific operator
         lists, the ith of which will only be applied to the ith population (after
         the `shared_pipeline`).  Ignored if `None`.
+    :param init_evaluate: a function used to evaluate the initial population,
+        before the main pipeline is run.  The default of
+        `Individual.evaluate_population` is suitable for many cases, but you
+        may wish to pass a different operator in for distributed evaluation
+        or other purposes.
 
     :return: a generator of `(int, [individual_cls])` pairs representing the
         best individual in each population at each generation.

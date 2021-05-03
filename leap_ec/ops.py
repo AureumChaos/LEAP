@@ -260,12 +260,14 @@ def evaluate(next_individual: Iterator) -> Iterator:
 ##############################
 @curry
 @listlist_op
-def grouped_evaluate(population: list, problem, num_chunks: int = 1) -> list:
+def grouped_evaluate(population: list, problem, individuals_per_chunk: int = None) -> list:
     """Evaluate the population by sending groups of multiple individuals to
     a fitness function so they can be evaluated simultaneously.
 
     This is useful, for example, as a way to evaluate individuals in parallel
     on a GPU."""
+    if individuals_per_chunk is None:
+        individuals_per_chunk = len(population)
 
     def chunks(lst, n):
         """Yield successive n-sized chunks from lst."""
@@ -273,7 +275,7 @@ def grouped_evaluate(population: list, problem, num_chunks: int = 1) -> list:
             yield lst[i:i + n]
 
     fitnesses = []
-    for chunk in chunks(population, num_chunks):
+    for chunk in chunks(population, individuals_per_chunk):
         phenomes = [ ind.decode() for ind in chunk ]
         fit = problem.evaluate_multiple(phenomes)
         fitnesses.extend(fit)
@@ -629,7 +631,7 @@ def elitist_survival(offspring: List, parents: List, k: int = 1, key = None) -> 
 ##############################
 @curry
 @listiter_op
-def tournament_selection(population: List, k: int = 2, key = None) -> Iterator:
+def tournament_selection(population: List, k: int = 2, key = None, indices = None) -> Iterator:
     """ Selects the best individual from k individuals randomly selected from
         the given population
 
@@ -656,13 +658,17 @@ def tournament_selection(population: List, k: int = 2, key = None) -> Iterator:
         :return: the best of k individuals drawn from population
     """
     while True:
-        choices = random.choices(population, k=k)
+        choices_idx = random.choices(range(len(population)), k=k)
         if key:
-            best = max(choices, key=key)
+            best_idx = max(choices_idx, key=lambda x: key(population[x]))
         else:
-            best = max(choices)
+            best_idx = max(choices_idx, key=lambda x: population[x])
 
-        yield best
+        if indices is not None:
+            indices.clear()  # Nuke whatever is in there
+            indices.append(best_idx)  # Add the index of the individual we're about to return
+
+        yield population[best_idx]
 
 
 ##############################
