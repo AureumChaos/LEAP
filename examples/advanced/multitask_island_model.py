@@ -13,7 +13,7 @@ from leap_ec.individual import Individual
 from leap_ec.decoder import IdentityDecoder
 from leap_ec.representation import Representation
 from leap_ec.algorithm import multi_population_ea
-from leap_ec.context import context
+from leap_ec.global_vars import context
 
 import leap_ec.ops as ops
 from leap_ec import probe

@@ -8,7 +8,6 @@ from toolz import pipe
 
 from leap_ec.individual import Individual
 from leap_ec.decoder import IdentityDecoder
-from leap_ec.context import context
 
 import leap_ec.ops as ops
 from leap_ec.binary_rep.problems import MaxOnes
@@ -34,10 +33,8 @@ if __name__ == '__main__':
 
     max_generation = 6
 
-    # We use the provided context, but we could roll our own if we
-    # wanted to keep separate contexts.  E.g., island models may want to have
-    # their own contexts.
-    generation_counter = util.inc_generation(context=context)
+    # Set up a generation counter using the default global context variable
+    generation_counter = util.inc_generation()
 
     while generation_counter.generation() < max_generation:
         offspring = pipe(parents,
