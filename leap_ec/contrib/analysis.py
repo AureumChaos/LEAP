@@ -19,9 +19,125 @@ from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import toolz
 
 from leap_ec.probe import FitnessStatsCSVProbe
+
+
+##############################
+# Function best()
+##############################
+def best(df, time_col, metric_cols):
+    """Compute the best (highest) fitness value found across a group's 'bsf' attribute."""
+    return pd.Series({'best': df[bsf_col].max()})
+
+
+##############################
+# Function auc()
+##############################
+def auc(df, time_col, metric_cols):
+    """A fast area-under-BSF-curve function."""
+    df = df[[time_col, bsf_col]].sort_values(time_col)
+    df['previous_time'] = [df[time_col].min()] + df[time_col][0:len(df[time_col]) - 1].to_list()
+    df['xdiff'] = df[time_col] - df.previous_time
+    auc = sum(df.xdiff * df.bsf)
+    return pd.Series({'auc': auc})
+
+
+##############################
+# Class CurveAnalyzer
+##############################
+class CurveAnalyzer():
+
+    def __init__(self, df,
+                 time_col: str = FitnessStatsCSVProbe.time_col,
+                 metric_cols: list = FitnessStatsCSVProbe.default_metric_cols,
+                 experiment_cols: list = (),
+                 run_col: str = 'job'):
+        assert(df is not None)
+        assert(time_col is not None)
+        assert(metric_cols is not None)
+        assert(len(metric_cols) > 0)
+        assert(experiment_cols is not None)
+        assert(run_col is not None)
+        self.df = df
+        self.time_col = time_col
+        self.metric_cols = metric_cols
+        self.experiment_cols = experiment_cols
+        self.run_col = run_col
+        assert(time_col in df.columns), f"Expected '{time_col}' column to be in {df.columns}."
+        assert(run_col in df.columns), f"Expected '{run_col}' column to be in {df.columns}."
+        assert(set(metric_cols).issubset(df.columns)), f"Expected '{metric_cols}' to be a subset of {df.columns}."
+        assert(set(experiment_cols).issubset(df.columns)), f"Expected '{experiment_cols}' to be a subset of {df.columns}."
+
+    def avg_curves(self):
+        """Return a dataframe that reports the mean and std of each metric for each experimental group,
+        averaged over all of the runs.
+
+        This is analogous to scalar_metrics_per_run, except we're aggregating over runs, instead time.
+        """
+        # We'll be grouping over time and the experiment columns
+        group_cols = [self.time_col] + self.experiment_cols
+
+        # Drop the run_col column, since we're aggregating over it
+        df_minus_jobs = self.df[group_cols + self.metric_cols]
+
+        # Compute mean and std within each group
+        avg_df = df_minus_jobs.groupby(group_cols).agg(['mean', 'std'])
+
+        # Convert the names of the new columns from (metric, mean) to 'metric_mean', etc.
+        avg_df.columns = ['_'.join(col).strip() for col in avg_df.columns.values]
+        avg_df.reset_index(inplace=True)
+        return avg_df
+
+    def scalar_metrics_per_run(self, metrics=(best, auc)):
+        """Compute one or more scalar peformance measure of each metric for each run.
+
+        This is analogous to avg_curves, except we're aggregating over time, instead of across runs.
+        
+        For example, we might use this to take a set of best-so-far curves and reduce
+        them to a series convergence times, or area-under-curve score (one value per run)."""
+
+        # We'll be grouping over the run and experiment columns
+        group_cols = [self.run_col] + self.experiment_cols
+
+        # Drop the time_col column, since we're aggregating over it
+        df_minus_time = self.df[group_cols + self.metric_cols]
+
+        df_scalars = df_minus_time.groupby(group_cols).apply(metrics)
+        # df_scalars = df[group + ['eval', 'bsf']].groupby(group).apply(best)
+        # df_auc = df[group + ['eval', 'bsf']].groupby(group).apply(auc)
+        # df_scalars['auc'] = df_auc.auc
+        df_scalars.reset_index(inplace=True)
+
+        # These are the new columns that we've created via aggregation
+        scalar_metric_cols = [ f.__name__ for f in metrics ]
+        assert(set(group_cols).issubset(df_scalars.columns)), f"Expected {group_cols} to be a subset of {df_scalars.columns}."
+        assert(set(scalar_metric_cols).issubset(df_scalars.columns)), f"Expected {scalar_metric_cols} to be a subset of {df_scalars.columns}."
+        return df_scalars, scalar_metric_cols
+
+    def avg_scalar_metrics(self, metrics=(best, auc)):
+        """
+        Aggregate over both runs and time, computing the mean and std of several scalar
+        metrics acrossr runs.
+
+        For example, we can use this to compute the average area-under-best-so-far-curve
+        for a collection of runs.
+        """
+        df_scalars, scalar_metric_cols = self.scalar_metrics_per_run(metrics)
+
+        # We'll be grouping over only the experiment columns
+        group_cols = self.experiment_cols
+
+        # Drop the time_col column, since we're aggregating over it
+        df_minus_jobs = self.df[group_cols + scalar_metric_cols]
+
+        # Compute mean and std of the scalar metrics within each group
+        avg_df = df_minus_jobs.groupby(group_cols).agg(['mean', 'std'])
+
+        # Convert the names of the new columns from (metric, mean) to 'metric_mean', etc.
+        avg_df.columns = ['_'.join(col).strip() for col in avg_df.columns.values]
+        avg_df.reset_index(inplace=True)
+        return avg_df
 
 
 ##############################
@@ -32,24 +148,6 @@ class BSFCurves():
     algorithm configurations) and provides operations for analyzing them.
     
     One row per algorithm run."""
-    def __init__(self, df, bsf_col='bsf', time_col='eval', job_col='job', groupby_cols=()):
-        assert(df is not None)
-        assert(groupby_cols in df.columns)
-        assert(time_col in df.columns), f"Expected '{time_col}' column to be in {df.columns}."
-        assert(bsf_col in df.columns), f"Expected '{bsf_col}' column to be in {df.columns}."
-        self.df = df
-        self.bsf_col = bsf_col
-        self.time_col = time_col
-        self.job_col = job_col
-        self.groupby_cols = groupby_cols
-
-    def average_bsf_curves(self, groupby_cols):
-        """Average over different runs of each configuration."""
-        return AvgBSFCurves.from_bsf_curves(self, groupby_cols)
-
-    def scalar_metrics(self):
-        """Compute scalar metrics summarizing each run."""
-        return ScalarMetricsByRun.from_bsf_curves(self)
 
     def plot(self, title: str, xlabel: str = None, ylabel: str = None):
         """Plot all of the BSF curves in a single image."""
@@ -67,33 +165,6 @@ class BSFCurves():
 # Class AvgBSFCurves
 ##############################
 class AvgBSFCurves():
-    """Stores average performance curves computed from one or more algorithm
-    configuration and provides operations for analyzing them.
-    
-    One row per algorithm configuration."""
-    def __init__(self, df, time_col='eval', bsf_mean_col='bsf_mean', bsf_std_col='bsf_std', groupby_cols=()):
-        assert(df is not None)
-        self.df = df
-        assert(time_col in self.df.columns), f"Expected '{time_col}' column to be in {df.columns}."
-        assert(bsf_mean_col in self.df.columns), f"Expected '{bsf_mean_col}' column to be in {df.columns}."
-        self.time_col = time_col
-        self.bsf_mean_col = bsf_mean_col
-        self.bsf_std_col = bsf_std_col
-        self.groupby_cols = groupby_cols
-
-    @staticmethod
-    def from_bsf_curves(bsf_curves, groupby_cols):
-        """Aggregate bsf curves for each algorithm configuration into average bsf-fitness curves."""
-        assert(bsf_curves is not None)
-        assert(groupby_cols is not None)
-        df, bsf_col, time_col = bsf_curves.df, bsf_curves.bsf_col, bsf_curves.time_col
-
-        group = [time_col] + groupby_cols
-        avg_df = df[group + [bsf_col]].groupby(group).agg(['mean', 'std'])
-        avg_df.columns = ['_'.join(col).strip() for col in avg_df.columns.values]
-        avg_df.reset_index(inplace=True)
-        return AvgBSFCurves(avg_df, time_col, f"{bsf_col}_mean", f"{bsf_col}_std")
-
     def plot(self, title, error_bars: bool, legend_column, ylim, xlabel: str = None, ylabel: str = None):
         """Plot the mean BSF curves in a single image."""
         plt.figure(figsize=(8,6))
@@ -120,90 +191,9 @@ class AvgBSFCurves():
 
 
 ##############################
-# Function best()
-##############################
-@toolz.curry
-def best(df, bsf_col):
-    """Compute the best (highest) fitness value found across a group's 'bsf' attribute."""
-    return pd.Series({'best': df[bsf_col].max()})
-
-
-##############################
-# Function auc()
-##############################
-@toolz.curry
-def auc(df, bsf_col, time_col):
-    """A fast area-under-BSF-curve function."""
-    df = df[[time_col, bsf_col]].sort_values(time_col)
-    df['previous_time'] = [df[time_col].min()] + df[time_col][0:len(df[time_col]) - 1].to_list()
-    df['xdiff'] = df[time_col] - df.previous_time
-    auc = sum(df.xdiff * df.bsf)
-    return pd.Series({'auc': auc})
-
-
-##############################
-# Class ScalarMetricsByRun
-##############################
-class ScalarMetricsByRun():
-    """Stores scalar performance metrics summarizing the result of individual runs
-    for one or more algorithm configurations.
-    
-    One row per algorithm run."""
-    def __init__(self, df, metric_cols, groupby_cols):
-        assert(df is not None)
-        assert(metric_cols is not None)
-        self.df = df
-        self.metric_cols = metric_cols
-        self.groupby_cols = groupby_cols
-
-    @staticmethod
-    def from_bsf_curves(bsf_curves, metrics=(best('bsf'), auc('bsf', 'eval'))):
-        """Aggregate the bsf curves for each algorithm into scalar metrics including the 
-        area-under-curve."""
-        assert(bsf_curves is not None)
-        assert(metrics is not None)
-        df, groupby_cols = bsf_curves.df, bsf_curves.groupby_cols
-        metric_names = [ f.__name__ for f in metrics ]
-        assert(all([ x in df.columns for x in metric_names ])), f"One or more of the metrics {metric_names} was missing in the dataframe's columns {df.columns}"
-
-        df_perf = df[groupby_cols + metric_names].groupby(groupby_cols).apply(metrics)
-        # df_perf = df[group + ['eval', 'bsf']].groupby(group).apply(best)
-        # df_auc = df[group + ['eval', 'bsf']].groupby(group).apply(auc)
-        # df_perf['auc'] = df_auc.auc
-        df_perf.reset_index(inplace=True)
-        return ScalarMetricsByRun(df_perf, metric_cols=metric_names, groupby_cols=groupby_cols)
-
-    def average(self, groupby_cols):
-        """Aggregate the separate runs of each algorithm configuration into a single
-        row of scalar performance metrics for all runs of each configuration."""
-        return AvgScalarMetrics.from_scalar_metrics_by_run(self.df, groupby_cols)
-
-
-##############################
 # Class AvgScalarMetrics
 ##############################
 class AvgScalarMetrics():
-    """Stores scalar performance metrics averaged over each algorithm configuratoin.
-    
-    One row per algorithm configuration."""
-    def __init__(self, df, groupby_cols, metric_cols):
-        assert(df is not None)
-        self.df = df
-        self.groupby_cols = groupby_cols
-        self.metric_cols = metric_cols
-
-    @staticmethod
-    def from_scalar_metrics_by_run(scalar_metrics_by_run, groupby_cols):
-        df = scalar_metrics_by_run.df
-        metric_cols = scalar_metrics_by_run.metric_cols
-        assert(all([ x in df.columns for x in metric_cols ]))
-
-        # Just grouping by note columns, since we want to average over jobs, and there is just one row
-        # per job-configuration pair.
-        avg_df = df[groupby_cols + metric_cols].groupby(groupby_cols).agg(['mean', 'std'])
-        avg_df.columns = ['_'.join(col).strip() for col in avg_df.columns.values]
-        avg_df.reset_index(inplace=True)
-        return AvgScalarMetrics(avg_df, groupby_cols, avg_df.columns)
 
 
     def plot(self, independent_vars: list, metric: str, line=True):
