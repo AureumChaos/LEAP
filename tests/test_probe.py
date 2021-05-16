@@ -10,7 +10,7 @@ import pytest
 from leap_ec import data
 from leap_ec.probe import *
 import leap_ec.ops as ops
-from leap_ec.context import context
+from leap_ec.global_vars import context
 
 
 

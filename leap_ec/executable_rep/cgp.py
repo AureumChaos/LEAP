@@ -6,7 +6,6 @@ import networkx as nx
 import toolz
 
 from leap_ec import ops
-from leap_ec.context import context
 from leap_ec.decoder import Decoder
 from leap_ec.int_rep.initializers import create_int_vector
 from leap_ec.int_rep.ops import mutate_randint

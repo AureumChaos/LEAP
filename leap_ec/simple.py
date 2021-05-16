@@ -5,7 +5,6 @@
 from matplotlib import pyplot as plt
 
 from leap_ec import ops, probe
-from leap_ec.context import context
 from leap_ec.algorithm import generational_ea
 from leap_ec.real_rep.ops import mutate_gaussian
 from leap_ec.representation import Representation

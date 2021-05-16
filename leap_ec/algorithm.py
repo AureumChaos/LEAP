@@ -9,7 +9,7 @@
 from leap_ec import util
 from toolz import pipe
 
-from leap_ec.context import context
+from leap_ec.global_vars import context
 from leap_ec.individual import Individual
 
 
@@ -105,12 +105,12 @@ def generational_ea(generations, pop_size, problem, representation, pipeline,
     # individual_cls
     parents = representation.create_population(pop_size, problem=problem)
 
-    # Evaluate initial population
-    parents = init_evaluate(parents)
-
     # Set up a generation counter that records the current generation to
     # context
     generation_counter = util.inc_generation(context=context)
+
+    # Evaluate initial population
+    parents = init_evaluate(parents)
 
     # Output the best individual in the initial population
     bsf = max(parents)

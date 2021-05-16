@@ -1,7 +1,7 @@
 """
     Unit tests for inc_generation()
 """
-from leap_ec.context import context
+from leap_ec.global_vars import context
 from leap_ec.util import inc_generation
 
 def test_inc_generation():

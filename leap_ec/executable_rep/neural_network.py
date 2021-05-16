@@ -6,7 +6,7 @@ import networkx as nx
 import numpy as np
 
 from .executable import Executable
-from leap_ec.context import context
+from leap_ec.global_vars import context
 
 
 ##############################

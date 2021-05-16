@@ -7,7 +7,7 @@ from leap_ec.individual import Individual
 from leap_ec.binary_rep.problems import MaxOnes
 from leap_ec.distrib.evaluate import evaluate
 from leap_ec.decoder import IdentityDecoder
-from leap_ec.context import context
+from leap_ec.global_vars import context
 
 
 def test_good_eval():

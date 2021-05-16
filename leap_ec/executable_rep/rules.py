@@ -19,7 +19,7 @@ import uuid
 from matplotlib import pyplot as plt
 from matplotlib import patches
 
-from leap_ec import context
+from leap_ec.global_vars import context
 from leap_ec.decoder import Decoder
 from leap_ec.executable_rep.executable import Executable
 from leap_ec.executable_rep.problems import EnvironmentProblem
@@ -764,7 +764,7 @@ class PlotPittRuleProbe:
 
     """
 
-    def __init__(self, decoder, plot_dimensions: (int, int) = (0, 1), ax=None, xlim=(0, 1), ylim=(0, 1), modulo=1, context=context.context):
+    def __init__(self, decoder, plot_dimensions: (int, int) = (0, 1), ax=None, xlim=(0, 1), ylim=(0, 1), modulo=1, context=context):
         assert(context is not None)
         assert(decoder is not None)
         assert(plot_dimensions is not None)

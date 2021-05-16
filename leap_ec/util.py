@@ -8,6 +8,8 @@ import collections
 import itertools
 import inspect
 
+from leap_ec.global_vars import context
+
 
 ###############################
 # Function print_population
@@ -84,7 +86,7 @@ def is_iterable(obj):
 ###############################
 # Function inc_generation
 ###############################
-def inc_generation(context, callbacks=()):
+def inc_generation(context=context, callbacks=()):
     """ This tracks the current generation
 
     The `context` is used to report the current generation, though that
@@ -94,7 +96,7 @@ def inc_generation(context, callbacks=()):
     generation is incremented. The registered callback functions should have
     a signature f(int), where the int is the new generation.
 
-    >>> from leap_ec.context import context
+    >>> from leap_ec.global_vars import context
     >>> my_inc_generation = inc_generation(context)
 
     :param context: will set ['leap']['generation'] to the incremented
@@ -134,7 +136,7 @@ def inc_generation(context, callbacks=()):
 ###############################
 # Function inc_births
 ###############################
-def inc_births(context, start=0, callbacks=()):
+def inc_births(context=context, start=0, callbacks=()):
     """ This tracks the current number of births
 
     The `context` is used to report the current births, though that
@@ -144,7 +146,7 @@ def inc_births(context, start=0, callbacks=()):
     generation is incremented. The registered callback functions should have
     a signature f(int), where the int is the new birth.
 
-    >>> from leap_ec.context import context
+    >>> from leap_ec.global_vars import context
     >>> my_inc_births = inc_births(context)
 
     Each time we call the object, the birth count is incremented and returned:

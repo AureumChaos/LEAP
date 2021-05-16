@@ -13,7 +13,7 @@ import toolz
 
 import distributed
 
-from leap_ec.context import context
+from leap_ec.global_vars import context
 from leap_ec import util
 
 from .evaluate import evaluate, is_viable

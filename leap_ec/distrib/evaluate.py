@@ -9,7 +9,7 @@ from toolz import curry
 
 import distributed
 
-from leap_ec.context import context
+from leap_ec.global_vars import context
 
 
 @curry

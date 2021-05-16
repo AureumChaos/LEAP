@@ -5,23 +5,23 @@
 import logging
 from toolz import curry
 
-from leap_ec.context import context
+from leap_ec import leap_logger_name
+from leap_ec.global_vars import context
 
 from .evaluate import evaluate
 from leap_ec import ops
 
-# Create unique logger for this namespace
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(leap_logger_name)
 
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG)
+# console_handler = logging.StreamHandler()
+# console_handler.setLevel(logging.DEBUG)
 
-formatter = \
-    logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# formatter = \
+#     logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-console_handler.setFormatter(formatter)
+# console_handler.setFormatter(formatter)
 
-logger.addHandler(console_handler)
+# logger.addHandler(console_handler)
 
 
 @curry

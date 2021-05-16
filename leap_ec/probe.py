@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from toolz import curry
 
-from leap_ec.context import context
+from leap_ec.global_vars import context
 from leap_ec import ops as op
 from leap_ec.ops import iteriter_op
 
@@ -117,7 +117,7 @@ class FitnessStatsCSVProbe(op.Operator):
 
     The probe also relies on LEAP's algorithm `context` to determine the generation number:
 
-    >>> from leap_ec.context import context
+    >>> from leap_ec.global_vars import context
     >>> context['leap']['generation'] = 100
 
     Here's how we'd compute fitness statistics for a test population.  The population
@@ -153,12 +153,18 @@ class FitnessStatsCSVProbe(op.Operator):
     <BLANKLINE>
 
     """
+    comment_character = '#'
+     
+    time_col='step'
+    default_metric_cols=('bsf', 'mean_fitness', 'std_fitness', 'min_fitness', 'max_fitness')
 
     def __init__(self, stream=sys.stdout,
                  header=True,
                  extra_metrics=None,
+                 comment=None,
                  job: str = None,
                  notes: Dict = None,
+                 modulo: int = 1,
                  context: Dict = context):
         assert (stream is not None)
         assert (hasattr(stream, 'write'))
@@ -167,29 +173,47 @@ class FitnessStatsCSVProbe(op.Operator):
         self.stream = stream
         self.context = context
         self.bsf_ind = None
+        self.modulo = modulo
         self.notes = notes if notes else {}
         self.extra_metrics = extra_metrics if extra_metrics else {}
         self.job = job
+        self.comment = comment
+
         if header:
-            job_header = 'job, ' if job is not None else ''
-            note_extras = '' if not notes else ', '.join(notes.keys()) + ', '
-            extras = '' if not extra_metrics else ', ' + ', '.join(
-                extra_metrics.keys())
-            stream.write(
-                job_header + note_extras + 'step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness'
-                + extras + '\n')
+            self.write_comment(stream)
+            self.write_header(stream)
+
+    def write_header(self, stream):
+        job_header = 'job, ' if self.job is not None else ''
+        note_extras = '' if not self.notes else ', '.join(self.notes.keys()) + ', '
+        extras = '' if not self.extra_metrics else ', ' + ', '.join(
+            self.extra_metrics.keys())
+        stream.write(
+            job_header + note_extras + 'step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness'
+            + extras + '\n')
+
+    def write_comment(self, stream):
+        if self.comment:
+            commented_lines = []
+            for line in self.comment.split('\n'):
+                commented_lines.append(f"{self.comment_character} {line}")
+            stream.write('\n'.join(commented_lines) + '\n')
 
     def __call__(self, population):
         assert (population is not None)
         assert ('leap' in self.context)
         assert ('generation' in self.context['leap'])
 
+        generation = self.context['leap']['generation']
+        if generation % self.modulo != 0:
+            return population
+
         if self.job is not None:
             self.stream.write(str(self.job) + ', ')
         for _, v in self.notes.items():
             self.stream.write(str(v) + ', ')
 
-        self.stream.write(str(self.context['leap']['generation']) + ', ')
+        self.stream.write(str(generation) + ', ')
 
         best_ind = best_of_gen(population)
         if self.bsf_ind is None or (best_ind > self.bsf_ind):
@@ -253,7 +277,7 @@ class AttributesCSVProbe(op.Operator):
     here's how you'd record the best individual's fitness and genome to a
     dataframe:
 
-    >>> from leap_ec.context import context
+    >>> from leap_ec.global_vars import context
     >>> from leap_ec.data import test_population
     >>> probe = AttributesCSVProbe(do_dataframe=True, best_only=True, do_fitness=True, do_genome=True)
     >>> context['leap']['generation'] = 100
@@ -444,6 +468,7 @@ class PopulationMetricsPlotProbe:
             self.__rescale_ax()
             self.ax.figure.canvas.draw()
             plt.pause(0.000001)
+            plt.ion()  # XXX Not sure this is needed
         return population
 
     def __rescale_ax(self):

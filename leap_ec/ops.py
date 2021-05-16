@@ -23,7 +23,7 @@ import numpy as np
 import toolz
 from toolz import curry
 
-from leap_ec.context import context
+from leap_ec.global_vars import context
 from leap_ec.individual import Individual
 
 
@@ -260,14 +260,14 @@ def evaluate(next_individual: Iterator) -> Iterator:
 ##############################
 @curry
 @listlist_op
-def grouped_evaluate(population: list, problem, individuals_per_chunk: int = None) -> list:
+def grouped_evaluate(population: list, problem, max_individuals_per_chunk: int = None) -> list:
     """Evaluate the population by sending groups of multiple individuals to
     a fitness function so they can be evaluated simultaneously.
 
     This is useful, for example, as a way to evaluate individuals in parallel
     on a GPU."""
-    if individuals_per_chunk is None:
-        individuals_per_chunk = len(population)
+    if max_individuals_per_chunk is None:
+        max_individuals_per_chunk = len(population)
 
     def chunks(lst, n):
         """Yield successive n-sized chunks from lst."""
@@ -275,7 +275,7 @@ def grouped_evaluate(population: list, problem, individuals_per_chunk: int = Non
             yield lst[i:i + n]
 
     fitnesses = []
-    for chunk in chunks(population, individuals_per_chunk):
+    for chunk in chunks(population, max_individuals_per_chunk):
         phenomes = [ ind.decode() for ind in chunk ]
         fit = problem.evaluate_multiple(phenomes)
         fitnesses.extend(fit)

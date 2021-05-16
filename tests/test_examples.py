@@ -1,11 +1,15 @@
+"""
+Run all of our example algorithms and ensure they have no exceptions.
+"""
 import pathlib
 import runpy
+import sys
 
 import pytest
-import sys
 
 
 scripts = pathlib.Path(__file__, '..', '..', 'examples').resolve().rglob('*.py')
+
 
 ##############################
 # Tests for example scripts
