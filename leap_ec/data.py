@@ -3,6 +3,10 @@ from leap_ec.individual import Individual
 from leap_ec.binary_rep.problems import MaxOnes
 from leap_ec.decoder import IdentityDecoder
 
+
+##############################
+# test_population
+##############################
 def _build_test_pop():
     """Construct a synthetic population for illustrating example operations."""
     pop = [Individual([1, 0, 1, 1, 0], IdentityDecoder(),
