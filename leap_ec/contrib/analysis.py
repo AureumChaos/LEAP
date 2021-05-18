@@ -210,7 +210,7 @@ class CurvePlotter():
         plt.title(title)
         plt.show(block=False)
 
-    def plot_avg_curves(self, metric_col, title: str, error_bars: bool, legend_column, ylim, xlabel: str = None, ylabel: str = None):
+    def plot_avg_curves(self, metric_col, title: str, error_bars: bool, ylim, xlabel: str = None, ylabel: str = None):
         """Plot the mean curves in a single image, using the specified metric on the y axis."""
         assert(metric_col in self.analyzer.metric_cols), f"Expected '{metric_col}' column to be in {self.analyzer.metric_cols}."
 
@@ -228,18 +228,25 @@ class CurvePlotter():
         # We want to group the data for each experiment into a separate curve
         group_cols = self.analyzer.experiment_cols
 
+        cmap = plt.get_cmap("tab10")
+        legend_patches = []
+
         # Iterate through each group and plot it
-        for name, group_df in df.groupby(group_cols, as_index=False):
+        for i, (name, group_df) in enumerate(df.groupby(group_cols, as_index=False)):
             # Optionally population the legend using the specified column
-            label = group_df[legend_column].iloc[0] if legend_column else name
+            #label = group_df[legend_column].iloc[0] if legend_column else name
+            patch = patches.Patch(color=cmap(i), label=name)
+            legend_patches.append(patch)
             if error_bars:
-                group_df.plot(x=time_col, y=mean_col, yerr=std_col, capsize=4, fmt='o-', ax=plt.gca(), grid='on', ms=10, label=label)
+                group_df.plot(x=time_col, y=mean_col, yerr=std_col, capsize=4, fmt='o-', ax=plt.gca(), grid='on', ms=10, color=cmap(i))
             else:
-                group_df.plot(x=time_col, y=mean_col, style='o-', ax=plt.gca(), grid='on', label=label)
+                group_df.plot(x=time_col, y=mean_col, style='o-', ax=plt.gca(), grid='on', color=cmap(i))
+
+        plt.legend(handles=legend_patches)
 
         # If the user set the legend to None, remove it
-        if not legend_column:
-            plt.gca().get_legend().remove()
+        # if not legend_column:
+        #     plt.gca().get_legend().remove()
             
         if ylim:
             plt.ylim(*ylim)
@@ -347,7 +354,7 @@ def all(curves_file, metric_col, error, ylim, title, time_col):
     analyzer = CurveAnalyzer(df, time_col=time_col, experiment_cols=['experiment'])
     plotter = CurvePlotter(analyzer)
     plotter.plot_curves(metric_col, title)
-    plotter.plot_avg_curves(metric_col, title, error, None, ylim)
+    plotter.plot_avg_curves(metric_col, title, error, ylim)
     plotter.plot_scalars_bar(metric_col, title=title)
     plt.show()
 
@@ -358,7 +365,7 @@ def all(curves_file, metric_col, error, ylim, title, time_col):
 @plot.command()
 @click.argument('curves-file')
 @click.option('--metric-col', default='bsf', type=str, help="Name of column to plot on the y axis (ex. bsf, max_fitness).")
-@click.option('--title', type=str, default='Performance')
+@click.option('--title', type=str, default='Performance Curves')
 @click.option('--time-col', default='step', type=str, help="Name of column that represent time (ex. generation, step, eval).")
 def curves(curves_file, metric_col, title, time_col):
     """Plot a single best-of-generation fitness curve from a CSV file."""
@@ -376,18 +383,17 @@ def curves(curves_file, metric_col, title, time_col):
 @plot.command('avg-curves')
 @click.argument('average-bsf-file')
 @click.option('--metric-col', default='bsf', type=str, help="Name of column to plot on the y axis (ex. bsf, max_fitness).")
-@click.option('--title', type=str, default='Average Performance')
+@click.option('--title', type=str, default='Average Performance Curves')
 @click.option('--error/--no-error', type=bool, default=True)
-@click.option('--legend-col', type=str, default=None)
 @click.option('--ylim', type=(float, float), default=(None, None))
 @click.option('--time-col', default='step', type=str, help="Name of column that represent time (ex. generation, step, eval).")
-def avg_curves(average_bsf_file, metric_col, title, error, legend_col, ylim, time_col):
+def avg_curves(average_bsf_file, metric_col, title, error, ylim, time_col):
     """Plot average fitness curves from an average-fitness CSV file."""
     assert(os.path.exists(average_bsf_file))
     df = pd.read_csv(average_bsf_file, skipinitialspace=True)
     analyzer = CurveAnalyzer(df, time_col=time_col, experiment_cols=['experiment'])
     plotter = CurvePlotter(analyzer)
-    plotter.plot_avg_curves(metric_col, title, error, legend_col, ylim)
+    plotter.plot_avg_curves(metric_col, title, error, ylim)
     plt.show()
 
 
