@@ -181,6 +181,7 @@ class CurvePlotter():
     def __init__(self, analyzer):
         assert(analyzer is not None)
         self.analyzer = analyzer
+        plt.style.use('ggplot')
 
     def plot_curves(self, metric_col, title: str, xlabel: str = None, ylabel: str = None):
         """Plot all of the curves in a single image, using the specified metric on the y axis."""
@@ -207,7 +208,7 @@ class CurvePlotter():
         if ylabel:
             plt.ylabel(ylabel)
         plt.title(title)
-        plt.show()
+        plt.show(block=False)
 
     def plot_avg_curves(self, metric_col, title: str, error_bars: bool, legend_column, ylim, xlabel: str = None, ylabel: str = None):
         """Plot the mean curves in a single image, using the specified metric on the y axis."""
@@ -248,7 +249,19 @@ class CurvePlotter():
         if ylabel:
             plt.ylabel(ylabel)
         plt.title(title)
-        plt.show()
+        plt.show(block=False)
+
+    def plot_scalars_bar(self, metric_col: str, scalar_measure=auc, title='Performance by Experimental Group'):
+        assert(metric_col is not None)
+        assert(scalar_measure is not None)
+        df = self.analyzer.scalar_metrics_per_run(metric_col=metric_col, scalar_measure=scalar_measure)
+        columns = self.analyzer.experiment_cols + [ scalar_measure.__name__ ]
+        df[columns].boxplot(by=self.analyzer.experiment_cols)
+        plt.title(title)
+        plt.suptitle('')  # Git rid of the auto-generated boxplot() sup-title
+        plt.xticks(rotation = 45)
+        plt.tight_layout()
+        plt.show(block=False)
 
     def plot_avg_scalars(self, metric, independent_vars: list, line=True):
         assert(independent_vars is not None)
@@ -318,38 +331,82 @@ def analyze(files):
 
 
 ##############################
+# Command plot all
+##############################
+@plot.command()
+@click.argument('curves-file')
+@click.option('--metric-col', default='bsf', type=str, help="Name of column to plot on the y axis (ex. bsf, max_fitness).")
+@click.option('--error/--no-error', type=bool, default=True)
+@click.option('--ylim', type=(float, float), default=(None, None))
+@click.option('--title', type=str, default='Performance')
+@click.option('--time-col', default='step', type=str, help="Name of column that represent time (ex. generation, step, eval).")
+def all(curves_file, metric_col, error, ylim, title, time_col):
+    """Plot a single best-of-generation fitness curve from a CSV file."""
+    assert(os.path.exists(curves_file))
+    df = pd.read_csv(curves_file, skipinitialspace=True)
+    analyzer = CurveAnalyzer(df, time_col=time_col, experiment_cols=['experiment'])
+    plotter = CurvePlotter(analyzer)
+    plotter.plot_curves(metric_col, title)
+    plotter.plot_avg_curves(metric_col, title, error, None, ylim)
+    plotter.plot_scalars_bar(metric_col, title=title)
+    plt.show()
+
+
+##############################
 # Command plot curves
 ##############################
 @plot.command()
 @click.argument('curves-file')
 @click.option('--metric-col', default='bsf', type=str, help="Name of column to plot on the y axis (ex. bsf, max_fitness).")
-@click.option('--title', type=str, default='Best-so-Far Fitness')
-#@click.option('--time-col', default='step', type=str, help="Name of column that represent time (ex. generation, step, eval).")
-def curves(curves_file, metric_col, title):
+@click.option('--title', type=str, default='Performance')
+@click.option('--time-col', default='step', type=str, help="Name of column that represent time (ex. generation, step, eval).")
+def curves(curves_file, metric_col, title, time_col):
     """Plot a single best-of-generation fitness curve from a CSV file."""
     assert(os.path.exists(curves_file))
     df = pd.read_csv(curves_file, skipinitialspace=True)
-    analyzer = CurveAnalyzer(df, experiment_cols=['experiment'])
+    analyzer = CurveAnalyzer(df, time_col=time_col, experiment_cols=['experiment'])
     plotter = CurvePlotter(analyzer)
     plotter.plot_curves(metric_col, title)
+    plt.show()
 
 
 ##############################
-# Command plot avg-bsf
+# Command plot avg-curves
 ##############################
-@plot.command('avg-bsf')
+@plot.command('avg-curves')
 @click.argument('average-bsf-file')
-@click.option('--title', type=str, default='Average Best-so-Far Fitness')
+@click.option('--metric-col', default='bsf', type=str, help="Name of column to plot on the y axis (ex. bsf, max_fitness).")
+@click.option('--title', type=str, default='Average Performance')
 @click.option('--error/--no-error', type=bool, default=True)
 @click.option('--legend-col', type=str, default=None)
 @click.option('--ylim', type=(float, float), default=(None, None))
 @click.option('--time-col', default='step', type=str, help="Name of column that represent time (ex. generation, step, eval).")
-def avg_bsf(average_bsf_file, title, error, legend_col, ylim, time_col):
+def avg_curves(average_bsf_file, metric_col, title, error, legend_col, ylim, time_col):
     """Plot average fitness curves from an average-fitness CSV file."""
     assert(os.path.exists(average_bsf_file))
     df = pd.read_csv(average_bsf_file, skipinitialspace=True)
-    curves = AvgBSFCurves(df, time_col=time_col)
-    curves.plot(title, error, legend_col, ylim)
+    analyzer = CurveAnalyzer(df, time_col=time_col, experiment_cols=['experiment'])
+    plotter = CurvePlotter(analyzer)
+    plotter.plot_avg_curves(metric_col, title, error, legend_col, ylim)
+    plt.show()
+
+
+##############################
+# Command plot auc
+##############################
+@plot.command()
+@click.argument('curves-file')
+@click.option('--metric-col', default='bsf', type=str, help="Name of column to plot on the y axis (ex. bsf, max_fitness).")
+@click.option('--title', type=str, default='Area-under-curve by experiment')
+@click.option('--time-col', default='step', type=str, help="Name of column that represent time (ex. generation, step, eval).")
+def auc(curves_file, metric_col, title, time_col):
+    """Plot a single best-of-generation fitness curve from a CSV file."""
+    assert(os.path.exists(curves_file))
+    df = pd.read_csv(curves_file, skipinitialspace=True)
+    analyzer = CurveAnalyzer(df, time_col=time_col, experiment_cols=['experiment'])
+    plotter = CurvePlotter(analyzer)
+    plotter.plot_scalars_bar(metric_col, title=title)
+    plt.show()
 
 
 ##############################
