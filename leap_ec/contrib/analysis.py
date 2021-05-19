@@ -183,13 +183,12 @@ class CurvePlotter():
         self.analyzer = analyzer
         plt.style.use('ggplot')
 
-    def plot_curves(self, metric_col, title: str, xlabel: str = None, ylabel: str = None):
+    def plot_curves(self, metric_col, title: str, xlabel: str = None, ylabel: str = None, ax=None):
         """Plot all of the curves in a single image, using the specified metric on the y axis."""
         assert(metric_col in self.analyzer.metric_cols), f"Expected '{metric_col}' column to be in {self.analyzer.metric_cols}."
 
-        # TODO Allow an optional axis to be passed into the function
-        plt.figure(figsize=(8,6))
-        #group_cols = [self.analyzer.run_col] + self.analyzer.experiment_cols
+        if ax is None:
+            _, ax = plt.subplots(figsize=(8,6))
         
         cmap = plt.get_cmap("tab10")
         legend_patches = []
@@ -198,11 +197,10 @@ class CurvePlotter():
             patch = patches.Patch(color=cmap(i), label=group_key)
             legend_patches.append(patch)
             group_df.groupby([self.analyzer.run_col]).plot(x=self.analyzer.time_col, y=metric_col,
-                                                           color=cmap(i), ax=plt.gca())
+                                                           color=cmap(i), ax=ax)
 
         plt.legend(handles=legend_patches)
 
-        #self.analyzer.df.groupby(group_cols).plot(x=self.analyzer.time_col, y=metric_col, ax=plt.gca(), legend=False)
         if xlabel:
             plt.xlabel(xlabel)
         if ylabel:
@@ -210,12 +208,12 @@ class CurvePlotter():
         plt.title(title)
         plt.show(block=False)
 
-    def plot_avg_curves(self, metric_col, title: str, error_bars: bool, ylim, xlabel: str = None, ylabel: str = None):
+    def plot_avg_curves(self, metric_col, title: str, error_bars: bool, ylim, xlabel: str = None, ylabel: str = None, ax=None):
         """Plot the mean curves in a single image, using the specified metric on the y axis."""
         assert(metric_col in self.analyzer.metric_cols), f"Expected '{metric_col}' column to be in {self.analyzer.metric_cols}."
 
-        # TODO Allow an optional axis to be passed into the function
-        plt.figure(figsize=(8,6))
+        if ax is None:
+            _, ax = plt.subplots(figsize=(8,6))
 
         df = self.analyzer.avg_curves()
         time_col = self.analyzer.time_col
@@ -238,9 +236,9 @@ class CurvePlotter():
             patch = patches.Patch(color=cmap(i), label=name)
             legend_patches.append(patch)
             if error_bars:
-                group_df.plot(x=time_col, y=mean_col, yerr=std_col, capsize=4, fmt='o-', ax=plt.gca(), grid='on', ms=10, color=cmap(i))
+                group_df.plot(x=time_col, y=mean_col, yerr=std_col, capsize=4, fmt='o-', ax=ax, grid='on', ms=10, color=cmap(i))
             else:
-                group_df.plot(x=time_col, y=mean_col, style='o-', ax=plt.gca(), grid='on', color=cmap(i))
+                group_df.plot(x=time_col, y=mean_col, style='o-', ax=ax, grid='on', color=cmap(i))
 
         plt.legend(handles=legend_patches)
 
@@ -258,12 +256,17 @@ class CurvePlotter():
         plt.title(title)
         plt.show(block=False)
 
-    def plot_scalars_bar(self, metric_col: str, scalar_measure=auc, title='Performance by Experimental Group'):
+    def plot_scalars_bar(self, metric_col: str, scalar_measure=auc, title='Performance by Experimental Group', ax=None):
         assert(metric_col is not None)
         assert(scalar_measure is not None)
+
+        if ax is None:
+            _, ax = plt.subplots(figsize=(8,6))
+
         df = self.analyzer.scalar_metrics_per_run(metric_col=metric_col, scalar_measure=scalar_measure)
         columns = self.analyzer.experiment_cols + [ scalar_measure.__name__ ]
-        df[columns].boxplot(by=self.analyzer.experiment_cols)
+
+        df[columns].boxplot(by=self.analyzer.experiment_cols, ax=ax)
         plt.title(title)
         plt.suptitle('')  # Git rid of the auto-generated boxplot() sup-title
         plt.xticks(rotation = 45)
@@ -326,10 +329,10 @@ def analyze(files):
     curves_file = './curves_combined.csv'
 
     # Combine files into one big CSV
-    with open(curves_file, 'w') as f:
-        cat_csv_files(files, f)
+    df = cat_csv_files(files)
+    df.to_csv(curves_file)
 
-    all_runs_df = pd.read_csv(curves_file, skipinitialspace=True)
+    all_runs_df = pd.read_csv(curves_file, skipinitialspace=True, comment='#')
 
     analyzer = CurveAnalyzer(df=all_runs_df, experiment_cols=['experiment'])
     analyzer.avg_curves().to_csv('./avg_curves_by_experiment.csv', index=False)
@@ -350,12 +353,17 @@ def analyze(files):
 def all(curves_file, metric_col, error, ylim, title, time_col):
     """Plot a single best-of-generation fitness curve from a CSV file."""
     assert(os.path.exists(curves_file))
-    df = pd.read_csv(curves_file, skipinitialspace=True)
+    df = pd.read_csv(curves_file, skipinitialspace=True, comment='#')
     analyzer = CurveAnalyzer(df, time_col=time_col, experiment_cols=['experiment'])
     plotter = CurvePlotter(analyzer)
-    plotter.plot_curves(metric_col, title)
-    plotter.plot_avg_curves(metric_col, title, error, ylim)
-    plotter.plot_scalars_bar(metric_col, title=title)
+
+    plt.figure(figsize=(15, 8))
+    plt.subplot(131)
+    plotter.plot_curves(metric_col, title, ax=plt.gca())
+    plt.subplot(132)
+    plotter.plot_avg_curves(metric_col, title, error, ylim, ax=plt.gca())
+    plt.subplot(133)
+    plotter.plot_scalars_bar(metric_col, title=title, ax=plt.gca())
     plt.show()
 
 
@@ -368,9 +376,9 @@ def all(curves_file, metric_col, error, ylim, title, time_col):
 @click.option('--title', type=str, default='Performance Curves')
 @click.option('--time-col', default='step', type=str, help="Name of column that represent time (ex. generation, step, eval).")
 def curves(curves_file, metric_col, title, time_col):
-    """Plot a single best-of-generation fitness curve from a CSV file."""
+    """Plot the individual performance curves from a CSV file."""
     assert(os.path.exists(curves_file))
-    df = pd.read_csv(curves_file, skipinitialspace=True)
+    df = pd.read_csv(curves_file, skipinitialspace=True, comment='#')
     analyzer = CurveAnalyzer(df, time_col=time_col, experiment_cols=['experiment'])
     plotter = CurvePlotter(analyzer)
     plotter.plot_curves(metric_col, title)
@@ -390,7 +398,7 @@ def curves(curves_file, metric_col, title, time_col):
 def avg_curves(average_bsf_file, metric_col, title, error, ylim, time_col):
     """Plot average fitness curves from an average-fitness CSV file."""
     assert(os.path.exists(average_bsf_file))
-    df = pd.read_csv(average_bsf_file, skipinitialspace=True)
+    df = pd.read_csv(average_bsf_file, skipinitialspace=True, comment='#')
     analyzer = CurveAnalyzer(df, time_col=time_col, experiment_cols=['experiment'])
     plotter = CurvePlotter(analyzer)
     plotter.plot_avg_curves(metric_col, title, error, ylim)
@@ -400,15 +408,15 @@ def avg_curves(average_bsf_file, metric_col, title, error, ylim, time_col):
 ##############################
 # Command plot auc
 ##############################
-@plot.command()
+@plot.command('auc')
 @click.argument('curves-file')
 @click.option('--metric-col', default='bsf', type=str, help="Name of column to plot on the y axis (ex. bsf, max_fitness).")
 @click.option('--title', type=str, default='Area-under-curve by experiment')
 @click.option('--time-col', default='step', type=str, help="Name of column that represent time (ex. generation, step, eval).")
-def auc(curves_file, metric_col, title, time_col):
+def auc_command(curves_file, metric_col, title, time_col):
     """Plot a single best-of-generation fitness curve from a CSV file."""
     assert(os.path.exists(curves_file))
-    df = pd.read_csv(curves_file, skipinitialspace=True)
+    df = pd.read_csv(curves_file, skipinitialspace=True, comment='#')
     analyzer = CurveAnalyzer(df, time_col=time_col, experiment_cols=['experiment'])
     plotter = CurvePlotter(analyzer)
     plotter.plot_scalars_bar(metric_col, title=title)
@@ -418,28 +426,33 @@ def auc(curves_file, metric_col, title, time_col):
 ##############################
 # Function cat_csvs()
 ##############################
-def cat_csv_files(files: list, stream=sys.stdout):
+def cat_csv_files(files: list):
     """Combine a bunch of CSVs with the same columns into one CSV with a single header.
     
     The result is written to the given stream."""
     # TODO Use pandas instead of csv to read input, because we like to use CSV files that have comments at the top
-    header = None
-    writer = csv.writer(stream)
+    # header = None
+    # writer = csv.writer(stream)
 
+    dataframes = []
     for fname in files:
-        with open(fname, 'r') as f:
-            reader = csv.reader(f)
+        f_df = pd.read_csv(fname, skipinitialspace=True, comment='#')
+        dataframes.append(f_df)
 
-            if header is None:
-                header = next(reader)
-                writer.writerow(header)
-            else:
-                this_header = next(reader)
-                if this_header != header:
-                    raise ValueError(f"Inconsistent headers.  First file was:\n{header}\n\nbut found a file with\n{this_header}.")
+    return pd.concat(dataframes)
+        # with open(fname, 'r') as f:
+        #     reader = csv.reader(f)
 
-            for row in reader:
-                writer.writerow(row)
+        #     if header is None:
+        #         header = next(reader)
+        #         writer.writerow(header)
+        #     else:
+        #         this_header = next(reader)
+        #         if this_header != header:
+        #             raise ValueError(f"Inconsistent headers.  First file was:\n{header}\n\nbut found a file with\n{this_header}.")
+
+        #     for row in reader:
+        #         writer.writerow(row)
 
 
 ##############################
