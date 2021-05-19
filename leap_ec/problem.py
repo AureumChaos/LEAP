@@ -7,7 +7,7 @@ from math import nan, floor, isclose
 import random
 from abc import ABC, abstractmethod
 
-from leap_ec.context import context
+from leap_ec.global_vars import context
 
 
 ##############################
