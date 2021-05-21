@@ -195,7 +195,7 @@ as follows:
     of being inserted.  (And, if so, at the removal of an individual that was
     already in the population.  Or, colloquially, someone is voted off the island.)
 
-    There are two provided inserters, `steady_state.insert_into_pop` and
+    There are two provided inserters, `steady_state.tournament_insert_into_pop` and
     `greedy_insert_into_pop`.  The first will randomly select an individual from
     the internal population, and will replace it if its fitness is worse than
     the new individual.  The second will compare the new individual with the
