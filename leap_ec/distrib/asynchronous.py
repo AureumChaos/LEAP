@@ -80,15 +80,21 @@ def replace_if(new_individual, pop, index):
 
 
 ##############################
-# function insert_into_pop
+# function tournament_insert_into_pop
 ##############################
-def insert_into_pop(individual, pop, max_size):
+def tournament_insert_into_pop(individual, pop, max_size):
     """ Insert the given individual into the pop of evaluated individuals.
 
     Randomly select an individual in the pop, and the `individual` will
-    replace the selected individual iff it has a better fitness.
+    replace the selected individual iff it has a better fitness. This is
+    essentially binary tournament selection.
 
     Just insert individuals if the pop isn't at capacity yet
+
+    TODO as with tournament selection, we should have an optional `k` to
+    specify the tournament size. However, we have to be mindful that this is
+    already k=2, so we would have to draw k-1 individuals from the population
+    for comparison.
 
     :param individual: that was just evaluated
     :param pop: of already evaluated individuals
@@ -110,7 +116,7 @@ def greedy_insert_into_pop(individual, pop, max_size):
     """ Insert the given individual into the pop of evaluated individuals.
 
     This is greedy because we always compare the new `individual` with the
-    current weakest in the pop.
+    current weakest in the pop.  This is similar to tournament selection.
 
     Just insert individuals if the pop isn't at capacity yet
 
