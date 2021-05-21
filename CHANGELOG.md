@@ -44,7 +44,8 @@ Being a terse compilation by version of changes.
   * Added a `pad` parameter to `CartesianPhenotypePlotProbe` to plot 2D projections of higher-D functions
   * Renamed `PlotTrajectoryProbe` to the more descriptive `CartesianPhenotypePlotProbe`
   * Renamed `PopulationPlotProbe` to the more descriptive `PopulationMetricsPlotProbe`
-  * Added `FitnessPlotProbe` as a convenience wrapper for `PoulationMetricsPlotProbe`
+  * Added `FitnessPlotProbe` as a convenience wrapper for `PopulationMetricsPlotProbe`
+  * Added an `x_axis_value` parameter to `PopulationMetricsPlotProbe`
   * Default behavior changes
     * `Representation` now uses a phenotypic representation (`IdentityDecoder`) by default
     * Mutation operators no longer have default mutation rates (they must be explicitly set by the user).

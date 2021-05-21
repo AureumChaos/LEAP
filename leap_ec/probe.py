@@ -426,13 +426,17 @@ class PopulationMetricsPlotProbe:
     def __init__(self, ax=None,
                  metrics=None,
                  xlim=(0, 100), ylim=(0, 1), modulo=1, title='Population Metrics',
-                 context=context):
+                 x_axis_value=None, context=context):
 
         if ax is None:
             _, ax = plt.subplots()
 
         self.metrics = metrics
         self.modulo = modulo
+        # x-axis defaults to generation
+        if x_axis_value is None:
+            x_axis_value = lambda: context['leap']['generation']
+        self.x_axis_value = x_axis_value
         self.context = context
         
         # Create an empty line for each metric
@@ -457,7 +461,7 @@ class PopulationMetricsPlotProbe:
         step = self.context['leap']['generation']
 
         if step % self.modulo == 0:
-            self.x = np.append(self.x, step)
+            self.x = np.append(self.x, self.x_axis_value())
 
             for i, m in enumerate(self.metrics):
                 self.y[i] = np.append(self.y[i], m(population))
@@ -468,7 +472,7 @@ class PopulationMetricsPlotProbe:
             self.__rescale_ax()
             self.ax.figure.canvas.draw()
             plt.pause(0.000001)
-            plt.ion()  # XXX Not sure this is needed
+            #plt.ion()  # XXX Not sure this is needed
         return population
 
     def __rescale_ax(self):
@@ -480,6 +484,7 @@ class PopulationMetricsPlotProbe:
             self.ax.set_ylim(bottom=np.min(self.y))
         if np.max(self.y) > self.top:
             self.ax.set_ylim(top=np.max(self.y))
+
 
 ##############################
 # Function pairwise_distance_metric()
@@ -843,14 +848,16 @@ class CartesianPhenotypePlotProbe:
 ##############################
 # Class HistPhenotypePlotProbe
 ##############################
-def HistPhenotypePlotProbe():
+class HistPhenotypePlotProbe():
 
     def __init__(self, ax=None, title='Histogram of Phenotypes',
                  modulo=1, context=context):
         if ax is None:
             _, ax = plt.subplots()
-            
-        plt.title(title)
+        self.ax = ax
+        
+        ax.set_title(title)
+        self.title = title
         self.modulo = modulo
         self.context = context
 
@@ -862,7 +869,9 @@ def HistPhenotypePlotProbe():
 
         if step % self.modulo == 0:
             phenomes = [ ind.decode() for ind in population ]
-            plt.hist(phenomes, ax=self.ax)
+            self.ax.cla()
+            self.ax.hist(phenomes)
+            self.ax.set_title(self.title)
             #self.ax.figure.canvas.draw()
             plt.pause(0.000001)
         return population
