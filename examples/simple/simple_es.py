@@ -4,20 +4,27 @@
     a very crude self-adaptive step-size mechanism to show how to use contexts.
 
 """
+import os
+
 from toolz import pipe
 
-from leap_ec.individual import Individual
+from leap_ec import Individual, context, test_env_var
+from leap_ec import ops, util
 from leap_ec.decoder import IdentityDecoder
-from leap_ec.global_vars import context
-
-import leap_ec.ops as ops
 from leap_ec.real_rep.problems import SpheroidProblem
 from leap_ec.real_rep.initializers import create_real_vector
 from leap_ec.real_rep.ops import mutate_gaussian
-from leap_ec import util
+
 
 BROOD_SIZE = 3  # how many offspring each parent will reproduce
-max_generation = 10
+
+
+# When running the test harness, just run for two generations
+# (we use this to quickly ensure our examples don't get bitrot)
+if os.environ.get(test_env_var, False) == 'True':
+    max_generation = 2
+else:
+    max_generation = 10
 
 
 def print_population(population, generation):

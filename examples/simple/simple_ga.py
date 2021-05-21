@@ -4,20 +4,21 @@
 
     Canonical GAs don't use truncation selection, but we used that here for
     didactic purposes. """
+import os
+
 from toolz import pipe
 
-from leap_ec.individual import Individual
+from leap_ec import Individual, context, test_env_var
+from leap_ec import ops, probe, util
 from leap_ec.decoder import IdentityDecoder
-
-import leap_ec.ops as ops
 from leap_ec.binary_rep.problems import MaxOnes
 from leap_ec.binary_rep.initializers import create_binary_sequence
 from leap_ec.binary_rep.ops import mutate_bitflip
-from leap_ec import util
-from leap_ec import probe
 
 
-
+##############################
+# Entry point
+##############################
 if __name__ == '__main__':
     parents = Individual.create_population(5,
                                            initialize=create_binary_sequence(
@@ -31,7 +32,13 @@ if __name__ == '__main__':
     # print initial, random population
     util.print_population(parents, generation=0)
 
-    max_generation = 6
+
+    # When running the test harness, just run for two generations
+    # (we use this to quickly ensure our examples don't get bitrot)
+    if os.environ.get(test_env_var, False) == 'True':
+        max_generation = 2
+    else:
+        max_generation = 6
 
     # Set up a generation counter using the default global context variable
     generation_counter = util.inc_generation()

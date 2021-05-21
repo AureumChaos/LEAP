@@ -3,22 +3,16 @@ An an example of an island model with a heterogenous configuration: each island
 holds a separate fitness function.
 """
 import math
+import os
 import sys
 
 from matplotlib import pyplot as plt
 import networkx as nx
 from toolz import curry
 
-from leap_ec.individual import Individual
-from leap_ec.decoder import IdentityDecoder
-from leap_ec.representation import Representation
+from leap_ec import Individual, Representation, context, test_env_var
+from leap_ec import ops, probe
 from leap_ec.algorithm import multi_population_ea
-from leap_ec.global_vars import context
-
-import leap_ec.ops as ops
-from leap_ec import probe
-from leap_ec.algorithm import multi_population_ea
-
 from leap_ec.real_rep. problems import ScaledProblem, TranslatedProblem, SpheroidProblem, RastriginProblem, AckleyProblem
 from leap_ec.real_rep.ops import mutate_gaussian
 from leap_ec.real_rep.initializers import create_real_vector
@@ -114,8 +108,13 @@ if __name__ == '__main__':
         ID during logging."""
         return lambda _: context['leap']['current_subpopulation']
 
+    if os.environ.get(test_env_var, False) == 'True':
+        generations = 2
+    else:
+        generations = 100
+
     pop_size = 10
-    ea = multi_population_ea(generations=100,
+    ea = multi_population_ea(generations=generations,
                              num_populations=topology.number_of_nodes(),
                              pop_size=pop_size,
                              problem=problems,  # Fitness function
@@ -124,8 +123,7 @@ if __name__ == '__main__':
                              representation=Representation(
                                  individual_cls=Individual,
                                  initialize=create_real_vector(
-                                     bounds=[bounds] * l),
-                                 decoder=IdentityDecoder()
+                                     bounds=[bounds] * l)
                              ),
 
                              # Operator pipeline

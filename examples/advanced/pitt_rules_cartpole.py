@@ -1,4 +1,5 @@
 """An example of solving a reinforcement learning problem with a Pitt-approach rule system."""
+import os
 import sys
 
 import gym
@@ -6,13 +7,12 @@ from gym import spaces
 from matplotlib import pyplot as plt
 import numpy as np
 
+from leap_ec import Individual, Representation, test_env_var
+from leap_ec import probe, ops
 from leap_ec.algorithm import generational_ea
 from leap_ec.executable_rep import problems, rules, executable
-from leap_ec.individual import Individual
 from leap_ec.int_rep.ops import individual_mutate_randint
-from leap_ec import probe, ops
 from leap_ec.real_rep.ops import genome_mutate_gaussian
-from leap_ec.representation import Representation
 
 
 ##############################
@@ -61,11 +61,17 @@ if __name__ == '__main__':
     # Parameters
     runs_per_fitness_eval = 5
     simulation_steps = 500
-    generations = 10
     pop_size = 5
     num_rules = 20
     mutate_std = 0.05
     gui = False  # Change to true to watch the cart-pole visualization
+
+    # When running the test harness, just run for two generations
+    # (we use this to quickly ensure our examples don't get bitrot)
+    if os.environ.get(test_env_var, False) == 'True':
+        generations = 2
+    else:
+        generations = 10
 
     # Load the OpenAI Gym simulation
     environment = gym.make('CartPole-v0')

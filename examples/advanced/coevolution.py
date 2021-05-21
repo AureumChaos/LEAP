@@ -1,22 +1,31 @@
 """
     Provides an example of a co-evolutionary system.
 """
-from leap_ec.individual import Individual
-from leap_ec.decoder import IdentityDecoder
-from leap_ec.representation import Representation
+import os
+
+from leap_ec import Individual, Representation, test_env_var
+from leap_ec import ops
 from leap_ec.algorithm import multi_population_ea
-
-import leap_ec.ops as ops
-
 from leap_ec.binary_rep.problems import MaxOnes
 from leap_ec.binary_rep.initializers import create_binary_sequence
 from leap_ec.binary_rep.ops import mutate_bitflip
 
+
+##############################
+# Entry point
+##############################
 if __name__ == '__main__':
     pop_size = 5
 
+    # When running the test harness, just run for two generations
+    # (we use this to quickly ensure our examples don't get bitrot)
+    if os.environ.get(test_env_var, False) == 'True':
+        generations = 2
+    else:
+        generations = 1000
+
     with open('./coop_stats.csv', 'w') as log_stream:
-        ea = multi_population_ea(generations=1000, pop_size=pop_size,
+        ea = multi_population_ea(generations=generations, pop_size=pop_size,
                                  num_populations=9,
                                  problem=MaxOnes(),
                                  # Fitness function
@@ -26,8 +35,7 @@ if __name__ == '__main__':
                                  representation=Representation(
                                      individual_cls=Individual,
                                      initialize=create_binary_sequence(
-                                         length=1),
-                                     decoder=IdentityDecoder()
+                                         length=1)
                                  ),
 
                                  # Operator pipeline

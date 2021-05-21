@@ -6,17 +6,16 @@
     TODO convert to a state machines problem
 
 """
+import os
+
 from toolz import pipe
 
-from leap_ec.individual import Individual
+from leap_ec import Individual, context, test_env_var
+from leap_ec import ops, util
 from leap_ec.decoder import IdentityDecoder
-import leap_ec.ops as ops
-
 from leap_ec.real_rep.problems import SpheroidProblem
 from leap_ec.real_rep.initializers import create_real_vector
 from leap_ec.real_rep.ops import mutate_gaussian
-
-from leap_ec import util
 
 
 def print_population(population, generation):
@@ -53,7 +52,12 @@ if __name__ == '__main__':
     # print initial, random population
     print_population(parents, generation=0)
 
-    max_generation = 100
+    # When running the test harness, just run for two generations
+    # (we use this to quickly ensure our examples don't get bitrot)
+    if os.environ.get(test_env_var, False) == 'True':
+        max_generation = 2
+    else:
+        max_generation = 100
 
     # Set up a generation counter using the default global context variable
     generation_counter = util.inc_generation()

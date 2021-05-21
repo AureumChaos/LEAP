@@ -5,16 +5,16 @@ its CSV output.
 We use a generational EA with Gaussian mutation of 2-D genomes to minimize
 the Langermann function.
 """
+import os
 import sys
 
 from matplotlib import pyplot as plt
 
+from leap_ec import Representation, test_env_var
+from leap_ec import ops, probe
 from leap_ec.algorithm import generational_ea
-from leap_ec.representation import Representation
-from leap_ec import ops
 from leap_ec.real_rep.initializers import create_real_vector
 from leap_ec.real_rep.ops import mutate_gaussian
-from leap_ec import probe
 from leap_ec.real_rep.problems import LangermannProblem
 
 
@@ -27,9 +27,16 @@ if __name__ == '__main__':
     # we can also use it to evaluate integer-valued genomes.
     problem = LangermannProblem(maximize=False)
 
+    # When running the test harness, just run for two generations
+    # (we use this to quickly ensure our examples don't get bitrot)
+    if os.environ.get(test_env_var, False) == 'True':
+        generations = 2
+    else:
+        generations = 100
+
     l = 2
     pop_size = 10
-    ea = generational_ea(generations=100,pop_size=pop_size,
+    ea = generational_ea(generations=generations,pop_size=pop_size,
                              problem=problem,  # Fitness function
 
                              # Representation

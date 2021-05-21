@@ -1,15 +1,14 @@
+import os
+
 import matplotlib.pyplot as plt
 
+from leap_ec import Individual, Representation, test_env_var
+from leap_ec import ops, probe
 from leap_ec.algorithm import generational_ea
-from leap_ec.decoder import IdentityDecoder
 from leap_ec.executable_rep import problems, executable, neural_network
-from leap_ec.individual import Individual
 from leap_ec.real_rep.problems import SpheroidProblem, SchwefelProblem
 from leap_ec.real_rep.ops import mutate_gaussian
 from leap_ec.real_rep.initializers import create_real_vector
-from leap_ec.representation import Representation
-from leap_ec.probe import FitnessPlotProbe
-import leap_ec.ops as ops
 
 
 ##############################
@@ -87,11 +86,18 @@ class TwoSegmentMutator():
 # Entry point
 ##############################
 if __name__ == '__main__':
-    plot_probe = FitnessPlotProbe(ylim=(0, 70), ax=plt.gca())
+    plot_probe = probe.FitnessPlotProbe(ylim=(0, 70), ax=plt.gca())
 
+    # When running the test harness, just run for two generations
+    # (we use this to quickly ensure our examples don't get bitrot)
+    if os.environ.get(test_env_var, False) == 'True':
+        generations = 2
+    else:
+        generations = 1000
+    
     l=10
     pop_size=10
-    ea = generational_ea(generations=100, pop_size=pop_size,
+    ea = generational_ea(generations=generations, pop_size=pop_size,
                         problem=SpheroidProblem(maximize=False),
 
                         representation=Representation(

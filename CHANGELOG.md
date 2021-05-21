@@ -12,6 +12,8 @@ Being a terse compilation by version of changes.
   * Added visualization of ANN weights for `SimpleNeuralNetworkExecutable` phenotypes
   * Added metrics for logging population diversity
   * Added support for lexicographical and Koza-style parsimony pressure
+  * Added `HistPhenotypePlotProbe`
+  * Added `ops.grouped_evaluate()` for evaluating batches of individuals
 
 * Documentation
   * Added documentation on `leap_ec.context` and updated software development
@@ -19,21 +21,27 @@ Being a terse compilation by version of changes.
   function calls was necessary.
 
 * CI/CD
-  * Added a `make test-slow` harness that runs the `examples/` scripts
+  * Added a `make test-slow` harness
+  * Added tests that run the `examples/` scripts
+  * Organized examples into subdirectories
   * Improved test coverage
 
 * Bugfixes
   * Fix `viz` parameter when calling `simple.ea_solve()`
   * Tell `dask` that functions are impure by default, to make sure it doesn't cache results
+  * Change `Makefile` to use `pip install -e .` instead of the deprecated `python setup.py develop`
 
 * API changes
+  * Added the most frequent imports (ex. `Individual`, `Representation`) into the top-level package
   * Significantly refactored the `executable_rep.rules` package to simplify learning classifier systems
   * Added probability parameter for the `uniform_crossover` operator
   * `mutate_gaussian` now accepts a list of gene-wise hard bound
-  * renamed `leap_ec.distributed` to `leap_ec.distrib` to reduce name space 
+  * Renamed `leap_ec.distributed` to `leap_ec.distrib` to reduce name space 
     confusion with `dask.distributed`
+  * Renamed `leap_ec.context` to `leap_ec.global_vars`
   * Added `notes` columns parameter to `FitnessStatsCSVProbe`
   * Added a `pad_inputs` parameter to `TruthTableProblem` to handle varying-dimension inputs
+  * Added a `pad` parameter to `CartesianPhenotypePlotProbe` to plot 2D projections of higher-D functions
   * Renamed `PlotTrajectoryProbe` to the more descriptive `CartesianPhenotypePlotProbe`
   * Renamed `PopulationPlotProbe` to the more descriptive `PopulationMetricsPlotProbe`
   * Added `FitnessPlotProbe` as a convenience wrapper for `PoulationMetricsPlotProbe`

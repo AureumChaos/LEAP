@@ -7,15 +7,16 @@
 
     Note that there are sibling examples the demonstrate more true
     evolutionary strategy-like approaches. """
+import os
+
 from toolz import pipe
 
-from leap_ec.individual import Individual
+from leap_ec import Individual, context, test_env_var
+from leap_ec import ops, util
 from leap_ec.decoder import IdentityDecoder
-import leap_ec.ops as ops
 from leap_ec.real_rep.problems import SpheroidProblem
 from leap_ec.real_rep.initializers import create_real_vector
 from leap_ec.real_rep.ops import mutate_gaussian
-from leap_ec import util
 
 
 def print_population(population, generation):
@@ -32,8 +33,19 @@ def print_population(population, generation):
 
 BROOD_SIZE = 3  # how many offspring each parent will reproduce
 POPULATION_SIZE = 10
-MAX_GENERATIONS = 5
 
+
+# When running the test harness, just run for two generations
+# (we use this to quickly ensure our examples don't get bitrot)
+if os.environ.get(test_env_var, False) == 'True':
+    MAX_GENERATIONS = 2
+else:
+    MAX_GENERATIONS = 5
+
+
+##############################
+# Entry point
+##############################
 if __name__ == '__main__':
     # Define the real value bounds for initializing the population. In this
     # case, we define a genome of four bounds.

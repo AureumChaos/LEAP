@@ -2,20 +2,15 @@
     Provides an island model example.
 """
 import math
+import os
 import sys
 
 from matplotlib import pyplot as plt
 import networkx as nx
 
-from leap_ec.individual import Individual
-from leap_ec.decoder import IdentityDecoder
-from leap_ec.representation import Representation
+from leap_ec import Individual, Representation, context, test_env_var
+from leap_ec import ops, probe
 from leap_ec.algorithm import multi_population_ea
-
-import leap_ec.ops as ops
-from leap_ec import probe
-from leap_ec.algorithm import multi_population_ea
-
 from leap_ec.real_rep.problems import SchwefelProblem
 from leap_ec.real_rep.ops import mutate_gaussian
 from leap_ec.real_rep.initializers import create_real_vector
@@ -66,11 +61,10 @@ def viz_plots(problems, modulo):
 
 
 ##############################
-# main
+# Entry point
 ##############################
 if __name__ == '__main__':
-    # file_probe = probe.AttributesCSVProbe(context, stream=sys.stdout, do_fitness=True, do_genome=True)
-
+    # Set up up the network of connections between islands
     topology = nx.complete_graph(3)
     nx.draw(topology)
     problem = SchwefelProblem(maximize=False)
@@ -84,9 +78,17 @@ if __name__ == '__main__':
         ID during logging."""
         return lambda _: context['leap']['current_subpopulation']
     
+    # When running the test harness, just run for two generations
+    # (we use this to quickly ensure our examples don't get bitrot)
+    if os.environ.get(test_env_var, False) == 'True':
+        generations = 2
+    else:
+        generations = 1000
+
+    
     l = 2
     pop_size = 10
-    ea = multi_population_ea(generations=100,
+    ea = multi_population_ea(generations=generations,
                              num_populations=topology.number_of_nodes(),
                              pop_size=pop_size,
                              problem=problem,  # Fitness function
@@ -95,8 +97,7 @@ if __name__ == '__main__':
                              representation=Representation(
                                  individual_cls=Individual,
                                  initialize=create_real_vector(
-                                     bounds=[problem.bounds] * l),
-                                 decoder=IdentityDecoder()
+                                     bounds=[problem.bounds] * l)
                              ),
 
                              # Operator pipeline

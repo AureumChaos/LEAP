@@ -4,13 +4,14 @@ evolve logic circuits to solve Boolean functions.
 This application provides both an evolutionary CGP solver, and an alternative
 random search algorithm, so that the two may be compared.
 """
+import os
 import sys
 
 import click
 from matplotlib import pyplot as plt
 
 from leap_ec.algorithm import generational_ea, random_search
-from leap_ec import ops, probe
+from leap_ec import ops, probe, test_env_var
 from leap_ec.representation import Representation
 from leap_ec.executable_rep import cgp, neural_network, problems
 
@@ -89,8 +90,16 @@ def do_cgp(gens):
 @click.group(invoke_without_command=True)
 def cli():
     """Example of Cartesian Genetic Programming."""
+
     # If no command is given, just run CGP
-    do_cgp(100)
+
+    # When running the test harness, just run for two generations
+    # (we use this to quickly ensure our examples don't get bitrot)
+    if os.environ.get(test_env_var, False) == 'True':
+        generations = 2
+    else:
+        generations = 100
+    do_cgp(generations)
 
 
 ##############################

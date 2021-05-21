@@ -45,26 +45,26 @@ optional arguments:
   --length LENGTH, -l LENGTH
                         Genome length
 """
-import logging
-from pprint import pformat
 import argparse
+import logging
+import os
+from pprint import pformat
 
 # Python 3.9 workaround for Dask.
 # See https://github.com/dask/distributed/issues/4168
 import multiprocessing.popen_spawn_posix
 from distributed import Client, LocalCluster
 
+from leap_ec import Representation, test_env_var
 from leap_ec import ops, probe
-from leap_ec.decoder import IdentityDecoder
 from leap_ec.binary_rep.initializers import create_binary_sequence
 from leap_ec.binary_rep.problems import MaxOnes
 from leap_ec.binary_rep.ops import mutate_bitflip
-from leap_ec.representation import Representation
-
+from leap_ec.distrib import DistributedIndividual
 from leap_ec.distrib import asynchronous
 from leap_ec.distrib.logger import WorkerLoggerPlugin
 from leap_ec.distrib.probe import log_worker_location, log_pop
-from leap_ec.distrib.individual import DistributedIndividual
+
 
 # Create unique logger for this namespace
 logger = logging.getLogger(__name__)
@@ -78,6 +78,13 @@ DEFAULT_INIT_POP_SIZE = DEFAULT_NUM_WORKERS
 
 # Default number of births to update --track-pop-file
 DEFAULT_UPDATE_INTERVAL = 5
+
+# When running the test harness, just run for two steps
+# (we use this to quickly ensure our examples don't get bitrot)
+if os.environ.get(test_env_var, False) == 'True':
+    DEFAULT_MAX_BIRTHS = 2
+else:
+    DEFAULT_MAX_BIRTHS = 100
 
 if __name__ == '__main__':
 
@@ -105,7 +112,7 @@ if __name__ == '__main__':
                              'the same as the number of workers to ensure '
                              'that the worker pool is saturated '
                              'at the very start of the runs')
-    parser.add_argument('--max-births', '-m', type=int, default=100,
+    parser.add_argument('--max-births', '-m', type=int, default=DEFAULT_MAX_BIRTHS,
                         help='Maximum number of births before ending')
     parser.add_argument('--pop-size', '-b', type=int, default=5,
                         help='The size of the evaluated individuals pop')
@@ -168,7 +175,6 @@ if __name__ == '__main__':
                                               pop_size=args.pop_size,
 
                                               representation=Representation(
-                                                  decoder=IdentityDecoder(),
                                                   initialize=create_binary_sequence(
                                                       args.length),
                                                   individual_cls=DistributedIndividual),
