@@ -32,6 +32,7 @@ Being a terse compilation by version of changes.
   * Change `Makefile` to use `pip install -e .` instead of the deprecated `python setup.py develop`
 
 * API changes
+  * Added `leap_ec.__version__` attribute
   * Added the most frequent imports (ex. `Individual`, `Representation`) into the top-level package
   * Significantly refactored the `executable_rep.rules` package to simplify learning classifier systems
   * Added probability parameter for the `uniform_crossover` operator
@@ -47,7 +48,7 @@ Being a terse compilation by version of changes.
   * Added `FitnessPlotProbe` as a convenience wrapper for `PopulationMetricsPlotProbe`
   * Added an `x_axis_value` parameter to `PopulationMetricsPlotProbe`
   * Default behavior changes
-    * `Representation` now uses a phenotypic representation (`IdentityDecoder`) by default
+    * `Individual.decoder` and `Representation.decoder` now uses a phenotypic representation (`IdentityDecoder`) by default
     * Mutation operators no longer have default mutation rates (they must be explicitly set by the user).
     * Set default `p_swap = 0.2` for `uniform_crossover`, instead of 0.5
     * Set default `num_points = 2` for `n_ary_crossover`, instead of 1
