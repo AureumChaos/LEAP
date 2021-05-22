@@ -29,10 +29,9 @@ Example
 The following shows a simple example of how to use the synchronous parallel
 fitness evaluation in LEAP.
 
-.. literalinclude:: ../../examples/simple_sync_distributed.py
+.. literalinclude:: ../../examples/distributed/simple_sync_distributed.py
     :linenos:
     :language: python
-    :lines: 5-42
 
 This example of a basic genetic algorithm that solves the MAX ONES problem
 does not use a provided monolithic entry point, such as found with
@@ -57,8 +56,8 @@ Separate Examples
 ^^^^^^^^^^^^^^^^^
 
 There is a jupyter notebook that walks through a synchronous implementation in
-`examples/simple_sync_distributed.ipynb`.  The above example can also be found
-at `examples/simple_sync_distributed.py`.
+`examples/distributed/simple_sync_distributed.ipynb`.  The above example can also be found
+at `examples/distributed/simple_sync_distributed.py`.
 
 Asynchronous fitness evaluations
 --------------------------------
@@ -93,18 +92,14 @@ Example
 
     from dask.distributed import Client, LocalCluster
 
-    from leap_ec.decoder import IdentityDecoder
-    from leap_ec.representation import Representation
-
-    import leap_ec.ops as ops
-
+    from leap_ec import Representation
+    from leap_ec import ops
     from leap_ec.binary_rep.problems import MaxOnes
     from leap_ec.binary_rep.initializers import create_binary_sequence
     from leap_ec.binary_rep.ops import mutate_bitflip
-
+    from leap_ec.distrib import DistributedIndividual
     from leap_ec.distrib import asynchronous
     from leap_ec.distrib.probe import log_worker_location, log_pop
-    from leap_ec.distrib.individual import DistributedIndividual
 
     MAX_BIRTHS = 500
     INIT_POP_SIZE = 20
@@ -118,7 +113,6 @@ Example
                                       pop_size=POP_SIZE,
 
                                       representation=Representation(
-                                          decoder=IdentityDecoder(),
                                           initialize=create_binary_sequence(
                                               GENOME_LENGTH),
                                           individual_cls=DistributedIndividual),
@@ -248,5 +242,5 @@ This additional state is set in `distrib.evaluate.evaluate()` and
 Separate Examples
 ^^^^^^^^^^^^^^^^^
 There is also a jupyter notebook walkthrough for the asynchronous implementation,
-`examples/simple_async_distributed.ipynb`.  Moreover, there is standalone
-code in `examples/simple_async_distributed.py`.
+`examples/distributed/simple_async_distributed.ipynb`.  Moreover, there is standalone
+code in `examples/distributed/simple_async_distributed.py`.

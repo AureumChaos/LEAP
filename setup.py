@@ -1,11 +1,15 @@
 from setuptools import setup, find_packages
 
+# Load the version number from inside the package
+exec(open('leap_ec/__version__.py').read())
+
+# Use the README as the long_description
 with open("README.md", "r") as f:
     long_description = f.read()
 
 setup(
     name='leap_ec',
-    version='0.5.0',
+    version=__version__,
     packages=find_packages(),
     license='Academic',
     author='Mark Coletti, Eric Scott, Jeff Bassett',

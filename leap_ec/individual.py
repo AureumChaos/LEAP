@@ -6,6 +6,8 @@ from math import nan, isnan
 from copy import deepcopy
 from functools import total_ordering
 
+from leap_ec.decoder import IdentityDecoder
+
 
 ##############################
 # Class Individual
@@ -21,7 +23,7 @@ class Individual:
         converted into phenomes for fitness evaluation.
     """
 
-    def __init__(self, genome, decoder=None, problem=None):
+    def __init__(self, genome, decoder=IdentityDecoder(), problem=None):
         """
         Initialize an `Individual` with a given genome.
 

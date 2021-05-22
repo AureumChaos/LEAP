@@ -237,7 +237,7 @@ def print_list(l):
     the elements to produce
 
     >>> print(l)
-    [Individual([0, 1, 2], None, None), Individual([3, 4, 5], None, None)]
+    [Individual([0, 1, 2], IdentityDecoder(), None), Individual([3, 4, 5], IdentityDecoder(), None)]
 
     :param l:
     :return:

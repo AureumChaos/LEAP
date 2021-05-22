@@ -1,3 +1,4 @@
+from .__version__ import __version__
 from .individual import Individual
 from .representation import Representation
 from .decoder import Decoder

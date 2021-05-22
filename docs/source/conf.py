@@ -6,6 +6,8 @@
 # full list see the documentation:
 # http://www.sphinx-doc.org/en/master/config
 
+from leap_ec import __version__
+
 # -- Path setup --------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -24,16 +26,16 @@ copyright = '2019, Jeffrey K. Bassett, Mark Coletti, and Eric O. Scott'
 author = 'Jeffrey K. Bassett, Mark Coletti, and Eric O. Scott'
 
 # The short X.Y version
-version = '0.5'
+version = __version__
 # The full version, including alpha/beta/rc tags
-release = 'version 0.5.0'
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
-# needs_sphinx = '2.0'
+needs_sphinx = '2.0'
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom

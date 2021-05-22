@@ -31,6 +31,7 @@ venv:
 .PHONY: doc setup test test-fast test-slow kernel test-jupyter clean
 
 doc:
+	pip install -r docs/requirements.txt
         # The apidoc call is long because we need to tell it to
         # use the venv's version of sphinx-build
 	sphinx-apidoc -f -o docs/source/ leap_ec/ SPHINXBUILD='python $(shell which sphinx-build)'
