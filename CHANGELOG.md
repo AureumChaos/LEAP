@@ -37,6 +37,7 @@ Being a terse compilation by version of changes.
   * Added the most frequent imports (ex. `Individual`, `Representation`) into the top-level package
   * Added probability parameter for the `uniform_crossover` operator
   * `mutate_gaussian` now accepts a list of gene-wise hard bound
+  * Added `select_worst` Boolean parameter to `tournament_selection`
   * Added `notes` columns parameter to `FitnessStatsCSVProbe`
   * Added a `pad_inputs` parameter to `TruthTableProblem` to handle varying-dimension inputs
   * Added a `pad` parameter to `CartesianPhenotypePlotProbe` to plot 2D projections of higher-D functions
