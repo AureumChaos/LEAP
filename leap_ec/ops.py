@@ -666,7 +666,7 @@ def tournament_selection(population: list, k: int = 2, key = None, select_worst:
 
         :return: the best of k individuals drawn from population
     """
-    assert((indices is None) or (indices == [])), f"Only an empty list should be passed to tournament_selection() for indices, but received {indices}."
+    assert((indices is None) or (isinstance(indices, list))), f"Only a list should be passed to tournament_selection() for indices, but received {indices}."
 
     while True:
         choices_idx = random.choices(range(len(population)), k=k)

@@ -9,6 +9,7 @@ import pytest
 from leap_ec import Individual
 from leap_ec import ops, statistical_helpers
 from leap_ec.binary_rep.problems import MaxOnes
+from leap_ec.data import test_population
 from leap_ec.real_rep.problems import SpheroidProblem
 
 
@@ -218,3 +219,32 @@ def test_tournament_selection2():
     print(f"Observed: {observed_dist}")
     print(f"Expected: {expected_dist}")
     assert(statistical_helpers.stochastic_equals(expected_dist, observed_dist, p=p_thresh))
+
+def test_tournament_selection_indices():
+    """If an empty list is provided to tournament selection, it should be populated with
+    the index of the selected individual.
+    
+    If we select a second individual, the list should be cleared and populated with the 
+    index of the second individual."""
+    pop = test_population
+
+    indices = []
+    op = ops.tournament_selection(indices=indices)
+
+    # Select an individual
+    s = next(op(pop))
+    # Ensure the returned index is correct
+    assert(len(indices) == 1)
+    idx = indices[0]
+    assert(idx >= 0)
+    assert(idx < len(pop))
+    assert(pop[idx] is s)
+
+    # Select another individual
+    s = next(op(pop))
+    # Ensure the returned index is correct
+    assert(len(indices) == 1)
+    idx = indices[0]
+    assert(idx >= 0)
+    assert(idx < len(pop))
+    assert(pop[idx] is s)

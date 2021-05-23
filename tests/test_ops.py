@@ -186,38 +186,3 @@ def test_pool():
 
     assert(len(pop) == 3)
     assert(pop == [ 'a', 'b', 'c' ])
-
-
-##############################
-# Test tournament_selection()
-##############################
-def test_tournament_selection():
-    """If an empty list is provided to tournament selection, it should be populated with
-    the index of the selected individual.
-    
-    If we select a second individual, the list should be cleared and population with the 
-    index of the second individual."""
-    pop = test_population
-
-    indices = []
-    op = ops.tournament_selection(indices=indices)
-
-    # Select an individual
-    s = next(op(pop))
-    # Ensure the returned index is correct
-    assert(len(indices) == 1)
-    idx = indices[0]
-    assert(idx >= 0)
-    assert(idx < len(pop))
-    assert(pop[idx] is s)
-
-    # Select another individual
-    s = next(op(pop))
-    # Ensure the returned index is correct
-    assert(len(indices) == 1)
-    idx = indices[0]
-    assert(idx >= 0)
-    assert(idx < len(pop))
-    assert(pop[idx] is s)
-
-
