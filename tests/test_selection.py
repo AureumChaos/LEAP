@@ -4,18 +4,21 @@
 import random
 from math import nan
 
-from leap_ec.individual import Individual
-from leap_ec.decoder import IdentityDecoder
+import pytest
+
+from leap_ec import Individual
+from leap_ec import ops, statistical_helpers
 from leap_ec.binary_rep.problems import MaxOnes
 from leap_ec.real_rep.problems import SpheroidProblem
-import leap_ec.ops as ops
 
 
-
+##############################
+# Tests for naive_cyclic_selection()
+##############################
 def test_naive_cyclic_selection():
     """ Test of the naive deterministic cyclic selection """
-    pop = [Individual([0, 0], decoder=IdentityDecoder(), problem=MaxOnes()),
-           Individual([0, 1], decoder=IdentityDecoder(), problem=MaxOnes())]
+    pop = [Individual([0, 0], problem=MaxOnes()),
+           Individual([0, 1], problem=MaxOnes())]
 
     # This selection operator will deterministically cycle through the
     # given population
@@ -32,7 +35,9 @@ def test_naive_cyclic_selection():
     assert selected.genome == [0, 0]
 
 
-
+##############################
+# Tests for cyclic_selection()
+##############################
 def test_cyclic_selection():
     """ Test of the deterministic cyclic selection """
 
@@ -66,13 +71,15 @@ def test_cyclic_selection():
     assert pop != second_iteration
 
 
-
+##############################
+# Tests for truncation_selection()
+##############################
 def test_truncation_selection():
     """ Basic truncation selection test"""
-    pop = [Individual([0, 0, 0], decoder=IdentityDecoder(), problem=MaxOnes()),
-           Individual([0, 0, 1], decoder=IdentityDecoder(), problem=MaxOnes()),
-           Individual([1, 1, 0], decoder=IdentityDecoder(), problem=MaxOnes()),
-           Individual([1, 1, 1], decoder=IdentityDecoder(), problem=MaxOnes())]
+    pop = [Individual([0, 0, 0], problem=MaxOnes()),
+           Individual([0, 0, 1], problem=MaxOnes()),
+           Individual([1, 1, 0], problem=MaxOnes()),
+           Individual([1, 1, 1], problem=MaxOnes())]
 
     # We first need to evaluate all the individuals so that truncation
     # selection has fitnesses to compare
@@ -94,13 +101,13 @@ def test_truncation_parents_selection():
     Create parent and offspring populations such that each has an "best" individual that will be selected by
     truncation selection.
     """
-    parents = [Individual([0, 0, 0], decoder=IdentityDecoder(), problem=MaxOnes()),
-               Individual([1, 1, 0], decoder=IdentityDecoder(), problem=MaxOnes())]
+    parents = [Individual([0, 0, 0], problem=MaxOnes()),
+               Individual([1, 1, 0], problem=MaxOnes())]
 
     parents = Individual.evaluate_population(parents)
 
-    offspring = [Individual([0, 0, 1], decoder=IdentityDecoder(), problem=MaxOnes()),
-                 Individual([1, 1, 1], decoder=IdentityDecoder(), problem=MaxOnes())]
+    offspring = [Individual([0, 0, 1], problem=MaxOnes()),
+                 Individual([1, 1, 1], problem=MaxOnes())]
     offspring = Individual.evaluate_population(offspring)
 
     truncated = ops.truncation_selection(offspring, 2, parents=parents)
@@ -111,35 +118,15 @@ def test_truncation_parents_selection():
     assert offspring[1] in truncated
 
 
-def test_tournament_selection():
-    """ This simple binary tournament_selection selection """
-    # Make a population where binary tournament_selection has an obvious
-    # reproducible choice
-    pop = [Individual([0, 0, 0], decoder=IdentityDecoder(), problem=MaxOnes()),
-           Individual([1, 1, 1], decoder=IdentityDecoder(), problem=MaxOnes())]
-
-    # We first need to evaluate all the individuals so that truncation
-    # selection has fitnesses to compare
-    pop = Individual.evaluate_population(pop)
-
-    best = next(ops.tournament_selection(pop))
-    pass
-
-    # This assert will sometimes not work because it's possible to select the
-    # same individual more than once, and that includes scenarios where the
-    # worst of two individuals is selected twice, which can happen about 25%
-    # of the time. assert pop[1] == best
-
-
-
-def test_tournament_selection_with_nan():
-    """ This simple binary tournament_selection selection to test NaN behavior
+def test_truncation_selection_with_nan1():
+    """If truncation selection encounters a NaN and non-NaN fitness
+    while maximizing, the non-NaN wins.
     """
     # Make a population where binary tournament_selection has an obvious
     # reproducible choice
     problem = MaxOnes()
-    pop = [Individual([0, 0, 0], decoder=IdentityDecoder(), problem=problem),
-           Individual([1, 1, 1], decoder=IdentityDecoder(), problem=problem)]
+    pop = [Individual([0, 0, 0], problem=problem),
+           Individual([1, 1, 1], problem=problem)]
 
     # We first need to evaluate all the individuals so that truncation
     # selection has fitnesses to compare
@@ -152,14 +139,17 @@ def test_tournament_selection_with_nan():
 
     assert pop[0] == best[0]
 
-    # Ok, now do this for _minimization_
-    decoder = IdentityDecoder()
+
+def test_truncation_selection_with_nan2():
+    """If truncation selection encounters a NaN and non-NaN fitness
+    while minimizing, the non-NaN wins.
+    """
     problem = SpheroidProblem(maximize=False)
 
     pop = []
 
-    pop.append(Individual([0], problem=problem, decoder=decoder))
-    pop.append(Individual([1], problem=problem, decoder=decoder))
+    pop.append(Individual([0], problem=problem))
+    pop.append(Individual([1], problem=problem))
 
     pop = Individual.evaluate_population(pop)
 
@@ -173,3 +163,58 @@ def test_tournament_selection_with_nan():
 
     best = ops.truncation_selection(pop, size=1)
     assert pop[1] == best[0]
+
+
+##############################
+# Tests for tournament_selection()
+##############################
+@pytest.mark.stochastic
+def test_tournament_selection1():
+    """If there are just two individuals in the population, then binary tournament
+    selection will select the better one with 75% probability."""
+    # Make a population where binary tournament_selection has an obvious
+    # reproducible choice
+    pop = [Individual([0, 0, 0], problem=MaxOnes()),
+           Individual([1, 1, 1], problem=MaxOnes())]
+    # Assign a unique identifier to each individual
+    pop[0].id = 0
+    pop[1].id = 1
+
+    # We first need to evaluate all the individuals so that
+    # selection has fitnesses to compare
+    pop = Individual.evaluate_population(pop)
+    selected = ops.tournament_selection(pop)
+
+    N = 1000
+    p_thresh = 0.1
+    observed_dist = statistical_helpers.collect_distribution(lambda: next(selected).id, samples=N)
+    expected_dist = { pop[0].id: 0.25*N, pop[1].id: 0.75*N } 
+    print(f"Observed: {observed_dist}")
+    print(f"Expected: {expected_dist}")
+    assert(statistical_helpers.stochastic_equals(expected_dist, observed_dist, p=p_thresh))
+
+
+@pytest.mark.stochastic
+def test_tournament_selection2():
+    """If there are just two individuals in the population, and we set select_worst=True,
+    then binary tournament selection will select the worse one with 75% probability."""
+    # Make a population where binary tournament_selection has an obvious
+    # reproducible choice
+    pop = [Individual([0, 0, 0], problem=MaxOnes()),
+           Individual([1, 1, 1], problem=MaxOnes())]
+    # Assign a unique identifier to each individual
+    pop[0].id = 0
+    pop[1].id = 1
+
+    # We first need to evaluate all the individuals so that
+    # selection has fitnesses to compare
+    pop = Individual.evaluate_population(pop)
+    selected = ops.tournament_selection(pop, select_worst=True)
+
+    N = 1000
+    p_thresh = 0.1
+    observed_dist = statistical_helpers.collect_distribution(lambda: next(selected).id, samples=N)
+    expected_dist = { pop[0].id: 0.75*N, pop[1].id: 0.25*N } 
+    print(f"Observed: {observed_dist}")
+    print(f"Expected: {expected_dist}")
+    assert(statistical_helpers.stochastic_equals(expected_dist, observed_dist, p=p_thresh))

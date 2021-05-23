@@ -74,8 +74,6 @@ class Individual:
         :param problem: The problem to attach individuals to
         :return: A list of n individuals of this class's (or subclass's) type
         """
-        # genomes = initialize(n)
-        # assert(len(genomes) == n)
         return [cls(genome=initialize(), decoder=decoder, problem=problem) for _
                 in range(n)]
 

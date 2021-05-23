@@ -631,23 +631,32 @@ def elitist_survival(offspring: List, parents: List, k: int = 1, key = None) -> 
 ##############################
 @curry
 @listiter_op
-def tournament_selection(population: List, k: int = 2, key = None, indices = None) -> Iterator:
-    """ Selects the best individual from k individuals randomly selected from
-        the given population
+def tournament_selection(population: list, k: int = 2, key = None, select_worst: bool=False, indices = None) -> Iterator:
+    """Returns an opertaor that selects the best individual from k individuals randomly selected from
+        the given population.
 
-        >>> from leap_ec.individual import Individual
-        >>> from leap_ec.decoder import IdentityDecoder
+        Like other selection operators, this assumes that if one individual is "greater than" another, then it is 
+        "better than" the other.  Whether this indicates maximization or minimization isn't handled here: the
+        `Individual` class determines the semantics of its "greater than" operator.
+
+        :param population: the population to select from.  Should be a list, not an iterator.
+        :param int k: number of contestants in the tournament.  k=2 does binary tournament
+            selection, which approximates linear ranking selection in the expectation.  Higher
+            values of k yield greedier selection strategies—k=3, for instance, is equal to 
+            quadratic ranking selection in the expectation.
+        :param key: an optional function that computes keys to sort over.  Defaults to None,
+            in which case Individuals are compared directly.
+        :param bool select_worst: if True, select the worst individual from the tournament instead
+            of the best.
+        :param list indices: an optional 
+
+        >>> from leap_ec import Individual
         >>> from leap_ec.binary_rep.problems import MaxOnes
         >>> from leap_ec.ops import tournament_selection
 
-        >>> pop = [Individual([0, 0, 0], IdentityDecoder(), problem=MaxOnes()),
-        ...        Individual([0, 0, 1], IdentityDecoder(), problem=MaxOnes())]
-
-        We need to evaluate them to get their fitness to sort them for
-        truncation.
-
+        >>> pop = [Individual([0, 0, 0], problem=MaxOnes()),
+        ...        Individual([0, 0, 1], problem=MaxOnes())]
         >>> pop = Individual.evaluate_population(pop)
-
         >>> best = tournament_selection(pop)
 
         :param population: from which to select
@@ -657,12 +666,15 @@ def tournament_selection(population: List, k: int = 2, key = None, indices = Non
 
         :return: the best of k individuals drawn from population
     """
+    assert((indices is None) or (indices == [])), f"Only an empty list should be passed to tournament_selection() for indices, but received {indices}."
+
     while True:
         choices_idx = random.choices(range(len(population)), k=k)
+        judge = min if select_worst else max
         if key:
-            best_idx = max(choices_idx, key=lambda x: key(population[x]))
+            best_idx = judge(choices_idx, key=lambda x: key(population[x]))
         else:
-            best_idx = max(choices_idx, key=lambda x: population[x])
+            best_idx = judge(choices_idx, key=lambda x: population[x])
 
         if indices is not None:
             indices.clear()  # Nuke whatever is in there
