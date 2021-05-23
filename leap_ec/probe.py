@@ -570,6 +570,12 @@ class FitnessPlotProbe(PopulationMetricsPlotProbe):
     :type ylim: (float, float)
     :param int modulo: take and plot a measurement every `modulo` steps (
         default 1).
+    :param title: title to print on the plot
+    :param x_axis_value: optional function to define what value gets plotted
+        on the x axis.  Defaults to pulling the 'generation' value out of the
+        default `context` object.
+    :param context: set a context object to query for the current generation.
+        Defaults to the standard `leap_ec.context` object.
 
     Attach this probe to matplotlib :class:`Axes` and then insert it into an
     EA's operator pipeline.
@@ -661,11 +667,11 @@ class FitnessPlotProbe(PopulationMetricsPlotProbe):
     magic for Jupyter Notebook (as opposed to `%matplotlib inline`,
     which only allows static plots).
     """
-    def __init__(self, ax=None, xlim=(0, 100), ylim=(0, 1), modulo=1, context=context):
+    def __init__(self, ax=None, xlim=(0, 100), ylim=(0, 1), modulo=1, title='Best-of-Generation Fitness',  x_axis_value=None, context=context):
         super().__init__(ax=ax,
                  metrics=[ lambda pop: best_of_gen(pop).fitness ],
-                 xlim=xlim, ylim=ylim, modulo=modulo, title="Best-of-Generation Fitness",
-                 context=context)
+                 xlim=xlim, ylim=ylim, modulo=modulo, title=title,
+                 x_axis_value=x_axis_value, context=context)
 
 
 ##############################
