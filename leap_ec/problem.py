@@ -3,11 +3,20 @@ Defines the abstract-base classes Problem, ScalarProblem,
 and FunctionProblem.
 
 """
+from abc import ABC, abstractmethod
+import logging
 from math import nan, floor, isclose, isnan
 import random
-from abc import ABC, abstractmethod
+from subprocess import Popen, PIPE, STDOUT
 
+import numpy as np
+
+from leap_ec import leap_logger_name
 from leap_ec.global_vars import context
+
+
+# Set up a logger using LEAP's global logger name
+logger = logging.getLogger(leap_logger_name)
 
 
 ##############################
@@ -186,6 +195,82 @@ class ConstantProblem(ScalarProblem):
 
     def __str__(self):
         return ConstantProblem.__name__
+
+
+################################
+# Class ExternalProcessProblem
+################################
+class ExternalProcessProblem(ScalarProblem):
+    """
+    Evaluate individuals by launching an external program, writing phenomes to its stdin
+    as CSV rows, and reading back fitness values from its stdout.
+
+    Assumes that individuals are represented with list phenomes with elements that can
+    be cast to strings.
+    """
+    def __init__(self, command: str, maximize: bool, args = (), ):
+        super().__init__(maximize=maximize)
+        self.command = command
+        self.args = args[:]
+        
+    def evaluate(self, phenome):
+        fitnesses = self.evaluate_multiple([ phenome ])
+        assert(len(fitnesses) == 1)
+        return fitnesses[0]
+    
+    def evaluate_multiple(self, phenomes):
+        # Convert the phenomes into one big string
+        def phenome_to_str(p):
+            return ','.join([ str(x) for x in p ])
+        phenome_bytes = '\n'.join([ phenome_to_str(p) for p in phenomes ]).encode()
+        
+        logger.debug(f"Input: {phenome_bytes}")
+
+        # Start the external process and send the phenomes to its stdin
+        p = Popen([self.command] + self.args, stdout=PIPE, stdin=PIPE, stderr=PIPE)
+        outs, errs = p.communicate(input=phenome_bytes)
+
+        # Receive output back from the external process
+        logger.debug(f"Simulation-stdout: {outs}")
+        logger.debug(f"Simulation-stderr: {errs}")
+
+        if p.returncode != 0:
+            raise RuntimeError(f"Error in the external simulation during fitness evaluation.")
+        
+        out_strs = outs.split(b'\n')[:-1]  # Ignoring  trailing newline
+        fitnesses = [ float(o) for o in out_strs]
+        
+        if len(fitnesses) != len(phenomes):
+            raise RuntimeError(f"Expected to receive {len(phenomes)} fitness values back from external simulation, but actually received {len(fitnesses)}.")
+
+        logger.debug(f"Fitnesses: {fitnesses}\n")
+            
+        return fitnesses
+
+
+########################
+# class AverageFitnessProblem
+########################
+class AverageFitnessProblem(Problem):
+    def __init__(self, wrapped_problem, n: int):
+        assert(wrapped_problem is not None)
+        assert(n > 0)
+        assert(hasattr(wrapped_problem, 'evaluate'))
+        self.wrapped_problem = wrapped_problem
+        self.n = n
+
+    def evaluate(self, phenome):
+        fitnesses = [ self.wrapped_problem.evaluate(phenome) for _ in range(self.n) ]
+        return np.mean(fitnesses)
+
+    def multiple_evaluate(self, phenomes: list):
+        fitnesses = [ np.array(self.wrapped_problem.multiple_evaluate(phenomes)) for _ in range(self.n) ]
+        pass
+
+        
+
+
+
 
 
 ########################

@@ -14,6 +14,7 @@ Being a terse compilation by version of changes.
   * Added support for lexicographical and Koza-style parsimony pressure
   * Added `HistPhenotypePlotProbe`
   * Added `ops.grouped_evaluate()` for evaluating batches of individuals
+  * Added `ExternalProcessproblem` for using external programs as fitness functions
 
 * Documentation
   * Added documentation on `leap_ec.context` and updated software development
