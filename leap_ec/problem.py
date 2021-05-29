@@ -4,6 +4,7 @@ and FunctionProblem.
 
 """
 from abc import ABC, abstractmethod
+from itertools import islice
 import logging
 from math import nan, floor, isclose, isnan
 import random
@@ -208,10 +209,10 @@ class ExternalProcessProblem(ScalarProblem):
     Assumes that individuals are represented with list phenomes with elements that can
     be cast to strings.
     """
-    def __init__(self, command: str, maximize: bool, args = (), ):
+    def __init__(self, command: str, maximize: bool, args: list = None, ):
         super().__init__(maximize=maximize)
         self.command = command
-        self.args = args[:]
+        self.args = args[:] if args else []
         
     def evaluate(self, phenome):
         fitnesses = self.evaluate_multiple([ phenome ])
@@ -252,6 +253,15 @@ class ExternalProcessProblem(ScalarProblem):
 # class AverageFitnessProblem
 ########################
 class AverageFitnessProblem(Problem):
+    """Problem wrapper that copies each genome n times, evaluates them, and averages the
+    results back together to produce a mean-fitness estimate.
+
+    This is a common strategy for approaching noisy fitness functions, to make it easier 
+    for an optimization algorithm to follow a gradient.
+    
+    >>> from leap_ec.binary_rep.problem
+
+    """
     def __init__(self, wrapped_problem, n: int):
         assert(wrapped_problem is not None)
         assert(n > 0)
@@ -264,14 +274,25 @@ class AverageFitnessProblem(Problem):
         return np.mean(fitnesses)
 
     def multiple_evaluate(self, phenomes: list):
-        fitnesses = [ np.array(self.wrapped_problem.multiple_evaluate(phenomes)) for _ in range(self.n) ]
-        pass
+        def mean_by_chunk(l):
+            """Take n elements at a time from an iterator and average them."""
+            means = []
+            while l != []:
+                chunk, l = l[:self.n], l[self.n:]
+                means.append(np.mean(chunk))
+            return means
+        # Copy each phenome n times, because we're going to evaluate each one n times
+        expanded_phenomes = [ p for p in phenomes for _ in range(self.n) ]
 
+        # Evaluate them
+        fitnesses = self.wrapped_problem.multiple_evaluate(expanded_phenomes)
+
+        # Average the copies back together
+        contracted_phenomes = mean_by_chunk(fitnesses)
+
+        assert(len(contracted_phenomes) == len(phenomes))
+        return contracted_phenomes
         
-
-
-
-
 
 ########################
 # Class AlternatingProblem
