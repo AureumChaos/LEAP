@@ -183,7 +183,7 @@ class CurvePlotter():
         self.analyzer = analyzer
         plt.style.use('ggplot')
 
-    def plot_curves(self, metric_col, title: str, xlabel: str = None, ylabel: str = None, ax=None):
+    def plot_curves(self, metric_col, title: str, xlabel: str = None, ylabel: str = None, ylog : bool = False, ax=None):
         """Plot all of the curves in a single image, using the specified metric on the y axis."""
         assert(metric_col in self.analyzer.metric_cols), f"Expected '{metric_col}' column to be in {self.analyzer.metric_cols}."
 
@@ -206,9 +206,11 @@ class CurvePlotter():
         if ylabel:
             plt.ylabel(ylabel)
         plt.title(title)
+        if ylog:
+            plt.yscale('log')
         plt.show(block=False)
 
-    def plot_avg_curves(self, metric_col, title: str, error_bars: bool, ylim, xlabel: str = None, ylabel: str = None, ax=None):
+    def plot_avg_curves(self, metric_col, title: str, error_bars: bool, ylim, xlabel: str = None, ylabel: str = None, ylog: bool = False, ax=None):
         """Plot the mean curves in a single image, using the specified metric on the y axis."""
         assert(metric_col in self.analyzer.metric_cols), f"Expected '{metric_col}' column to be in {self.analyzer.metric_cols}."
 
@@ -254,6 +256,8 @@ class CurvePlotter():
         if ylabel:
             plt.ylabel(ylabel)
         plt.title(title)
+        if ylog:
+            plt.yscale('log')
         plt.show(block=False)
 
     def plot_scalars_bar(self, metric_col: str, scalar_measure=auc, title='Performance by Experimental Group', ax=None):
@@ -348,22 +352,24 @@ def analyze(files):
 @click.option('--metric-col', default='bsf', type=str, help="Name of column to plot on the y axis (ex. bsf, max_fitness).")
 @click.option('--error/--no-error', type=bool, default=True)
 @click.option('--ylim', type=(float, float), default=(None, None))
-@click.option('--title', type=str, default='Performance')
+@click.option('--modulo', type=int, default='1')
 @click.option('--time-col', default='step', type=str, help="Name of column that represent time (ex. generation, step, eval).")
-def all(curves_file, metric_col, error, ylim, title, time_col):
+@click.option('--ylog/--no-ylog', type=bool, default=False)
+def all(curves_file, metric_col, error, ylim, modulo, time_col,ylog):
     """Plot a single best-of-generation fitness curve from a CSV file."""
     assert(os.path.exists(curves_file))
     df = pd.read_csv(curves_file, skipinitialspace=True, comment='#')
+    df = df[df[time_col] % modulo == 0]  # Select every nth step
     analyzer = CurveAnalyzer(df, time_col=time_col, experiment_cols=['experiment'])
     plotter = CurvePlotter(analyzer)
 
-    plt.figure(figsize=(15, 8))
+    plt.figure(figsize=(20, 8))
     plt.subplot(131)
-    plotter.plot_curves(metric_col, title, ax=plt.gca())
+    plotter.plot_curves(metric_col, f"Indiviudal {metric_col} Curves", ylog=ylog, ax=plt.gca())
     plt.subplot(132)
-    plotter.plot_avg_curves(metric_col, title, error, ylim, ax=plt.gca())
+    plotter.plot_avg_curves(metric_col, f"Average {metric_col} Curves", error, ylim, ylog=ylog, ax=plt.gca())
     plt.subplot(133)
-    plotter.plot_scalars_bar(metric_col, title=title, ax=plt.gca())
+    plotter.plot_scalars_bar(metric_col, title='Area Under Curve', ax=plt.gca())
     plt.show()
 
 
@@ -375,13 +381,14 @@ def all(curves_file, metric_col, error, ylim, title, time_col):
 @click.option('--metric-col', default='bsf', type=str, help="Name of column to plot on the y axis (ex. bsf, max_fitness).")
 @click.option('--title', type=str, default='Performance Curves')
 @click.option('--time-col', default='step', type=str, help="Name of column that represent time (ex. generation, step, eval).")
-def curves(curves_file, metric_col, title, time_col):
+@click.option('--ylog/--no-ylog', type=bool, default=False)
+def curves(curves_file, metric_col, title, time_col, ylog):
     """Plot the individual performance curves from a CSV file."""
     assert(os.path.exists(curves_file))
     df = pd.read_csv(curves_file, skipinitialspace=True, comment='#')
     analyzer = CurveAnalyzer(df, time_col=time_col, experiment_cols=['experiment'])
     plotter = CurvePlotter(analyzer)
-    plotter.plot_curves(metric_col, title)
+    plotter.plot_curves(metric_col, title, ylog=ylog)
     plt.show()
 
 
@@ -395,13 +402,14 @@ def curves(curves_file, metric_col, title, time_col):
 @click.option('--error/--no-error', type=bool, default=True)
 @click.option('--ylim', type=(float, float), default=(None, None))
 @click.option('--time-col', default='step', type=str, help="Name of column that represent time (ex. generation, step, eval).")
-def avg_curves(average_bsf_file, metric_col, title, error, ylim, time_col):
+@click.option('--ylog/--no-ylog', type=bool, default=False)
+def avg_curves(average_bsf_file, metric_col, title, error, ylim, time_col, ylog):
     """Plot average fitness curves from an average-fitness CSV file."""
     assert(os.path.exists(average_bsf_file))
     df = pd.read_csv(average_bsf_file, skipinitialspace=True, comment='#')
     analyzer = CurveAnalyzer(df, time_col=time_col, experiment_cols=['experiment'])
     plotter = CurvePlotter(analyzer)
-    plotter.plot_avg_curves(metric_col, title, error, ylim)
+    plotter.plot_avg_curves(metric_col, title, error, ylim, ylog=ylog)
     plt.show()
 
 
