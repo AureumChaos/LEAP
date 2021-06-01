@@ -61,7 +61,6 @@ class Problem(ABC):
         if you need to, say, send a group of individuals off to parallel """
         return [ self.evaluate(p) for p in phenomes ]
 
-
     @abstractmethod
     def worse_than(self, first_fitness, second_fitness):
         raise NotImplementedError
@@ -259,7 +258,13 @@ class AverageFitnessProblem(Problem):
     This is a common strategy for approaching noisy fitness functions, to make it easier 
     for an optimization algorithm to follow a gradient.
     
-    >>> from leap_ec.binary_rep.problem
+    >>> from leap_ec.real_rep.problems import NoisyQuarticProblem
+    >>> p = AverageFitnessProblem(
+    ...                 wrapped_problem = NoisyQuarticProblem(),
+    ...                 n = 20)
+    >>> x = [ 1, 1, 1, 1 ]
+    >>> p.evaluate(x)  # The mean of this will be approximately 10
+    ...
 
     """
     def __init__(self, wrapped_problem, n: int):
@@ -270,10 +275,16 @@ class AverageFitnessProblem(Problem):
         self.n = n
 
     def evaluate(self, phenome):
+        """Evaluates the wrapped function n times sequentially and returns the mean."""
         fitnesses = [ self.wrapped_problem.evaluate(phenome) for _ in range(self.n) ]
         return np.mean(fitnesses)
 
     def multiple_evaluate(self, phenomes: list):
+        """
+        Evaluate a collections of phenomes by creating n jobs for each phenome,
+        sending all the jobs to the wrapped multiple_evaluate() function, and then
+        averaging the n results for each phenome into a list of results.
+        """
         def mean_by_chunk(l):
             """Take n elements at a time from an iterator and average them."""
             means = []
@@ -281,6 +292,7 @@ class AverageFitnessProblem(Problem):
                 chunk, l = l[:self.n], l[self.n:]
                 means.append(np.mean(chunk))
             return means
+            
         # Copy each phenome n times, because we're going to evaluate each one n times
         expanded_phenomes = [ p for p in phenomes for _ in range(self.n) ]
 
@@ -292,6 +304,12 @@ class AverageFitnessProblem(Problem):
 
         assert(len(contracted_phenomes) == len(phenomes))
         return contracted_phenomes
+
+    def worse_than(self, first_fitness, second_fitness):
+        return self.wrapped_problem.worse_than(first_fitness, second_fitness)
+
+    def equivalent(self, first_fitness, second_fitness):
+        return self.wrapped_problem.equivalent(first_fitness, second_fitness)
         
 
 ########################

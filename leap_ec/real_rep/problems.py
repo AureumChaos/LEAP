@@ -336,9 +336,9 @@ class NoisyQuarticProblem(ScalarProblem):
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness
         """
-        indices = np.arange(len(phenome))
+        indices = np.arange(len(phenome)) + 1
         noise = np.random.normal(0, 1, len(phenome))
-        return np.sum(np.dot(indices, np.power(phenome, 4)) + noise)
+        return np.dot(indices, np.power(phenome, 4)) + np.sum(noise)
 
     def worse_than(self, first_fitness, second_fitness):
         """
