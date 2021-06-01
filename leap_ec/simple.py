@@ -13,6 +13,10 @@ from leap_ec.problem import FunctionProblem
 from leap_ec.decoder import IdentityDecoder
 from leap_ec.real_rep.initializers import create_real_vector
 
+
+##############################
+# Function ea_solve()
+##############################
 def ea_solve(function, bounds, generations=100, pop_size=2,
              mutation_std=1.0, maximize=False, viz=False, viz_ylim=(0, 1)):
     """Provides a simple, top-level interfact that optimizes a real-valued
@@ -65,7 +69,8 @@ def ea_solve(function, bounds, generations=100, pop_size=2,
     pipeline = [
         ops.tournament_selection,
         ops.clone,
-        mutate_gaussian(std=mutation_std, expected_num_mutations='isotropic'),
+        mutate_gaussian(std=mutation_std, hard_bounds=bounds,
+                        expected_num_mutations='isotropic'),
         ops.uniform_crossover(p_swap=0.4),
         ops.evaluate,
         ops.pool(size=pop_size)
