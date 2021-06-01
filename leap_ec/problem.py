@@ -263,8 +263,9 @@ class AverageFitnessProblem(Problem):
     ...                 wrapped_problem = NoisyQuarticProblem(),
     ...                 n = 20)
     >>> x = [ 1, 1, 1, 1 ]
-    >>> p.evaluate(x)  # The mean of this will be approximately 10
-    ...
+    >>> y = p.evaluate(x)
+    >>> print(f"Fitness: {y}")  # The mean of this will be approximately 10
+    Fitness: ...
 
     """
     def __init__(self, wrapped_problem, n: int):
