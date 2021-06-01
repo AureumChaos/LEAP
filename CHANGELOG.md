@@ -29,6 +29,7 @@ Being a terse compilation by version of changes.
 
 * Bugfixes
   * Fix `viz` parameter when calling `simple.ea_solve()`
+  * Fix algebra error in `real_rep.problems.NoisyQuarticProblem`
   * Tell `dask` that functions are impure by default, to make sure it doesn't cache results
   * Change `Makefile` to use `pip install -e .` instead of the deprecated `python setup.py develop`
 
@@ -50,6 +51,7 @@ Being a terse compilation by version of changes.
     confusion with `dask.distributed`
   * Renamed `leap_ec.context` to `leap_ec.global_vars`
   * Default behavior changes
+    * `ea_solve()` now respects its `bounds` parameter at all times (rather than just initialization)
     * `Individual.decoder` and `Representation.decoder` now uses a phenotypic representation (`IdentityDecoder`) by default
     * Mutation operators no longer have default mutation rates (they must be explicitly set by the user).
     * Set default `p_swap = 0.2` for `uniform_crossover`, instead of 0.5
