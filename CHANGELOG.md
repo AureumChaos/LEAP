@@ -36,6 +36,7 @@ Being a terse compilation by version of changes.
 * API changes
   * Significantly refactored the `executable_rep.rules` package to simplify learning classifier systems
   * Added `leap_ec.__version__` attribute
+  * Added a `hard_bounds` flag to `ea_solve()` to tell it to respect the `bounds` at all times (rather than just initialization); defaults to `True`
   * Added the most frequent imports (ex. `Individual`, `Representation`) into the top-level package
   * Added probability parameter for the `uniform_crossover` operator
   * `mutate_gaussian` now accepts a list of gene-wise hard bound
@@ -51,7 +52,6 @@ Being a terse compilation by version of changes.
     confusion with `dask.distributed`
   * Renamed `leap_ec.context` to `leap_ec.global_vars`
   * Default behavior changes
-    * `ea_solve()` now respects its `bounds` parameter at all times (rather than just initialization)
     * `Individual.decoder` and `Representation.decoder` now uses a phenotypic representation (`IdentityDecoder`) by default
     * Mutation operators no longer have default mutation rates (they must be explicitly set by the user).
     * Set default `p_swap = 0.2` for `uniform_crossover`, instead of 0.5
