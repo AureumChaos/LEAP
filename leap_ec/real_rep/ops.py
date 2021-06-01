@@ -31,8 +31,6 @@ def mutate_gaussian(next_individual: Iterator,
     >>> op = mutate_gaussian(std=1.0, expected_num_mutations='isotropic')
     >>> mutated = next(op(pop))
 
-    TODO hard_bounds should also be able to take a sequence —Siggy
-
     :param next_individual: to be mutated
     :param std: standard deviation to be equally applied to all individuals;
         this can be a scalar value or a "shadow vector" of standard deviations

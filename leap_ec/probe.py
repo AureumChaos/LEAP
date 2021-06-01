@@ -855,7 +855,11 @@ class CartesianPhenotypePlotProbe:
 # Class HistPhenotypePlotProbe
 ##############################
 class HistPhenotypePlotProbe():
+    """A visualization probe that uses matplotlib to show a live histogram
+    of the population's phenotypes.
 
+    This typically makes the most since for 1-dimensional genotypes.
+    """
     def __init__(self, ax=None, title='Histogram of Phenotypes',
                  modulo=1, context=context):
         if ax is None:
