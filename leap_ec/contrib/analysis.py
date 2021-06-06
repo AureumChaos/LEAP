@@ -208,7 +208,6 @@ class CurvePlotter():
         plt.title(title)
         if ylog:
             plt.yscale('log')
-        plt.show(block=False)
 
     def plot_avg_curves(self, metric_col, title: str, error_bars: bool, ylim, xlabel: str = None, ylabel: str = None, ylog: bool = False, ax=None):
         """Plot the mean curves in a single image, using the specified metric on the y axis."""
@@ -258,7 +257,6 @@ class CurvePlotter():
         plt.title(title)
         if ylog:
             plt.yscale('log')
-        plt.show(block=False)
 
     def plot_scalars_bar(self, metric_col: str, scalar_measure=auc, title='Performance by Experimental Group', ax=None):
         assert(metric_col is not None)
@@ -275,7 +273,6 @@ class CurvePlotter():
         plt.suptitle('')  # Git rid of the auto-generated boxplot() sup-title
         plt.xticks(rotation = 45)
         plt.tight_layout()
-        plt.show(block=False)
 
     def plot_avg_scalars(self, metric, independent_vars: list, line=True):
         assert(independent_vars is not None)
@@ -298,7 +295,6 @@ class CurvePlotter():
                 plt.plot(end_points, m*end_points+b, '--k')
 
             plt.title(f"{v}")
-            plt.show(block=False)
 
 
 ##############################
