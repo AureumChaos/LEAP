@@ -32,7 +32,9 @@ if __name__ == '__main__':
     if os.environ.get(test_env_var, False) == 'True':
         generations = 2
     else:
-        generations = 1000
+        # To evolve until the stopping conditions are met, we
+        # specific infinite max_generations
+        generations = float('inf')
     
     l = 2
     pop_size = 10
