@@ -25,7 +25,7 @@ if __name__ == '__main__':
         generations = 1000
 
     with open('./coop_stats.csv', 'w') as log_stream:
-        ea = multi_population_ea(generations=generations, pop_size=pop_size,
+        ea = multi_population_ea(max_generations=generations, pop_size=pop_size,
                                  num_populations=9,
                                  problem=MaxOnes(),
                                  # Fitness function

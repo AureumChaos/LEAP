@@ -16,8 +16,9 @@ from leap_ec.individual import Individual
 ##############################
 # Function generational_ea
 ##############################
-def generational_ea(generations, pop_size, problem, representation, pipeline,
-                    init_evaluate=Individual.evaluate_population, context=context):
+def generational_ea(max_generations, pop_size, problem, representation, pipeline,
+                    stop=lambda x: False, init_evaluate=Individual.evaluate_population,
+                    context=context):
     """
     This function provides an evolutionary algorithm with a generational
     population model.
@@ -35,8 +36,11 @@ def generational_ea(generations, pop_size, problem, representation, pipeline,
     evolution strategies, and all manner of other (novel) algorithms by
     passing in appropriate components as parameters.
 
-    :param int generations: The number of generations to run the algorithm for.
+    :param int max_generations: The max number of generations to run the algorithm for.
+        Can pass in float('Inf') to run forever or until the `stop` condition is reached.
     :param int pop_size: Size of the initial population
+    :param int stop: A function that accepts a population and 
+        returns True iff it's time to stop evolving.
     :param `Problem` problem: the Problem that should be used to evaluate
         individuals' fitness
     :param representation: How the problem is represented in individuals
@@ -59,20 +63,19 @@ def generational_ea(generations, pop_size, problem, representation, pipeline,
     basic (mu, lambda)-style EA looks like (that is, an EA that throws away
     the parents at each generation in favor of their offspring):
 
+    >>> from leap_ec import Individual, Representation
+    >>> from leap_ec.algorithm import generational_ea, stop_at_generation
     >>> from leap_ec.binary_rep.problems import MaxOnes
     >>> from leap_ec.binary_rep.initializers import create_binary_sequence
     >>> from leap_ec.binary_rep.ops import mutate_bitflip
-    >>> from leap_ec.representation import Representation
-    >>> from leap_ec.decoder import IdentityDecoder
-    >>> from leap_ec.individual import Individual
     >>> import leap_ec.ops as ops
     >>> pop_size = 5
-    >>> ea = generational_ea(generations=100, pop_size=pop_size,
+    >>> ea = generational_ea(max_generations=100, pop_size=pop_size,
+    ...
     ...                      problem=MaxOnes(),      # Solve a MaxOnes Boolean optimization problem
     ...
     ...                      representation=Representation(
     ...                          individual_cls=Individual,     # Use the standard Individual as the prototype for the population
-    ...                          decoder=IdentityDecoder(),     # Genotype and phenotype are the same for this task
     ...                          initialize=create_binary_sequence(length=10)  # Initial genomes are random binary sequences
     ...                      ),
     ...
@@ -116,7 +119,7 @@ def generational_ea(generations, pop_size, problem, representation, pipeline,
     bsf = max(parents)
     yield (0, bsf)
 
-    while generation_counter.generation() < generations:
+    while (generation_counter.generation() < max_generations) and not stop(parents):
         # Execute the operators to create a new offspring population
         offspring = pipe(parents, *pipeline)
 
@@ -133,9 +136,9 @@ def generational_ea(generations, pop_size, problem, representation, pipeline,
 ##############################
 # Function multi_population_ea
 ##############################
-def multi_population_ea(generations, num_populations, pop_size, problem,
+def multi_population_ea(max_generations, num_populations, pop_size, problem,
                         representation, shared_pipeline,
-                        subpop_pipelines=None,
+                        subpop_pipelines=None, stop=lambda x: False,
                         init_evaluate=Individual.evaluate_population,
                         context=context):
     """
@@ -148,9 +151,12 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
     objective function (:py:class:`~leap.problem.Problem`), and which share
     all or part of the same operator pipeline.
 
-    :param int generations: The number of generations to run the algorithm for.
+    :param int max_generations: The max number of generations to run the algorithm for.
+        Can pass in float('Inf') to run forever or until the `stop` condition is reached.
     :param int num_populations: The number of separate populations to maintain.
     :param int pop_size: Size of the initial population
+    :param int stop: A function that accepts a list of populations and 
+        returns True iff it's time to stop evolving.
     :param `Problem` problem: the Problem that should be used to evaluate
         individuals' fitness
     :param representation: the Decoder that should be used to convert
@@ -193,7 +199,10 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
     ...
     >>> l = 2  # Length of the genome
     >>> pop_size = 10
-    >>> ea = multi_population_ea(generations=1000, num_populations=topology.number_of_nodes(), pop_size=pop_size,
+    >>> ea = multi_population_ea(max_generations=1000,
+    ...                         num_populations=topology.number_of_nodes(),
+    ...                         pop_size=pop_size,
+    ... 
     ...                         problem=problem,
     ...
     ...                         representation=Representation(
@@ -259,7 +268,7 @@ def multi_population_ea(generations, num_populations, pop_size, problem,
     bsf = [max(p) for p in pops]
     yield (0, bsf)
 
-    while generation_counter.generation() < generations:
+    while (generation_counter.generation() < max_generations) and not stop(pops):
         # Execute each population serially
         for i, parents in enumerate(pops):
             # Indicate the subpopulation we are currently executing in the
@@ -351,3 +360,42 @@ def random_search(evaluations, problem, representation, pipeline=(),
 
         # Output the best-so-far individual for each generation
         yield (evaluation_counter.generation(), bsf)
+
+
+##############################
+# Function stop_at_generation()
+##############################
+def stop_at_generation(max_generation: int, context=context):
+    """A stopping criterion function that checks the 'generation' count in the `context` 
+    object and returns True iff it is >= `max_generation`.
+
+    The resulting function takes a `population` argument, which is ignored.
+
+    For example:
+
+    >>> from leap_ec import context
+    >>> stop = stop_at_generation(100)
+
+    If we set the generation field in the context object (this value will typically be
+    updated by the algorithm as it runs) like so:
+
+    >>> context['leap']['generation'] = 15
+
+    Then we don't stop yet:
+
+    >>> stop(population=[])
+    False
+
+    We do stop at the 100th generation:
+
+    >>> context['leap']['generation'] = 100
+    >>> stop([])
+    True
+    """
+    assert(max_generation >= 0)
+    assert(context is not None)
+    
+    def stop(population):
+        return not (context['leap']['generation'] < max_generation)
+    
+    return stop

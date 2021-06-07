@@ -10,7 +10,7 @@ from leap_ec.binary_rep import problems
 from leap_ec.binary_rep.ops import mutate_bitflip
 
 pop_size = 5
-ea = generational_ea(generations=10, pop_size=pop_size,
+ea = generational_ea(max_generations=10, pop_size=pop_size,
 
                      # Solve a MaxOnes Boolean optimization problem
                      problem=problems.MaxOnes(),

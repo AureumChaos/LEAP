@@ -91,7 +91,7 @@ if __name__ == '__main__':
 
     with open('./genomes.csv', 'w') as genomes_file:
 
-        ea = generational_ea(generations=generations, pop_size=pop_size,
+        ea = generational_ea(max_generations=generations, pop_size=pop_size,
                             # Solve a problem that executes agents in the
                             # environment and obtains fitness from it
                             problem=problems.EnvironmentProblem(

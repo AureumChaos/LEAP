@@ -600,7 +600,7 @@ class FitnessPlotProbe(PopulationMetricsPlotProbe):
 
     >>> l = 10
     >>> pop_size = 10
-    >>> ea = generational_ea(generations=100, pop_size=pop_size,
+    >>> ea = generational_ea(max_generations=100, pop_size=pop_size,
     ...                      problem=SpheroidProblem(maximize=False),
     ...
     ...                      representation=Representation(
@@ -728,7 +728,7 @@ class CartesianPhenotypePlotProbe:
     >>> # Create an algorithm that contains the probe in the operator pipeline
 
     >>> pop_size = 100
-    >>> ea = generational_ea(generations=20, pop_size=pop_size,
+    >>> ea = generational_ea(max_generations=20, pop_size=pop_size,
     ...                      problem=problem,
     ...
     ...                      representation=Representation(
@@ -879,6 +879,43 @@ class HistPhenotypePlotProbe():
 
         if step % self.modulo == 0:
             phenomes = [ ind.decode() for ind in population ]
+            self.ax.cla()
+            self.ax.hist(phenomes)
+            self.ax.set_title(self.title)
+            #self.ax.figure.canvas.draw()
+            plt.pause(0.000001)
+        return population
+
+
+##############################
+# HeatMapPhenotypeProbe
+##############################
+class HeatMapPhenotypeProbe():
+    """
+    """
+    def __init__(self, ax=None, title='HeatMap of Phenotypes',
+                 modulo=1, context=context):
+        if ax is None:
+            _, ax = plt.subplots()
+        self.ax = ax
+        
+        ax.set_title(title)
+        self.title = title
+        self.modulo = modulo
+        self.context = context
+
+        self.map = np.empty((10,0))
+
+    def __call__(self, population):
+        assert (population is not None)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
+        step = self.context['leap']['generation']
+
+        if step % self.modulo == 0:
+            phenomes = [ ind.decode() for ind in population ]
+            hist, _ = np.histogram(phenomes)
+            self.map
             self.ax.cla()
             self.ax.hist(phenomes)
             self.ax.set_title(self.title)

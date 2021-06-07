@@ -114,7 +114,7 @@ if __name__ == '__main__':
         generations = 100
 
     pop_size = 10
-    ea = multi_population_ea(generations=generations,
+    ea = multi_population_ea(max_generations=generations,
                              num_populations=topology.number_of_nodes(),
                              pop_size=pop_size,
                              problem=problems,  # Fitness function

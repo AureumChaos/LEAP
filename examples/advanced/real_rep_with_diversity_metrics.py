@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
     l = 2
     pop_size = 10
-    ea = generational_ea(generations=generations,pop_size=pop_size,
+    ea = generational_ea(max_generations=generations,pop_size=pop_size,
                              problem=problem,  # Fitness function
 
                              # Representation

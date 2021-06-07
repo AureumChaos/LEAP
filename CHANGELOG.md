@@ -38,6 +38,7 @@ Being a terse compilation by version of changes.
   * Added `leap_ec.__version__` attribute
   * Added a `hard_bounds` flag to `ea_solve()` to tell it to respect the `bounds` at all times (rather than just initialization); defaults to `True`
   * Added the most frequent imports (ex. `Individual`, `Representation`) into the top-level package
+  * Renamed the `generations` parameter of `generational_ea()` to `max_generations` and added an optional `stop` parameter for other stopping conditions
   * Added probability parameter for the `uniform_crossover` operator
   * `mutate_gaussian` now accepts a list of gene-wise hard bound
   * Added `select_worst` Boolean parameter to `tournament_selection`

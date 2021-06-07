@@ -4,14 +4,12 @@
 """
 from matplotlib import pyplot as plt
 
+from leap_ec import Individual, Representation
 from leap_ec import ops, probe
 from leap_ec.algorithm import generational_ea
-from leap_ec.real_rep.ops import mutate_gaussian
-from leap_ec.representation import Representation
-from leap_ec.individual import Individual
 from leap_ec.problem import FunctionProblem
-from leap_ec.decoder import IdentityDecoder
-from leap_ec.real_rep.initializers import create_real_vector
+from leap_ec.real_rep import create_real_vector
+from leap_ec.real_rep.ops import mutate_gaussian
 
 
 ##############################
@@ -89,12 +87,12 @@ def ea_solve(function, bounds, generations=100, pop_size=2,
         plot_probe = probe.FitnessPlotProbe(ylim=viz_ylim, ax=plt.gca())
         pipeline.append(plot_probe)
 
-    ea = generational_ea(generations=generations, pop_size=pop_size,
+    ea = generational_ea(max_generations=generations,
+                         pop_size=pop_size,
                          problem=FunctionProblem(function, maximize),
 
                          representation=Representation(
                              individual_cls=Individual,
-                             decoder=IdentityDecoder(),
                              initialize=create_real_vector(bounds=bounds)
                          ),
 

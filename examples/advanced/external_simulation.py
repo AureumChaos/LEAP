@@ -92,7 +92,7 @@ for phenome_str in sys.stdin:
     ##############################
     # The Evolutionarly Algorithm
     ##############################
-    ea = generational_ea(generations=generations, pop_size=pop_size,
+    ea = generational_ea(max_generations=generations, pop_size=pop_size,
                             problem=problem,  # Fitness function
                             
                             # By default, the initial population is evaluated one-at-a-time.
