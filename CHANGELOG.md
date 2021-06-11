@@ -4,6 +4,8 @@ Being a terse compilation by version of changes.
 
 ## 0.6.0
 
+* Drop support for Python 3.6
+
 * New features
   * Added `landscape_features` package with some initial exploratory landscape analysis tools
   * Added elitism
