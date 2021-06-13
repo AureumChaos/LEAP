@@ -5,6 +5,7 @@ Being a terse compilation by version of changes.
 ## 0.6.0
 
 * Drop support for Python 3.6
+  * This keeps us in sync with numpy and dask that also dropped support for 3.6 this year
 
 * New features
   * Added `landscape_features` package with some initial exploratory landscape analysis tools
