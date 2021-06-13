@@ -6,7 +6,6 @@
 # full list see the documentation:
 # http://www.sphinx-doc.org/en/master/config
 
-from leap_ec import __version__
 
 # -- Path setup --------------------------------------------------------------
 
@@ -18,6 +17,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../../'))
 
+from leap_ec import __version__
 
 # -- Project information -----------------------------------------------------
 
