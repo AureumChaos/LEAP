@@ -51,8 +51,11 @@ The LEAP development roadmap is as follows:
         * synchronous vs. asynchronous evaluations
     * variable-length genomes
     * Gray encoding
-3. Future features, in no particular order of priority
+3. Version 0.6.0 -- released 6/13/2021
     * parsimony pressure
+    * elitism
+    * integer representation
+4. Future features, in no particular order of priority
     * multi-objective optimization
     * minimally complete documentation
         * fleshed out ReadTheDocs documentation
