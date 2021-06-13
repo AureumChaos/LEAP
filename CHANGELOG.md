@@ -2,7 +2,9 @@
 
 Being a terse compilation by version of changes.
 
-## 0.6.0
+## 0.7.0
+
+## 0.6.0, 6/13/2021
 
 * Drop support for Python 3.6
   * This keeps us in sync with numpy and dask that also dropped support for 3.6 this year
