@@ -11,6 +11,7 @@ These are the things to do when performing a release.
 1. if necessary sync `docs/source/roadmap.rst` with realistic expectations
 1. git flow release finish 'new release number'
 1. manually issue the release via github using the release tag and CHANGELOG text
+    1. `git push --tags`
 1. verify that the release number and final changes have properly propagated to:
     1. github site
     1. ReadTheDocs `master` and `latest` docs
