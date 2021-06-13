@@ -121,4 +121,5 @@ sections.
     Operators <ops>
     Contexts <context>
     Probes <probes>
+    Parsimony <parsimony>
     Visualizations <visualization>

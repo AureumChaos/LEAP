@@ -12,7 +12,6 @@ leap\_ec.contrib.transfer.sequential module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

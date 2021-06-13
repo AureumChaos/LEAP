@@ -6,6 +6,8 @@ from math import nan, isnan
 from copy import deepcopy
 from functools import total_ordering
 
+from leap_ec.decoder import IdentityDecoder
+
 
 ##############################
 # Class Individual
@@ -21,7 +23,7 @@ class Individual:
         converted into phenomes for fitness evaluation.
     """
 
-    def __init__(self, genome, decoder=None, problem=None):
+    def __init__(self, genome, decoder=IdentityDecoder(), problem=None):
         """
         Initialize an `Individual` with a given genome.
 
@@ -72,8 +74,6 @@ class Individual:
         :param problem: The problem to attach individuals to
         :return: A list of n individuals of this class's (or subclass's) type
         """
-        # genomes = initialize(n)
-        # assert(len(genomes) == n)
         return [cls(genome=initialize(), decoder=decoder, problem=problem) for _
                 in range(n)]
 
@@ -165,7 +165,7 @@ class Individual:
 
     def __lt__(self, other):
         """
-        Because `Individual`s know about their `Problem`, the know how to
+        Because `Individual`s know about their `Problem`, they know how to
         compare themselves to one another.  One individual is better than
         another if and only if it is greater than the other:
 
@@ -205,13 +205,16 @@ class Individual:
         return self.problem.worse_than(self.fitness, other.fitness)
 
     def __str__(self):
-        return self.genome.__str__()
+        return f'{self.genome!s} {self.fitness!s}'
 
     def __repr__(self):
         return f"{type(self).__name__}({self.genome.__repr__()}, " \
                f"{self.decoder.__repr__()}, {self.problem.__repr__()})"
 
 
+##############################
+# Class RobustIndividual
+##############################
 class RobustIndividual(Individual):
     """
         This adds exception handling for evaluations
@@ -251,4 +254,3 @@ class RobustIndividual(Individual):
         # *return* it to give more options to the programmer for using the
         # newly evaluated fitness.
         return self.fitness
-

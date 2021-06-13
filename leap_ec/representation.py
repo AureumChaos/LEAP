@@ -8,6 +8,7 @@ algorithms---so that representation-related components are grouped
 together and clearly labeled `Representation`.
 """
 from leap_ec.individual import Individual
+from leap_ec.decoder import IdentityDecoder
 
 ##############################
 # Class Representation
@@ -19,10 +20,14 @@ class Representation():
         coupled.
      """
 
-    def __init__(self, decoder, initialize, individual_cls=Individual):
+    def __init__(self, initialize, decoder=IdentityDecoder(), individual_cls=Individual):
         self.decoder = decoder
         self.initialize = initialize
         self.individual_cls = individual_cls
+
+    def create_individual(self, problem):
+        """Make a single individual."""
+        return self.create_population(1, problem)[0]
 
     def create_population(self, pop_size, problem):
         """ make a new population

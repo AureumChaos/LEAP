@@ -120,7 +120,7 @@ class RastriginProblem(ScalarProblem):
         Computes the function value from a real-valued list phenome:
 
         >>> phenome = [1.0/12, 0]
-        >>> RastriginProblem().evaluate(phenome) # +doctest: ELLIPSIS
+        >>> RastriginProblem().evaluate(phenome) # doctest: +ELLIPSIS
         0.1409190406...
 
         :param phenome: real-valued vector to be evaluated
@@ -336,9 +336,9 @@ class NoisyQuarticProblem(ScalarProblem):
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness
         """
-        indices = np.arange(len(phenome))
+        indices = np.arange(len(phenome)) + 1
         noise = np.random.normal(0, 1, len(phenome))
-        return np.sum(np.dot(indices, np.power(phenome, 4)) + noise)
+        return np.dot(indices, np.power(phenome, 4)) + np.sum(noise)
 
     def worse_than(self, first_fitness, second_fitness):
         """
@@ -463,7 +463,7 @@ class ShekelProblem(ScalarProblem):
 class GriewankProblem(ScalarProblem):
     """The classic Griewank problem.  Like the
     :class:`~leap.RastriginProblem` function, the Griewank has
-    a quadratic global structure with many local optima that are distributed
+    a quadratic global structure with many local optima that are distrib
     in a regular pattern.
 
     .. math::
@@ -828,7 +828,7 @@ class LunacekProblem(ScalarProblem):
 class SchwefelProblem(ScalarProblem):
     """
     Schwefel's function is another traditional multimodal test function whose
-    local optima are distributed in a slightly irregular way, and whose
+    local optima are distrib in a slightly irregular way, and whose
     global optimum is out at the edge of the search space (with no gently
     sloping macrostructure to guide the algorithm toward it).
 
@@ -1312,7 +1312,7 @@ class MatrixTransformedProblem(ScalarProblem):
 # Function plot_2d_problem
 ##############################
 def plot_2d_problem(problem, xlim, ylim, kind='surface',
-                    ax=None, granularity=None):
+                    ax=None, granularity=None, title=None, pad=()):
     """
     Convenience function for plotting a :class:`~leap.problem.Problem` that
     accepts 2-D real-valued phenomes and produces a 1-D scalar fitness output.
@@ -1326,6 +1326,8 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
     :type ylim: (float, float)
     :param kind: The kind of plot to create: 'surface' or 'contour'
     :type kind: str
+    :param pad: A list of extra gene values, used to fill in the hidden
+        dimensions with contants while drawing fitness contours.
 
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
         be created).
@@ -1380,9 +1382,9 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
                              "granularity to plot the problem.")
 
     if kind == 'surface':
-        return plot_2d_function(call, xlim, ylim, granularity, ax)
+        return plot_2d_function(call, xlim, ylim, granularity, ax, title, pad)
     elif kind == 'contour':
-        return plot_2d_contour(call, xlim, ylim, granularity, ax)
+        return plot_2d_contour(call, xlim, ylim, granularity, ax, title, pad)
     else:
         raise ValueError(f'Unrecognized plot kind: "{kind}".')
 
@@ -1390,7 +1392,7 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
 ##############################
 # Function plot_2d_function
 ##############################
-def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None):
+def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=()):
     """
     Convenience method for plotting a function that accepts 2-D real-valued
     imputs and produces a 1-D scalar output.
@@ -1402,6 +1404,8 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None):
     :type ylim: (float, float)
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will be created).
     :param float granularity: Spacing of the grid to sample points along.
+    :param pad: A list of extra gene values, used to fill in the hidden
+        dimensions with contants while drawing fitness contours.
 
     The difference between this and :meth:`plot_2d_problem` is that this
     takes a raw function (instead of a :class:`~leap.problem.Problem` object).
@@ -1429,11 +1433,14 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None):
 
     @np.vectorize
     def v_fun(x, y):
-        return fun([x, y])
+        return fun([x, y] + list(pad))
 
     x = np.arange(xlim[0], xlim[1], granularity)
     y = np.arange(ylim[0], ylim[1], granularity)
     xx, yy = np.meshgrid(x, y)
+
+    if title:
+        ax.set_title(title)
 
     return ax.plot_surface(xx, yy, v_fun(xx, yy))
 
@@ -1441,7 +1448,7 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None):
 ##############################
 # Function plot_2d_contour
 ##############################
-def plot_2d_contour(fun, xlim, ylim, granularity, ax=None):
+def plot_2d_contour(fun, xlim, ylim, granularity, ax=None, title=None, pad=()):
     """
     Convenience method for plotting contours for a function that accepts 2-D
     real-valued inputs and produces a 1-D scalar output.
@@ -1451,11 +1458,11 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None):
     :type xlim: (float, float)
     :param ylim: Bounds of the vertical axis.
     :type ylim: (float, float)
-
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
         be created).
-
     :param float granularity: Spacing of the grid to sample points along.
+    :param pad: A list of extra gene values, used to fill in the hidden
+        dimensions with contants while drawing fitness contours.
 
     The difference between this and :meth:`plot_2d_problem` is that this
     takes a raw function (instead of a :class:`~leap.problem.Problem` object).
@@ -1485,14 +1492,13 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None):
 
     @np.vectorize
     def v_fun(x, y):
-        return fun([x, y])
+        return fun([x, y] + list(pad))
 
     x = np.arange(xlim[0], xlim[1], granularity)
     y = np.arange(ylim[0], ylim[1], granularity)
     xx, yy = np.meshgrid(x, y)
 
+    if title:
+        ax.set_title(title)
+
     return ax.contour(xx, yy, v_fun(xx, yy))
-
-
-if __name__ == '__main__':
-    pass

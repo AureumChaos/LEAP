@@ -25,7 +25,7 @@ class EnvironmentProblem(ScalarProblem):
         self.runs = runs
         self.steps = steps
         self.environment = environment
-        self.environment._max_episode_steps = steps
+        self.environment._max_episode_steps = steps  # This may not work with all environments.
         self.stop_on_done = stop_on_done
         self.gui = gui
         if fitness_type == 'reward':
@@ -34,6 +34,16 @@ class EnvironmentProblem(ScalarProblem):
             self.fitness = EnvironmentProblem._survival_fitness
         else:
             raise ValueError(f"Unrecognized fitness type: '{fitness_type}'")
+
+    @property
+    def num_inputs(self):
+        """Return the number of dimensions in the environment's input space."""
+        self.space_dimensions(self.environment.observation_space)
+
+    @property
+    def num_outputs(self):
+        """Return the number of dimensions in the environment's action space."""
+        self.space_dimensions(self.environment.action_space)
 
     @classmethod
     def _reward_fitness(cls, observations, rewards):
@@ -45,6 +55,36 @@ class EnvironmentProblem(ScalarProblem):
     def _survival_fitness(cls, observations, rewards):
         """Compute fitness as the average length of the runs."""
         return np.mean([len(o) for o in observations])
+
+    @staticmethod
+    def space_dimensions(observation_space) -> int:
+        """Helper to get the number of dimensions (variables) in an OpenAI Gym space.
+        
+        The point of this helper is that it works on simple spaces:
+
+        >>> from gym import spaces
+        >>> discrete = spaces.Discrete(8)
+        >>> EnvironmentProblem.space_dimensions(discrete)
+        1
+
+        Box spaces:
+
+        >>> box = spaces.Box(low=-1.0, high=2.0, shape=(3, 4), dtype=np.float32)
+        >>> EnvironmentProblem.space_dimensions(box)
+        12
+
+        And Tuple spaces:
+
+        >>> tup = spaces.Tuple([discrete, box])
+        >>> EnvironmentProblem.space_dimensions(tup)
+        13
+        """
+        if hasattr(observation_space, 'spaces'):
+            # If we're a Tuple space, count the inputs across each space in the Tuple
+            return sum([ int(np.prod(s.shape)) for s in observation_space.spaces ])
+        else:
+            # Otherwise just look at the shape of the space directly
+            return int(np.prod(observation_space.shape))
 
     def evaluate(self, executable):
         """Run the environmental simulation using `executable` as a controller,
@@ -80,7 +120,7 @@ class TruthTableProblem(ScalarProblem):
     a list of 1 or more outputs.
     """
 
-    def __init__(self, boolean_function, num_inputs, num_outputs, maximize=True):
+    def __init__(self, boolean_function, num_inputs, num_outputs, pad_inputs=False, maximize=True):
         super().__init__(maximize)
         assert(boolean_function is not None)
         assert(callable(boolean_function))
@@ -89,6 +129,7 @@ class TruthTableProblem(ScalarProblem):
         self.function = boolean_function
         self.num_inputs = num_inputs
         self.num_outputs = num_outputs
+        self.pad_inputs = pad_inputs
 
     def evaluate(self, executable):
         """
@@ -136,6 +177,8 @@ class TruthTableProblem(ScalarProblem):
             expected = self.function(input_)
             assert(hasattr(expected, '__len__')), "The function given to a TruthTableProblem must return a list of outputs with length 1 or greater."
             assert(len(expected) > 0), f"The function given to TruthTableProblem must return a list of outputs with length 1 or greater, but its length was {len(expected)}."
+            if self.pad_inputs and (len(input_) < executable.num_inputs):
+                    input_ += [ 0 for _ in range(executable.num_inputs - len(input_)) ]
             observed = executable(input_)
             if observed == expected:
                 score += 1

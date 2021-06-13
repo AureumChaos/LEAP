@@ -9,6 +9,17 @@ Subpackages
 
    leap_ec.contrib.transfer
 
+Submodules
+----------
+
+leap\_ec.contrib.analysis module
+--------------------------------
+
+.. automodule:: leap_ec.contrib.analysis
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

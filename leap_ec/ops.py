@@ -3,7 +3,12 @@
 This module provides many of the most important functions that we string
 together to create EAs out of operator pipelines. You'll find many
 traditional selection and reproduction strategies here, as well as components
-for classic algorithms like island models and cooperative coevolution. """
+for classic algorithms like island models and cooperative coevolution.
+
+Representation-specific operators tend to reside within their own subpackages,
+rather than here.  See for example :py:mod:`leap_ec.real_rep.ops` and
+:py:mod:`leap_ec.binary_rep.ops`.
+"""
 import abc
 import collections
 from copy import copy
@@ -18,6 +23,7 @@ import numpy as np
 import toolz
 from toolz import curry
 
+from leap_ec.global_vars import context
 from leap_ec.individual import Individual
 
 
@@ -77,9 +83,16 @@ def iteriter_op(f):
     @wraps(f)
     def typecheck_f(next_individual: Iterator, *args, **kwargs) -> Iterator:
         if not isinstance(next_individual, collections.abc.Iterator):
-            raise ValueError(
-                f"Operator {f} received a {type(next_individual)} as input, "
-                f"but expected an iterator.")
+            if isinstance(next_individual, toolz.functoolz.curry):
+                raise ValueError(
+                    f"While executing operator {f}, an incomplete curry object was received ({type(next_individual)}).\n" + \
+                    "This usually means that you forgot to specify a required argument for an upstream operator, " + \
+                    "so a partly-curried function got passed down the pipeline instead of a population iterator."
+                )
+            else:
+                raise ValueError(
+                    f"Operator {f} received a {type(next_individual)} as input, "
+                    f"but expected an iterator.")
 
         result = f(next_individual, *args, **kwargs)
 
@@ -109,9 +122,16 @@ def listlist_op(f):
     @wraps(f)
     def typecheck_f(population: List, *args, **kwargs) -> List:
         if not isinstance(population, list):
-            raise ValueError(
-                f"Operator {f} received a {type(population)} as input, but "
-                f"expected a list.")
+            if isinstance(population, toolz.functoolz.curry):
+                raise ValueError(
+                    f"While executing operator {f}, an incomplete curry object was received ({type(population)}).\n" + \
+                    "This usually means that you forgot to specify a required argument for an upstream operator, " + \
+                    "so a partly-curried function got passed down the pipeline instead of a population list."
+                )
+            else:
+                raise ValueError(
+                    f"Operator {f} received a {type(population)} as input, but "
+                    f"expected a list.")
 
         result = f(population, *args, **kwargs)
 
@@ -141,9 +161,16 @@ def listiter_op(f):
     @wraps(f)
     def typecheck_f(population: List, *args, **kwargs) -> Iterator:
         if not isinstance(population, list):
-            raise ValueError(
-                f"Operator {f} received a {type(population)} as input, but "
-                f"expected a list.")
+            if isinstance(population, toolz.functoolz.curry):
+                raise ValueError(
+                    f"While executing operator {f}, an incomplete curry object was received ({type(population)}).\n" + \
+                    "This usually means that you forgot to specify a required argument for an upstream operator, " + \
+                    "so a partly-curried function got passed down the pipeline instead of a population list."
+                )
+            else:
+                raise ValueError(
+                    f"Operator {f} received a {type(population)} as input, but "
+                    f"expected a list.")
 
         result = f(population, *args, **kwargs)
 
@@ -173,9 +200,16 @@ def iterlist_op(f):
     @wraps(f)
     def typecheck_f(next_individual: Iterator, *args, **kwargs) -> List:
         if not isinstance(next_individual, collections.abc.Iterator):
-            raise ValueError(
-                f"Operator {f} received a {type(next_individual)} as input, "
-                f"but expected an iterator.")
+            if isinstance(next_individual, toolz.functoolz.curry):
+                raise ValueError(
+                    f"While executing operator {f}, an incomplete curry object was received ({type(next_individual)}).\n" + \
+                    "This usually means that you forgot to specify a required argument for an upstream operator, " + \
+                    "so a partly-curried function got passed down the pipeline instead of a population iterator."
+                )
+            else:
+                raise ValueError(
+                    f"Operator {f} received a {type(next_individual)} as input, "
+                    f"but expected an iterator.")
 
         result = f(next_individual, *args, **kwargs)
 
@@ -215,14 +249,41 @@ def evaluate(next_individual: Iterator) -> Iterator:
     :return: the evaluated individual
     """
     while True:
-        # "combined" means combining any args, kwargs passed in to this
-        # function with those passed in from upstream in the pipeline.
-
-        # individual, pipe_args, pipe_kwargs = next(next_individual)
         individual = next(next_individual)
         individual.evaluate()
 
         yield individual
+
+
+##############################
+# evaluate operator
+##############################
+@curry
+@listlist_op
+def grouped_evaluate(population: list, problem, max_individuals_per_chunk: int = None) -> list:
+    """Evaluate the population by sending groups of multiple individuals to
+    a fitness function so they can be evaluated simultaneously.
+
+    This is useful, for example, as a way to evaluate individuals in parallel
+    on a GPU."""
+    if max_individuals_per_chunk is None:
+        max_individuals_per_chunk = len(population)
+
+    def chunks(lst, n):
+        """Yield successive n-sized chunks from lst."""
+        for i in range(0, len(lst), n):
+            yield lst[i:i + n]
+
+    fitnesses = []
+    for chunk in chunks(population, max_individuals_per_chunk):
+        phenomes = [ ind.decode() for ind in chunk ]
+        fit = problem.evaluate_multiple(phenomes)
+        fitnesses.extend(fit)
+
+    for fit, ind in zip(fitnesses, population):
+        ind.fitness = fit
+
+    return population
 
 
 ##############################
@@ -232,6 +293,9 @@ def evaluate(next_individual: Iterator) -> Iterator:
 @listlist_op
 def const_evaluate(population: List, value) -> List:
     """An evaluator that assigns a constant fitness to every individual.
+
+    This ignores the `Problem` associated with each individual for the
+    purpose of assigning a constant fitness.
 
     This is useful for algorithms that need to assign an arbitrary initial
     fitness value before using their normal evaluation method.  Some forms of
@@ -275,9 +339,16 @@ def clone(next_individual: Iterator) -> Iterator:
 @curry
 @iteriter_op
 def uniform_crossover(next_individual: Iterator,
-                      p_swap: float = 0.5) -> Iterator:
-    """ Generator for recombining two individuals and passing them down the
-    line.
+                      p_swap: float = 0.2, p_xover: float = 1.0) -> Iterator:
+    """Parameterized uniform crossover iterates through two parents' genomes
+    and swaps each of their genes with the given probability.
+
+    In a classic paper, De Jong and Spears showed that this operator works
+    particularly well when the swap probability `p_swap` is set to about 0.2.  LEAP
+    thus uses this value as its default.
+
+        De Jong, Kenneth A., and W. Spears. "On the virtues of parameterized uniform crossover."
+        *Proceedings of the 4th international conference on genetic algorithms.* Morgan Kaufmann Publishers, 1991.
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.ops import uniform_crossover
@@ -290,9 +361,17 @@ def uniform_crossover(next_individual: Iterator,
     >>> new_first = next(result)
     >>> new_second = next(result)
 
+    The probability can be tuned via the `p_swap` parameter:
+
+    >>> result = uniform_crossover(i, p_swap=0.1)
+
     :param next_individual: where we get the next individual
-    :param p_swap: how likely are we to swap each pair of genes
-    :return: two recombined individuals
+    :param p_swap: how likely are we to swap each pair of genes when crossover
+        is performed
+    :param float p_xover: the probability that crossover is performed in the
+        first place
+    :return: two recombined individuals (with probability p_xover), or two
+        unmodified individuals (with probability 1 - p_xover)
     """
 
     def _uniform_crossover(ind1, ind2, p_swap):
@@ -303,7 +382,8 @@ def uniform_crossover(next_individual: Iterator,
 
         :param ind1: The first individual
         :param ind2: The second individual
-        :param p_swap:
+        :param p_swap: how likely are we to swap each pair of genes when crossover
+            is performed
 
         :return: a copy of both individuals with individual.genome bits
                  swapped based on probability
@@ -322,11 +402,18 @@ def uniform_crossover(next_individual: Iterator,
     while True:
         parent1 = next(next_individual)
         parent2 = next(next_individual)
+        # Return the parents unmodified if we're not performing crossover
+        if np.random.uniform() > p_xover:
+            yield parent1
+            yield parent2
+        else:  # Else do crossover
+            child1, child2 = _uniform_crossover(parent1, parent2, p_swap)
 
-        child1, child2 = _uniform_crossover(parent1, parent2, p_swap)
+            # Invalidate fitness since the genomes have changed
+            child1.fitness = child2.fitness = None
 
-        yield child1
-        yield child2
+            yield child1
+            yield child2
 
 
 ##############################
@@ -335,7 +422,7 @@ def uniform_crossover(next_individual: Iterator,
 @curry
 @iteriter_op
 def n_ary_crossover(next_individual: Iterator,
-                    num_points: int = 1,
+                    num_points: int = 2,
                     p=1.0) -> Iterator:
     """ Do crossover between individuals between N crossover points.
 
@@ -355,7 +442,10 @@ def n_ary_crossover(next_individual: Iterator,
     >>> new_second = next(result)
 
     :param next_individual: where we get the next individual from the pipeline
-    :param num_points: how many crossing points do we allow?
+    :param num_points: how many crossing points do we use?  Defaults to 2, since
+        2-point crossover has been shown to be the least disruptive choice for
+        this value.
+    :param p: the probability that crossover is performed.
     :return: two recombined
     """
 
@@ -372,8 +462,8 @@ def n_ary_crossover(next_individual: Iterator,
         return xpts
 
     def _n_ary_crossover(child1, child2, num_points):
-        if len(child1.genome) < num_points  or \
-           len(child2.genome) < num_points :
+        if len(child1.genome) < num_points or \
+                len(child2.genome) < num_points:
             raise RuntimeError(
                 'Invalid number of crossover points for n_ary_crossover')
 
@@ -419,7 +509,8 @@ def n_ary_crossover(next_individual: Iterator,
 @curry
 @listlist_op
 def truncation_selection(offspring: List, size: int,
-                         parents: List = None) -> List:
+                         parents: List = None,
+                         key = None) -> List:
     """ return the `size` best individuals from the given population
 
         This defaults to (mu, lambda) if `parents` is not given.
@@ -449,11 +540,90 @@ def truncation_selection(offspring: List, size: int,
                                   with population for downsizing
         :return: truncated population
     """
-    if parents is not None:
-        return list(toolz.itertoolz.topk(
-            size, itertools.chain(offspring, parents)))
+    if key:
+        if parents is not None:
+            return list(toolz.itertoolz.topk(
+                size, itertools.chain(offspring, parents), key=key))
+        else:
+            return list(toolz.itertoolz.topk(size, offspring, key=key))
     else:
-        return list(toolz.itertoolz.topk(size, offspring))
+        if parents is not None:
+            return list(toolz.itertoolz.topk(
+                size, itertools.chain(offspring, parents)))
+        else:
+            return list(toolz.itertoolz.topk(size, offspring))
+
+
+##############################
+# Function elitist_survival
+##############################
+@curry
+@listlist_op
+def elitist_survival(offspring: List, parents: List, k: int = 1, key = None) -> List:
+    """ This allows k best parents to compete with the offspring.
+
+        >>> from leap_ec.individual import Individual
+        >>> from leap_ec.decoder import IdentityDecoder as ID
+        >>> from leap_ec.binary_rep.problems import MaxOnes
+
+        First, let's make a "pretend" population of parents using the MaxOnes
+        problem.
+
+        >>> pretend_parents = [Individual([0, 0, 0], decoder=ID(), problem=MaxOnes()), Individual([1, 1, 1], decoder=ID(), problem=MaxOnes())]
+
+        Then a "pretend" population of offspring. (Pretend in that we're
+        pretending that the offspring came from the parents.)
+
+        >>> pretend_offspring = [Individual([0, 0, 0], decoder=ID(), problem=MaxOnes()), Individual([1, 1, 0], decoder=ID(), problem=MaxOnes()), Individual([1, 0, 1], decoder=ID(), problem=MaxOnes()), Individual([0, 1, 1], decoder=ID(), problem=MaxOnes()), Individual([0, 0, 1], decoder=ID(), problem=MaxOnes())]
+
+        We need to evaluate them to get their fitness to sort them for
+        elitist_survival.
+
+        >>> pretend_parents = Individual.evaluate_population(pretend_parents)
+        >>> pretend_offspring = Individual.evaluate_population(pretend_offspring)
+
+        This will take the best parent, which has [1,1,1], and replace the
+        worst offspring, which has [0,0,0] (because this is the MaxOnes problem)
+        >>> survivors = elitist_survival(pretend_offspring, pretend_parents)
+
+        >>> assert pretend_parents[1] in survivors # yep, best parent is there
+        >>> assert pretend_offspring[0] not in survivors # worst guy isn't
+
+        We orginally ordered 5 offspring, so that's what we better have.
+        >>> assert len(survivors) == 5
+
+        Please note that the literature has a number of variations of elitism
+        and other forms of overlapping generations.  For example, this may be a
+        good starting point:
+
+        De Jong, Kenneth A., and Jayshree Sarma. "Generation gaps revisited."
+        In Foundations of genetic algorithms, vol. 2, pp. 19-28. Elsevier, 1993.
+
+    :param offspring: list of created offpring, probably from pool()
+    :param parents: list of parents, usually the ones that offspring came from
+    :param k: how many elites from parents to keep?
+    :param key: optional key criteria for selecting; e.g., can be used to impose
+        parsimony pressure
+    :return: surviving population, which will be offspring with offspring
+        replaced by any superior parent elites
+    """
+    # We save this because we're going to truncate back down to this number
+    # for the final survivors
+    original_num_offspring = len(offspring)
+
+    # Append the requested number of best parents to the offspring.
+    if key:
+        elites = list(toolz.itertoolz.topk(k, parents, key=key))
+    else:
+        elites = list(toolz.itertoolz.topk(k, parents))
+    offspring.extend(elites)
+
+    # Now return the offspring (plus possibly an elite) truncating the least
+    # fit individual.
+    if key:
+        return list(toolz.itertoolz.topk(original_num_offspring, offspring, key))
+    else:
+        return list(toolz.itertoolz.topk(original_num_offspring, offspring))
 
 
 ##############################
@@ -461,37 +631,56 @@ def truncation_selection(offspring: List, size: int,
 ##############################
 @curry
 @listiter_op
-def tournament_selection(population: List, k: int = 2) -> Iterator:
-    """ Selects the best individual from k individuals randomly selected from
-        the given population
+def tournament_selection(population: list, k: int = 2, key = None, select_worst: bool=False, indices = None) -> Iterator:
+    """Returns an opertaor that selects the best individual from k individuals randomly selected from
+        the given population.
 
-        >>> from leap_ec.individual import Individual
-        >>> from leap_ec.decoder import IdentityDecoder
+        Like other selection operators, this assumes that if one individual is "greater than" another, then it is 
+        "better than" the other.  Whether this indicates maximization or minimization isn't handled here: the
+        `Individual` class determines the semantics of its "greater than" operator.
+
+        :param population: the population to select from.  Should be a list, not an iterator.
+        :param int k: number of contestants in the tournament.  k=2 does binary tournament
+            selection, which approximates linear ranking selection in the expectation.  Higher
+            values of k yield greedier selection strategies—k=3, for instance, is equal to 
+            quadratic ranking selection in the expectation.
+        :param key: an optional function that computes keys to sort over.  Defaults to None,
+            in which case Individuals are compared directly.
+        :param bool select_worst: if True, select the worst individual from the tournament instead
+            of the best.
+        :param list indices: an optional 
+
+        >>> from leap_ec import Individual
         >>> from leap_ec.binary_rep.problems import MaxOnes
         >>> from leap_ec.ops import tournament_selection
 
-        >>> pop = [Individual([0, 0, 0], IdentityDecoder(), problem=MaxOnes()),
-        ...        Individual([0, 0, 1], IdentityDecoder(), problem=MaxOnes())]
-
-        We need to evaluate them to get their fitness to sort them for
-        truncation.
-
+        >>> pop = [Individual([0, 0, 0], problem=MaxOnes()),
+        ...        Individual([0, 0, 1], problem=MaxOnes())]
         >>> pop = Individual.evaluate_population(pop)
-
         >>> best = tournament_selection(pop)
 
         :param population: from which to select
-
         :param k: are randomly drawn from which to choose the best; by
-        default this is 2 for binary tournament selection
+            default this is 2 for binary tournament selection
+        :param key: optional max() key
 
         :return: the best of k individuals drawn from population
     """
-    while True:
-        choices = random.choices(population, k=k)
-        best = max(choices)
+    assert((indices is None) or (isinstance(indices, list))), f"Only a list should be passed to tournament_selection() for indices, but received {indices}."
 
-        yield best
+    while True:
+        choices_idx = random.choices(range(len(population)), k=k)
+        judge = min if select_worst else max
+        if key:
+            best_idx = judge(choices_idx, key=lambda x: key(population[x]))
+        else:
+            best_idx = judge(choices_idx, key=lambda x: population[x])
+
+        if indices is not None:
+            indices.clear()  # Nuke whatever is in there
+            indices.append(best_idx)  # Add the index of the individual we're about to return
+
+        yield population[best_idx]
 
 
 ##############################
@@ -499,7 +688,7 @@ def tournament_selection(population: List, k: int = 2) -> Iterator:
 ##############################
 @curry
 @listlist_op
-def insertion_selection(offspring: List, parents: List) -> List:
+def insertion_selection(offspring: List, parents: List, key = None) -> List:
     """ do exclusive selection between offspring and parents
 
     This is typically used for Ken De Jong's EV algorithm for survival
@@ -514,14 +703,22 @@ def insertion_selection(offspring: List, parents: List) -> List:
     :param offspring: population to select from
     :param parents: parents that are copied and which the copies are
            potentially updated with better offspring
+    :param key: optional key for determining max() by other criteria such as
+        for parsimony pressure
     :return: the updated parent population
     """
     copied_parents = copy(parents)
     for child in offspring:
         selected_parent_index = random.randrange(len(copied_parents))
-        copied_parents[selected_parent_index] = max(child,
-                                                    copied_parents[
-                                                        selected_parent_index])
+        if key:
+            copied_parents[selected_parent_index] = max(child,
+                                                        copied_parents[
+                                                            selected_parent_index],
+                                                        key=key)
+        else:
+            copied_parents[selected_parent_index] = max(child,
+                                                        copied_parents[
+                                                            selected_parent_index])
 
         return copied_parents
 
@@ -640,8 +837,10 @@ def pool(next_individual: Iterator, size: int) -> List:
 ##############################
 # Function migrate
 ##############################
-def migrate(context, topology, emigrant_selector,
-            replacement_selector, migration_gap, customs_stamp=lambda x, _: x):
+def migrate(topology, emigrant_selector,
+            replacement_selector, migration_gap,
+            customs_stamp=lambda x, _: x,
+            context=context):
     num_islands = topology.number_of_nodes()
 
     # We wrap a closure around some persistent state to keep trag of
@@ -716,8 +915,8 @@ class CooperativeEvaluate(Operator):
         subpopulation information.
     """
 
-    def __init__(self, context, num_trials, collaborator_selector,
-                 log_stream=None, combine=concat_combine):
+    def __init__(self, num_trials, collaborator_selector,
+                 log_stream=None, combine=concat_combine,context=context):
         self.context = context
         self.num_trials = num_trials
         self.collaborator_selector = collaborator_selector
@@ -761,10 +960,10 @@ class CooperativeEvaluate(Operator):
                 if self.log_writer is not None:
                     self._log_trial(
                         self.log_writer,
-                        self.context,
                         collaborators,
                         combined_ind,
-                        i)
+                        i,
+                        context=self.context)
 
                 fitnesses.append(fitness)
 
@@ -773,8 +972,8 @@ class CooperativeEvaluate(Operator):
             yield current_ind
 
     @staticmethod
-    def _choose_collaborators(
-            current_ind, subpopulations, current_subpop, selectors):
+    def _choose_collaborators(current_ind, subpopulations,
+                              current_subpop, selectors):
         """Choose collaborators from the subpopulations."""
         collaborators = []
         for i in range(len(subpopulations)):
@@ -792,22 +991,19 @@ class CooperativeEvaluate(Operator):
         return collaborators
 
     @staticmethod
-    def _log_trial(writer, context, collaborators, combined_ind, trial_id):
+    def _log_trial(writer, collaborators, combined_ind, trial_id,
+                   context=context):
         """Record information about a batch of collaborators to a CSV writer."""
         for i, collab in enumerate(collaborators):
-            writer.writerow({'generation'                : context['leap'][
-                'generation'],
-                             'subpopulation'             : context['leap'][
-                                 'current_subpopulation'],
+            writer.writerow({'generation'                : context['leap']['generation'],
+                             'subpopulation'             : context['leap']['current_subpopulation'],
                              'individual_type'           : 'Collaborator',
                              'collaborator_subpopulation': i,
                              'genome'                    : collab.genome,
                              'fitness'                   : collab.fitness})
 
-        writer.writerow({'generation'                : context['leap'][
-            'generation'],
-                         'subpopulation'             : context['leap'][
-                             'current_subpopulation'],
+        writer.writerow({'generation'                : context['leap']['generation'],
+                         'subpopulation'             : context['leap']['current_subpopulation'],
                          'individual_type'           : 'Combined Individual',
                          'collaborator_subpopulation': None,
                          'genome'                    : combined_ind.genome,

@@ -64,7 +64,7 @@ from leap_ec.binary_rep import problems
 from leap_ec.binary_rep.ops import mutate_bitflip
 
 pop_size = 5
-ea = generational_ea(generations=10, pop_size=pop_size,
+ea = generational_ea(max_generations=10, pop_size=pop_size,
 
                      # Solve a MaxOnes Boolean optimization problem
                      problem=problems.MaxOnes(),
@@ -77,11 +77,12 @@ ea = generational_ea(generations=10, pop_size=pop_size,
                      ),
 
                      # The operator pipeline
-                     pipeline=[ops.tournament_selection,
+                     pipeline=[
                                # Select parents via tournament_selection selection
+                               ops.tournament_selection,
                                ops.clone,  # Copy them (just to be safe)
-                               # Basic mutation: defaults to a 1/L mutation rate
-                                   mutate_bitflip,
+                               # Basic mutation with a 1/L mutation rate
+                               mutate_bitflip(expected_num_mutations=1),
                                # Crossover with a 40% chance of swapping each gene
                                ops.uniform_crossover(p_swap=0.4),
                                ops.evaluate,  # Evaluate fitness
@@ -132,7 +133,7 @@ while generation_counter.generation() < 6:
     offspring = pipe(parents,
                      ops.tournament_selection,
                      ops.clone,
-                     mutate_bitflip,
+                     mutate_bitflip(expected_num_mutations=1),
                      ops.uniform_crossover(p_swap=0.2),
                      ops.evaluate,
                      ops.pool(size=len(parents)))  # accumulate offspring
@@ -150,7 +151,7 @@ A number of LEAP demo applications are found in the the `example/` directory of 
 
 ```bash
 git clone https://github.com/AureumChaos/LEAP.git
-python LEAP/example/island_models.py
+python LEAP/examples/advanced/island_models.py
 ```
 
 ![Demo of LEAP running a 3-population island model on a real-valued optimization problem.](_static/island_model_animation.gif)
@@ -201,5 +202,3 @@ make test-slow
 respectively.
 
 ![pytest output example](_static/pytest_output.png)
-
-

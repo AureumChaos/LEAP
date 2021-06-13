@@ -1,9 +1,13 @@
 """Helpers for testing the output of stochastic functions."""
 from typing import Dict
 
-from scipy.stats import chisquare
+import numpy as np
+from scipy.stats import chisquare, ttest_ind_from_stats
 
 
+##############################
+# Function collect_distribution()
+##############################
 def collect_distribution(function, samples: int):
     """Count the number of times the given function returns each
     output value."""
@@ -17,8 +21,11 @@ def collect_distribution(function, samples: int):
     return outputs
 
 
+##############################
+# Function _normalize_dicts()
+##############################
 def _normalize_dicts(dict1, dict2):
-    """Convert two dicts to lists that are aligned to each other."""
+    """Helper function that converts two dicts to lists that are aligned to each other."""
 
     def add_keys_from(dist1, dist2):
         """If dist1 contains a key that dist2 doesn't, add it to dict2."""
@@ -39,10 +46,15 @@ def _normalize_dicts(dict1, dict2):
     return n_dict1, n_dict2
 
 
+##############################
+# Function stochastic_chisquare()
+##############################
 def stochastic_chisquare(expected_distribution, distribution):
     """Use a $\\chi^2$ distribution to compute a p-value for the probability of
     rejecting the hypothesis that the given distribution matches the expected
     distribution.
+
+    The null hypothesis here is that the distributions are equal.
     
     This takes two dictionaries of values:
 
@@ -50,6 +62,17 @@ def stochastic_chisquare(expected_distribution, distribution):
     >>> distribution = { 1: 5, 2: 8, 3: 9, 4: 8, 5: 10, 6: 20}
     >>> stochastic_chisquare(expected_distribution, distribution)
     0.01990...
+
+    The p-value is low, because the samples are quite different, so the
+    "probability of seeing that big a difference or greater if the two
+    distributions are equal" is low.
+
+    Very similar samples, by contrast, yield high p values:
+
+    >>> expected_distribution = { 1: 10, 2: 10, 3: 10, 4: 10, 5: 10, 6: 10}
+    >>> distribution = { 1: 10, 2: 10, 3: 10, 4: 10, 5: 10, 6: 10}
+    >>> stochastic_chisquare(expected_distribution, distribution)
+    1.0
     """
     assert(sum(expected_distribution.values()) == sum(distribution.values())), f"The distributions have {sum(expected_distribution.values())} and {sum(distribution.values())} samples, respectively, but must be equal."
     
@@ -59,9 +82,18 @@ def stochastic_chisquare(expected_distribution, distribution):
     return p_value
 
 
+##############################
+# Function stochastic_equals()
+##############################
 def stochastic_equals(expected_distribution: Dict, observed_distribution: Dict, p: float) -> bool:
     """Use a $\\chi^2$ test to determine whether two discrete distributions are
-    equal.
+    equal.  Specifically, this returns false if we *reject the hypothesis* that
+    they are equal at the given p-value.
+
+    Lower p-value thresholds make the test more conservative, in the sense that it will assume
+    the distributions are equal unless there is very good evidence to the contrary. We 
+    typically want to use low p-value thresholds for unit tests, for example, to avoid
+    false test failures (type-I errors).
 
     For example, we do not reject the hypothesis that `[5060, 4940]` comes from a uniform
     distribution:
@@ -78,6 +110,9 @@ def stochastic_equals(expected_distribution: Dict, observed_distribution: Dict, 
     >>> stochastic_equals(expected, observed, p=0.01)
     True
 
+    If we relax the p-value threshold, we can conclude that the die is in fact
+    biased (but with some increased risk of type-I error):
+
     But we would have if we used a 95% significance level instead of 99%:
     >>> stochastic_equals(expected, observed, p=0.05)
     False
@@ -91,9 +126,22 @@ def stochastic_equals(expected_distribution: Dict, observed_distribution: Dict, 
 
     # Otherwise, do a chi2 test
     p_value = stochastic_chisquare(expected_distribution, observed_distribution)
-    return p_value > p
+
+    if p_value < p:
+        # The probability of the difference being at least as great as we see if the
+        # distributions are equal is lower than our threshold... so reject equality.
+        reject_equality = True
+    else:
+        # The probability of the difference being at least as great as we see if the
+        # distributions are equal is higher than our threshold... so do not reject.
+        reject_equality = False
+
+    return not reject_equality  # Return False ("not equal") if reject_null is True
 
 
+##############################
+# Function equals_uniform()
+##############################
 def equals_uniform(observed_distribution: Dict, p: float) -> bool:
     """Use a $\\chi^2$ test to determine whether the observed distribution is uniform.
     
@@ -118,3 +166,24 @@ def equals_uniform(observed_distribution: Dict, p: float) -> bool:
     num_keys = len(observed_distribution.keys())
     expected_distribution = { k: n/num_keys for k in observed_distribution.keys() }
     return stochastic_equals(expected_distribution, observed_distribution, p)
+
+
+##############################
+# Function equals_gaussian()
+##############################
+def equals_gaussian(observed_samples, reference_mean: float, reference_std: float, num_reference_observations: int, p: float) -> bool:
+    """A convenience function for computing a t-test for equality of two independent samples, using samples from one and test
+    statistics from the other.
+
+    Assumes equal variance samples.
+    
+    >>> import numpy as np
+    >>> observed = np.random.normal(15, 1, size=1000)
+    >>> equals_gaussian(observed, 15, 1, 1000, p=0.05)
+    True
+    """
+    mu, sigma = np.mean(observed_samples), np.std(observed_samples)
+    result = ttest_ind_from_stats(mu, sigma, len(observed_samples),
+                                  reference_mean, reference_std, num_reference_observations)
+
+    return result.pvalue > p

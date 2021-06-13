@@ -3,6 +3,7 @@ import collections
 import pytest
 
 import leap_ec.ops as ops
+from leap_ec.data import test_population
 
 
 ##############################
@@ -159,3 +160,29 @@ def test_iterlist_op_3():
 
     with pytest.raises(ValueError):
         result = f(iter([1, 2, 3]))
+
+
+##############################
+# Test const_evaluate()
+##############################
+def test_const_evaluate():
+    """Constant evaluation should ignore the existing fitness function and
+    set the fitness of all individuals to the same value."""
+    pop = test_population
+    pop = ops.const_evaluate(pop, value=123456789.0)
+    
+    for ind in pop:
+        assert(pytest.approx(123456789.0) == ind.fitness)
+
+
+##############################
+# Test pool()
+##############################
+def test_pool():
+    """If a pool of size 3 is used, the first 3 individuals in the input iterator should be collected
+    into a list."""
+    pop = iter([ 'a', 'b', 'c', 'd', 'e' ])
+    pop = ops.pool(pop, size=3)
+
+    assert(len(pop) == 3)
+    assert(pop == [ 'a', 'b', 'c' ])
