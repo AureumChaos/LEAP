@@ -248,3 +248,60 @@ def test_tournament_selection_indices():
     assert(idx >= 0)
     assert(idx < len(pop))
     assert(pop[idx] is s)
+
+
+##############################
+# Tests for random_selection()
+##############################
+@pytest.mark.stochastic
+def test_random_selection1():
+    """If there are just two individuals in the population, then random
+    selection will select the better one with 50% probability."""
+    pop = [Individual([0, 0, 0], problem=MaxOnes()),
+           Individual([1, 1, 1], problem=MaxOnes())]
+    # Assign a unique identifier to each individual
+    pop[0].id = 0
+    pop[1].id = 1
+
+    # We first need to evaluate all the individuals so that
+    # selection has fitnesses to compare
+    pop = Individual.evaluate_population(pop)
+    selected = ops.random_selection(pop)
+
+    N = 1000
+    p_thresh = 0.1
+    observed_dist = statistical_helpers.collect_distribution(lambda: next(selected).id, samples=N)
+    expected_dist = { pop[0].id: 0.5*N, pop[1].id: 0.5*N } 
+    print(f"Observed: {observed_dist}")
+    print(f"Expected: {expected_dist}")
+    assert(statistical_helpers.stochastic_equals(expected_dist, observed_dist, p=p_thresh))
+
+
+def test_random_selection_indices():
+    """If an empty list is provided to random selection, it should be populated with
+    the index of the selected individual.
+    
+    If we select a second individual, the list should be cleared and populated with the 
+    index of the second individual."""
+    pop = test_population
+
+    indices = []
+    op = ops.random_selection(indices=indices)
+
+    # Select an individual
+    s = next(op(pop))
+    # Ensure the returned index is correct
+    assert(len(indices) == 1)
+    idx = indices[0]
+    assert(idx >= 0)
+    assert(idx < len(pop))
+    assert(pop[idx] is s)
+
+    # Select another individual
+    s = next(op(pop))
+    # Ensure the returned index is correct
+    assert(len(indices) == 1)
+    idx = indices[0]
+    assert(idx >= 0)
+    assert(idx < len(pop))
+    assert(pop[idx] is s)

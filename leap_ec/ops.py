@@ -648,7 +648,9 @@ def tournament_selection(population: list, k: int = 2, key = None, select_worst:
             in which case Individuals are compared directly.
         :param bool select_worst: if True, select the worst individual from the tournament instead
             of the best.
-        :param list indices: an optional 
+        :param list indices: an optional list that will be populated with the index of the 
+            selected individual.
+        :return: the best of k individuals drawn from population
 
         >>> from leap_ec import Individual
         >>> from leap_ec.binary_rep.problems import MaxOnes
@@ -658,13 +660,6 @@ def tournament_selection(population: list, k: int = 2, key = None, select_worst:
         ...        Individual([0, 0, 1], problem=MaxOnes())]
         >>> pop = Individual.evaluate_population(pop)
         >>> best = tournament_selection(pop)
-
-        :param population: from which to select
-        :param k: are randomly drawn from which to choose the best; by
-            default this is 2 for binary tournament selection
-        :param key: optional max() key
-
-        :return: the best of k individuals drawn from population
     """
     assert((indices is None) or (isinstance(indices, list))), f"Only a list should be passed to tournament_selection() for indices, but received {indices}."
 
@@ -790,15 +785,22 @@ def cyclic_selection(population: List) -> Iterator:
 ##############################
 # Function random_selection
 ##############################
+@curry
 @listiter_op
-def random_selection(population: List) -> Iterator:
+def random_selection(population: List, indices = None) -> Iterator:
     """ return a uniformly randomly selected individual from the population
 
     :param population: from which to select
     :return: a uniformly selected individual
     """
     while True:
-        yield random.choice(population)
+        choice_idx = random.choice(range(len(population)))
+
+        if indices is not None:
+            indices.clear()  # Nuke whatever is in there
+            indices.append(choice_idx)  # Add the index of the individual we're about to return
+
+        yield population[choice_idx]
 
 
 ##############################
