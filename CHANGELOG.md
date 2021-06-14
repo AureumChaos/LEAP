@@ -2,7 +2,7 @@
 
 Being a terse compilation by version of changes.
 
-## 0.7.0
+## 0.7.0dev (current develop branch)
 
 * API changes
   * Added `indices` parameter to `ops.random_selection()`
