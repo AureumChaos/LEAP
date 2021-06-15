@@ -14,6 +14,54 @@ from leap_ec.real_rep.problems import SpheroidProblem
 
 
 ##############################
+# Tests for fitness_proportional_selection()
+##############################
+def test_proportional_selection():
+    ''' Test of a deterministic case of proportional selection '''
+    # Make a population where fitness_proportional_selection has an obvious
+    # reproducible choice
+    pop = [Individual([0, 0, 0], problem=MaxOnes()),
+           Individual([1, 1, 1], problem=MaxOnes())]
+
+    parents = Individual.evaluate_population(pop)
+    # This selection operator will always select the [1, 1, 1] individual since
+    # [0, 0, 0] has zero fitness
+    selector = ops.proportional_selection(parents)
+
+    selected = next(selector)
+    assert(selected.genome == [1, 1, 1])
+
+    selected = next(selector)
+    assert(selected.genome == [1, 1, 1])
+
+
+@pytest.mark.stochastic
+def test_proportional_selection2():
+    ''' Test of a stochastic proportional selection '''
+    # Make a population where fitness proportional selection has an obvious
+    # reproducible choice
+    # Proportions here should be 1/4 and 3/4, respectively
+    pop = [Individual([0, 1, 0], problem=MaxOnes()),
+           Individual([1, 1, 1], problem=MaxOnes())]
+    # Assign a unique identifier to each individual
+    pop[0].id = 0
+    pop[1].id = 1
+
+    # We first need to evaluate all the individuals so that
+    # selection has fitnesses to compare
+    pop = Individual.evaluate_population(pop)
+    selected = ops.proportional_selection(pop)
+
+    N = 1000
+    p_thresh = 0.1
+    observed_dist = statistical_helpers.collect_distribution(lambda: next(selected).id, samples=N)
+    expected_dist = { pop[0].id: 0.25*N, pop[1].id: 0.75*N }
+    print(f"Observed: {observed_dist}")
+    print(f"Expected: {expected_dist}")
+    assert(statistical_helpers.stochastic_equals(expected_dist, observed_dist, p=p_thresh))
+
+
+##############################
 # Tests for naive_cyclic_selection()
 ##############################
 def test_naive_cyclic_selection():
