@@ -508,29 +508,31 @@ def n_ary_crossover(next_individual: Iterator,
 ##############################
 @curry
 @listiter_op
-def proportional_selection(population: List, offset = 0, exponent: int = 1,
-                           key = lambda x: x.fitness) -> Iterator:
+def proportional_selection(population: List, offset=0, exponent: int = 1,
+                           key=lambda x: x.fitness) -> Iterator:
     """ Returns an individual from a population in direct proportion to their
         fitness or another given metric.
 
-        To deal with negative fitness values use `offset='pop-min'` or set a custom
-        offset. A `ValueError` is thrown if the result of adding `offset` to a fitness
-        value results in a negative number. The value of an individual is calculated as
-        follows
+        To deal with negative fitness values use `offset='pop-min'` or set a
+        custom offset. A `ValueError` is thrown if the result of adding
+        `offset` to a fitness value results in a negative number. The value
+        of an individual is calculated as follows
 
         `value = (fitness + offset)^exponent`
 
-        :param population: the population to select from. Should be a list, not an iterator.
-        :param offset: the offset from zero. If negative fitness values are possible and
-            the minimum is unknown use `offest='pop-min'` for an adaptive offset.
-            Defaults to 0.
-        :param int exponent: the power to which fitness values are raised to. This can
-            be tuned to increase or decrease selection pressure by creating larger or smaller
-            differences between fitness values in the population. Defaults to 1.
-        :param key: a function that computes the metric used to compare individuals.
-            Defaults to fitness.
-        :return: a random individual based on the proportion of the given metric in the
-            population.
+        :param population: the population to select from.
+            Should be a list, not an iterator.
+        :param offset: the offset from zero. If negative fitness values are
+            possible and the minimum is unknown use `offest='pop-min'` for
+            an adaptive offset. Defaults to 0.
+        :param int exponent: the power to which fitness values are raised to.
+            This can be tuned to increase or decrease selection pressure by
+            creating larger or smaller differences between fitness values in
+            the population. Defaults to 1.
+        :param key: a function that computes the metric used to compare
+            individuals. Defaults to fitness.
+        :return: a random individual based on the proportion of the given
+            metric in the population.
 
         >>> from leap_ec import Individual
         >>> from leap_ec.binary_rep.problems import MaxOnes
@@ -542,21 +544,21 @@ def proportional_selection(population: List, offset = 0, exponent: int = 1,
         >>> selected = proportional_selection(pop)
     """
     population_total = 0.0
-    values = []
+    values = np.zeros(len(population), dtype=float)
 
     # find minimum value to use as offset for negative values
     if offset == 'pop-min':
         offset = -min([key(ind) for ind in population])
 
     # compute values and population total
-    for ind in population:
+    for idx, ind in enumerate(population):
         ind_val = (key(ind) + offset)**exponent
         if ind_val < 0:
             raise ValueError(('negative value found after applying offset. '
-                                f' Offending Individual: {ind}'))
+                              f' Offending Individual: {ind}'))
         population_total += ind_val
-        values.append(ind_val)
-    proportions = [val / population_total for val in values]
+        values[idx] = ind_val
+    proportions = values / population_total
 
     # select individuals
     while True:

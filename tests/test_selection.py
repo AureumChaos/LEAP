@@ -54,15 +54,17 @@ def test_proportional_selection2():
 
     N = 1000
     p_thresh = 0.1
-    observed_dist = statistical_helpers.collect_distribution(lambda: next(selected).id, samples=N)
-    expected_dist = { pop[0].id: 0.25*N, pop[1].id: 0.75*N }
+    observed_dist = statistical_helpers.collect_distribution(
+        lambda: next(selected).id, samples=N)
+    expected_dist = {pop[0].id: 0.25*N, pop[1].id: 0.75*N}
     print(f"Observed: {observed_dist}")
     print(f"Expected: {expected_dist}")
-    assert(statistical_helpers.stochastic_equals(expected_dist, observed_dist, p=p_thresh))
+    assert(statistical_helpers.stochastic_equals(expected_dist,
+                                                 observed_dist, p=p_thresh))
 
 
 def test_proportional_selection_offset():
-    ''' Test of proportional selection with a non-default offset (zero-point) '''
+    ''' Test of proportional selection with a non-default offset '''
     pop = [Individual([0, 0, 0], problem=MaxOnes()),
            Individual([1, 1, 1], problem=MaxOnes())]
 
@@ -76,7 +78,8 @@ def test_proportional_selection_offset():
         selector = ops.proportional_selection(pop)
         selected = next(selector)
     # it should work by setting the offset to +3
-    # this adds 3 to each fitness value, making the second individual's fitness 0.
+    # this adds 3 to each fitness value, making the second
+    # individual's fitness 0.
     selector = ops.proportional_selection(pop, offset=3)
 
     # we expect the first individual to always be selected
