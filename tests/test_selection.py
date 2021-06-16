@@ -16,7 +16,7 @@ from leap_ec.real_rep.problems import SpheroidProblem
 ##############################
 # Tests for fitness_proportional_selection()
 ##############################
-def test_proportional_selection():
+def test_proportional_selection1():
     ''' Test of a deterministic case of proportional selection '''
     # Make a population where fitness_proportional_selection has an obvious
     # reproducible choice
@@ -59,6 +59,76 @@ def test_proportional_selection2():
     print(f"Observed: {observed_dist}")
     print(f"Expected: {expected_dist}")
     assert(statistical_helpers.stochastic_equals(expected_dist, observed_dist, p=p_thresh))
+
+
+def test_proportional_selection_offset():
+    ''' Test of proportional selection with a non-default offset (zero-point) '''
+    pop = [Individual([0, 0, 0], problem=MaxOnes()),
+           Individual([1, 1, 1], problem=MaxOnes())]
+
+    # evaluate population and negate fitness of second individual
+    pop = Individual.evaluate_population(pop)
+    pop[1].fitness = -pop[1].fitness
+
+    # now we try to evaluate normally (this should throw a ValueError)
+    # due to the negative fitness
+    with pytest.raises(ValueError):
+        selector = ops.proportional_selection(pop)
+        selected = next(selector)
+    # it should work by setting the offset to +3
+    # this adds 3 to each fitness value, making the second individual's fitness 0.
+    selector = ops.proportional_selection(pop, offset=3)
+
+    # we expect the first individual to always be selected
+    # since the new zero point is now -3.
+    selected = next(selector)
+    assert(selected.genome == [0, 0, 0])
+
+    selected = next(selector)
+    assert(selected.genome == [0, 0, 0])
+
+
+def test_proportional_selection_pop_min():
+    ''' Test of proportional selection with pop-min offset '''
+    # Create a population of positive fitness individuals
+    # scaling the fitness by the population minimum makes it so the
+    # least fit member never gets selected.
+    pop = [Individual([0, 1, 0], problem=MaxOnes()),
+           Individual([1, 1, 1], problem=MaxOnes())]
+
+    pop = Individual.evaluate_population(pop)
+
+    selector = ops.proportional_selection(pop, offset='pop-min')
+
+    # we expect that the second individual is always selected
+    # since the new zero point will be at the minimum fitness
+    # of the population
+    selected = next(selector)
+    assert(selected.genome == [1, 1, 1])
+
+    selected = next(selector)
+    assert(selected.genome == [1, 1, 1])
+
+
+def test_proportional_selection_custom_key():
+    ''' Test of proportional selection with custom evaluation '''
+    pop = [Individual([0, 0, 0], problem=MaxOnes()),
+           Individual([1, 1, 1], problem=MaxOnes())]
+
+    def custom_key(individual):
+        ''' Returns fitness based on MaxZeros '''
+        return individual.genome.count(0)
+
+    pop = Individual.evaluate_population(pop)
+    selector = ops.proportional_selection(pop, key=custom_key)
+
+    # we expect the first individual to always be selected
+    # since its genome is all 0s
+    selected = next(selector)
+    assert(selected.genome == [0, 0, 0])
+
+    selected = next(selector)
+    assert(selected.genome == [0, 0, 0])
 
 
 ##############################
