@@ -72,7 +72,7 @@ if __name__ == '__main__':
     if os.environ.get(test_env_var, False) == 'True':
         generations = 2
     else:
-        generations = 10
+        generations = 1000
 
     # Load the OpenAI Gym simulation
     environment = gym.make('CartPole-v0')
