@@ -4,6 +4,9 @@ Being a terse compilation by version of changes.
 
 ## 0.7.0dev (current develop branch)
 
+* New features
+  * Added `ops.proportional_selection()`
+
 * API changes
   * Added `indices` parameter to `ops.random_selection()`
 
