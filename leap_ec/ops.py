@@ -543,27 +543,120 @@ def proportional_selection(population: List, offset=0, exponent: int = 1,
         >>> pop = Individual.evaluate_population(pop)
         >>> selected = proportional_selection(pop)
     """
-    population_total = 0.0
-    values = np.zeros(len(population), dtype=float)
+    # scale and shift to account for possible negative values
+    values = compute_population_values(population, offset=offset,
+                                       exponent=exponent, key=key)
+    assert(len(values) == len(population))
+    values = np.array(values)
 
-    # find minimum value to use as offset for negative values
-    if offset == 'pop-min':
-        offset = -min([key(ind) for ind in population])
+    # throw error on negative values since the algorithm does not
+    # work otherwise
+    if (values < 0.0).any():
+        raise ValueError('negative value found after applying offset.')
 
-    # compute values and population total
-    for idx, ind in enumerate(population):
-        ind_val = (key(ind) + offset)**exponent
-        if ind_val < 0:
-            raise ValueError(('negative value found after applying offset. '
-                              f' Offending Individual: {ind}'))
-        population_total += ind_val
-        values[idx] = ind_val
+    population_total = np.sum(values)
     proportions = values / population_total
 
-    # select individuals
     while True:
         choices = random.choices(population, weights=proportions)
         yield choices[0]
+
+
+##############################
+# Function sus_selection
+##############################
+@curry
+@listiter_op
+def sus_selection(population: List, n=None, shuffle: bool = True,
+                  offset=0, exponent: int = 1,
+                  key=lambda x: x.fitness) -> Iterator:
+    """ Returns an individual from a population in proportion to their
+        fitness or another given metric using the stochastic universal
+        sampling algorithm.
+
+        To deal with negative fitness values use `offset='pop-min'` or set a
+        custom offset. A `ValueError` is thrown if the result of adding
+        `offset` to a fitness value results in a negative number. The value
+        of an individual is calculated as follows
+
+        `value = (fitness + offset)^exponent`
+
+        :param population: the population to select from.
+            Should be a list, not an iterator.
+        :param n: the number of evenly spaced points to use in the algorithm.
+            Default is None which uses `len(population)`.
+        :param bool shuffle: if True, `n` points are resampled after one full
+            pass over them. If False, selection repeats over the same `n`
+            points. Defaults to True.
+        :param offset: the offset from zero. If negative fitness values are
+            possible and the minimum is unknown use `offset='pop-min'` for
+            an adaptive offset. Defaults to 0.
+        :param int exponent: the power to which fitness values are raised to.
+            This can be tuned to increase or decrease selection pressure by
+            creating larger or smaller differences between fitness values in
+            the population. Defaults to 1.
+        :param key: a function that computes the metric used to compare
+            individuals. Defaults to fitness.
+        :return: a random individual based on the proportion of the given
+            metric in the population.
+
+        >>> from leap_ec import Individual
+        >>> from leap_ec.binary_rep.problems import MaxOnes
+        >>> from leap_ec.ops import sus_selection
+
+        >>> pop = [Individual([0, 0, 0], problem=MaxOnes()),
+        ...        Individual([0, 0, 1], problem=MaxOnes())]
+        >>> pop = Individual.evaluate_population(pop)
+        >>> selected = sus_selection(pop)
+    """
+    # determine number of points to sample if not specified
+    if n is None:
+        n = len(population)
+
+    # check for non-positive number of points
+    if n <= 0:
+        raise ValueError(f'cannot sample {n} number of points')
+
+    # scale and shift to account for possible negative values
+    values = compute_population_values(population, offset=offset,
+                                       exponent=exponent, key=key)
+    assert(len(values) == len(population))
+    values = np.array(values)
+
+    # throw error on negative values since the algorithm does not
+    # work otherwise
+    if (values < 0.0).any():
+        raise ValueError('negative value found after applying offset.')
+
+    population_total = np.sum(values)
+    even_spacing = population_total / n
+    random_start = np.random.uniform(low=0.0, high=even_spacing)
+    selection_points = [random_start + i*even_spacing for i in range(0, n)]
+    selection_idx = 0
+    population_idx = 0
+    running_sum = 0.0
+    while True:
+        # check if all points have been selected
+        if selection_idx == len(selection_points):
+            # reset to allow for continuous selection
+            if shuffle:
+                random_start = np.random.uniform(low=0.0, high=even_spacing)
+                selection_points = [random_start + i*even_spacing
+                                    for i in range(0, n)]
+            selection_idx = 0
+            running_sum = 0.0
+            population_idx = 0
+
+        current_point = selection_points[selection_idx]
+        # continue until the running sum is greater than the point
+        while running_sum < current_point:
+            running_sum += values[population_idx]
+            population_idx += 1
+        selection_idx += 1
+
+        # yield the individual that caused the running_sum
+        # to move past the current_point
+        yield population[population_idx-1]
 
 
 ##############################
@@ -1089,3 +1182,29 @@ def compute_expected_probability(expected_num_mutations: float,
     :return: the corresponding probability of mutation
     """
     return 1.0 / len(individual_genome) * expected_num_mutations
+
+
+##############################
+# function compute_population_values
+##############################
+def compute_population_values(population: List, offset=0, exponent: int = 1,
+                     key=lambda x: x.fitness) -> List:
+    """ Returns a list of values where the zero-point of the population is
+        shifted and the values are scaled by exponentiation.
+
+        :param population: the population to compute values from.
+        :param offset: the offset from zero. Specifying `offset='pop-min'`
+            will use the population's minimum value as the new zero-point.
+            Defaults to 0.
+        :param int exponent: the power to which values are raised to.
+            Defaults to 1.
+        :param key: a function that computes a metric based
+            on an `Individual`.
+        :return: a list of values that have been shifted by `offset` and
+            scaled by `exponent` corresponding to each individual in the
+            population.
+    """
+    values = [key(ind) for ind in population]
+    if offset == 'pop-min':
+        offset = -min(values)
+    return [(val + offset)**exponent for val in values]

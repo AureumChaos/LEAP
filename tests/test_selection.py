@@ -14,11 +14,175 @@ from leap_ec.real_rep.problems import SpheroidProblem
 
 
 ##############################
-# Tests for fitness_proportional_selection()
+# Tests for sus_selection()
+##############################
+def test_sus_selection1():
+    ''' Test of a deterministic case of stochastic universal sampling '''
+    # Make a population where sus_selection has an obvious
+    # reproducible choice
+    pop = [Individual([0, 0, 0], problem=MaxOnes()),
+           Individual([1, 1, 1], problem=MaxOnes())]
+
+    pop = Individual.evaluate_population(pop)
+    # This selection operator will always choose the [1, 1, 1] individual
+    # since [0, 0, 0] has zero fitness
+    selector = ops.sus_selection(pop)
+
+    selected = next(selector)
+    assert(selected.genome == [1, 1, 1])
+
+    selected = next(selector)
+    assert(selected.genome == [1, 1, 1])
+
+    # run one more time to test shuffle
+    selected = next(selector)
+    assert(selected.genome == [1, 1, 1])
+
+
+@pytest.mark.stochastic
+def test_sus_selection_shuffle():
+    ''' Test of a stochastic case of SUS selection '''
+    # Make a population where sus_selection has an obvious
+    # reproducible choice
+    # Proportions here should be 1/4 and 3/4, respectively
+    pop = [Individual([0, 1, 0], problem=MaxOnes()),
+           Individual([1, 1, 1], problem=MaxOnes())]
+
+    # Assign a unique identifier to each individual
+    pop[0].id = 0
+    pop[1].id = 1
+
+    # We first need to evaluate all the individuals so that
+    # selection has fitnesses to compare
+    pop = Individual.evaluate_population(pop)
+    selected = ops.sus_selection(pop)
+
+    N = 1000
+    p_thresh = 0.1
+    observed_dist = statistical_helpers.collect_distribution(
+        lambda: next(selected).id, samples=N)
+    expected_dist = {pop[0].id: 0.25*N, pop[1].id: 0.75*N}
+    print(f"Observed: {observed_dist}")
+    print(f"Expected: {expected_dist}")
+    assert(statistical_helpers.stochastic_equals(expected_dist,
+                                                 observed_dist, p=p_thresh))
+
+
+def test_sus_selection_offset():
+    ''' Test of SUS selection with a non-default offset '''
+    pop = [Individual([0, 0, 0], problem=MaxOnes()),
+           Individual([1, 1, 1], problem=MaxOnes())]
+
+    # evaluate population and negate fitness of second individual
+    pop = Individual.evaluate_population(pop)
+    pop[1].fitness = -pop[1].fitness
+
+    # now we try to evaluate normally (this should throw a ValueError)
+    # due to the negative fitness
+    with pytest.raises(ValueError):
+        selector = ops.sus_selection(pop)
+        selected = next(selector)
+    # it should work by setting the offset to +3
+    # this adds 3 to each fitness value, making the second
+    # individual's fitness 0.
+    selector = ops.sus_selection(pop, offset=3)
+
+    # we expect the first individual to always be selected
+    # since the new zero point is now -3.
+    selected = next(selector)
+    assert(selected.genome == [0, 0, 0])
+
+    selected = next(selector)
+    assert(selected.genome == [0, 0, 0])
+
+
+def test_sus_selection_pop_min():
+    ''' Test of SUS selection with pop-min offset '''
+    # Create a population of positive fitness individuals
+    # scaling the fitness by the population minimum makes it so the
+    # least fit member never gets selected.
+    pop = [Individual([0, 1, 0], problem=MaxOnes()),
+           Individual([1, 1, 1], problem=MaxOnes())]
+
+    pop = Individual.evaluate_population(pop)
+
+    selector = ops.sus_selection(pop, offset='pop-min')
+
+    # we expect that the second individual is always selected
+    # since the new zero point will be at the minimum fitness
+    # of the population
+    selected = next(selector)
+    assert(selected.genome == [1, 1, 1])
+
+    selected = next(selector)
+    assert(selected.genome == [1, 1, 1])
+
+
+def test_sus_selection_custom_key():
+    ''' Test of SUS selection with custom evaluation '''
+    pop = [Individual([0, 0, 0], problem=MaxOnes()),
+           Individual([1, 1, 1], problem=MaxOnes())]
+
+    def custom_key(individual):
+        ''' Returns fitness based on MaxZeros '''
+        return individual.genome.count(0)
+
+    pop = Individual.evaluate_population(pop)
+    selector = ops.sus_selection(pop, key=custom_key)
+
+    # we expect the first individual to always be selected
+    # since its genome is all 0s
+    selected = next(selector)
+    assert(selected.genome == [0, 0, 0])
+
+    selected = next(selector)
+    assert(selected.genome == [0, 0, 0])
+
+
+def test_sus_selection_num_points():
+    ''' Test of SUS selection with varying `n` random points '''
+    # the second individual should always be selected
+    pop = [Individual([0, 0, 0], problem=MaxOnes()),
+           Individual([1, 1, 1], problem=MaxOnes())]
+
+    pop = Individual.evaluate_population(pop)
+    # with negative points
+    with pytest.raises(ValueError):
+        selector = ops.sus_selection(pop, n=-1)
+        selected = next(selector)
+
+    # with n = None (default)
+    selector = ops.sus_selection(pop, n=None)
+    selected = next(selector)
+    assert(selected.genome == [1, 1, 1])
+
+    # with n less than len(population)
+    selector = ops.sus_selection(pop, n=1)
+    selected = next(selector)
+    assert(selected.genome == [1, 1, 1])
+    selected = next(selector)
+    assert(selected.genome == [1, 1, 1])
+
+    # with n greater than len(population)
+    selector = ops.sus_selection(pop, n=3)
+    selected = next(selector)
+    assert(selected.genome == [1, 1, 1])
+    selected = next(selector)
+    assert(selected.genome == [1, 1, 1])
+    selected = next(selector)
+    assert(selected.genome == [1, 1, 1])
+    selected = next(selector)
+    assert(selected.genome == [1, 1, 1])
+    selected = next(selector)
+    assert(selected.genome == [1, 1, 1])
+
+
+##############################
+# Tests for proportional_selection()
 ##############################
 def test_proportional_selection1():
     ''' Test of a deterministic case of proportional selection '''
-    # Make a population where fitness_proportional_selection has an obvious
+    # Make a population where proportional_selection has an obvious
     # reproducible choice
     pop = [Individual([0, 0, 0], problem=MaxOnes()),
            Individual([1, 1, 1], problem=MaxOnes())]
