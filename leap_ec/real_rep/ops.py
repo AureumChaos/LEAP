@@ -4,8 +4,10 @@
 """
 import math
 import random
-from typing import Tuple, Iterator
+from collections.abc import Iterable
 from typing import Iterator, List, Tuple, Union
+
+import numpy as np
 
 from toolz import curry
 
@@ -55,11 +57,11 @@ def mutate_gaussian(next_individual: Iterator,
 
 
 @curry
-def genome_mutate_gaussian(genome: list,
+def genome_mutate_gaussian(genome,
                            std: float,
                            expected_num_mutations,
                            hard_bounds: Tuple[float, float] =
-                             (-math.inf, math.inf)) -> list:
+                             (-math.inf, math.inf)):
     """ Perform actual Gaussian mutation on real-valued genes
 
     This used to be inside `mutate_gaussian`, but was moved outside it so that
@@ -74,8 +76,8 @@ def genome_mutate_gaussian(genome: list,
     assert(expected_num_mutations is not None)
 
     def add_gauss(x, std, probability):
-        if random.random() < probability:
-            return random.gauss(x, std)
+        if np.random.rand() < probability:
+            return np.random.normal(x, std)
         else:
             return x
 
@@ -90,9 +92,9 @@ def genome_mutate_gaussian(genome: list,
     if util.is_sequence(std):
         # We're given a vector of "shadow standard deviations" so apply
         # each sigma individually to each gene
-        genome = [add_gauss(x, s, p) for x, s in zip(genome, std)]
+        genome = np.array([add_gauss(x, s, p) for x, s in zip(genome, std)])
     else:
-        genome = [add_gauss(x, std, p) for x in genome]
+        genome = np.array([add_gauss(x, std, p) for x in genome])
 
     # Implement hard bounds
     genome = apply_hard_bounds(genome, hard_bounds)
@@ -114,16 +116,16 @@ def apply_hard_bounds(genome, hard_bounds):
 
     >>> genome = [ 0, 10, 20, 30, 40, 50 ]
     >>> apply_hard_bounds(genome, hard_bounds=(20, 40))
-    [20, 20, 20, 30, 40, 40]
+    array([20, 20, 20, 30, 40, 40])
 
     Different bounds can be used for each locus by passing in a list of tuples:
 
     >>> bounds= [ (0, 1), (0, 1), (50, 100), (50, 100), (0, 100), (0, 10) ]
     >>> apply_hard_bounds(genome, hard_bounds=bounds)
-    [0, 1, 50, 50, 40, 10]
+    array([ 0,  1, 50, 50, 40, 10])
     """
     assert(genome is not None)
-    assert(util.is_sequence(genome))
+    assert(isinstance(genome, Iterable))
     assert(hard_bounds is not None)
 
     def clip(x, bound):
@@ -142,4 +144,4 @@ def apply_hard_bounds(genome, hard_bounds):
             assert(i < len(hard_bounds)), f"Only {len(hard_bounds)} values were provided for bounds, but we've reached at least {i} genes."
             return clip(x, hard_bounds[i])
 
-    return [ clip_at_locus(x, i) for i, x in enumerate(genome) ]
+    return np.array([ clip_at_locus(x, i) for i, x in enumerate(genome) ])

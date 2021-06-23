@@ -55,6 +55,8 @@ class SpheroidProblem(ScalarProblem):
         :param phenome: real-valued vector to be evaluated
         :return: it's fitness, `sum(phenome**2)`
         """
+        if isinstance(phenome, type(np.array)):
+            return np.sum(phenome ** 2)
         return sum([x ** 2 for x in phenome])
 
     def worse_than(self, first_fitness, second_fitness):
@@ -126,6 +128,9 @@ class RastriginProblem(ScalarProblem):
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness
         """
+        if isinstance(phenome, type(np.array)):
+            return self.a * len(phenome) + \
+                np.sum(phenome ** 2 - self.a * np.cos(2 * np.pi * phenome))
         return self.a * \
             len(phenome) + sum([x ** 2 - self.a *
                                 np.cos(2 * np.pi * x) for x in phenome])
@@ -195,8 +200,12 @@ class RosenbrockProblem(ScalarProblem):
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness
         """
+        if isinstance(phenome, type(np.array)):
+            x_p = np.array(phenome[1:])
+            x = np.array(phenome[:-1])
+            return np.sum(100 * (x_p - x ** 2) ** 2 + (x - 1) ** 2)
+
         sum = 0
-        # TODO Speed this up with numpy
         for i, x in enumerate(phenome[0:-1]):
             x_p = phenome[i + 1]
             sum += 100 * (x_p - x ** 2) ** 2 + (x - 1) ** 2

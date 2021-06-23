@@ -3,6 +3,9 @@
     Initializers for integer-valued genomes.
 """
 import random
+
+import numpy as np
+
 from leap_ec.individual import Individual
 
 
@@ -32,6 +35,6 @@ def create_int_vector(bounds):
     ...                                           problem=SpheroidProblem())
     """
     def create():
-        return [random.randint(min_, max_) for min_, max_ in bounds]
+        return np.array([random.randint(min_, max_) for min_, max_ in bounds])
 
     return create

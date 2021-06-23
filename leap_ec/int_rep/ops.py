@@ -58,10 +58,10 @@ def mutate_randint(next_individual: Iterator, bounds,
 # Function individual_mutate_randint
 ##############################
 @curry
-def individual_mutate_randint(genome: list,
+def individual_mutate_randint(genome,
                               bounds: list,
                               expected_num_mutations = None,
-                              probability = None) -> list:
+                              probability = None):
     """ Perform random-integer mutation on a particular genome.
 
         >>> genome = [42, 12]
@@ -80,7 +80,7 @@ def individual_mutate_randint(genome: list,
     def randomint_mutate(value, bound, probability):
         """ mutate an integer given a probability
         """
-        if random.random() < probability:
+        if np.random.rand() < probability:
             return random.randint(*bound)
         else:
             return value
@@ -90,8 +90,8 @@ def individual_mutate_randint(genome: list,
     else:
         p = probability
 
-    genome = [randomint_mutate(gene, bound, p) for gene, bound in
-              zip(genome, bounds)]
+    genome = np.array([randomint_mutate(gene, bound, p) for gene, bound in
+                       zip(genome, bounds)])
 
     return genome
 
@@ -205,12 +205,12 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
 ##############################
 # Function individual_mutate_binomial
 ##############################
-def individual_mutate_binomial(genome: list,
+def individual_mutate_binomial(genome,
                                std: float,
                                bounds: list,
                                expected_num_mutations: float = None,
                                probability: float = None,
-                               n: int = 10000,) -> list:
+                               n: int = 10000,):
     """
     Perform additive binomial mutation of a particular genome.
 
@@ -242,10 +242,10 @@ def individual_mutate_binomial(genome: list,
         probability = probability
 
     p = _binomial_p_from_std(n, std)
-    genome = [binomial_mutate(gene, p, bound, probability) for gene, bound in zip(genome,bounds)]
+    genome = np.array([binomial_mutate(gene, p, bound, probability) for gene, bound in zip(genome,bounds)])
 
     return genome
-    
+
 
 def _binomial_p_from_std(n, std):
     """Given a number of 'coin flips' n, compute the value of p that is

@@ -394,7 +394,7 @@ def uniform_crossover(next_individual: Iterator,
                 'genomes must be same length for uniform crossover')
 
         for i in range(len(ind1.genome)):
-            if random.random() < p_swap:
+            if np.random.rand() < p_swap:
                 ind1.genome[i], ind2.genome[i] = ind2.genome[i], ind1.genome[i]
 
         return ind1, ind2
