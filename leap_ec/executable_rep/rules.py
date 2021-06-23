@@ -336,7 +336,7 @@ class PittRulesDecoder(Decoder):
             assert((None not in c_mutated) and (None not in a_mutated)), f"Null values found in newly created rule genome segment: {c_mutated + a_mutated}.\nParent segment was: {segment}."
 
             # Concatenate the results back together
-            return c_mutated + a_mutated
+            return np.array(list(c_mutated) + list(a_mutated))
 
         def _rulset_mutate(next_individual):
             """Take a full ruleset individual and mutate its rules."""
