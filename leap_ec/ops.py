@@ -388,14 +388,32 @@ def uniform_crossover(next_individual: Iterator,
         :return: a copy of both individuals with individual.genome bits
                  swapped based on probability
         """
-        if len(ind1.genome) != len(ind2.genome):
-            # TODO what about variable length genomes?
-            raise RuntimeError(
-                'genomes must be same length for uniform crossover')
+        # TODO: remove type cast to array by only supporting numpy for genomes
+        is_list = False
+        if isinstance(ind1.genome, list) or isinstance(ind2.genome, list):
+            genome1 = np.array(ind1.genome)
+            genome2 = np.array(ind2.genome)
+            is_list = True
+        else:
+            genome1 = ind1.genome
+            genome2 = ind2.genome
+        # generate which indices we should swap 
+        min_length = min(genome1.shape[0], genome2.shape[0])
+        selector = np.random.choice([0, 1], size=(min_length,),
+                                    p=(1-p_swap, p_swap))
+        indices_to_swap = np.nonzero(selector)[0]
+        # perform swap
+        tmp = genome1[indices_to_swap]
+        genome1[indices_to_swap] = genome2[indices_to_swap]
+        genome2[indices_to_swap] = tmp
 
-        for i in range(len(ind1.genome)):
-            if np.random.rand() < p_swap:
-                ind1.genome[i], ind2.genome[i] = ind2.genome[i], ind1.genome[i]
+        if is_list:
+            ind1.genome = list(genome1)
+            ind2.genome = list(genome2)
+        else:
+            # not necessary since assignment by reference?
+            ind1.genome = genome1
+            ind2.genome = genome2
 
         return ind1, ind2
 
