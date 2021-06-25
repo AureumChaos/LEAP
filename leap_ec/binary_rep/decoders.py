@@ -4,6 +4,8 @@
 """
 from toolz.itertoolz import pluck
 
+import numpy as np
+
 from .. decoder import Decoder
 
 ##############################
@@ -37,6 +39,7 @@ class BinaryToIntDecoder(Decoder):
         """
         super().__init__()
         self.descriptors = descriptors
+        self.powers_2 = None
 
     def decode(self, genome, *args, **kwargs):
         """
@@ -55,30 +58,35 @@ class BinaryToIntDecoder(Decoder):
         >>> d.decode([0,0,0,1, 1, 1, 0, 0, 0, 1, 1, 0])
         [1, 12, 6]
         """
-
-        # TODO the laborious string conversion approach could be replaced
-        #  with something more elegant; but this was a copy-n-paste job from
-        #  some of my code from elsewhere that I knew worked.
-
-        values = []
+        values = np.zeros(len(self.descriptors), dtype=int)
         offset = 0  # how far are we into the binary test_sequence
 
-        for descriptor in self.descriptors:
+        for i, descriptor in enumerate(self.descriptors):
             # snip out the next test_sequence
             cur_sequence = genome[offset:offset + descriptor]
-            values.append(BinaryToIntDecoder.__binary_to_int(cur_sequence))
+            if cur_sequence.size > self.powers_2.size:
+                self.powers_2 = 1 << np.arange(b.size)[::-1]
+            values[i] = BinaryToIntDecoder.__binary_to_int(
+                cur_sequence, powers_2=self.powers_2)
             offset += descriptor
 
         return values
 
     @staticmethod
-    def __binary_to_int(b):
+    def __binary_to_int(b, powers_2=None):
         """Convert the given binary string to the equivalent
 
-        >>> BinaryToIntDecoder._BinaryToIntDecoder__binary_to_int([0, 1, 0, 1])
+        >>> import numpy as np
+        >>> b = np.array([0, 1, 0, 1])
+        >>> BinaryToIntDecoder._BinaryToIntDecoder__binary_to_int(b)
         5
         """
-        return int(BinaryToIntDecoder.__binary_to_str(b), 2)
+        # compute powers of 2 and cache results
+        if powers_2 is None or b.size > powers_2.size:
+            powers_2 = 1 << np.arange(b.size)[::-1]
+
+        # dot product of bit vector with powers of 2
+        return b.dot(powers_2[:b.size])
 
     @staticmethod
     def __binary_to_str(b):
@@ -86,7 +94,9 @@ class BinaryToIntDecoder(Decoder):
 
         For example,
 
-        >>> BinaryToIntDecoder._BinaryToIntDecoder__binary_to_str([0,1,0,1])
+        >>> import numpy as np
+        >>> b = np.array([0, 1, 0, 1])
+        >>> BinaryToIntDecoder._BinaryToIntDecoder__binary_to_str(b)
         '0101'
         """
         return "".join([str(x) for x in b])
@@ -127,10 +137,11 @@ class BinaryToRealDecoderCommon(Decoder):
 
         # snip out just the binary segment lengths from the set of tuples;
         # we save this for the subclasses for their binary to integer decoders
-        self.len_segments = list(pluck(0, segments))
+        self.len_segments = np.array(pluck(0, segments))
 
         # how many possible values per segment
-        cardinalities = [2 ** i for i in self.len_segments]
+        # cardinalities = [2 ** i for i in self.len_segments]
+        cardinalities = 1 << self.len_segments
 
         # We will use this function to first decode to integers.
         # This is assigned in the sub-classes depending on whether we want to
@@ -138,21 +149,18 @@ class BinaryToRealDecoderCommon(Decoder):
         self.binary_to_int_decoder = None
 
         # Now get the corresponding real value ranges
-        self.lower_bounds = list(pluck(1, segments))
-        self.upper_bounds = list(pluck(2, segments))
+        self.lower_bounds = np.array(pluck(1, segments))
+        self.upper_bounds = np.array(pluck(2, segments))
 
         # This corresponds to the amount each binary value is multiplied by
         # to get the final real value (plus the lower bound offset, of course)
-        self.increments = [(upper - lower) / (cardinalities - 1) for
-                           lower, upper, cardinalities in
-                           zip(self.lower_bounds, self.upper_bounds,
-                               cardinalities)]
+        self.increments = \
+            (self.upper_bounds - self.lower_bounds) / (cardinalities - 1)
 
     def decode(self, genome, *args, **kwargs):
         """Convert a list of binary values into a real-valued vector."""
         int_values = self.binary_to_int_decoder.decode(genome)
-        values = [l + i * inc for l, i, inc in
-                  zip(self.lower_bounds, int_values, self.increments)]
+        values = self.lower_bounds + (int_values * self.increments)
         return values
 
 
@@ -229,10 +237,11 @@ class BinaryToIntGreyDecoder(BinaryToIntDecoder):
         # regular binary decoding.
         values = super().decode(genome)
 
+        # TODO: find a way to vectorize using numpy ops
         gray_encoded_values = [BinaryToIntGreyDecoder.__gray_encode(v) for v in
                                values]
 
-        return gray_encoded_values
+        return np.array(gray_encoded_values)
 
 
 ##############################

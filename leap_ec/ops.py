@@ -388,32 +388,19 @@ def uniform_crossover(next_individual: Iterator,
         :return: a copy of both individuals with individual.genome bits
                  swapped based on probability
         """
-        # TODO: remove type cast to array by only supporting numpy for genomes
-        is_list = False
-        if isinstance(ind1.genome, list) or isinstance(ind2.genome, list):
-            genome1 = np.array(ind1.genome)
-            genome2 = np.array(ind2.genome)
-            is_list = True
-        else:
-            genome1 = ind1.genome
-            genome2 = ind2.genome
+        assert(isinstance(ind1.genome, type(np.array)))
+        assert(isinstance(ind2.genome, type(np.array)))
+
         # generate which indices we should swap 
         min_length = min(genome1.shape[0], genome2.shape[0])
         selector = np.random.choice([0, 1], size=(min_length,),
                                     p=(1-p_swap, p_swap))
         indices_to_swap = np.nonzero(selector)[0]
+
         # perform swap
         tmp = genome1[indices_to_swap]
         genome1[indices_to_swap] = genome2[indices_to_swap]
         genome2[indices_to_swap] = tmp
-
-        if is_list:
-            ind1.genome = list(genome1)
-            ind2.genome = list(genome2)
-        else:
-            # not necessary since assignment by reference?
-            ind1.genome = genome1
-            ind2.genome = genome2
 
         return ind1, ind2
 
@@ -471,24 +458,24 @@ def n_ary_crossover(next_individual: Iterator,
         """
         Randomly choose (without replacement) crossover points.
         """
-        pp = list(range(0, genome_size))  # See De Jong, EC, pg 145
+        # See De Jong, EC, pg 145
+        pp = np.arange(genome_size, dtype=int)
 
-        xpts = sorted([pp.pop(random.randrange(len(pp)))
-                       for i in range(num_points)])
-        xpts = [0] + xpts + [genome_size]  # Add start and end
+        xpts = np.random.choice(pp, size=(num_points,), replace=False).sort()
+        xpts = [0] + list(xpts) + [genome_size]  # Add start and end
 
         return xpts
 
     def _n_ary_crossover(child1, child2, num_points):
-        if len(child1.genome) < num_points or \
-                len(child2.genome) < num_points:
+        if child1.genome.shape[0] < num_points or \
+                child2.genome.shape[0] < num_points:
             raise RuntimeError(
                 'Invalid number of crossover points for n_ary_crossover')
 
         children = [child1, child2]
-        genome1 = child1.genome[0:0]  # empty test_sequence - maintain type
-        genome2 = child2.genome[0:0]
-
+        # store each section of the genome to concatenate later
+        genome1_sections = []
+        genome2_sections = []
         # Used to toggle which sub-test_sequence is copied between offspring
         src1, src2 = 0, 1
 
@@ -496,14 +483,14 @@ def n_ary_crossover(next_individual: Iterator,
         xpts = _pick_crossover_points(num_points, len(child1.genome))
 
         for start, stop in toolz.itertoolz.sliding_window(2, xpts):
-            genome1 += children[src1].genome[start:stop]
-            genome2 += children[src2].genome[start:stop]
+            genome1_sections.append(children[src1].genome[start:stop])
+            genome2_sections.append(children[src2].genome[start:stop])
 
             # Now swap crossover direction
             src1, src2 = src2, src1
 
-        child1.genome = genome1
-        child2.genome = genome2
+        child1.genome = np.concatenate(genome1_sections)
+        child2.genome = np.concatenate(genome2_sections)
 
         return child1, child2
 
@@ -564,8 +551,7 @@ def proportional_selection(population: List, offset=0, exponent: int = 1,
     # scale and shift to account for possible negative values
     values = compute_population_values(population, offset=offset,
                                        exponent=exponent, key=key)
-    assert(len(values) == len(population))
-    values = np.array(values)
+    assert(values.shape[0] == len(population))
 
     # throw error on negative values since the algorithm does not
     # work otherwise
@@ -638,8 +624,7 @@ def sus_selection(population: List, n=None, shuffle: bool = True,
     # scale and shift to account for possible negative values
     values = compute_population_values(population, offset=offset,
                                        exponent=exponent, key=key)
-    assert(len(values) == len(population))
-    values = np.array(values)
+    assert(values.shape[0] == len(population))
 
     # throw error on negative values since the algorithm does not
     # work otherwise
@@ -1206,7 +1191,7 @@ def compute_expected_probability(expected_num_mutations: float,
 # function compute_population_values
 ##############################
 def compute_population_values(population: List, offset=0, exponent: int = 1,
-                     key=lambda x: x.fitness) -> List:
+                     key=lambda x: x.fitness) -> np.ndarray:
     """ Returns a list of values where the zero-point of the population is
         shifted and the values are scaled by exponentiation.
 
@@ -1218,11 +1203,11 @@ def compute_population_values(population: List, offset=0, exponent: int = 1,
             Defaults to 1.
         :param key: a function that computes a metric based
             on an `Individual`.
-        :return: a list of values that have been shifted by `offset` and
+        :return: a numpy array of values that have been shifted by `offset` and
             scaled by `exponent` corresponding to each individual in the
             population.
     """
-    values = [key(ind) for ind in population]
+    values = np.array([key(ind) for ind in population])
     if offset == 'pop-min':
-        offset = -min(values)
-    return [(val + offset)**exponent for val in values]
+        offset = -values.min(axis=0)
+    return (values + offset) ** exponent
