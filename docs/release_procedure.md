@@ -16,4 +16,9 @@ These are the things to do when performing a release.
     1. github site
     1. ReadTheDocs `master` and `latest` docs
     1. update pypi.org
-    1. update roadmap
+    1. update roadmap 
+1. change to next release + 'dev' to emphasize working on next release on 
+   `develop` branch
+   1. on `develop`
+      1. CHANGELOG.md
+      1. Change `leap_ec.__version__` 
