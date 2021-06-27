@@ -8,7 +8,7 @@ from leap_ec.real_rep import problems
 ########################
 # Tests for GriewankProblem
 ########################
-def test_GriewankProblem_eval1():
+def test_GriewankProblem_eval():
     """The value of a test point should be what we expected."""
     t = (0.5, 0.5)
 
@@ -18,3 +18,17 @@ def test_GriewankProblem_eval1():
     p = problems.GriewankProblem()
     
     assert(approx(expected) == p.evaluate(t))
+
+
+
+########################
+# Tests for WeierstrassProblem
+########################
+def test_WeierstrassProblem_eval():
+    """The Weierstrass function has a (0, ... ,0) in all dimensions
+    and have a fitness of zero.
+    """
+    p = problems.WeierstrassProblem()
+
+    assert(approx(0) == p.evaluate([0, 0]))
+    assert(approx(0) == p.evaluate([0]*25))

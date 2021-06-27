@@ -521,7 +521,7 @@ class GriewankProblem(ScalarProblem):
 class AckleyProblem(ScalarProblem):
     """
     .. math::
-        f(\\mathbf{x}) = -a \\exp \\left( -b \\sqrt \\frac{1}{d} \\sum_{i=1}^d x_i^2 \\right)
+        f(\\mathbf{x}) = -a \\exp \\left( -b \\sqrt {\\frac{1}{d} \\sum_{i=1}^d x_i^2} \\right)
                          - \\exp \\left( \\frac{1}{d} \\sum_{i=1}^d \\cos(cx_i) \\right)
                          + a + \\exp(1)
 
@@ -617,14 +617,18 @@ class WeierstrassProblem(ScalarProblem):
         """
         phenome = np.array(phenome)
         result = 0
-        for d, x in enumerate(phenome):
+        for x in phenome:
             t1 = 0
-            t2 = 0
             for k in range(self.kmax):
                 t1 += self.a ** k * \
                     np.cos(2 * np.pi * (self.b ** k) * (x + 0.5))
-                t2 += self.a ** k * np.cos(np.pi * (self.b ** k))
-            result += t1 - (d + 1) * t2
+            result += t1
+
+        t2 = 0
+        for k in range(self.kmax):
+            t2 += self.a ** k * np.cos(np.pi * (self.b ** k))
+
+        result = result - len(phenome) * t2
         return result
 
     def __str__(self):
@@ -837,7 +841,7 @@ class SchwefelProblem(ScalarProblem):
     with a regular grid of local optima.
 
     .. math::
-        f(\\mathbf{x}) = \\sum_{i=1}^d\\left(-x_i \\cdot\\sin\\left(\\sqrt{\\|x_i\\|} \\right)\\right) + \\alpha \\cdot d
+        f(\\mathbf{x}) = \\sum_{i=1}^d\\left(-x_i \\cdot\\sin\\left(\\sqrt{|x_i|} \\right)\\right) + \\alpha \\cdot d
 
     :param float alpha: fitness offset (the default value ensures that the
         global optimum has zero fitness)
@@ -1243,6 +1247,7 @@ class MatrixTransformedProblem(ScalarProblem):
             previous_rows = matrix[0:i, :]
             matrix[i, :] = row - \
                 sum([np.dot(row, prev) * prev for prev in previous_rows])
+            # FIXME Wait, doesn't this overwrite the previous line?
             matrix[i, :] = row / np.linalg.norm(row)
 
         # Any vector in the resulting matrix will be of unit length
