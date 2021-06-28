@@ -89,12 +89,12 @@ def genome_mutate_gaussian(genome,
     else:
         p = compute_expected_probability(expected_num_mutations, genome)
 
-    if util.is_sequence(std):
-        # We're given a vector of "shadow standard deviations" so apply
-        # each sigma individually to each gene
-        genome = np.array([add_gauss(x, s, p) for x, s in zip(genome, std)])
-    else:
-        genome = np.array([add_gauss(x, std, p) for x in genome])
+    # select which indices to mutate at random
+    selector = np.random.choice([0, 1], size=genome.shape, p=(1 - p, p))
+    indices_to_mutate = np.nonzero(selector)[0]
+
+    genome[indices_to_mutate] = np.random.normal(genome[indices_to_mutate], std,
+                                                 size=indices_to_mutate.shape[0])
 
     # Implement hard bounds
     genome = apply_hard_bounds(genome, hard_bounds)
@@ -128,20 +128,17 @@ def apply_hard_bounds(genome, hard_bounds):
     assert(isinstance(genome, Iterable))
     assert(hard_bounds is not None)
 
-    def clip(x, bound):
-        """Increase or decrease x until it is within the given bounds."""
-        low, high = bound
-        return max(low, min(high, x))
+    if not isinstance(hard_bounds[0], Iterable):
+        # scalar bounds apply to each gene
+        low = hard_bounds[0]
+        high = hard_bounds[1]
+    elif isinstance(hard_bounds, np.ndarray):
+        low = hard_bounds[:, 0]
+        high = hard_bounds[:, 1]
+    else:
+        # Looping through twice here is faster than converting to
+        # numpy array and slicing for the column
+        low = [bound[0] for bound in hard_bounds]
+        high = [bound[1] for bound in hard_bounds]
 
-    def clip_at_locus(x, i):
-        """Increase or decrease x until it is within the ith bound."""
-        # Use the same bounds for all loci
-        if util.is_flat(hard_bounds):
-            return clip(x, hard_bounds)
-        # Use different bounds for each locus
-        else:
-            assert(i >= 0)
-            assert(i < len(hard_bounds)), f"Only {len(hard_bounds)} values were provided for bounds, but we've reached at least {i} genes."
-            return clip(x, hard_bounds[i])
-
-    return np.array([ clip_at_locus(x, i) for i, x in enumerate(genome) ])
+    return np.clip(genome, a_min=low, a_max=high)
