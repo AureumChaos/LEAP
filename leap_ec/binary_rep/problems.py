@@ -37,7 +37,7 @@ class MaxOnes(ScalarProblem):
         >>> p.evaluate(ind.decode())
         5
         """
-        return np.count_nonzero(phenome)
+        return np.count_nonzero(phenome == 1)
 
 
 ##############################
