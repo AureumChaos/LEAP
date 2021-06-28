@@ -75,12 +75,6 @@ def genome_mutate_gaussian(genome,
     """
     assert(expected_num_mutations is not None)
 
-    def add_gauss(x, std, probability):
-        if np.random.rand() < probability:
-            return np.random.normal(x, std)
-        else:
-            return x
-
     # compute actual probability of mutation based on expected number of
     # mutations and the genome length
     if expected_num_mutations == 'isotropic':
