@@ -34,8 +34,9 @@ class BinaryToIntDecoder(Decoder):
         mapped to the first phenotypic value, and the last 3 bits making up
         the second:
 
-        >>> d.decode([0,0,0,0,1,1,1])
-        [0, 7]
+        >>> import numpy as np
+        >>> d.decode(np.array([0,0,0,0,1,1,1]))
+        array([0, 7])
         """
         super().__init__()
         self.descriptors = descriptors
@@ -54,9 +55,11 @@ class BinaryToIntDecoder(Decoder):
         For example, a Boolean representation of [1, 12, 5] can be decoded
         like this:
 
+        >>> import numpy as np
         >>> d = BinaryToIntDecoder(4, 4, 4)
-        >>> d.decode([0,0,0,1, 1, 1, 0, 0, 0, 1, 1, 0])
-        [1, 12, 6]
+        >>> b = np.array([0,0,0,1, 1, 1, 0, 0, 0, 1, 1, 0])
+        >>> d.decode(b)
+        array([ 1, 12,  6])
         """
         values = np.zeros(len(self.descriptors), dtype=int)
         offset = 0  # how far are we into the binary test_sequence
@@ -64,8 +67,8 @@ class BinaryToIntDecoder(Decoder):
         for i, descriptor in enumerate(self.descriptors):
             # snip out the next test_sequence
             cur_sequence = genome[offset:offset + descriptor]
-            if cur_sequence.size > self.powers_2.size:
-                self.powers_2 = 1 << np.arange(b.size)[::-1]
+            if self.powers_2 is None or cur_sequence.size > self.powers_2.size:
+                self.powers_2 = 1 << np.arange(cur_sequence.size)[::-1]
             values[i] = BinaryToIntDecoder.__binary_to_int(
                 cur_sequence, powers_2=self.powers_2)
             offset += descriptor
@@ -86,7 +89,7 @@ class BinaryToIntDecoder(Decoder):
             powers_2 = 1 << np.arange(b.size)[::-1]
 
         # dot product of bit vector with powers of 2
-        return b.dot(powers_2[:b.size])
+        return b.dot(powers_2[-b.size:])
 
     @staticmethod
     def __binary_to_str(b):
@@ -137,7 +140,7 @@ class BinaryToRealDecoderCommon(Decoder):
 
         # snip out just the binary segment lengths from the set of tuples;
         # we save this for the subclasses for their binary to integer decoders
-        self.len_segments = np.array(pluck(0, segments))
+        self.len_segments = np.array(list(pluck(0, segments)))
 
         # how many possible values per segment
         # cardinalities = [2 ** i for i in self.len_segments]
@@ -149,8 +152,8 @@ class BinaryToRealDecoderCommon(Decoder):
         self.binary_to_int_decoder = None
 
         # Now get the corresponding real value ranges
-        self.lower_bounds = np.array(pluck(1, segments))
-        self.upper_bounds = np.array(pluck(2, segments))
+        self.lower_bounds = np.array(list(pluck(1, segments)))
+        self.upper_bounds = np.array(list(pluck(2, segments)))
 
         # This corresponds to the amount each binary value is multiplied by
         # to get the final real value (plus the lower bound offset, of course)
@@ -186,9 +189,10 @@ class BinaryToRealDecoder(BinaryToRealDecoderCommon):
         the second.  The traits have a minimum value of -5.12 (corresponding
         to 0000) and a maximum of 5.12 (corresponding to 1111):
 
+        >>> import numpy as np
         >>> d = BinaryToRealDecoder((4, -5.12, 5.12),(4, -5.12, 5.12))
-        >>> d.decode([0, 0, 0, 0, 1, 1, 1, 1])
-        [-5.12, 5.12]
+        >>> d.decode(np.array([0, 0, 0, 0, 1, 1, 1, 1]))
+        array([-5.12,  5.12])
         """
         super().__init__(*segments)
 
@@ -208,9 +212,11 @@ class BinaryToIntGreyDecoder(BinaryToIntDecoder):
         For example, a grey encoded Boolean representation of [1, 8, 4] can
         be decoded like this:
 
+        >>> import numpy as np
         >>> d = BinaryToIntGreyDecoder(4, 4, 4)
-        >>> d.decode([0,0,0,1, 1, 1, 0, 0, 0, 1, 1, 0])
-        [1, 8, 4]
+        >>> b = np.array([0,0,0,1, 1, 1, 0, 0, 0, 1, 1, 0])
+        >>> d.decode(b)
+        array([1, 8, 4])
     """
 
     def __init__(self, *descriptors):
@@ -264,9 +270,10 @@ class BinaryToRealGreyDecoder(BinaryToRealDecoderCommon):
         traits have a minimum value of -5.12 (corresponding to 0000) and a
         maximum of 5.12 (corresponding to 1111):
 
+        >>> import numpy as np
         >>> d = BinaryToRealGreyDecoder((4, -5.12, 5.12),(4, -5.12, 5.12))
-        >>> d.decode([0, 0, 0, 0, 1, 1, 1, 1])
-        [-5.12, 1.706666666666666]
+        >>> d.decode(np.array([0, 0, 0, 0, 1, 1, 1, 1]))
+        array([-5.12      ,  1.70666667])
         """
         super().__init__(*segments)
 

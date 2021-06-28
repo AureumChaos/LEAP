@@ -388,19 +388,19 @@ def uniform_crossover(next_individual: Iterator,
         :return: a copy of both individuals with individual.genome bits
                  swapped based on probability
         """
-        assert(isinstance(ind1.genome, type(np.array)))
-        assert(isinstance(ind2.genome, type(np.array)))
+        assert(isinstance(ind1.genome, np.ndarray))
+        assert(isinstance(ind2.genome, np.ndarray))
 
         # generate which indices we should swap 
-        min_length = min(genome1.shape[0], genome2.shape[0])
+        min_length = min(ind1.genome.shape[0], ind2.genome.shape[0])
         selector = np.random.choice([0, 1], size=(min_length,),
                                     p=(1-p_swap, p_swap))
         indices_to_swap = np.nonzero(selector)[0]
 
         # perform swap
-        tmp = genome1[indices_to_swap]
-        genome1[indices_to_swap] = genome2[indices_to_swap]
-        genome2[indices_to_swap] = tmp
+        tmp = ind1.genome[indices_to_swap]
+        ind1.genome[indices_to_swap] = ind2.genome[indices_to_swap]
+        ind2.genome[indices_to_swap] = tmp
 
         return ind1, ind2
 
@@ -461,7 +461,8 @@ def n_ary_crossover(next_individual: Iterator,
         # See De Jong, EC, pg 145
         pp = np.arange(genome_size, dtype=int)
 
-        xpts = np.random.choice(pp, size=(num_points,), replace=False).sort()
+        xpts = np.random.choice(pp, size=(num_points,), replace=False)
+        xpts.sort()
         xpts = [0] + list(xpts) + [genome_size]  # Add start and end
 
         return xpts

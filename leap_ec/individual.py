@@ -6,6 +6,8 @@ from math import nan
 from copy import deepcopy
 from functools import total_ordering
 
+import numpy as np
+
 from leap_ec.decoder import IdentityDecoder
 
 
@@ -34,7 +36,7 @@ class Individual:
         >>> ind = Individual([0, 0, 1, 0, 1], decoder=IdentityDecoder(),
         ...                  problem=MaxOnes())
         >>> ind.genome
-        [0, 0, 1, 0, 1]
+        array([0, 0, 1, 0, 1])
 
         Fitness defaults to `None`:
 
@@ -60,7 +62,7 @@ class Individual:
                 f"Got the type '{problem}' as a problem, but expected an"
                 " instance."))
         # Core data
-        self.genome = genome
+        self.genome = np.array(genome)
         self.problem = problem
         self.decoder = decoder
         self.fitness = None
@@ -106,7 +108,7 @@ class Individual:
         >>> ind = Individual([0, 1, 1, 0], IdentityDecoder(), MaxOnes())
         >>> ind_copy = ind.clone()
         >>> ind_copy.genome == ind.genome
-        True
+        array([ True,  True,  True,  True])
         >>> ind_copy.problem == ind.problem
         True
         >>> ind_copy.decoder == ind.decoder

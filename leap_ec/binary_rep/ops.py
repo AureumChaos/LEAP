@@ -6,6 +6,8 @@ from typing import Iterator
 import random
 from toolz import curry
 
+import numpy as np
+
 from leap_ec.ops import compute_expected_probability, iteriter_op
 
 
@@ -57,9 +59,9 @@ def mutate_bitflip(next_individual: Iterator,
 # Function perform_mutate_bitflip
 ##############################
 @curry
-def genome_mutate_bitflip(genome: list,
+def genome_mutate_bitflip(genome: np.ndarray,
                           expected_num_mutations: float = None,
-                          probability: float = None) -> list:
+                          probability: float = None) -> np.ndarray:
     """Perform bitflip mutation on a particular genome.
 
     This function can be used by more complex operators to mutate a full population
@@ -91,6 +93,9 @@ def genome_mutate_bitflip(genome: list,
     else:
         p = probability
 
-    genome = [bitflip(gene, p) for gene in genome]
+    selector = np.random.choice([0, 1], size=genome.shape,
+                                p=(1-p, p))
+    indices_to_flip = np.nonzero(selector)[0]
+    genome[indices_to_flip] = (genome[indices_to_flip] + 1) % 2
 
     return genome

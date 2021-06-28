@@ -4,6 +4,7 @@
 import random
 from math import nan
 
+import numpy as np
 import pytest
 
 from leap_ec import Individual
@@ -29,14 +30,14 @@ def test_sus_selection1():
     selector = ops.sus_selection(pop)
 
     selected = next(selector)
-    assert(selected.genome == [1, 1, 1])
+    assert np.all(selected.genome == [1, 1, 1])
 
     selected = next(selector)
-    assert(selected.genome == [1, 1, 1])
+    assert np.all(selected.genome == [1, 1, 1])
 
     # run one more time to test shuffle
     selected = next(selector)
-    assert(selected.genome == [1, 1, 1])
+    assert np.all(selected.genome == [1, 1, 1])
 
 
 @pytest.mark.stochastic
@@ -90,10 +91,10 @@ def test_sus_selection_offset():
     # we expect the first individual to always be selected
     # since the new zero point is now -3.
     selected = next(selector)
-    assert(selected.genome == [0, 0, 0])
+    assert np.all(selected.genome == [0, 0, 0])
 
     selected = next(selector)
-    assert(selected.genome == [0, 0, 0])
+    assert np.all(selected.genome == [0, 0, 0])
 
 
 def test_sus_selection_pop_min():
@@ -112,10 +113,10 @@ def test_sus_selection_pop_min():
     # since the new zero point will be at the minimum fitness
     # of the population
     selected = next(selector)
-    assert(selected.genome == [1, 1, 1])
+    assert np.all(selected.genome == [1, 1, 1])
 
     selected = next(selector)
-    assert(selected.genome == [1, 1, 1])
+    assert np.all(selected.genome == [1, 1, 1])
 
 
 def test_sus_selection_custom_key():
@@ -125,7 +126,7 @@ def test_sus_selection_custom_key():
 
     def custom_key(individual):
         ''' Returns fitness based on MaxZeros '''
-        return individual.genome.count(0)
+        return np.count_nonzero(individual.genome == 0)
 
     pop = Individual.evaluate_population(pop)
     selector = ops.sus_selection(pop, key=custom_key)
@@ -133,10 +134,10 @@ def test_sus_selection_custom_key():
     # we expect the first individual to always be selected
     # since its genome is all 0s
     selected = next(selector)
-    assert(selected.genome == [0, 0, 0])
+    assert np.all(selected.genome == [0, 0, 0])
 
     selected = next(selector)
-    assert(selected.genome == [0, 0, 0])
+    assert np.all(selected.genome == [0, 0, 0])
 
 
 def test_sus_selection_num_points():
@@ -154,27 +155,27 @@ def test_sus_selection_num_points():
     # with n = None (default)
     selector = ops.sus_selection(pop, n=None)
     selected = next(selector)
-    assert(selected.genome == [1, 1, 1])
+    assert np.all(selected.genome == [1, 1, 1])
 
     # with n less than len(population)
     selector = ops.sus_selection(pop, n=1)
     selected = next(selector)
-    assert(selected.genome == [1, 1, 1])
+    assert np.all(selected.genome == [1, 1, 1])
     selected = next(selector)
-    assert(selected.genome == [1, 1, 1])
+    assert np.all(selected.genome == [1, 1, 1])
 
     # with n greater than len(population)
     selector = ops.sus_selection(pop, n=3)
     selected = next(selector)
-    assert(selected.genome == [1, 1, 1])
+    assert np.all(selected.genome == [1, 1, 1])
     selected = next(selector)
-    assert(selected.genome == [1, 1, 1])
+    assert np.all(selected.genome == [1, 1, 1])
     selected = next(selector)
-    assert(selected.genome == [1, 1, 1])
+    assert np.all(selected.genome == [1, 1, 1])
     selected = next(selector)
-    assert(selected.genome == [1, 1, 1])
+    assert np.all(selected.genome == [1, 1, 1])
     selected = next(selector)
-    assert(selected.genome == [1, 1, 1])
+    assert np.all(selected.genome == [1, 1, 1])
 
 
 ##############################
@@ -193,10 +194,10 @@ def test_proportional_selection1():
     selector = ops.proportional_selection(parents)
 
     selected = next(selector)
-    assert(selected.genome == [1, 1, 1])
+    assert np.all(selected.genome == [1, 1, 1])
 
     selected = next(selector)
-    assert(selected.genome == [1, 1, 1])
+    assert np.all(selected.genome == [1, 1, 1])
 
 
 @pytest.mark.stochastic
@@ -249,10 +250,10 @@ def test_proportional_selection_offset():
     # we expect the first individual to always be selected
     # since the new zero point is now -3.
     selected = next(selector)
-    assert(selected.genome == [0, 0, 0])
+    assert np.all(selected.genome == [0, 0, 0])
 
     selected = next(selector)
-    assert(selected.genome == [0, 0, 0])
+    assert np.all(selected.genome == [0, 0, 0])
 
 
 def test_proportional_selection_pop_min():
@@ -271,10 +272,10 @@ def test_proportional_selection_pop_min():
     # since the new zero point will be at the minimum fitness
     # of the population
     selected = next(selector)
-    assert(selected.genome == [1, 1, 1])
+    assert np.all(selected.genome == [1, 1, 1])
 
     selected = next(selector)
-    assert(selected.genome == [1, 1, 1])
+    assert np.all(selected.genome == [1, 1, 1])
 
 
 def test_proportional_selection_custom_key():
@@ -284,7 +285,7 @@ def test_proportional_selection_custom_key():
 
     def custom_key(individual):
         ''' Returns fitness based on MaxZeros '''
-        return individual.genome.count(0)
+        return np.count_nonzero(individual.genome == 0)
 
     pop = Individual.evaluate_population(pop)
     selector = ops.proportional_selection(pop, key=custom_key)
@@ -292,10 +293,10 @@ def test_proportional_selection_custom_key():
     # we expect the first individual to always be selected
     # since its genome is all 0s
     selected = next(selector)
-    assert(selected.genome == [0, 0, 0])
+    assert np.all(selected.genome == [0, 0, 0])
 
     selected = next(selector)
-    assert(selected.genome == [0, 0, 0])
+    assert np.all(selected.genome == [0, 0, 0])
 
 
 ##############################
@@ -311,14 +312,14 @@ def test_naive_cyclic_selection():
     selector = ops.naive_cyclic_selection(pop)
 
     selected = next(selector)
-    assert selected.genome == [0, 0]
+    assert np.all(selected.genome == [0, 0])
 
     selected = next(selector)
-    assert selected.genome == [0, 1]
+    assert np.all(selected.genome == [0, 1])
 
     # And now we cycle back to the first individual
     selected = next(selector)
-    assert selected.genome == [0, 0]
+    assert np.all(selected.genome == [0, 0])
 
 
 ##############################

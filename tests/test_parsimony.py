@@ -6,6 +6,8 @@
     However, we also need to check how well they work for minimization
     problems, which will be the focus of the tests here.
 """
+import numpy as np
+
 from leap_ec.individual import Individual
 from leap_ec.decoder import IdentityDecoder
 from leap_ec.real_rep.problems import SpheroidProblem
@@ -34,7 +36,7 @@ def test_koza_maximization():
 
     # Now truncate down to the "best" that should be the third one
     best = ops.truncation_selection(pop, size=1)
-    assert best[0].genome == [0,0,1,1]
+    assert np.all(best[0].genome == [0,0,1,1])
 
     # This is just to look at the influence of the parsimony pressure on
     # the order of the individual.  You should observe that the order is now
@@ -46,7 +48,7 @@ def test_koza_maximization():
     # really really really long genome out of the running for "best"
     best = ops.truncation_selection(pop, size=1, key=koza_parsimony(penalty=1))
 
-    assert best[0].genome == [1]
+    assert np.all(best[0].genome == [1])
 
 
 def test_koza_minimization():
@@ -67,7 +69,7 @@ def test_koza_minimization():
 
     best = ops.truncation_selection(pop, size=1, key=koza_parsimony(penalty=1))
 
-    assert best[0].genome == [2]
+    assert np.all(best[0].genome == [2])
 
 
 def test_lexical_maximization():
@@ -90,7 +92,7 @@ def test_lexical_maximization():
     best = ops.truncation_selection(pop, size=1, key=lexical_parsimony)
 
     # prefers the shorter of the 3 genomes
-    assert best[0].genome == [1,1,1]
+    assert np.all(best[0].genome == [1, 1, 1])
 
 
 def test_lexical_minimization():
@@ -112,4 +114,4 @@ def test_lexical_minimization():
     best = ops.truncation_selection(pop, size=1, key=lexical_parsimony)
 
     # prefers the shorter of the genomes with equivalent fitness
-    assert best[0].genome == [2]
+    assert np.all(best[0].genome == [2])

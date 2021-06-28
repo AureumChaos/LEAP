@@ -231,13 +231,13 @@ def print_list(l):
     >>> from leap_ec.individual import Individual
     >>> l = [Individual([0, 1, 2]), Individual([3, 4, 5])]
     >>> print_list(l)
-    [[0, 1, 2] None, [3, 4, 5] None]
+    [[0 1 2] None, [3 4 5] None]
 
     As opposed to the standard printing mechanism, which calls __repr__() on
     the elements to produce
 
     >>> print(l)
-    [Individual([0, 1, 2], IdentityDecoder(), None), Individual([3, 4, 5], IdentityDecoder(), None)]
+    [Individual(array([0, 1, 2]), IdentityDecoder(), None), Individual(array([3, 4, 5]), IdentityDecoder(), None)]
 
     :param l:
     :return:

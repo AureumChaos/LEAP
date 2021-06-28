@@ -6,6 +6,8 @@ from typing import Iterator, Callable
 import random
 from toolz import curry
 
+import numpy as np
+
 from leap_ec.ops import compute_expected_probability, iteriter_op
 
 
@@ -90,15 +92,22 @@ def add_segment(next_individual: Iterator,
     while True:
         individual = next(next_individual)
 
+        assert isinstance(individual.genome, np.ndarray)
         if random.random() < probability:
-            new_segment = seq_initializer()
+            new_segment = np.array(seq_initializer())
 
             if append:
-                individual.genome.append(new_segment)
+                individual.genome = np.append(individual.genome,
+                                              new_segment,
+                                              axis=0)
             else:
                 # + 1 to allow for appending new segment
-                insertion_point = random.randrange(len(individual.genome) + 1)
-                individual.genome.insert(insertion_point, new_segment)
+                insertion_point = random.randrange(
+                    individual.genome.shape[0] + 1)
+                individual.genome = np.insert(individual.genome,
+                                              insertion_point,
+                                              new_segment,
+                                              axis=0)
 
             # invalidate the fitness since we have a modified genome
             individual.fitness = None
@@ -121,7 +130,7 @@ def remove_segment(next_individual: Iterator,
     >>> from leap_ec.individual import Individual
     >>> original = Individual([[0,0],[1,1]])
     >>> mutated = next(remove_segment(iter([original]), probability=1.0))
-    >>> assert mutated.genome == [[0,0]] or mutated.genome == [[1,1]]
+    >>> assert np.all(mutated.genome == np.array([[0,0]])) or np.all(mutated.genome == np.array([[1,1]]))
 
         :param next_individual: to have a segment possibly removed
         :param probability: likelihood of removing a segment
@@ -134,8 +143,10 @@ def remove_segment(next_individual: Iterator,
             # we ignore empty genomes, or genomes with a single segment
 
             if random.random() < probability:
-                removed_segment = random.randrange(len(individual.genome))
-                del individual.genome[removed_segment]
+                removed_segment = random.randrange(individual.genome.shape[0])
+                individual.genome = np.delete(individual.genome,
+                                              removed_segment,
+                                              axis=0)
 
                 # invalidate the fitness since we have a modified genome
                 individual.fitness = None
@@ -156,7 +167,7 @@ def copy_segment(next_individual: Iterator,
     >>> from leap_ec.individual import Individual
     >>> original = Individual([[0,0]])
     >>> mutated = next(copy_segment(iter([original]), probability=1.0))
-    >>> assert mutated.genome == [[0,0],[0,0]]
+    >>> assert np.all(mutated.genome == np.array([[0,0],[0,0]]))
 
         :param next_individual: to have a segment possibly removed
         :param probability: likelihood of doing this
@@ -168,14 +179,21 @@ def copy_segment(next_individual: Iterator,
 
         if random.random() < probability:
             copied_segment = \
-                individual.genome[random.randrange(len(individual.genome))]
+                individual.genome[random.randrange(individual.genome.shape[0])]
+            copied_segment = copied_segment.reshape(1, -1)
 
             if append:
-                individual.genome.insert(len(individual.genome), copied_segment)
+                individual.genome = np.append(individual.genome,
+                                              copied_segment,
+                                              axis=0)
             else:
                 # + 1 to allow for appending new segment
-                insertion_point = random.randrange(len(individual.genome) + 1)
-                individual.genome.insert(insertion_point, copied_segment)
+                insertion_point = random.randrange(
+                    individual.genome.shape[0] + 1)
+                individual.genome = np.insert(individual.genome,
+                                              insertion_point,
+                                              copied_segment,
+                                              axis=0)
 
             # invalidate the fitness since we have a modified genome
             individual.fitness = None

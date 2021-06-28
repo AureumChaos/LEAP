@@ -2,7 +2,10 @@
 """
     Used to decode segments
 """
+import numpy as np
+
 from leap_ec.decoder import Decoder
+
 
 ##############################
 # Class SegmentedDecoder
@@ -16,10 +19,13 @@ class SegmentedDecoder(Decoder):
         This example presumes that each segment has five bits, the first to
         map to an integer and the remaining three to a different integer.
 
+        >>> import numpy as np
         >>> decoder = SegmentedDecoder(BinaryToIntDecoder(2,3))
-        >>> genome = [[1, 0, 1, 0, 1], [0, 0, 1, 1, 1], [1, 0, 0, 0, 1]]
+        >>> genome = np.array([[1, 0, 1, 0, 1],
+        ...                    [0, 0, 1, 1, 1],
+        ...                    [1, 0, 0, 0, 1]])
         >>> vals = decoder.decode(genome)
-        >>> assert vals == [[2, 5], [0, 7], [2, 1]]
+        >>> assert np.all(vals == np.array([[2, 5], [0, 7], [2, 1]]))
     """
     def __init__(self, segment_decoder):
         """
@@ -46,4 +52,4 @@ class SegmentedDecoder(Decoder):
         """
         values = [self.segment_decoder.decode(segment) for segment in genome]
 
-        return values
+        return np.array(values)
