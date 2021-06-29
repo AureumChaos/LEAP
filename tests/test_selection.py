@@ -21,8 +21,8 @@ def test_sus_selection1():
     ''' Test of a deterministic case of stochastic universal sampling '''
     # Make a population where sus_selection has an obvious
     # reproducible choice
-    pop = [Individual([0, 0, 0], problem=MaxOnes()),
-           Individual([1, 1, 1], problem=MaxOnes())]
+    pop = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+           Individual(np.array([1, 1, 1]), problem=MaxOnes())]
 
     pop = Individual.evaluate_population(pop)
     # This selection operator will always choose the [1, 1, 1] individual
@@ -46,8 +46,8 @@ def test_sus_selection_shuffle():
     # Make a population where sus_selection has an obvious
     # reproducible choice
     # Proportions here should be 1/4 and 3/4, respectively
-    pop = [Individual([0, 1, 0], problem=MaxOnes()),
-           Individual([1, 1, 1], problem=MaxOnes())]
+    pop = [Individual(np.array([0, 1, 0]), problem=MaxOnes()),
+           Individual(np.array([1, 1, 1]), problem=MaxOnes())]
 
     # Assign a unique identifier to each individual
     pop[0].id = 0
@@ -71,8 +71,8 @@ def test_sus_selection_shuffle():
 
 def test_sus_selection_offset():
     ''' Test of SUS selection with a non-default offset '''
-    pop = [Individual([0, 0, 0], problem=MaxOnes()),
-           Individual([1, 1, 1], problem=MaxOnes())]
+    pop = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+           Individual(np.array([1, 1, 1]), problem=MaxOnes())]
 
     # evaluate population and negate fitness of second individual
     pop = Individual.evaluate_population(pop)
@@ -102,8 +102,8 @@ def test_sus_selection_pop_min():
     # Create a population of positive fitness individuals
     # scaling the fitness by the population minimum makes it so the
     # least fit member never gets selected.
-    pop = [Individual([0, 1, 0], problem=MaxOnes()),
-           Individual([1, 1, 1], problem=MaxOnes())]
+    pop = [Individual(np.array([0, 1, 0]), problem=MaxOnes()),
+           Individual(np.array([1, 1, 1]), problem=MaxOnes())]
 
     pop = Individual.evaluate_population(pop)
 
@@ -121,8 +121,8 @@ def test_sus_selection_pop_min():
 
 def test_sus_selection_custom_key():
     ''' Test of SUS selection with custom evaluation '''
-    pop = [Individual([0, 0, 0], problem=MaxOnes()),
-           Individual([1, 1, 1], problem=MaxOnes())]
+    pop = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+           Individual(np.array([1, 1, 1]), problem=MaxOnes())]
 
     def custom_key(individual):
         ''' Returns fitness based on MaxZeros '''
@@ -143,8 +143,8 @@ def test_sus_selection_custom_key():
 def test_sus_selection_num_points():
     ''' Test of SUS selection with varying `n` random points '''
     # the second individual should always be selected
-    pop = [Individual([0, 0, 0], problem=MaxOnes()),
-           Individual([1, 1, 1], problem=MaxOnes())]
+    pop = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+           Individual(np.array([1, 1, 1]), problem=MaxOnes())]
 
     pop = Individual.evaluate_population(pop)
     # with negative points
@@ -185,8 +185,8 @@ def test_proportional_selection1():
     ''' Test of a deterministic case of proportional selection '''
     # Make a population where proportional_selection has an obvious
     # reproducible choice
-    pop = [Individual([0, 0, 0], problem=MaxOnes()),
-           Individual([1, 1, 1], problem=MaxOnes())]
+    pop = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+           Individual(np.array([1, 1, 1]), problem=MaxOnes())]
 
     parents = Individual.evaluate_population(pop)
     # This selection operator will always select the [1, 1, 1] individual since
@@ -206,8 +206,8 @@ def test_proportional_selection2():
     # Make a population where fitness proportional selection has an obvious
     # reproducible choice
     # Proportions here should be 1/4 and 3/4, respectively
-    pop = [Individual([0, 1, 0], problem=MaxOnes()),
-           Individual([1, 1, 1], problem=MaxOnes())]
+    pop = [Individual(np.array([0, 1, 0]), problem=MaxOnes()),
+           Individual(np.array([1, 1, 1]), problem=MaxOnes())]
     # Assign a unique identifier to each individual
     pop[0].id = 0
     pop[1].id = 1
@@ -230,8 +230,8 @@ def test_proportional_selection2():
 
 def test_proportional_selection_offset():
     ''' Test of proportional selection with a non-default offset '''
-    pop = [Individual([0, 0, 0], problem=MaxOnes()),
-           Individual([1, 1, 1], problem=MaxOnes())]
+    pop = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+           Individual(np.array([1, 1, 1]), problem=MaxOnes())]
 
     # evaluate population and negate fitness of second individual
     pop = Individual.evaluate_population(pop)
@@ -261,8 +261,8 @@ def test_proportional_selection_pop_min():
     # Create a population of positive fitness individuals
     # scaling the fitness by the population minimum makes it so the
     # least fit member never gets selected.
-    pop = [Individual([0, 1, 0], problem=MaxOnes()),
-           Individual([1, 1, 1], problem=MaxOnes())]
+    pop = [Individual(np.array([0, 1, 0]), problem=MaxOnes()),
+           Individual(np.array([1, 1, 1]), problem=MaxOnes())]
 
     pop = Individual.evaluate_population(pop)
 
@@ -280,8 +280,8 @@ def test_proportional_selection_pop_min():
 
 def test_proportional_selection_custom_key():
     ''' Test of proportional selection with custom evaluation '''
-    pop = [Individual([0, 0, 0], problem=MaxOnes()),
-           Individual([1, 1, 1], problem=MaxOnes())]
+    pop = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+           Individual(np.array([1, 1, 1]), problem=MaxOnes())]
 
     def custom_key(individual):
         ''' Returns fitness based on MaxZeros '''
@@ -304,8 +304,8 @@ def test_proportional_selection_custom_key():
 ##############################
 def test_naive_cyclic_selection():
     """ Test of the naive deterministic cyclic selection """
-    pop = [Individual([0, 0], problem=MaxOnes()),
-           Individual([0, 1], problem=MaxOnes())]
+    pop = [Individual(np.array([0, 0]), problem=MaxOnes()),
+           Individual(np.array([0, 1]), problem=MaxOnes())]
 
     # This selection operator will deterministically cycle through the
     # given population
@@ -363,10 +363,10 @@ def test_cyclic_selection():
 ##############################
 def test_truncation_selection():
     """ Basic truncation selection test"""
-    pop = [Individual([0, 0, 0], problem=MaxOnes()),
-           Individual([0, 0, 1], problem=MaxOnes()),
-           Individual([1, 1, 0], problem=MaxOnes()),
-           Individual([1, 1, 1], problem=MaxOnes())]
+    pop = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+           Individual(np.array([0, 0, 1]), problem=MaxOnes()),
+           Individual(np.array([1, 1, 0]), problem=MaxOnes()),
+           Individual(np.array([1, 1, 1]), problem=MaxOnes())]
 
     # We first need to evaluate all the individuals so that truncation
     # selection has fitnesses to compare
@@ -388,13 +388,13 @@ def test_truncation_parents_selection():
     Create parent and offspring populations such that each has an "best" individual that will be selected by
     truncation selection.
     """
-    parents = [Individual([0, 0, 0], problem=MaxOnes()),
-               Individual([1, 1, 0], problem=MaxOnes())]
+    parents = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+               Individual(np.array([1, 1, 0]), problem=MaxOnes())]
 
     parents = Individual.evaluate_population(parents)
 
-    offspring = [Individual([0, 0, 1], problem=MaxOnes()),
-                 Individual([1, 1, 1], problem=MaxOnes())]
+    offspring = [Individual(np.array([0, 0, 1]), problem=MaxOnes()),
+                 Individual(np.array([1, 1, 1]), problem=MaxOnes())]
     offspring = Individual.evaluate_population(offspring)
 
     truncated = ops.truncation_selection(offspring, 2, parents=parents)
@@ -412,8 +412,8 @@ def test_truncation_selection_with_nan1():
     # Make a population where binary tournament_selection has an obvious
     # reproducible choice
     problem = MaxOnes()
-    pop = [Individual([0, 0, 0], problem=problem),
-           Individual([1, 1, 1], problem=problem)]
+    pop = [Individual(np.array([0, 0, 0]), problem=problem),
+           Individual(np.array([1, 1, 1]), problem=problem)]
 
     # We first need to evaluate all the individuals so that truncation
     # selection has fitnesses to compare
@@ -435,8 +435,8 @@ def test_truncation_selection_with_nan2():
 
     pop = []
 
-    pop.append(Individual([0], problem=problem))
-    pop.append(Individual([1], problem=problem))
+    pop.append(Individual(np.array([0]), problem=problem))
+    pop.append(Individual(np.array([1]), problem=problem))
 
     pop = Individual.evaluate_population(pop)
 
@@ -461,8 +461,8 @@ def test_tournament_selection1():
     selection will select the better one with 75% probability."""
     # Make a population where binary tournament_selection has an obvious
     # reproducible choice
-    pop = [Individual([0, 0, 0], problem=MaxOnes()),
-           Individual([1, 1, 1], problem=MaxOnes())]
+    pop = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+           Individual(np.array([1, 1, 1]), problem=MaxOnes())]
     # Assign a unique identifier to each individual
     pop[0].id = 0
     pop[1].id = 1
@@ -487,8 +487,8 @@ def test_tournament_selection2():
     then binary tournament selection will select the worse one with 75% probability."""
     # Make a population where binary tournament_selection has an obvious
     # reproducible choice
-    pop = [Individual([0, 0, 0], problem=MaxOnes()),
-           Individual([1, 1, 1], problem=MaxOnes())]
+    pop = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+           Individual(np.array([1, 1, 1]), problem=MaxOnes())]
     # Assign a unique identifier to each individual
     pop[0].id = 0
     pop[1].id = 1
@@ -543,8 +543,8 @@ def test_tournament_selection_indices():
 def test_random_selection1():
     """If there are just two individuals in the population, then random
     selection will select the better one with 50% probability."""
-    pop = [Individual([0, 0, 0], problem=MaxOnes()),
-           Individual([1, 1, 1], problem=MaxOnes())]
+    pop = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+           Individual(np.array([1, 1, 1]), problem=MaxOnes())]
     # Assign a unique identifier to each individual
     pop[0].id = 0
     pop[1].id = 1

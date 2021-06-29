@@ -15,8 +15,8 @@ import leap_ec.statistical_helpers as stat
 # Tests for uniform_crossover()
 ##############################
 def test_uniform_crossover():
-    pop = [Individual([0, 0]),
-           Individual([1, 1])]
+    pop = [Individual(np.array([0, 0])),
+           Individual(np.array([1, 1]))]
 
     # We need a cyclic generator because there are only two individuals in the population, and once the first two
     # are selected for uniform crossover, the next two parents are selected and crossed over.  The cyclic iterator
@@ -45,8 +45,8 @@ def test_uniform_crossover_probability1():
 
     for i in range(N):
 
-        pop = [Individual([0, 0]),
-               Individual([1, 1])]
+        pop = [Individual(np.array([0, 0])),
+               Individual(np.array([1, 1]))]
         i = ops.naive_cyclic_selection(pop)
         new_pop = list(itertools.islice(ops.uniform_crossover(i, p_xover=0.0), 2))
 
@@ -66,8 +66,8 @@ def test_n_ary_crossover_probability2():
     # Run crossover N times on a fixed pair of two-gene individuals
     for i in range(N):
 
-        pop = [Individual([0, 0]),
-               Individual([1, 1])]
+        pop = [Individual(np.array([0, 0])),
+               Individual(np.array([1, 1]))]
         i = ops.naive_cyclic_selection(pop)
         new_pop = list(itertools.islice(ops.uniform_crossover(i, p_xover=1.0), 2))
 
@@ -106,8 +106,8 @@ def test_n_ary_crossover_probability2():
 # def test_uniform_crossover_bad_len():
 #     """ Test assertion for mis-matched genome lengths
 #     """
-#     pop = [Individual([0, 0, 1]),
-#            Individual([1, 1])]
+#     pop = [Individual(np.array([0, 0, 1])),
+#            Individual(np.array([1, 1])])
 #
 #     i = ops.naive_cyclic_selection(pop)
 #
@@ -120,8 +120,8 @@ def test_n_ary_crossover_probability2():
 #
 #     (Separate tests for variable length crossover.)
 #     """
-#     pop = [Individual([0, 0, 1]),
-#            Individual([1, 1])]
+#     pop = [Individual(np.array([0, 0, 1])),
+#            Individual(np.array([1, 1])])
 #
 #     i = ops.naive_cyclic_selection(pop)
 #
@@ -134,8 +134,8 @@ def test_n_ary_crossover_probability2():
 ##############################
 def test_n_ary_crossover_bad_crossover_points():
     """ Test assertions for having more crossover points than genome length """
-    pop = [Individual([0, 0]),
-           Individual([1, 1])]
+    pop = [Individual(np.array([0, 0])),
+           Individual(np.array([1, 1]))]
 
     i = ops.naive_cyclic_selection(pop)
 
@@ -146,8 +146,8 @@ def test_n_ary_crossover_bad_crossover_points():
 def test_n_ary_crossover():
     """If we crossover two individuals with two bits each, the children should either be swapped copies of their parents,
     or they should exchange the second bit and keep the first bit unmodified."""
-    pop = [Individual([0, 0]),
-           Individual([1, 1])]
+    pop = [Individual(np.array([0, 0])),
+           Individual(np.array([1, 1]))]
 
     i = ops.naive_cyclic_selection(pop)
 
@@ -168,8 +168,8 @@ def test_n_ary_crossover_probability():
 
     for i in range(N):
 
-        pop = [Individual([0, 0]),
-               Individual([1, 1])]
+        pop = [Individual(np.array([0, 0])),
+               Individual(np.array([1, 1]))]
         i = ops.naive_cyclic_selection(pop)
         new_pop = list(itertools.islice(ops.n_ary_crossover(i, num_points=1, p=0.5), 2))
 

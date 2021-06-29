@@ -28,9 +28,10 @@ def apply_mutation(next_individual: Iterator,
 
     >>> from leap_ec.binary_rep.ops import genome_mutate_bitflip
     >>> mutation_op = apply_mutation(mutator=genome_mutate_bitflip)
+    >>> import numpy as np
 
     >>> from leap_ec.individual import Individual
-    >>> original = Individual([[0,0],[1,1]])
+    >>> original = Individual(np.array([[0, 0], [1, 1]]))
     >>> mutated = next(mutation_op(iter([original])))
 
     :param next_individual: to possibly mutate
@@ -80,8 +81,11 @@ def add_segment(next_individual: Iterator,
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.binary_rep.initializers import create_binary_sequence
-    >>> original = Individual([[0,0],[1,1]])
-    >>> mutated = next(add_segment(iter([original]), seq_initializer=create_binary_sequence(2), probability=1.0))
+    >>> import numpy as np
+    >>> original = Individual(np.array([[0, 0], [1, 1]]))
+    >>> mutated = next(add_segment(iter([original]),
+    ...                seq_initializer=create_binary_sequence(2),
+    ...                probability=1.0))
 
     :param next_individual: to possibly add a segment
     :param seq_initializer: callable for initializing any new segments
@@ -128,9 +132,10 @@ def remove_segment(next_individual: Iterator,
         no chance for an empty individual to be returned.
 
     >>> from leap_ec.individual import Individual
-    >>> original = Individual([[0,0],[1,1]])
+    >>> import numpy as np
+    >>> original = Individual(np.array([[0, 0], [1, 1]]))
     >>> mutated = next(remove_segment(iter([original]), probability=1.0))
-    >>> assert np.all(mutated.genome == np.array([[0,0]])) or np.all(mutated.genome == np.array([[1,1]]))
+    >>> assert np.all(mutated.genome == np.array([[0, 0]])) or np.all(mutated.genome == np.array([[1, 1]]))
 
         :param next_individual: to have a segment possibly removed
         :param probability: likelihood of removing a segment
@@ -165,9 +170,10 @@ def copy_segment(next_individual: Iterator,
     """ with a given probability, randomly select and copy a segment
 
     >>> from leap_ec.individual import Individual
-    >>> original = Individual([[0,0]])
+    >>> import numpy as np
+    >>> original = Individual(np.array([[0, 0]]))
     >>> mutated = next(copy_segment(iter([original]), probability=1.0))
-    >>> assert np.all(mutated.genome == np.array([[0,0],[0,0]]))
+    >>> assert np.all(mutated.genome == np.array([[0, 0],[0, 0]]))
 
         :param next_individual: to have a segment possibly removed
         :param probability: likelihood of doing this

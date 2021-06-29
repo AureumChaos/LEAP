@@ -25,8 +25,9 @@ def mutate_bitflip(next_individual: Iterator,
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.binary_rep.ops import mutate_bitflip
+    >>> import numpy as np
 
-    >>> original = Individual([1,1])
+    >>> original = Individual(np.array([1, 1]))
     >>> op = mutate_bitflip(expected_num_mutations=1)
     >>> pop = iter([original])
     >>> mutated = next(op(pop))

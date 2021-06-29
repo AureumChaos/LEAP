@@ -279,7 +279,8 @@ class AttributesCSVProbe(op.Operator):
 
     >>> from leap_ec.global_vars import context
     >>> from leap_ec.data import test_population
-    >>> probe = AttributesCSVProbe(do_dataframe=True, best_only=True, do_fitness=True, do_genome=True)
+    >>> probe = AttributesCSVProbe(do_dataframe=True, best_only=True,
+    ...                            do_fitness=True, do_genome=True)
     >>> context['leap']['generation'] = 100
     >>> probe(test_population) == test_population
     True

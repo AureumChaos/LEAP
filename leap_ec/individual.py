@@ -33,7 +33,9 @@ class Individual:
 
         >>> from leap_ec.binary_rep.problems import MaxOnes
         >>> from leap_ec.decoder import IdentityDecoder
-        >>> ind = Individual([0, 0, 1, 0, 1], decoder=IdentityDecoder(),
+        >>> import numpy as np
+        >>> genome = np.array([0, 0, 1, 0, 1])
+        >>> ind = Individual(genome, decoder=IdentityDecoder(),
         ...                  problem=MaxOnes())
         >>> ind.genome
         array([0, 0, 1, 0, 1])
@@ -62,7 +64,7 @@ class Individual:
                 f"Got the type '{problem}' as a problem, but expected an"
                 " instance."))
         # Core data
-        self.genome = np.array(genome)
+        self.genome = genome
         self.problem = problem
         self.decoder = decoder
         self.fitness = None
@@ -105,7 +107,9 @@ class Individual:
 
         >>> from leap_ec.binary_rep.problems import MaxOnes
         >>> from leap_ec.decoder import IdentityDecoder
-        >>> ind = Individual([0, 1, 1, 0], IdentityDecoder(), MaxOnes())
+        >>> import numpy as np
+        >>> genome = np.array([0, 1, 1, 0])
+        >>> ind = Individual(genome, IdentityDecoder(), MaxOnes())
         >>> ind_copy = ind.clone()
         >>> ind_copy.genome == ind.genome
         array([ True,  True,  True,  True])
@@ -176,10 +180,13 @@ class Individual:
 
         >>> from leap_ec.binary_rep.problems import MaxOnes
         >>> from leap_ec.decoder import IdentityDecoder
+        >>> import numpy as np
         >>> f = MaxOnes(maximize=True)
-        >>> ind_A = Individual([0, 0, 1, 0, 1], IdentityDecoder(), problem=f)
+        >>> genome_A = np.array([0, 0, 1, 0, 1])
+        >>> ind_A = Individual(genome_A, IdentityDecoder(), problem=f)
         >>> ind_A.fitness = 2
-        >>> ind_B = Individual([1, 1, 1, 1, 1], IdentityDecoder(), problem=f)
+        >>> genome_B = np.array([1, 1, 1, 1, 1])
+        >>> ind_B = Individual(genome_B, IdentityDecoder(), problem=f)
         >>> ind_B.fitness = 5
         >>> ind_A > ind_B
         False
@@ -191,9 +198,9 @@ class Individual:
         depends on the underlying `Problem`.
 
         >>> f = MaxOnes(maximize=False)
-        >>> ind_A = Individual([0, 0, 1, 0, 1], IdentityDecoder(), problem=f)
+        >>> ind_A = Individual(genome_A, IdentityDecoder(), problem=f)
         >>> ind_A.fitness = 2
-        >>> ind_B = Individual([1, 1, 1, 1, 1], IdentityDecoder(), problem=f)
+        >>> ind_B = Individual(genome_B, IdentityDecoder(), problem=f)
         >>> ind_B.fitness = 5
         >>> ind_A > ind_B
         True
@@ -232,7 +239,7 @@ class RobustIndividual(Individual):
         * self.fitness is set to math.nan
         * self.exception is assigned the exception
     """
-    def __init__(self, genome, decoder=None, problem=None):
+    def __init__(self, genome, decoder=IdentityDecoder(), problem=None):
         super().__init__(genome, decoder=decoder, problem=problem)
 
     def evaluate(self):

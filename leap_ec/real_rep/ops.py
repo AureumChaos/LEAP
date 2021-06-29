@@ -28,8 +28,9 @@ def mutate_gaussian(next_individual: Iterator,
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.real_rep.ops import mutate_gaussian
+    >>> import numpy as np
 
-    >>> pop = iter([ Individual([1.0,0.0]) ])
+    >>> pop = iter([Individual(np.array([1.0, 0.0]))])
     >>> op = mutate_gaussian(std=1.0, expected_num_mutations='isotropic')
     >>> mutated = next(op(pop))
 
@@ -108,7 +109,7 @@ def apply_hard_bounds(genome, hard_bounds):
 
     Both sides of the range are inclusive:
 
-    >>> genome = [ 0, 10, 20, 30, 40, 50 ]
+    >>> genome = np.array([0, 10, 20, 30, 40, 50])
     >>> apply_hard_bounds(genome, hard_bounds=(20, 40))
     array([20, 20, 20, 30, 40, 40])
 

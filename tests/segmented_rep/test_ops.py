@@ -35,7 +35,7 @@ def test_apply_mutation():
     """Applying segment-wise mutation operators with expected_num_mutations=len(genome) should
     result in every gene of every segment being mutated."""
     mutation_op = apply_mutation(mutator=genome_mutate_bitflip, expected_num_mutations=4)
-    original = Individual([[0,0],[1,1]])
+    original = Individual(np.array([[0,0],[1,1]]))
     mutated = next(mutation_op(iter([original])))
     assert np.array_equal(mutated.genome, np.array([[1, 1], [0, 0]]))
 
@@ -44,7 +44,7 @@ def test_apply_mutation():
 # Tests for remove_segment()
 ##############################
 def test_segmented_remove():
-    original = Individual([[0, 0], [1, 1]])
+    original = Individual(np.array([[0, 0], [1, 1]]))
     mutated = next(remove_segment(iter([original]), probability=1.0))
     assert np.all(mutated.genome == [[0, 0]]) or np.all(mutated.genome == [[1, 1]])
 
@@ -54,7 +54,7 @@ def test_segmented_remove():
 ##############################
 def test_segmented_add(gen_sequence):
     # Test with append first
-    original = Individual([[0, 0], [1, 1]])
+    original = Individual(np.array([[0, 0], [1, 1]]))
     mutated = next(add_segment(iter([original]),
                                seq_initializer=gen_sequence,
                                probability=1.0,
@@ -68,7 +68,7 @@ def test_segmented_add(gen_sequence):
                          [[0, 0], [1, 1], test_sequence[0]]]
 
     for i in range(20):
-        original = Individual([[0, 0], [1, 1]])
+        original = Individual(np.array([[0, 0], [1, 1]]))
         mutated = next(add_segment(iter([original]),
                                    seq_initializer=gen_sequence,
                                    probability=1.0,
@@ -82,7 +82,7 @@ def test_segmented_add(gen_sequence):
 # Tests for copy_segment()
 ##############################
 def test_segmented_copy():
-    original = Individual([[0, 0], [1, 1]])
+    original = Individual(np.array([[0, 0], [1, 1]]))
     mutated = next(copy_segment(iter([original]),
                                 probability=1.0,
                                 append=True))
@@ -103,7 +103,7 @@ def test_segmented_copy():
     # TODO: it would be better to build a histogram of expected outcomes and
     # do the chi square test
     for i in range(20):
-        original = Individual([[0, 0], [1, 1]])
+        original = Individual(np.array([[0, 0], [1, 1]]))
         mutated = next(copy_segment(iter([original]),
                                     probability=1.0,
                                     append=False))
@@ -118,8 +118,8 @@ def test_segmented_crossover():
     """ test that n-ary crossover works as expected for fixed and variable
         length segments
     """
-    a = Individual([[0, 0], [1, 1]])
-    b = Individual([[1, 1], [0, 0]])
+    a = Individual(np.array([[0, 0], [1, 1]]))
+    b = Individual(np.array([[1, 1], [0, 0]]))
 
     result = n_ary_crossover(iter([a,b]))
     c = next(result)
@@ -150,8 +150,8 @@ def test_segmented_crossover():
                          ]
 
     for _ in range(20):
-        a = Individual([[0, 0], [1, 1]])
-        b = Individual([[2, 2]])
+        a = Individual(np.array([[0, 0], [1, 1]]))
+        b = Individual(np.array([[2, 2]]))
 
         result = n_ary_crossover(iter([a, b]), num_points=1)
         c = next(result)

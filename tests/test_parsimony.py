@@ -9,13 +9,10 @@
 import numpy as np
 
 from leap_ec.individual import Individual
-from leap_ec.decoder import IdentityDecoder
 from leap_ec.real_rep.problems import SpheroidProblem
 from leap_ec.binary_rep.problems import MaxOnes
 import leap_ec.ops as ops
 from leap_ec.parsimony import koza_parsimony, lexical_parsimony
-
-decoder = IdentityDecoder()
 
 
 def test_koza_maximization():
@@ -28,9 +25,9 @@ def test_koza_maximization():
 
     # We set up three individuals in ascending order of fitness of
     # [0, 1, 2]
-    pop.append(Individual([0], problem=problem, decoder=decoder))
-    pop.append(Individual([1], problem=problem, decoder=decoder))
-    pop.append(Individual([0,0,1,1], problem=problem, decoder=decoder))
+    pop.append(Individual(np.array([0]), problem=problem))
+    pop.append(Individual(np.array([1]), problem=problem))
+    pop.append(Individual(np.array([0,0,1,1]), problem=problem))
 
     pop = Individual.evaluate_population(pop)
 
@@ -60,10 +57,10 @@ def test_koza_minimization():
     pop = []
 
     # First individual has a fitness of three but len(genome) of 4
-    pop.append(Individual([0,1,1,1], problem=problem, decoder=decoder))
+    pop.append(Individual(np.array([0,1,1,1]), problem=problem))
 
     # Second has a fitness of 4, but len(genome) of 1
-    pop.append(Individual([2], problem=problem, decoder=decoder))
+    pop.append(Individual(np.array([2]), problem=problem))
 
     pop = Individual.evaluate_population(pop)
 
@@ -79,13 +76,13 @@ def test_lexical_maximization():
     problem = MaxOnes()
 
     # fitness=3, len(genome)=6
-    pop = [Individual([0, 0, 0, 1, 1, 1], problem=problem, decoder=decoder)]
+    pop = [Individual(np.array([0, 0, 0, 1, 1, 1]), problem=problem)]
 
     # fitness=2, len(genome)=2
-    pop.append(Individual([1, 1], problem=problem, decoder=decoder))
+    pop.append(Individual(np.array([1, 1]), problem=problem))
 
     # fitness=3, len(genome)=3
-    pop.append(Individual([1, 1, 1], decoder=decoder, problem=problem))
+    pop.append(Individual(np.array([1, 1, 1]), problem=problem))
 
     pop = Individual.evaluate_population(pop)
 
@@ -104,10 +101,10 @@ def test_lexical_minimization():
     pop = []
 
     # fitness=4, len(genome)=1
-    pop.append(Individual([2], problem=problem, decoder=decoder))
+    pop.append(Individual(np.array([2]), problem=problem))
 
     # fitness=4, len(genome)=4
-    pop.append(Individual([1,1,1,1], problem=problem, decoder=decoder))
+    pop.append(Individual(np.array([1,1,1,1]), problem=problem))
 
     pop = Individual.evaluate_population(pop)
 

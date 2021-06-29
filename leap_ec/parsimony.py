@@ -18,12 +18,14 @@ def lexical_parsimony(ind):
 
     >>> import toolz
     >>> from leap_ec.individual import Individual
-    >>> from leap_ec.decoder import IdentityDecoder
     >>> from leap_ec.binary_rep.problems import MaxOnes
     >>> import leap_ec.ops as ops
+    >>> import numpy as np
     >>> problem = MaxOnes()
-    >>> decoder = IdentityDecoder()
-    >>> pop = [Individual([0, 0, 0, 1, 1, 1], problem=problem, decoder=decoder), Individual([0, 0], problem=problem, decoder=decoder), Individual([1, 1], problem=problem, decoder=decoder), Individual([1, 1, 1], decoder=decoder, problem=problem)]
+    >>> pop = [Individual(np.array([0, 0, 0, 1, 1, 1]), problem=problem),
+    ...        Individual(np.array([0, 0]), problem=problem),
+    ...        Individual(np.array([1, 1]), problem=problem),
+    ...        Individual(np.array([1, 1, 1]), problem=problem)]
     >>> pop = Individual.evaluate_population(pop)
     >>> best = ops.truncation_selection(pop, size=1)
     >>> print(f'{best[0]!s}')
@@ -59,9 +61,12 @@ def koza_parsimony(ind, *, penalty):
     >>> from leap_ec.decoder import IdentityDecoder
     >>> from leap_ec.binary_rep.problems import MaxOnes
     >>> import leap_ec.ops as ops
+    >>> import numpy as np
     >>> problem = MaxOnes()
-    >>> decoder = IdentityDecoder()
-    >>> pop = [Individual([0, 0, 0, 1, 1, 1], problem=problem, decoder=decoder), Individual([0, 0], problem=problem, decoder=decoder), Individual([1, 1], problem=problem, decoder=decoder), Individual([1, 1, 1], decoder=decoder, problem=problem)]
+    >>> pop = [Individual(np.array([0, 0, 0, 1, 1, 1]), problem=problem),
+    ...        Individual(np.array([0, 0]), problem=problem),
+    ...        Individual(np.array([1, 1]), problem=problem),
+    ...        Individual(np.array([1, 1, 1]), problem=problem)]
     >>> pop = Individual.evaluate_population(pop)
     >>> best = ops.truncation_selection(pop, size=1)
     >>> print(f'{best[0]!s}')

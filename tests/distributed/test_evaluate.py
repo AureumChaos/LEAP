@@ -3,10 +3,11 @@
 """
 from distributed import Client
 
+import numpy as np
+
 from leap_ec.individual import Individual
 from leap_ec.binary_rep.problems import MaxOnes
 from leap_ec.distrib.evaluate import evaluate
-from leap_ec.decoder import IdentityDecoder
 from leap_ec.global_vars import context
 
 
@@ -19,8 +20,8 @@ def test_good_eval():
     with Client() as client:
         # hand craft an individual that should evaluate fine
         # Let's try evaluating a single individual
-        individual = Individual([1, 1], decoder=IdentityDecoder(),
-                                     problem=MaxOnes())
+        individual = Individual(np.array([1, 1]),
+                                problem=MaxOnes())
 
         future = client.submit(evaluate(context=context),
                                individual)

@@ -229,7 +229,9 @@ def print_list(l):
     This uses __str__() to resolve the elements of the list:
 
     >>> from leap_ec.individual import Individual
-    >>> l = [Individual([0, 1, 2]), Individual([3, 4, 5])]
+    >>> import numpy as np
+    >>> l = [Individual(np.array([0, 1, 2])),
+    ...      Individual(np.array([3, 4, 5]))]
     >>> print_list(l)
     [[0 1 2] None, [3 4 5] None]
 

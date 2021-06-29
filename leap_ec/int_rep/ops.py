@@ -28,8 +28,9 @@ def mutate_randint(next_individual: Iterator, bounds,
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.int_rep.ops import mutate_randint
+    >>> import numpy as np
 
-    >>> population = iter([ Individual([1,1]) ])
+    >>> population = iter([Individual(np.array([1, 1]))])
     >>> operator = mutate_randint(expected_num_mutations=1, bounds=[(0, 10), (0, 10)])
     >>> mutated = next(operator(population))
     """
@@ -126,7 +127,8 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.int_rep.ops import mutate_binomial
-    >>> population = iter([ Individual([1,1]) ])
+    >>> import numpy as np
+    >>> population = iter([Individual(np.array([1, 1]))])
     >>> operator = mutate_binomial(std=2.5,
     ...                            bounds=[(0, 10), (0, 10)],
     ...                            expected_num_mutations=1)
