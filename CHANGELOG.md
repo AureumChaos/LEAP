@@ -9,6 +9,7 @@ Being a terse compilation by version of changes.
 
 * API changes
   * Added `indices` parameter to `ops.random_selection()`
+  * `plot_2d_problem()` now defaults to checking the `problem.bounds` field for `xlim` and `ylim` values
 
 ## 0.6.0, 6/13/2021
 
