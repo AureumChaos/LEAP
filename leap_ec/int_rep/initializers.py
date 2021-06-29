@@ -35,6 +35,8 @@ def create_int_vector(bounds):
     ...                                           problem=SpheroidProblem())
     """
     def create():
-        return np.array([random.randint(min_, max_) for min_, max_ in bounds])
+        low = [bound[0] for bound in bounds]
+        high = [bound[1] + 1 for bound in bounds]
+        return np.random.randint(low, high, size=(len(low),))
 
     return create

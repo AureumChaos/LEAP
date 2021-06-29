@@ -2,7 +2,7 @@
 """
     Used to initialize binary sequences
 """
-import random
+import numpy as np
 
 from leap_ec.individual import Individual
 
@@ -29,6 +29,6 @@ def create_binary_sequence(length):
     """
 
     def create():
-        return [random.choice([0, 1]) for _ in range(length)]
+        return np.random.choice([0, 1], size=(length,))
 
     return create

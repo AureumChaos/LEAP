@@ -5,6 +5,7 @@ import numpy as np
 from toolz import curry
 
 from leap_ec.ops import compute_expected_probability, iteriter_op
+from leap_ec.real_rep.ops import apply_hard_bounds
 
 
 ##############################
@@ -64,7 +65,8 @@ def individual_mutate_randint(genome,
                               probability = None):
     """ Perform random-integer mutation on a particular genome.
 
-        >>> genome = [42, 12]
+        >>> import numpy as np
+        >>> genome = np.array([42, 12])
         >>> bounds = [(0,50), (-10,20)]
         >>> new_genome = individual_mutate_randint(genome, bounds, expected_num_mutations=1)
 
@@ -77,21 +79,21 @@ def individual_mutate_randint(genome,
     assert((probability is None) or (probability >= 0))
     assert((probability is None) or (probability <= 1))
 
-    def randomint_mutate(value, bound, probability):
-        """ mutate an integer given a probability
-        """
-        if np.random.rand() < probability:
-            return random.randint(*bound)
-        else:
-            return value
-
     if probability is None:
         p = compute_expected_probability(expected_num_mutations, genome)
     else:
         p = probability
 
-    genome = np.array([randomint_mutate(gene, bound, p) for gene, bound in
-                       zip(genome, bounds)])
+    selector = np.random.choice([0, 1], size=genome.shape,
+                                p=(1 - p, p))
+    indices_to_mutate = np.nonzero(selector)[0]
+
+    bounds = np.array(bounds)
+    selected_bounds = bounds[indices_to_mutate]
+    low = selected_bounds[:, 0]
+    # add one since bounds are inclusive but randint is exclusive
+    high = selected_bounds[:, 1] + 1
+    genome[indices_to_mutate] = np.random.randint(low, high, size=low.shape[0])
 
     return genome
 
@@ -185,7 +187,7 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
         raise ValueError("Received no value for 'probability' or 'expected_num_mutations'.  Must have one.")
     if (probability is not None) and ((probability < 0) or (probability > 1)):
         raise ValueError(f"The value of 'probability' is {probability}, but must be >= 0 and <= 1.")
-    
+
     while True:
         try:
             individual = next(next_individual)
@@ -214,7 +216,8 @@ def individual_mutate_binomial(genome,
     """
     Perform additive binomial mutation of a particular genome.
 
-    >>> genome = [42, 12]
+    >>> import numpy as np
+    >>> genome = np.array([42, 12])
     >>> bounds = [(0,50), (-10,20)]
     >>> new_genome = individual_mutate_binomial(genome, std=0.5, bounds=bounds,
     ...                                         expected_num_mutations=1)
@@ -224,25 +227,20 @@ def individual_mutate_binomial(genome,
     assert((probability is None) or (probability >= 0))
     assert((probability is None) or (probability <= 1))
 
-    def binomial_mutate(value, p, bound, probability):
-        """Mutate an integer by adding a binomial value."""
-        assert(len(bound) == 2)
-        if random.random() < probability:
-            binom_mean = n*p
-            mutated = value + np.random.binomial(n, p) - int(binom_mean)
-            low, high = bound
-            clipped = max(low, min(high, mutated))
-            return clipped
-        else:
-            return value
-
     if probability is None:
         probability = compute_expected_probability(expected_num_mutations, genome)
     else:
         probability = probability
 
+    selector = np.random.choice([0, 1], size=genome.shape,
+                                p=(1 - probability, probability))
+    indices_to_mutate = np.nonzero(selector)[0]
     p = _binomial_p_from_std(n, std)
-    genome = np.array([binomial_mutate(gene, p, bound, probability) for gene, bound in zip(genome,bounds)])
+    binom_mean = n*p
+    additive = np.random.binomial(n, p, size=len(indices_to_mutate)) - int(binom_mean)
+    mutated = genome[indices_to_mutate] + additive
+    genome[indices_to_mutate] = mutated
+    genome = apply_hard_bounds(genome, bounds)
 
     return genome
 

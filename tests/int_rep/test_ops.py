@@ -253,7 +253,7 @@ def test_mutate_binomial_dist():
         population = iter([ Individual(genome) ])
         mutated = next(operator(population))
         gene0, gene1 = mutated.genome
-        gene0, gene1 = str(gene0), str(gene1)
+        gene0, gene1 = str(int(gene0)), str(int(gene1))
 
         # Count the observed values of the first gene
         if gene0 in gene0_observed_dist.keys():
