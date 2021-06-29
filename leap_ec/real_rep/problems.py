@@ -1316,7 +1316,7 @@ class MatrixTransformedProblem(ScalarProblem):
 ##############################
 # Function plot_2d_problem
 ##############################
-def plot_2d_problem(problem, xlim, ylim, kind='surface',
+def plot_2d_problem(problem, xlim=None, ylim=None, kind='surface',
                     ax=None, granularity=None, title=None, pad=()):
     """
     Convenience function for plotting a :class:`~leap.problem.Problem` that
@@ -1325,9 +1325,9 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
     :param ~leap.problem.Problem fun: The :class:`~leap.problem.Problem` to
         plot.
 
-    :param xlim: Bounds of the horizontal axes.
+    :param xlim: Bounds of the horizontal axes.  If None, uses `problem.bounds`.
     :type xlim: (float, float)
-    :param ylim: Bounds of the vertical axis.
+    :param ylim: Bounds of the vertical axis.  If None, uses `problem.bounds`.
     :type ylim: (float, float)
     :param kind: The kind of plot to create: 'surface' or 'contour'
     :type kind: str
@@ -1376,6 +1376,11 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
 
     def call(phenome):
         return problem.evaluate(phenome)
+
+    if xlim is None:
+        xlim = problem.bounds
+    if ylim is None:
+        ylim = problem.bounds
 
     if granularity is None:
         if hasattr(problem, 'bounds'):
