@@ -52,4 +52,4 @@ class SegmentedDecoder(Decoder):
         """
         values = [self.segment_decoder.decode(segment) for segment in genome]
 
-        return np.array(values)
+        return values

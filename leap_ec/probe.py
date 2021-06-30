@@ -804,7 +804,8 @@ class CartesianPhenotypePlotProbe:
         if contours:
             @np.vectorize
             def v_fun(x, y):
-                return contours.evaluate([x, y] + list(pad))
+                phenome = np.concatenate((np.hstack((x,y)), pad))
+                return contours.evaluate(phenome)
 
             if granularity is None:
                 granularity = (contours.bounds[1] - contours.bounds[0]) / 50.

@@ -78,6 +78,10 @@ def genome_mutate_bitflip(genome: np.ndarray,
     assert((probability is None) or (probability >= 0))
     assert((probability is None) or (probability <= 1))
 
+    if not isinstance(genome, np.ndarray):
+        raise ValueError(("Expected genome to be a numpy array. "
+                          f"Got {type(genome)}."))
+
     if probability is None:
         # Given the average expected number of mutations, calculate the
         # probability for flipping each bit.  This calculation must be made

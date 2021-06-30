@@ -80,6 +80,10 @@ def individual_mutate_randint(genome,
     assert((probability is None) or (probability >= 0))
     assert((probability is None) or (probability <= 1))
 
+    if not isinstance(genome, np.ndarray):
+        raise ValueError(("Expected genome to be a numpy array. "
+                          f"Got {type(genome)}."))
+
     if probability is None:
         p = compute_expected_probability(expected_num_mutations, genome)
     else:
@@ -228,6 +232,10 @@ def individual_mutate_binomial(genome,
     assert(bool(expected_num_mutations is not None) ^ bool(probability is not None)), f"Got expected_num_mutations={expected_num_mutations} and probability={probability}.  One must be specified, but not both."
     assert((probability is None) or (probability >= 0))
     assert((probability is None) or (probability <= 1))
+
+    if not isinstance(genome, np.ndarray):
+        raise ValueError(("Expected genome to be a numpy array. "
+                          f"Got {type(genome)}."))
 
     if probability is None:
         probability = compute_expected_probability(expected_num_mutations, genome)

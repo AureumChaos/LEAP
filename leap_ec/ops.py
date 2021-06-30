@@ -478,8 +478,8 @@ def n_ary_crossover(next_individual: Iterator,
         return xpts
 
     def _n_ary_crossover(child1, child2, num_points):
-        if child1.genome.shape[0] < num_points or \
-                child2.genome.shape[0] < num_points:
+        if len(child1.genome) < num_points or \
+                len(child2.genome) < num_points:
             raise RuntimeError(
                 'Invalid number of crossover points for n_ary_crossover')
 
@@ -500,8 +500,16 @@ def n_ary_crossover(next_individual: Iterator,
             # Now swap crossover direction
             src1, src2 = src2, src1
 
-        child1.genome = np.concatenate(genome1_sections)
-        child2.genome = np.concatenate(genome2_sections)
+        # allows for crossover in both simple representations
+        # and segmented representations, respectively
+        if isinstance(child1.genome, np.ndarray):
+            child1.genome = np.concatenate(genome1_sections)
+            child2.genome = np.concatenate(genome2_sections)
+        else:
+            child1.genome = list(
+                itertools.chain.from_iterable(genome1_sections))
+            child2.genome = list(
+                itertools.chain.from_iterable(genome2_sections))
 
         return child1, child2
 
@@ -1090,7 +1098,7 @@ def concat_combine(collaborators):
     combined_ind = collaborators[0].clone()
 
     genomes = [ind.genome for ind in collaborators]
-    combined_ind.genome = list(itertools.chain(*genomes))  # Concatenate
+    combined_ind.genome = np.concatenate(genomes)  # Concatenate
     return combined_ind
 
 

@@ -342,10 +342,15 @@ class PittRulesDecoder(Decoder):
             """Take a full ruleset individual and mutate its rules."""
             while True:
                 individual = next(next_individual)
+                mutated_genome = [_single_rule_mutator(segment)
+                                  for segment in individual.genome]
 
-                mutated_genome = np.array([_single_rule_mutator(segment)
-                                           for segment in individual.genome])
-                individual.genome = mutated_genome
+                # need to keep types consistent and allow for
+                # list genomes
+                if isinstance(individual.genome, np.ndarray):
+                    individual.genome = np.array(mutated_genome)
+                else:
+                    individual.genome = mutated_genome
 
                 # invalidate the fitness since we have a modified genome
                 individual.fitness = None

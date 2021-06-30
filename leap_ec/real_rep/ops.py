@@ -76,6 +76,10 @@ def genome_mutate_gaussian(genome,
     """
     assert(expected_num_mutations is not None)
 
+    if not isinstance(genome, np.ndarray):
+        raise ValueError(("Expected genome to be a numpy array. "
+                          f"Got {type(genome)}."))
+
     # compute actual probability of mutation based on expected number of
     # mutations and the genome length
     if expected_num_mutations == 'isotropic':

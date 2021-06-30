@@ -36,6 +36,9 @@ class MaxOnes(ScalarProblem):
         >>> p.evaluate(ind.decode())
         5
         """
+        if not isinstance(phenome, np.ndarray):
+            raise ValueError(("Expected phenome to be a numpy array. "
+                              f"Got {type(phenome)}."))
         return np.count_nonzero(phenome == 1)
 
 

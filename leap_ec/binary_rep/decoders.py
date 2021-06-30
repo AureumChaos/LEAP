@@ -61,6 +61,10 @@ class BinaryToIntDecoder(Decoder):
         >>> d.decode(b)
         array([ 1, 12,  6])
         """
+        if not isinstance(genome, np.ndarray):
+            raise ValueError(("Expected genome to be a numpy array. "
+                              f"Got {type(genome)}."))
+
         values = np.zeros(len(self.descriptors), dtype=int)
         offset = 0  # how far are we into the binary test_sequence
 
