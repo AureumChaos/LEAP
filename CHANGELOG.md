@@ -2,15 +2,17 @@
 
 Being a terse compilation by version of changes.
 
+
 ## 0.7.0dev (current develop branch)
 
 * New features
-  * Added `ops.proportional_selection()`
+  * Added `ops.sus_selection()` and `ops.proportional_selection()`
 
 * API changes
   * Made `numpy` arrays (instead of lists) the default representation for most LEAP operators and examples, for a significant speedup.
   * Added `indices` parameter to `ops.random_selection()`
   * `plot_2d_problem()` now defaults to checking the `problem.bounds` field for `xlim` and `ylim` values
+
 
 ## 0.6.0, 6/13/2021
 
