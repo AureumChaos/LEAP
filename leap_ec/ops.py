@@ -234,10 +234,12 @@ def evaluate(next_individual: Iterator) -> Iterator:
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.decoder import IdentityDecoder
     >>> from leap_ec.binary_rep.problems import MaxOnes
+    >>> import numpy as np
 
     We need to specify the decoder and problem so that evaluation is possible.
 
-    >>> ind = Individual([1,1], decoder=IdentityDecoder(), problem=MaxOnes())
+    >>> genome = np.array([1, 1])
+    >>> ind = Individual(genome, decoder=IdentityDecoder(), problem=MaxOnes())
 
     >>> evaluated_ind = next(evaluate(iter([ind])))
 
@@ -316,10 +318,12 @@ def clone(next_individual: Iterator) -> Iterator:
     """ clones and returns the next individual in the pipeline
 
     >>> from leap_ec.individual import Individual
+    >>> import numpy as np
 
     Create a common decoder and problem for individuals.
 
-    >>> original = Individual([1,1])
+    >>> genome = np.array([1, 1])
+    >>> original = Individual(genome)
 
     >>> cloned_generator = clone(iter([original]))
 
@@ -352,9 +356,12 @@ def uniform_crossover(next_individual: Iterator,
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.ops import uniform_crossover
+    >>> import numpy as np
 
-    >>> first = Individual([0,0])
-    >>> second = Individual([1,1])
+    >>> genome1 = np.array([0, 0])
+    >>> genome2 = np.array([1, 1])
+    >>> first = Individual(genome1)
+    >>> second = Individual(genome2)
     >>> i = iter([first, second])
     >>> result = uniform_crossover(i)
 
@@ -388,14 +395,19 @@ def uniform_crossover(next_individual: Iterator,
         :return: a copy of both individuals with individual.genome bits
                  swapped based on probability
         """
-        if len(ind1.genome) != len(ind2.genome):
-            # TODO what about variable length genomes?
-            raise RuntimeError(
-                'genomes must be same length for uniform crossover')
+        assert(isinstance(ind1.genome, np.ndarray))
+        assert(isinstance(ind2.genome, np.ndarray))
 
-        for i in range(len(ind1.genome)):
-            if random.random() < p_swap:
-                ind1.genome[i], ind2.genome[i] = ind2.genome[i], ind1.genome[i]
+        # generate which indices we should swap 
+        min_length = min(ind1.genome.shape[0], ind2.genome.shape[0])
+        selector = np.random.choice([0, 1], size=(min_length,),
+                                    p=(1-p_swap, p_swap))
+        indices_to_swap = np.nonzero(selector)[0]
+
+        # perform swap
+        tmp = ind1.genome[indices_to_swap]
+        ind1.genome[indices_to_swap] = ind2.genome[indices_to_swap]
+        ind2.genome[indices_to_swap] = tmp
 
         return ind1, ind2
 
@@ -432,9 +444,12 @@ def n_ary_crossover(next_individual: Iterator,
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.ops import n_ary_crossover
+    >>> import numpy as np
 
-    >>> first = Individual([0,0])
-    >>> second = Individual([1,1])
+    >>> genome1 = np.array([0, 0])
+    >>> genome2 = np.array([1, 1])
+    >>> first = Individual(genome1)
+    >>> second = Individual(genome2)
     >>> i = iter([first, second])
     >>> result = n_ary_crossover(i)
 
@@ -453,11 +468,12 @@ def n_ary_crossover(next_individual: Iterator,
         """
         Randomly choose (without replacement) crossover points.
         """
-        pp = list(range(0, genome_size))  # See De Jong, EC, pg 145
+        # See De Jong, EC, pg 145
+        pp = np.arange(genome_size, dtype=int)
 
-        xpts = sorted([pp.pop(random.randrange(len(pp)))
-                       for i in range(num_points)])
-        xpts = [0] + xpts + [genome_size]  # Add start and end
+        xpts = np.random.choice(pp, size=(num_points,), replace=False)
+        xpts.sort()
+        xpts = [0] + list(xpts) + [genome_size]  # Add start and end
 
         return xpts
 
@@ -468,9 +484,9 @@ def n_ary_crossover(next_individual: Iterator,
                 'Invalid number of crossover points for n_ary_crossover')
 
         children = [child1, child2]
-        genome1 = child1.genome[0:0]  # empty test_sequence - maintain type
-        genome2 = child2.genome[0:0]
-
+        # store each section of the genome to concatenate later
+        genome1_sections = []
+        genome2_sections = []
         # Used to toggle which sub-test_sequence is copied between offspring
         src1, src2 = 0, 1
 
@@ -478,14 +494,22 @@ def n_ary_crossover(next_individual: Iterator,
         xpts = _pick_crossover_points(num_points, len(child1.genome))
 
         for start, stop in toolz.itertoolz.sliding_window(2, xpts):
-            genome1 += children[src1].genome[start:stop]
-            genome2 += children[src2].genome[start:stop]
+            genome1_sections.append(children[src1].genome[start:stop])
+            genome2_sections.append(children[src2].genome[start:stop])
 
             # Now swap crossover direction
             src1, src2 = src2, src1
 
-        child1.genome = genome1
-        child2.genome = genome2
+        # allows for crossover in both simple representations
+        # and segmented representations, respectively
+        if isinstance(child1.genome, np.ndarray):
+            child1.genome = np.concatenate(genome1_sections)
+            child2.genome = np.concatenate(genome2_sections)
+        else:
+            child1.genome = list(
+                itertools.chain.from_iterable(genome1_sections))
+            child2.genome = list(
+                itertools.chain.from_iterable(genome2_sections))
 
         return child1, child2
 
@@ -537,17 +561,19 @@ def proportional_selection(population: List, offset=0, exponent: int = 1,
         >>> from leap_ec import Individual
         >>> from leap_ec.binary_rep.problems import MaxOnes
         >>> from leap_ec.ops import proportional_selection
+        >>> import numpy as np
 
-        >>> pop = [Individual([0, 0, 0], problem=MaxOnes()),
-        ...        Individual([0, 0, 1], problem=MaxOnes())]
+        >>> genome1 = np.array([0, 0, 0])
+        >>> genome2 = np.array([0, 0, 1])
+        >>> pop = [Individual(genome1, problem=MaxOnes()),
+        ...        Individual(genome2, problem=MaxOnes())]
         >>> pop = Individual.evaluate_population(pop)
         >>> selected = proportional_selection(pop)
     """
     # scale and shift to account for possible negative values
     values = compute_population_values(population, offset=offset,
                                        exponent=exponent, key=key)
-    assert(len(values) == len(population))
-    values = np.array(values)
+    assert(values.shape[0] == len(population))
 
     # throw error on negative values since the algorithm does not
     # work otherwise
@@ -603,9 +629,12 @@ def sus_selection(population: List, n=None, shuffle: bool = True,
         >>> from leap_ec import Individual
         >>> from leap_ec.binary_rep.problems import MaxOnes
         >>> from leap_ec.ops import sus_selection
+        >>> import numpy as np
 
-        >>> pop = [Individual([0, 0, 0], problem=MaxOnes()),
-        ...        Individual([0, 0, 1], problem=MaxOnes())]
+        >>> genome1 = np.array([0, 0, 0])
+        >>> genome2 = np.array([1, 1, 1])
+        >>> pop = [Individual(genome1, problem=MaxOnes()),
+        ...        Individual(genome2, problem=MaxOnes())]
         >>> pop = Individual.evaluate_population(pop)
         >>> selected = sus_selection(pop)
     """
@@ -620,8 +649,7 @@ def sus_selection(population: List, n=None, shuffle: bool = True,
     # scale and shift to account for possible negative values
     values = compute_population_values(population, offset=offset,
                                        exponent=exponent, key=key)
-    assert(len(values) == len(population))
-    values = np.array(values)
+    assert(values.shape[0] == len(population))
 
     # throw error on negative values since the algorithm does not
     # work otherwise
@@ -672,14 +700,14 @@ def truncation_selection(offspring: List, size: int,
         This defaults to (mu, lambda) if `parents` is not given.
 
         >>> from leap_ec.individual import Individual
-        >>> from leap_ec.decoder import IdentityDecoder
         >>> from leap_ec.binary_rep.problems import MaxOnes
         >>> from leap_ec.ops import truncation_selection
+        >>> import numpy as np
 
-        >>> pop = [Individual([0, 0, 0], decoder=IdentityDecoder(), problem=MaxOnes()),
-        ...        Individual([0, 0, 1], decoder=IdentityDecoder(), problem=MaxOnes()),
-        ...        Individual([1, 1, 0], decoder=IdentityDecoder(), problem=MaxOnes()),
-        ...        Individual([1, 1, 1], decoder=IdentityDecoder(), problem=MaxOnes())]
+        >>> pop = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+        ...        Individual(np.array([0, 0, 1]), problem=MaxOnes()),
+        ...        Individual(np.array([1, 1, 0]), problem=MaxOnes()),
+        ...        Individual(np.array([1, 1, 1]), problem=MaxOnes())]
 
         We need to evaluate them to get their fitness to sort them for
         truncation.
@@ -719,18 +747,23 @@ def elitist_survival(offspring: List, parents: List, k: int = 1, key = None) -> 
     """ This allows k best parents to compete with the offspring.
 
         >>> from leap_ec.individual import Individual
-        >>> from leap_ec.decoder import IdentityDecoder as ID
         >>> from leap_ec.binary_rep.problems import MaxOnes
+        >>> import numpy as np
 
         First, let's make a "pretend" population of parents using the MaxOnes
         problem.
 
-        >>> pretend_parents = [Individual([0, 0, 0], decoder=ID(), problem=MaxOnes()), Individual([1, 1, 1], decoder=ID(), problem=MaxOnes())]
+        >>> pretend_parents = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+        ...                    Individual(np.array([1, 1, 1]), problem=MaxOnes())]
 
         Then a "pretend" population of offspring. (Pretend in that we're
         pretending that the offspring came from the parents.)
 
-        >>> pretend_offspring = [Individual([0, 0, 0], decoder=ID(), problem=MaxOnes()), Individual([1, 1, 0], decoder=ID(), problem=MaxOnes()), Individual([1, 0, 1], decoder=ID(), problem=MaxOnes()), Individual([0, 1, 1], decoder=ID(), problem=MaxOnes()), Individual([0, 0, 1], decoder=ID(), problem=MaxOnes())]
+        >>> pretend_offspring = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+        ...                      Individual(np.array([1, 1, 0]), problem=MaxOnes()),
+        ...                      Individual(np.array([1, 0, 1]), problem=MaxOnes()),
+        ...                      Individual(np.array([0, 1, 1]), problem=MaxOnes()),
+        ...                      Individual(np.array([0, 0, 1]), problem=MaxOnes())]
 
         We need to evaluate them to get their fitness to sort them for
         elitist_survival.
@@ -811,9 +844,10 @@ def tournament_selection(population: list, k: int = 2, key = None, select_worst:
         >>> from leap_ec import Individual
         >>> from leap_ec.binary_rep.problems import MaxOnes
         >>> from leap_ec.ops import tournament_selection
+        >>> import numpy as np
 
-        >>> pop = [Individual([0, 0, 0], problem=MaxOnes()),
-        ...        Individual([0, 0, 1], problem=MaxOnes())]
+        >>> pop = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+        ...        Individual(np.array([0, 0, 1]), problem=MaxOnes())]
         >>> pop = Individual.evaluate_population(pop)
         >>> best = tournament_selection(pop)
     """
@@ -888,9 +922,10 @@ def naive_cyclic_selection(population: List) -> Iterator:
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.ops import naive_cyclic_selection
+    >>> import numpy as np
 
-    >>> pop = [Individual([0, 0]),
-    ...        Individual([0, 1])]
+    >>> pop = [Individual(np.array([0, 0])),
+    ...        Individual(np.array([0, 1]))]
 
     >>> cyclic_selector = naive_cyclic_selection(pop)
 
@@ -915,9 +950,10 @@ def cyclic_selection(population: List) -> Iterator:
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.ops import cyclic_selection
+    >>> import numpy as np
 
-    >>> pop = [Individual([0, 0]),
-    ...        Individual([0, 1])]
+    >>> pop = [Individual(np.array([0, 0])),
+    ...        Individual(np.array([0, 1]))]
 
     >>> cyclic_selector = cyclic_selection(pop)
 
@@ -974,9 +1010,10 @@ def pool(next_individual: Iterator, size: int) -> List:
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.ops import naive_cyclic_selection
+    >>> import numpy as np
 
-    >>> pop = [Individual([0, 0]),
-    ...        Individual([0, 1])]
+    >>> pop = [Individual(np.array([0, 0])),
+    ...        Individual(np.array([0, 1]))]
 
     >>> cyclic_selector = naive_cyclic_selection(pop)
 
@@ -1061,7 +1098,7 @@ def concat_combine(collaborators):
     combined_ind = collaborators[0].clone()
 
     genomes = [ind.genome for ind in collaborators]
-    combined_ind.genome = list(itertools.chain(*genomes))  # Concatenate
+    combined_ind.genome = np.concatenate(genomes)  # Concatenate
     return combined_ind
 
 
@@ -1188,7 +1225,7 @@ def compute_expected_probability(expected_num_mutations: float,
 # function compute_population_values
 ##############################
 def compute_population_values(population: List, offset=0, exponent: int = 1,
-                     key=lambda x: x.fitness) -> List:
+                     key=lambda x: x.fitness) -> np.ndarray:
     """ Returns a list of values where the zero-point of the population is
         shifted and the values are scaled by exponentiation.
 
@@ -1200,11 +1237,11 @@ def compute_population_values(population: List, offset=0, exponent: int = 1,
             Defaults to 1.
         :param key: a function that computes a metric based
             on an `Individual`.
-        :return: a list of values that have been shifted by `offset` and
+        :return: a numpy array of values that have been shifted by `offset` and
             scaled by `exponent` corresponding to each individual in the
             population.
     """
-    values = [key(ind) for ind in population]
+    values = np.array([key(ind) for ind in population])
     if offset == 'pop-min':
-        offset = -min(values)
-    return [(val + offset)**exponent for val in values]
+        offset = -values.min(axis=0)
+    return (values + offset) ** exponent

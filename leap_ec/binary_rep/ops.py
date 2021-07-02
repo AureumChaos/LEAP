@@ -6,6 +6,8 @@ from typing import Iterator
 import random
 from toolz import curry
 
+import numpy as np
+
 from leap_ec.ops import compute_expected_probability, iteriter_op
 
 
@@ -23,8 +25,9 @@ def mutate_bitflip(next_individual: Iterator,
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.binary_rep.ops import mutate_bitflip
+    >>> import numpy as np
 
-    >>> original = Individual([1,1])
+    >>> original = Individual(np.array([1, 1]))
     >>> op = mutate_bitflip(expected_num_mutations=1)
     >>> pop = iter([original])
     >>> mutated = next(op(pop))
@@ -57,9 +60,9 @@ def mutate_bitflip(next_individual: Iterator,
 # Function perform_mutate_bitflip
 ##############################
 @curry
-def genome_mutate_bitflip(genome: list,
+def genome_mutate_bitflip(genome: np.ndarray,
                           expected_num_mutations: float = None,
-                          probability: float = None) -> list:
+                          probability: float = None) -> np.ndarray:
     """Perform bitflip mutation on a particular genome.
 
     This function can be used by more complex operators to mutate a full population
@@ -75,13 +78,9 @@ def genome_mutate_bitflip(genome: list,
     assert((probability is None) or (probability >= 0))
     assert((probability is None) or (probability <= 1))
 
-    def bitflip(bit, probability):
-        """ bitflip a bit given a probability
-        """
-        if random.random() < probability:
-            return (bit + 1) % 2
-        else:
-            return bit
+    if not isinstance(genome, np.ndarray):
+        raise ValueError(("Expected genome to be a numpy array. "
+                          f"Got {type(genome)}."))
 
     if probability is None:
         # Given the average expected number of mutations, calculate the
@@ -91,6 +90,9 @@ def genome_mutate_bitflip(genome: list,
     else:
         p = probability
 
-    genome = [bitflip(gene, p) for gene in genome]
+    selector = np.random.choice([0, 1], size=genome.shape,
+                                p=(1-p, p))
+    indices_to_flip = np.nonzero(selector)[0]
+    genome[indices_to_flip] = (genome[indices_to_flip] + 1) % 2
 
     return genome

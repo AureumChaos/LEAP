@@ -29,15 +29,17 @@ class MaxOnes(ScalarProblem):
     def evaluate(self, phenome):
         """
         >>> from leap_ec.individual import Individual
-        >>> from leap_ec.decoder import IdentityDecoder
+        >>> import numpy as np
         >>> p = MaxOnes()
-        >>> ind = Individual([0, 0, 1, 1, 0, 1, 0, 1, 1],
-        ...                   decoder=IdentityDecoder(),
+        >>> ind = Individual(np.array([0, 0, 1, 1, 0, 1, 0, 1, 1]),
         ...                   problem=p)
         >>> p.evaluate(ind.decode())
         5
         """
-        return phenome.count(1)
+        if not isinstance(phenome, np.ndarray):
+            raise ValueError(("Expected phenome to be a numpy array. "
+                              f"Got {type(phenome)}."))
+        return np.count_nonzero(phenome == 1)
 
 
 ##############################

@@ -39,7 +39,7 @@ def generational_ea(max_generations, pop_size, problem, representation, pipeline
     :param int max_generations: The max number of generations to run the algorithm for.
         Can pass in float('Inf') to run forever or until the `stop` condition is reached.
     :param int pop_size: Size of the initial population
-    :param int stop: A function that accepts a population and 
+    :param int stop: A function that accepts a population and
         returns True iff it's time to stop evolving.
     :param `Problem` problem: the Problem that should be used to evaluate
         individuals' fitness
@@ -394,8 +394,8 @@ def stop_at_generation(max_generation: int, context=context):
     """
     assert(max_generation >= 0)
     assert(context is not None)
-    
+
     def stop(population):
         return not (context['leap']['generation'] < max_generation)
-    
+
     return stop

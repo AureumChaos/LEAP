@@ -4,8 +4,10 @@
 """
 import math
 import random
-from typing import Tuple, Iterator
+from collections.abc import Iterable
 from typing import Iterator, List, Tuple, Union
+
+import numpy as np
 
 from toolz import curry
 
@@ -26,8 +28,9 @@ def mutate_gaussian(next_individual: Iterator,
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.real_rep.ops import mutate_gaussian
+    >>> import numpy as np
 
-    >>> pop = iter([ Individual([1.0,0.0]) ])
+    >>> pop = iter([Individual(np.array([1.0, 0.0]))])
     >>> op = mutate_gaussian(std=1.0, expected_num_mutations='isotropic')
     >>> mutated = next(op(pop))
 
@@ -55,11 +58,11 @@ def mutate_gaussian(next_individual: Iterator,
 
 
 @curry
-def genome_mutate_gaussian(genome: list,
+def genome_mutate_gaussian(genome,
                            std: float,
                            expected_num_mutations,
                            hard_bounds: Tuple[float, float] =
-                             (-math.inf, math.inf)) -> list:
+                             (-math.inf, math.inf)):
     """ Perform actual Gaussian mutation on real-valued genes
 
     This used to be inside `mutate_gaussian`, but was moved outside it so that
@@ -73,11 +76,9 @@ def genome_mutate_gaussian(genome: list,
     """
     assert(expected_num_mutations is not None)
 
-    def add_gauss(x, std, probability):
-        if random.random() < probability:
-            return random.gauss(x, std)
-        else:
-            return x
+    if not isinstance(genome, np.ndarray):
+        raise ValueError(("Expected genome to be a numpy array. "
+                          f"Got {type(genome)}."))
 
     # compute actual probability of mutation based on expected number of
     # mutations and the genome length
@@ -87,12 +88,12 @@ def genome_mutate_gaussian(genome: list,
     else:
         p = compute_expected_probability(expected_num_mutations, genome)
 
-    if util.is_sequence(std):
-        # We're given a vector of "shadow standard deviations" so apply
-        # each sigma individually to each gene
-        genome = [add_gauss(x, s, p) for x, s in zip(genome, std)]
-    else:
-        genome = [add_gauss(x, std, p) for x in genome]
+    # select which indices to mutate at random
+    selector = np.random.choice([0, 1], size=genome.shape, p=(1 - p, p))
+    indices_to_mutate = np.nonzero(selector)[0]
+
+    genome[indices_to_mutate] = np.random.normal(genome[indices_to_mutate], std,
+                                                 size=indices_to_mutate.shape[0])
 
     # Implement hard bounds
     genome = apply_hard_bounds(genome, hard_bounds)
@@ -112,34 +113,31 @@ def apply_hard_bounds(genome, hard_bounds):
 
     Both sides of the range are inclusive:
 
-    >>> genome = [ 0, 10, 20, 30, 40, 50 ]
+    >>> genome = np.array([0, 10, 20, 30, 40, 50])
     >>> apply_hard_bounds(genome, hard_bounds=(20, 40))
-    [20, 20, 20, 30, 40, 40]
+    array([20, 20, 20, 30, 40, 40])
 
     Different bounds can be used for each locus by passing in a list of tuples:
 
     >>> bounds= [ (0, 1), (0, 1), (50, 100), (50, 100), (0, 100), (0, 10) ]
     >>> apply_hard_bounds(genome, hard_bounds=bounds)
-    [0, 1, 50, 50, 40, 10]
+    array([ 0,  1, 50, 50, 40, 10])
     """
     assert(genome is not None)
-    assert(util.is_sequence(genome))
+    assert(isinstance(genome, Iterable))
     assert(hard_bounds is not None)
 
-    def clip(x, bound):
-        """Increase or decrease x until it is within the given bounds."""
-        low, high = bound
-        return max(low, min(high, x))
+    if not isinstance(hard_bounds[0], Iterable):
+        # scalar bounds apply to each gene
+        low = hard_bounds[0]
+        high = hard_bounds[1]
+    elif isinstance(hard_bounds, np.ndarray):
+        low = hard_bounds[:, 0]
+        high = hard_bounds[:, 1]
+    else:
+        # Looping through twice here is faster than converting to
+        # numpy array and slicing for the column
+        low = [bound[0] for bound in hard_bounds]
+        high = [bound[1] for bound in hard_bounds]
 
-    def clip_at_locus(x, i):
-        """Increase or decrease x until it is within the ith bound."""
-        # Use the same bounds for all loci
-        if util.is_flat(hard_bounds):
-            return clip(x, hard_bounds)
-        # Use different bounds for each locus
-        else:
-            assert(i >= 0)
-            assert(i < len(hard_bounds)), f"Only {len(hard_bounds)} values were provided for bounds, but we've reached at least {i} genes."
-            return clip(x, hard_bounds[i])
-
-    return [ clip_at_locus(x, i) for i, x in enumerate(genome) ]
+    return np.clip(genome, a_min=low, a_max=high)

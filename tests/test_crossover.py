@@ -4,6 +4,7 @@
 import itertools
 
 import pytest
+import numpy as np
 
 from leap_ec.individual import Individual
 import leap_ec.ops as ops
@@ -14,8 +15,8 @@ import leap_ec.statistical_helpers as stat
 # Tests for uniform_crossover()
 ##############################
 def test_uniform_crossover():
-    pop = [Individual([0, 0]),
-           Individual([1, 1])]
+    pop = [Individual(np.array([0, 0])),
+           Individual(np.array([1, 1]))]
 
     # We need a cyclic generator because there are only two individuals in the population, and once the first two
     # are selected for uniform crossover, the next two parents are selected and crossed over.  The cyclic iterator
@@ -25,12 +26,12 @@ def test_uniform_crossover():
 
     # Do swap with 100% certainty, which will cause the two individuals' genomes to exchange values
     new_pop = list(itertools.islice(ops.uniform_crossover(i, p_swap=1.0), 2))
-    assert new_pop[0].genome == [1,1]
-    assert new_pop[1].genome == [0,0]
+    assert np.all(new_pop[0].genome == [1,1])
+    assert np.all(new_pop[1].genome == [0,0])
 
     # Note because we didn't clone the selected individuals, *the original population was changed*.
-    assert pop[0].genome == [1,1]
-    assert pop[1].genome == [0,0]
+    assert np.all(pop[0].genome == [1,1])
+    assert np.all(pop[1].genome == [0,0])
 
 
 def test_uniform_crossover_probability1():
@@ -44,12 +45,12 @@ def test_uniform_crossover_probability1():
 
     for i in range(N):
 
-        pop = [Individual([0, 0]),
-               Individual([1, 1])]
+        pop = [Individual(np.array([0, 0])),
+               Individual(np.array([1, 1]))]
         i = ops.naive_cyclic_selection(pop)
         new_pop = list(itertools.islice(ops.uniform_crossover(i, p_xover=0.0), 2))
 
-        if new_pop[0].genome == [0, 0] and new_pop[1].genome == [1, 1]:
+        if np.all(new_pop[0].genome == [0, 0]) and np.all(new_pop[1].genome == [1, 1]):
             unmodified_count += 1
 
     assert(unmodified_count == N)
@@ -65,19 +66,19 @@ def test_n_ary_crossover_probability2():
     # Run crossover N times on a fixed pair of two-gene individuals
     for i in range(N):
 
-        pop = [Individual([0, 0]),
-               Individual([1, 1])]
+        pop = [Individual(np.array([0, 0])),
+               Individual(np.array([1, 1]))]
         i = ops.naive_cyclic_selection(pop)
         new_pop = list(itertools.islice(ops.uniform_crossover(i, p_xover=1.0), 2))
 
         # There are four possible outcomes, which we will count the occurence of
-        if new_pop[0].genome == [0, 0] and new_pop[1].genome == [1, 1]:
+        if np.all(new_pop[0].genome == [0, 0]) and np.all(new_pop[1].genome == [1, 1]):
             observed_dist['Unmodified'] += 1
-        elif new_pop[0].genome == [1, 0] and new_pop[1].genome == [0, 1]:
+        elif np.all(new_pop[0].genome == [1, 0]) and np.all(new_pop[1].genome == [0, 1]):
             observed_dist['Only left swapped'] += 1
-        elif new_pop[0].genome == [0, 1] and new_pop[1].genome == [1, 0]:
+        elif np.all(new_pop[0].genome == [0, 1]) and np.all(new_pop[1].genome == [1, 0]):
             observed_dist['Only right swapped'] += 1
-        elif new_pop[0].genome == [1, 1] and new_pop[1].genome == [0, 0]:
+        elif np.all(new_pop[0].genome == [1, 1]) and np.all(new_pop[1].genome == [0, 0]):
             observed_dist['Both swapped'] += 1
         else:
             assert(False)
@@ -105,8 +106,8 @@ def test_n_ary_crossover_probability2():
 # def test_uniform_crossover_bad_len():
 #     """ Test assertion for mis-matched genome lengths
 #     """
-#     pop = [Individual([0, 0, 1]),
-#            Individual([1, 1])]
+#     pop = [Individual(np.array([0, 0, 1])),
+#            Individual(np.array([1, 1])])
 #
 #     i = ops.naive_cyclic_selection(pop)
 #
@@ -119,8 +120,8 @@ def test_n_ary_crossover_probability2():
 #
 #     (Separate tests for variable length crossover.)
 #     """
-#     pop = [Individual([0, 0, 1]),
-#            Individual([1, 1])]
+#     pop = [Individual(np.array([0, 0, 1])),
+#            Individual(np.array([1, 1])])
 #
 #     i = ops.naive_cyclic_selection(pop)
 #
@@ -133,8 +134,8 @@ def test_n_ary_crossover_probability2():
 ##############################
 def test_n_ary_crossover_bad_crossover_points():
     """ Test assertions for having more crossover points than genome length """
-    pop = [Individual([0, 0]),
-           Individual([1, 1])]
+    pop = [Individual(np.array([0, 0])),
+           Individual(np.array([1, 1]))]
 
     i = ops.naive_cyclic_selection(pop)
 
@@ -145,8 +146,8 @@ def test_n_ary_crossover_bad_crossover_points():
 def test_n_ary_crossover():
     """If we crossover two individuals with two bits each, the children should either be swapped copies of their parents,
     or they should exchange the second bit and keep the first bit unmodified."""
-    pop = [Individual([0, 0]),
-           Individual([1, 1])]
+    pop = [Individual(np.array([0, 0])),
+           Individual(np.array([1, 1]))]
 
     i = ops.naive_cyclic_selection(pop)
 
@@ -155,8 +156,8 @@ def test_n_ary_crossover():
     # Given that there are only two genes, one [0,0] and the other [1,1] and a single crossover point, and that the
     # only two valid crossover points are 0 or 1, then there are two possible valid states for offspring with single
     # point crossover.
-    assert pop[0].genome == [1,1] or pop[0].genome == [0,1]
-    assert pop[1].genome == [0,0] or pop[1].genome == [1,0]
+    assert np.all(pop[0].genome == [1,1]) or np.all(pop[0].genome == [0,1])
+    assert np.all(pop[1].genome == [0,0]) or np.all(pop[1].genome == [1,0])
 
 
 @pytest.mark.stochastic
@@ -167,12 +168,12 @@ def test_n_ary_crossover_probability():
 
     for i in range(N):
 
-        pop = [Individual([0, 0]),
-               Individual([1, 1])]
+        pop = [Individual(np.array([0, 0])),
+               Individual(np.array([1, 1]))]
         i = ops.naive_cyclic_selection(pop)
         new_pop = list(itertools.islice(ops.n_ary_crossover(i, num_points=1, p=0.5), 2))
 
-        if new_pop[0].genome == [0, 0] and new_pop[1].genome == [1, 1]:
+        if np.all(new_pop[0].genome == [0, 0]) and np.all(new_pop[1].genome == [1, 1]):
             unmodified_count += 1
 
     p = 0.01
