@@ -9,10 +9,11 @@ import numpy as np
 ##############################
 def _build_test_pop():
     """Construct a synthetic population for illustrating example operations."""
-    pop = [Individual(np.array([1, 0, 1, 1, 0]), problem=MaxOnes()),
-           Individual(np.array([0, 0, 1, 0, 0]), problem=MaxOnes()),
-           Individual(np.array([0, 1, 1, 1, 1]), problem=MaxOnes()),
-           Individual(np.array([1, 0, 0, 0, 1]), problem=MaxOnes())]
+    problem = MaxOnes()
+    pop = [Individual(np.array([1, 0, 1, 1, 0]), problem=problem),
+           Individual(np.array([0, 0, 1, 0, 0]), problem=problem),
+           Individual(np.array([0, 1, 1, 1, 1]), problem=problem),
+           Individual(np.array([1, 0, 0, 0, 1]), problem=problem)]
     pop = Individual.evaluate_population(pop)
 
     # Assign distinct values to an attribute on each individual
