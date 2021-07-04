@@ -1366,7 +1366,7 @@ def plot_2d_problem(problem, xlim=None, ylim=None, kind='surface',
     :type ylim: (float, float)
     :param kind: The kind of plot to create: 'surface' or 'contour'
     :type kind: str
-    :param pad: A list of extra gene values, used to fill in the hidden
+    :param pad: An array of extra gene values, used to fill in the hidden
         dimensions with contants while drawing fitness contours.
 
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
@@ -1449,7 +1449,7 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=
     :type ylim: (float, float)
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will be created).
     :param float granularity: Spacing of the grid to sample points along.
-    :param pad: A list of extra gene values, used to fill in the hidden
+    :param pad: An array of extra gene values, used to fill in the hidden
         dimensions with contants while drawing fitness contours.
 
     The difference between this and :meth:`plot_2d_problem` is that this
@@ -1469,8 +1469,9 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=
 
        plot_2d_function(sinc_hd, xlim=(-10, 10), ylim=(-10, 10), granularity=0.2)
     """
-    assert (len(xlim) == 2)
-    assert (len(ylim) == 2)
+    assert(len(xlim) == 2)
+    assert(len(ylim) == 2)
+    assert(isinstance(pad, np.ndarray)), f"Expected pad to be a numpy array.  Got {type(pad)}."
 
     if ax is None:
         fig = plt.figure()
@@ -1478,7 +1479,7 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=
 
     @np.vectorize
     def v_fun(x, y):
-        return fun([x, y] + list(pad))
+        return fun(np.append(np.array([x, y]), pad))
 
     x = np.arange(xlim[0], xlim[1], granularity)
     y = np.arange(ylim[0], ylim[1], granularity)
@@ -1506,7 +1507,7 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None, title=None, pad=()):
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
         be created).
     :param float granularity: Spacing of the grid to sample points along.
-    :param pad: A list of extra gene values, used to fill in the hidden
+    :param pad: An array of extra gene values, used to fill in the hidden
         dimensions with contants while drawing fitness contours.
 
     The difference between this and :meth:`plot_2d_problem` is that this
@@ -1530,6 +1531,7 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None, title=None, pad=()):
     """
     assert (len(xlim) == 2)
     assert (len(ylim) == 2)
+    assert(isinstance(pad, np.ndarray)), f"Expected pad to be a numpy array.  Got {type(pad)}."
 
     if ax is None:
         fig = plt.figure()
@@ -1537,7 +1539,7 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None, title=None, pad=()):
 
     @np.vectorize
     def v_fun(x, y):
-        return fun([x, y] + list(pad))
+        return fun(np.append(np.array([x, y]), pad))
 
     x = np.arange(xlim[0], xlim[1], granularity)
     y = np.arange(ylim[0], ylim[1], granularity)
