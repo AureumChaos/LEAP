@@ -7,9 +7,6 @@ and sends a phenome to it as a CSV on stdin.  The external command
 returns a real number on its stdout, which LEAP reads as the fitness
 value.
 """
-"""An example of using the LEAP framework to implement an
-evolutionary algorithm for tuning CARLsim models.
-"""
 import logging
 import os
 import sys
@@ -95,7 +92,7 @@ for phenome_str in sys.stdin:
     ea = generational_ea(max_generations=generations, pop_size=pop_size,
                             problem=problem,  # Fitness function
                             
-                            # By default, the initial population is evaluated one-at-a-time.
+                            # By default, the initial population would be evaluated one-at-a-time.
                             # Passing group_evaluate into init_evaluate evaluates the population in batches.
                             init_evaluate=ops.grouped_evaluate(problem=problem, max_individuals_per_chunk=max_individuals_per_chunk),
 
