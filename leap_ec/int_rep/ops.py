@@ -256,7 +256,7 @@ def individual_mutate_binomial(genome,
     additive = np.random.binomial(n, p, size=len(indices_to_mutate)) - int(binom_mean)
     mutated = genome[indices_to_mutate] + additive
     genome[indices_to_mutate] = mutated
-    genome = apply_hard_bounds(genome, bounds).astype(int)
+    genome = apply_hard_bounds(genome, bounds).astype(datatype)
 
     # consistency check on data type
     assert datatype == genome.dtype
