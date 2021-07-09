@@ -84,6 +84,8 @@ def individual_mutate_randint(genome,
         raise ValueError(("Expected genome to be a numpy array. "
                           f"Got {type(genome)}."))
 
+    datatype = genome.dtype
+
     if probability is None:
         p = compute_expected_probability(expected_num_mutations, genome)
     else:
@@ -93,12 +95,15 @@ def individual_mutate_randint(genome,
                                 p=(1 - p, p))
     indices_to_mutate = np.nonzero(selector)[0]
 
-    bounds = np.array(bounds)
+    bounds = np.array(bounds, dtype=int)
     selected_bounds = bounds[indices_to_mutate]
     low = selected_bounds[:, 0]
     # add one since bounds are inclusive but randint is exclusive
     high = selected_bounds[:, 1] + 1
-    genome[indices_to_mutate] = np.random.randint(low, high, size=low.shape[0])
+    genome[indices_to_mutate] = np.random.randint(low, high,
+                                                  size=low.shape[0])
+    # consistency check on data types
+    assert datatype == genome.dtype
 
     return genome
 
@@ -237,6 +242,7 @@ def individual_mutate_binomial(genome,
         raise ValueError(("Expected genome to be a numpy array. "
                           f"Got {type(genome)}."))
 
+    datatype = genome.dtype
     if probability is None:
         probability = compute_expected_probability(expected_num_mutations, genome)
     else:
@@ -250,7 +256,10 @@ def individual_mutate_binomial(genome,
     additive = np.random.binomial(n, p, size=len(indices_to_mutate)) - int(binom_mean)
     mutated = genome[indices_to_mutate] + additive
     genome[indices_to_mutate] = mutated
-    genome = apply_hard_bounds(genome, bounds)
+    genome = apply_hard_bounds(genome, bounds).astype(datatype)
+
+    # consistency check on data type
+    assert datatype == genome.dtype
 
     return genome
 
