@@ -37,6 +37,6 @@ def create_int_vector(bounds):
     def create():
         low = [bound[0] for bound in bounds]
         high = [bound[1] + 1 for bound in bounds]
-        return np.random.randint(low, high, size=(len(low),))
+        return np.random.randint(low, high, size=(len(low),), dtype=int)
 
     return create
