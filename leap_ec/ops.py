@@ -1130,6 +1130,8 @@ class CooperativeEvaluate(Operator):
                     'fitness'])
             # We print the header at construction time
             self.log_writer.writeheader()
+        else:
+            self.log_writer = None
 
     def __call__(self, next_individual: Iterator) -> Iterator:
         """Execute the evaluation operator on a subpopulation."""
