@@ -170,6 +170,7 @@ class Individual:
         """
         if other is None:  # Never equal to None
             return False
+        assert(hasattr(other, 'fitness')), f"Object {other} has no 'fitness' attribute."
         return self.problem.equivalent(self.fitness, other.fitness)
 
     def __lt__(self, other):

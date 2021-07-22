@@ -238,7 +238,7 @@ class AttributesCSVProbe(op.Operator):
     """
     An operator that records the specified attributes for all the individuals
     (or just the best individual) in `population` in CSV-format to the
-    specified stream.
+    specified stream and/or to a DataFrame.
 
     :param attributes: list of attribute names to record, as found in the
         individuals' `attributes` field
@@ -418,6 +418,7 @@ class AttributesCSVProbe(op.Operator):
             row[k] = f(row)
 
         return row
+
 
 ##############################
 # Class PopulationMetricsPlotProbe
