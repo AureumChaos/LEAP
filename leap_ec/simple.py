@@ -4,9 +4,9 @@
 """
 from matplotlib import pyplot as plt
 
-from distributed import Client
+from multiprocessing import cpu_count
 
-from leap_ec import Individual, Representation
+from leap_ec import Representation
 from leap_ec import ops, probe
 from leap_ec.algorithm import generational_ea
 from leap_ec.problem import FunctionProblem
@@ -20,7 +20,7 @@ from leap_ec.distrib import synchronous
 ##############################
 # Function ea_solve()
 ##############################
-def ea_solve(function, bounds, generations=100, pop_size=2,
+def ea_solve(function, bounds, generations=100, pop_size=cpu_count(),
              mutation_std=1.0, maximize=False, viz=False, viz_ylim=(0, 1),
              hard_bounds=True,
              dask_client=None):
