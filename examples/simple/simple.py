@@ -12,8 +12,10 @@ from leap_ec.simple import ea_solve
 # (we use this to quickly ensure our examples don't get bitrot)
 if os.environ.get(test_env_var, False) == 'True':
     generations = 2
+    viz = False
 else:
     generations = 100
+    viz = True
 
 
 ##############################
@@ -31,5 +33,5 @@ if __name__ == '__main__':
     ea_solve(function,
              generations=generations,
              bounds=[(-5.12, 5.12) for _ in range(5)],
-             viz=True,
+             viz=viz,
              mutation_std=0.1)
