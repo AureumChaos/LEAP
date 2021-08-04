@@ -6,7 +6,8 @@
     * multi_population_ea() for invoking an EA using sub-populations
     * random_search() for a more naive strategy
 """
-from leap_ec import util
+
+from leap_ec import ops, util
 from toolz import pipe
 
 from leap_ec.global_vars import context
@@ -16,8 +17,11 @@ from leap_ec.individual import Individual
 ##############################
 # Function generational_ea
 ##############################
-def generational_ea(max_generations, pop_size, problem, representation, pipeline,
-                    stop=lambda x: False, init_evaluate=Individual.evaluate_population,
+def generational_ea(max_generations, pop_size, problem, representation,
+                    pipeline,
+                    stop=lambda x: False,
+                    init_evaluate=Individual.evaluate_population,
+                    k_elites=1,
                     context=context):
     """
     This function provides an evolutionary algorithm with a generational
@@ -51,6 +55,7 @@ def generational_ea(max_generations, pop_size, problem, representation, pipeline
         `Individual.evaluate_population` is suitable for many cases, but you
         may wish to pass a different operator in for distributed evaluation
         or other purposes.
+    :param k_elites: keep k elites
 
     :return: a generator of `(int, individual_cls)` pairs representing the
         best individual at each generation.
@@ -119,9 +124,12 @@ def generational_ea(max_generations, pop_size, problem, representation, pipeline
     bsf = max(parents)
     yield (0, bsf)
 
-    while (generation_counter.generation() < max_generations) and not stop(parents):
+    while (generation_counter.generation() < max_generations) and not stop(
+            parents):
         # Execute the operators to create a new offspring population
-        offspring = pipe(parents, *pipeline)
+        offspring = pipe(parents, *pipeline,
+                         ops.elitist_survival(parents=parents,
+                                              k=k_elites))
 
         if max(offspring) > bsf:  # Update the best-so-far individual
             bsf = max(offspring)
@@ -155,7 +163,7 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
         Can pass in float('Inf') to run forever or until the `stop` condition is reached.
     :param int num_populations: The number of separate populations to maintain.
     :param int pop_size: Size of the initial population
-    :param int stop: A function that accepts a list of populations and 
+    :param int stop: A function that accepts a list of populations and
         returns True iff it's time to stop evolving.
     :param `Problem` problem: the Problem that should be used to evaluate
         individuals' fitness
@@ -202,7 +210,7 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
     >>> ea = multi_population_ea(max_generations=1000,
     ...                         num_populations=topology.number_of_nodes(),
     ...                         pop_size=pop_size,
-    ... 
+    ...
     ...                         problem=problem,
     ...
     ...                         representation=Representation(
@@ -268,7 +276,8 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
     bsf = [max(p) for p in pops]
     yield (0, bsf)
 
-    while (generation_counter.generation() < max_generations) and not stop(pops):
+    while (generation_counter.generation() < max_generations) and not stop(
+            pops):
         # Execute each population serially
         for i, parents in enumerate(pops):
             # Indicate the subpopulation we are currently executing in the
@@ -366,7 +375,7 @@ def random_search(evaluations, problem, representation, pipeline=(),
 # Function stop_at_generation()
 ##############################
 def stop_at_generation(max_generation: int, context=context):
-    """A stopping criterion function that checks the 'generation' count in the `context` 
+    """A stopping criterion function that checks the 'generation' count in the `context`
     object and returns True iff it is >= `max_generation`.
 
     The resulting function takes a `population` argument, which is ignored.
@@ -392,8 +401,8 @@ def stop_at_generation(max_generation: int, context=context):
     >>> stop([])
     True
     """
-    assert(max_generation >= 0)
-    assert(context is not None)
+    assert (max_generation >= 0)
+    assert (context is not None)
 
     def stop(population):
         return not (context['leap']['generation'] < max_generation)
