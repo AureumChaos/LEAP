@@ -86,7 +86,7 @@ def ea_solve(function, bounds, generations=100, pop_size=2,
         ops.tournament_selection,
         ops.clone,
         mutation_op,
-        ops.uniform_crossover(p_swap=0.4),
+        ops.uniform_crossover(p_swap=0.2),
     ]
 
     # If a dask client is given, then use the synchronous (map/reduce) parallel
@@ -107,7 +107,7 @@ def ea_solve(function, bounds, generations=100, pop_size=2,
                          problem=FunctionProblem(function, maximize),
 
                          representation=Representation(
-                             individual_cls=Individual,
+                             individual_cls=DistributedIndividual,
                              initialize=create_real_vector(bounds=bounds)
                          ),
 
