@@ -12,6 +12,8 @@ Being a terse compilation by version of changes.
   * Made `numpy` arrays (instead of lists) the default representation for most LEAP operators and examples, for a significant speedup.
   * Added `indices` parameter to `ops.random_selection()`
   * `plot_2d_problem()` now defaults to checking the `problem.bounds` field for `xlim` and `ylim` values
+  * `ea_solve()` now accepts optional Dask `Client` object to enable 
+    parallel evaluations
 
 
 ## 0.6.0, 6/13/2021
