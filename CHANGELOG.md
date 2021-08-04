@@ -14,6 +14,7 @@ Being a terse compilation by version of changes.
   * `plot_2d_problem()` now defaults to checking the `problem.bounds` field for `xlim` and `ylim` values
   * `ea_solve()` now accepts optional Dask `Client` object to enable 
     parallel evaluations
+  * `generational_ea()` now supports elitism by default
 
 
 ## 0.6.0, 6/13/2021
