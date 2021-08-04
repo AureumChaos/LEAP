@@ -2,8 +2,13 @@
     This is the simplest example of using LEAP, where one can rely on the
     very high-level function, ea_solve(), to optimize the given real-valued
     function.
+
+    This differs from simple.py in that we use parallel evaluations, which is
+    as simple as passing in a dask Client for the `dask_client` argument.
 """
 import os
+
+from distributed import Client
 
 from leap_ec import test_env_var
 from leap_ec.simple import ea_solve
@@ -34,4 +39,5 @@ if __name__ == '__main__':
              generations=generations,
              bounds=[(-5.12, 5.12) for _ in range(5)],
              viz=viz,
-             mutation_std=0.1)
+             mutation_std=0.1,
+             dask_client=Client())
