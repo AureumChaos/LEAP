@@ -238,7 +238,7 @@ class AttributesCSVProbe(op.Operator):
     """
     An operator that records the specified attributes for all the individuals
     (or just the best individual) in `population` in CSV-format to the
-    specified stream.
+    specified stream and/or to a DataFrame.
 
     :param attributes: list of attribute names to record, as found in the
         individuals' `attributes` field
@@ -279,7 +279,8 @@ class AttributesCSVProbe(op.Operator):
 
     >>> from leap_ec.global_vars import context
     >>> from leap_ec.data import test_population
-    >>> probe = AttributesCSVProbe(do_dataframe=True, best_only=True, do_fitness=True, do_genome=True)
+    >>> probe = AttributesCSVProbe(do_dataframe=True, best_only=True,
+    ...                            do_fitness=True, do_genome=True)
     >>> context['leap']['generation'] = 100
     >>> probe(test_population) == test_population
     True
@@ -287,8 +288,8 @@ class AttributesCSVProbe(op.Operator):
     You can retrieve the result programatically from the `dataframe` property:
 
     >>> probe.dataframe
-       step  fitness           genome
-    0   100        4  [0, 1, 1, 1, 1]
+       step  fitness       genome
+    0   100        4  [0 1 1 1 1]
 
     By default, the results are also written to `sys.stdout`.  You can pass
     any file object you like into the `stream` parameter.
@@ -417,6 +418,7 @@ class AttributesCSVProbe(op.Operator):
             row[k] = f(row)
 
         return row
+
 
 ##############################
 # Class PopulationMetricsPlotProbe
@@ -803,7 +805,8 @@ class CartesianPhenotypePlotProbe:
         if contours:
             @np.vectorize
             def v_fun(x, y):
-                return contours.evaluate([x, y] + list(pad))
+                phenome = np.concatenate((np.hstack((x,y)), pad))
+                return contours.evaluate(phenome)
 
             if granularity is None:
                 granularity = (contours.bounds[1] - contours.bounds[0]) / 50.
@@ -936,7 +939,7 @@ def best_of_gen(population):
 
     >>> from leap_ec.data import test_population
     >>> print(best_of_gen(test_population))
-    [0, 1, 1, 1, 1] 4
+    [0 1 1 1 1] 4
     """
     assert (len(population) > 0)
     return max(population)

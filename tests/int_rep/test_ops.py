@@ -1,6 +1,7 @@
 """Unit tests for operators in the integer representation package."""
 from collections import Counter
 
+import numpy as np
 import pytest
 from scipy import stats
 import toolz
@@ -25,8 +26,8 @@ def collect_two_gene_mutation_counts(mutator, N: int):
 
     for _ in range(N):
         # Set up two parents with fixed genomes, two genes each
-        ind1 = Individual([0, 0])
-        ind2 = Individual([1, 1])
+        ind1 = Individual(np.array([0, 0]))
+        ind2 = Individual(np.array([1, 1]))
         population = iter([ind1, ind2])
 
         # Mutate the parents
@@ -58,7 +59,7 @@ def test_mutate_randint1():
     N = 1000  # We'll sample 1,000 independent genomes
     mutator = intrep_ops.mutate_randint(bounds=[(0, 1), (0, 1)], expected_num_mutations=1)
     observed = collect_two_gene_mutation_counts(mutator, N)
-    
+
     # Expected distribution of mutations.
     # We arrive at this by the following reasoning: each gene has a 1/L = 0.5
     # chance of not being mutated, in which case it keeps it original value.
@@ -135,7 +136,7 @@ def test_mutate_randint4():
     N = 1000  # We'll sample 1,000 independent genomes
     mutator = intrep_ops.mutate_randint(bounds=[(0, 1), (0, 1)], probability=1.0)
     observed = collect_two_gene_mutation_counts(mutator, N)
-    
+
     # Expected distribution of mutations.
     # We arrive at this by the following reasoning: each gene has a 0.8
     # chance of not being mutated, in which case it keeps it original value.
@@ -156,8 +157,8 @@ def test_mutate_randint5():
     an exception should occur when the operator is used."""
 
     mutator = intrep_ops.mutate_randint(bounds=[(0, 1), (0, 1)])
-    ind1 = Individual([0, 0])
-    ind2 = Individual([1, 1])
+    ind1 = Individual(np.array([0, 0]))
+    ind2 = Individual(np.array([1, 1]))
     population = iter([ind1, ind2])
     result = mutator(population)
 
@@ -173,21 +174,21 @@ def test_mutate_randint6():
     mutator = intrep_ops.mutate_randint(bounds=[(0, 1), (0, 1)],
                                         expected_num_mutations=1,
                                         probability=0.1)
-    ind1 = Individual([0, 0])
-    ind2 = Individual([1, 1])
+    ind1 = Individual(np.array([0, 0]))
+    ind2 = Individual(np.array([1, 1]))
     population = iter([ind1, ind2])
     result = mutator(population)
 
     with pytest.raises(ValueError):
         # Pulse the iterator so mutation gets executed
         result = list(result)
-    
+
 
 def test_mutate_randint_pipe():
     """  This tests pipeline integration
     """
-    ind1 = Individual([0, 0, 0])
-    ind2 = Individual([1, 1, 1])
+    ind1 = Individual(np.array([0, 0, 0]))
+    ind2 = Individual(np.array([1, 1, 1]))
     population = iter([ind1, ind2])
 
     bounds = [(-100, 100), (0, 25), (-10, 10)]
@@ -212,8 +213,8 @@ def test_mutate_randint_pipe():
 def test_mutate_binomial_bounds():
     """If we apply a wide mutation distribution repeatedly, it should never stray
     outside of the provided bounds.
-    
-    This test runs the stochastic function repeatedly, but we don't mark it as a 
+
+    This test runs the stochastic function repeatedly, but we don't mark it as a
     stochastic test because it's and should never fail unless there is actually a
     fault."""
     operator = intrep_ops.mutate_binomial(std=20, bounds=[(0, 10), (2, 20)],
@@ -221,7 +222,7 @@ def test_mutate_binomial_bounds():
 
     N = 100
     for i in range(N):
-        population = iter([ Individual([5,10]) ])
+        population = iter([ Individual(np.array([5,10])) ])
         mutated = next(operator(population))
         assert(mutated.genome[0] >= 0)
         assert(mutated.genome[0] <= 10)
@@ -244,16 +245,16 @@ def test_mutate_binomial_dist():
 
     # Any value could appear, but we'll focus on measuring just a few
     # nearby values
-    genome = [5, 10]
+    genome = np.array([5, 10])
     gene0_observed_dist = { '3': 0, '4': 0, '5': 0, '6': 0, '7':0 }
     gene1_observed_dist = { '8': 0, '9': 0, '10': 0, '11': 0, '12': 0 }
 
     # Count the observed mutations in N trials
     for i in range(N):
-        population = iter([ Individual(genome) ])
+        population = iter([ Individual(genome.copy()) ])
         mutated = next(operator(population))
         gene0, gene1 = mutated.genome
-        gene0, gene1 = str(gene0), str(gene1)
+        gene0, gene1 = str(int(gene0)), str(int(gene1))
 
         # Count the observed values of the first gene
         if gene0 in gene0_observed_dist.keys():
@@ -286,8 +287,8 @@ def test_mutate_binomial_err1():
     an exception should occur when the operator is used."""
 
     mutator = intrep_ops.mutate_binomial(std=1, bounds=[(0, 1), (0, 1)])
-    ind1 = Individual([0, 0])
-    ind2 = Individual([1, 1])
+    ind1 = Individual(np.array([0, 0]))
+    ind2 = Individual(np.array([1, 1]))
     population = iter([ind1, ind2])
     result = mutator(population)
 
@@ -303,8 +304,8 @@ def test_mutate_binomial_err2():
     mutator = intrep_ops.mutate_binomial(std=1, bounds=[(0, 1), (0, 1)],
                                         expected_num_mutations=1,
                                         probability=0.1)
-    ind1 = Individual([0, 0])
-    ind2 = Individual([1, 1])
+    ind1 = Individual(np.array([0, 0]))
+    ind2 = Individual(np.array([1, 1]))
     population = iter([ind1, ind2])
     result = mutator(population)
 

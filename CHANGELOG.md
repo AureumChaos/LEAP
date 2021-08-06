@@ -2,12 +2,26 @@
 
 Being a terse compilation by version of changes.
 
-## 0.7.0
+## 0.8.0dev  (current develop branch)
+
+## 0.7.0, 8/5/2021
+
+* New features
+  * Added `ops.sus_selection()` and `ops.proportional_selection()`
+
+* API changes
+  * Made `numpy` arrays (instead of lists) the default representation for most LEAP operators and examples, for a significant speedup.
+  * Added `indices` parameter to `ops.random_selection()`
+  * `plot_2d_problem()` now defaults to checking the `problem.bounds` field for `xlim` and `ylim` values
+  * `ea_solve()` now accepts optional Dask `Client` object to enable 
+    parallel evaluations
+  * `generational_ea()` now supports elitism by default
+
 
 ## 0.6.0, 6/13/2021
 
 * Drop support for Python 3.6
-  * This keeps us in sync with numpy and dask that also dropped support for 3.6 this year
+  * This keeps us in sync with `numpy` and `dask`, which also dropped support for 3.6 this year
 
 * New features
   * Added `landscape_features` package with some initial exploratory landscape analysis tools
@@ -19,7 +33,7 @@ Being a terse compilation by version of changes.
   * Added support for lexicographical and Koza-style parsimony pressure
   * Added `HistPhenotypePlotProbe`
   * Added `ops.grouped_evaluate()` for evaluating batches of individuals
-  * Added `ExternalProcessproblem` for using external programs as fitness functions
+  * Added `ExternalProcessProblem` for using external programs as fitness functions
 
 * Documentation
   * Added documentation on `leap_ec.context` and updated software development
@@ -33,10 +47,10 @@ Being a terse compilation by version of changes.
   * Improved test coverage
 
 * Bugfixes
-  * Fix `viz` parameter when calling `simple.ea_solve()`
-  * Fix algebra error in `real_rep.problems.NoisyQuarticProblem`
-  * Tell `dask` that functions are impure by default, to make sure it doesn't cache results
-  * Change `Makefile` to use `pip install -e .` instead of the deprecated `python setup.py develop`
+  * Fixed `viz` parameter when calling `simple.ea_solve()`
+  * Fixed algebra error in `real_rep.problems.NoisyQuarticProblem`
+  * Told `dask` that functions are impure by default, to make sure it doesn't cache results
+  * Changed `Makefile` to use `pip install -e .` instead of the deprecated `python setup.py develop`
 
 * API changes
   * Significantly refactored the `executable_rep.rules` package to simplify learning classifier systems
@@ -69,15 +83,20 @@ Being a terse compilation by version of changes.
 
 ## 0.5.0, 1/9/2021
 
-* Added probability parameter for the `n_ary_crossover` operator
-* Greatly improved test coverage
-* Added support for static- and variable-length segments, which are fixed-length "chunks" of values
-* Added a simple neural network representation, `executable_rep.neural_network`, and made it the default for `examples/openai_gym.py`
-* Changed the `Executable` interface to act as a `Callable` object (rather than using a custom `output()` method)
-* Added `statistical_helpers` to assist with writing unit tests for stochastic algorithms
-* Added support for integer representations, via the `int_rep` package
-* Added a Cartesian genetic programming (CGP) representation, `executable_rep.cgp`, with example in `examples/cgp.py`
-* Added support for heterogeneous island models, demoed in `examples/multitask_island_model.py`
+* New features
+  * Added support for static- and variable-length segments, which are fixed-length "chunks" of values
+  * Added support for integer representations, via the `int_rep` package
+  * Added a simple neural network representation, `executable_rep.neural_network`, and made it the default for `examples/openai_gym.py`
+  * Added a Cartesian genetic programming (CGP) representation, `executable_rep.cgp`, with example in `examples/cgp.py`
+  * Added support for heterogeneous island models, demoed in `examples/multitask_island_model.py`
+
+* CI/CD
+  * Greatly improved test coverage
+  * Added `statistical_helpers` to assist with writing unit tests for stochastic algorithms
+
+* API changes
+  * Added probability parameter for the `n_ary_crossover` operator
+  * Changed the `Executable` interface to act as a `Callable` object (rather than using a custom `output()` method)
 
 
 ## 0.4.0, 9/19/2020

@@ -2,6 +2,7 @@ from collections import Counter
 import itertools
 from math import floor, ceil
 
+import numpy as np
 import networkx as nx
 import pytest
 
@@ -23,7 +24,7 @@ def test_num_genes1():
 def test_decode1():
     """A linear genome with just one input, node, and output, should yield a
     graph connected all three."""
-    genome = [0, 0, 1]
+    genome = np.array([0, 0, 1])
     decoder = cgp.CGPDecoder(primitives=[lambda x: not x], num_inputs=1, num_outputs=1, num_layers=1, nodes_per_layer=1, max_arity=1)
     phenome = decoder.decode(genome)
 
@@ -38,11 +39,11 @@ def test_2layer_circuit():
     """A simple CGP circuit that computes AND and is made up of four NAND gates."""
     nand = lambda x, y: not (x and y)
     primitives = [ nand ]
-    genome = [ 0, 0, 1,  # Node 2
-               0, 1, 0,  # Node 3
-               0, 2, 3,  # Node 4
-               0, 3, 2,  # Node 5
-               5 ]  # Output is node 5
+    genome = np.array([ 0, 0, 1,  # Node 2
+                        0, 1, 0,  # Node 3
+                        0, 2, 3,  # Node 4
+                        0, 3, 2,  # Node 5
+                        5 ])  # Output is node 5
 
     decoder = cgp.CGPDecoder(primitives=primitives,
                              num_inputs=2,
@@ -147,8 +148,10 @@ def test_cgp_mutate1(test_2layer_circuit):
 
     N = 5000
     mutator = cgp.cgp_mutate(decoder, expected_num_mutations=1)
-    parents = ( Individual(genome[:]) for _ in range(N) )  # Copying the parent N times, since mutation is destructive
+    # Copying the parent N times, since mutation is destructive
+    parents = ( Individual(genome.copy()) for _ in range(N) )
     offspring = list(mutator(parents))
+    print(offspring)
 
     observed = {}
     observed[0] = Counter([ ind.genome[0] for ind in offspring ])

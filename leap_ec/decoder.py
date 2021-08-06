@@ -44,20 +44,21 @@ class Decoder(abc.ABC):
     >>> from leap_ec.binary_rep.decoders import BinaryToRealDecoder
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.real_rep.problems import SchwefelProblem
-    >>> genome = [0, 1, 1, 0, 1, 0, 1, 1]
+    >>> import numpy as np
+    >>> genome = np.array([0, 1, 1, 0, 1, 0, 1, 1])
     >>> decoder = BinaryToRealDecoder((4, -5.12, 5.12), (4, -5.12, 5.12))  # Every 4 bits map to a float on (-5.12, 5.12)
     >>> ind = Individual(genome, decoder=decoder, problem=SchwefelProblem())
 
     Now we can decode the individual to examine its phenotype:
 
     >>> ind.decode()
-    [-1.024, 2.389333333333333]
+    array([-1.024     ,  2.38933333])
 
     This call is just a wrapper for the :py:class:`~leap_ec.Decoder`,
     which has the same output:
 
     >>> decoder.decode(genome)
-    [-1.024, 2.389333333333333]
+    array([-1.024     ,  2.38933333])
 
     But now :py:class:`~leap.Individual` also has everything it needs to
     evaluate its own fitness:
@@ -98,9 +99,10 @@ class IdentityDecoder(Decoder):
 
         For example:
 
+        >>> import numpy as np
         >>> d = IdentityDecoder()
-        >>> d.decode([0.5, 0.6, 0.7])
-        [0.5, 0.6, 0.7]
+        >>> d.decode(np.array([0.5, 0.6, 0.7]))
+        array([0.5, 0.6, 0.7])
         """
         return genome
 

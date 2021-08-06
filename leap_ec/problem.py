@@ -280,10 +280,10 @@ class AverageFitnessProblem(Problem):
         fitnesses = [ self.wrapped_problem.evaluate(phenome) for _ in range(self.n) ]
         return np.mean(fitnesses)
 
-    def multiple_evaluate(self, phenomes: list):
+    def evaluate_multiple(self, phenomes: list):
         """
         Evaluate a collections of phenomes by creating n jobs for each phenome,
-        sending all the jobs to the wrapped multiple_evaluate() function, and then
+        sending all the jobs to the wrapped evaluate_multiple() function, and then
         averaging the n results for each phenome into a list of results.
         """
         def mean_by_chunk(l):
@@ -298,7 +298,7 @@ class AverageFitnessProblem(Problem):
         expanded_phenomes = [ p for p in phenomes for _ in range(self.n) ]
 
         # Evaluate them
-        fitnesses = self.wrapped_problem.multiple_evaluate(expanded_phenomes)
+        fitnesses = self.wrapped_problem.evaluate_multiple(expanded_phenomes)
 
         # Average the copies back together
         contracted_phenomes = mean_by_chunk(fitnesses)

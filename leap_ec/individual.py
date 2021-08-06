@@ -2,9 +2,11 @@
 """
     Defines `Individual`
 """
-from math import nan, isnan
+from math import nan
 from copy import deepcopy
 from functools import total_ordering
+
+import numpy as np
 
 from leap_ec.decoder import IdentityDecoder
 
@@ -31,9 +33,12 @@ class Individual:
 
         >>> from leap_ec.binary_rep.problems import MaxOnes
         >>> from leap_ec.decoder import IdentityDecoder
-        >>> ind = Individual([0, 0, 1, 0, 1], decoder=IdentityDecoder(), problem=MaxOnes())
+        >>> import numpy as np
+        >>> genome = np.array([0, 0, 1, 0, 1])
+        >>> ind = Individual(genome, decoder=IdentityDecoder(),
+        ...                  problem=MaxOnes())
         >>> ind.genome
-        [0, 0, 1, 0, 1]
+        array([0, 0, 1, 0, 1])
 
         Fitness defaults to `None`:
 
@@ -42,7 +47,7 @@ class Individual:
 
         :param genome: is the genome representing the solution.  This can be
             any arbitrary type that your mutation operators, probes, etc.,
-            know how to read and manipulate---a list, class, etc.
+            know how to read and manipulate---a list, class, numpy array, etc.
 
         :param decoder: is a function or `callable` that converts a genome
             into a phenome.
@@ -51,11 +56,13 @@ class Individual:
         """
         # Type checking to avoid difficult-to-debug errors
         if isinstance(decoder, type):
-            raise ValueError(
-                f"Got the type '{decoder}' as a decoder, but expected an instance.")
+            raise ValueError((
+                f"Got the type '{decoder}' as a decoder, but expected an"
+                " instance."))
         if isinstance(problem, type):
-            raise ValueError(
-                f"Got the type '{problem}' as a problem, but expected an instance.")
+            raise ValueError((
+                f"Got the type '{problem}' as a problem, but expected an"
+                " instance."))
         # Core data
         self.genome = genome
         self.problem = problem
@@ -74,8 +81,8 @@ class Individual:
         :param problem: The problem to attach individuals to
         :return: A list of n individuals of this class's (or subclass's) type
         """
-        return [cls(genome=initialize(), decoder=decoder, problem=problem) for _
-                in range(n)]
+        return [cls(genome=initialize(), decoder=decoder, problem=problem)
+                for _ in range(n)]
 
     @classmethod
     def evaluate_population(cls, population):
@@ -100,10 +107,12 @@ class Individual:
 
         >>> from leap_ec.binary_rep.problems import MaxOnes
         >>> from leap_ec.decoder import IdentityDecoder
-        >>> ind = Individual([0, 1, 1, 0], IdentityDecoder(), MaxOnes())
+        >>> import numpy as np
+        >>> genome = np.array([0, 1, 1, 0])
+        >>> ind = Individual(genome, IdentityDecoder(), MaxOnes())
         >>> ind_copy = ind.clone()
         >>> ind_copy.genome == ind.genome
-        True
+        array([ True,  True,  True,  True])
         >>> ind_copy.problem == ind.problem
         True
         >>> ind_copy.decoder == ind.decoder
@@ -161,6 +170,7 @@ class Individual:
         """
         if other is None:  # Never equal to None
             return False
+        assert(hasattr(other, 'fitness')), f"Object {other} has no 'fitness' attribute."
         return self.problem.equivalent(self.fitness, other.fitness)
 
     def __lt__(self, other):
@@ -171,10 +181,13 @@ class Individual:
 
         >>> from leap_ec.binary_rep.problems import MaxOnes
         >>> from leap_ec.decoder import IdentityDecoder
+        >>> import numpy as np
         >>> f = MaxOnes(maximize=True)
-        >>> ind_A = Individual([0, 0, 1, 0, 1], IdentityDecoder(), problem=f)
+        >>> genome_A = np.array([0, 0, 1, 0, 1])
+        >>> ind_A = Individual(genome_A, IdentityDecoder(), problem=f)
         >>> ind_A.fitness = 2
-        >>> ind_B = Individual([1, 1, 1, 1, 1], IdentityDecoder(), problem=f)
+        >>> genome_B = np.array([1, 1, 1, 1, 1])
+        >>> ind_B = Individual(genome_B, IdentityDecoder(), problem=f)
         >>> ind_B.fitness = 5
         >>> ind_A > ind_B
         False
@@ -186,9 +199,9 @@ class Individual:
         depends on the underlying `Problem`.
 
         >>> f = MaxOnes(maximize=False)
-        >>> ind_A = Individual([0, 0, 1, 0, 1], IdentityDecoder(), problem=f)
+        >>> ind_A = Individual(genome_A, IdentityDecoder(), problem=f)
         >>> ind_A.fitness = 2
-        >>> ind_B = Individual([1, 1, 1, 1, 1], IdentityDecoder(), problem=f)
+        >>> ind_B = Individual(genome_B, IdentityDecoder(), problem=f)
         >>> ind_B.fitness = 5
         >>> ind_A > ind_B
         True
@@ -227,15 +240,15 @@ class RobustIndividual(Individual):
         * self.fitness is set to math.nan
         * self.exception is assigned the exception
     """
-    def __init__(self, genome, decoder=None, problem=None):
+    def __init__(self, genome, decoder=IdentityDecoder(), problem=None):
         super().__init__(genome, decoder=decoder, problem=problem)
 
     def evaluate(self):
         """ determine this individual's fitness
 
         Note that if an exception is thrown during evaluation, the fitness is
-        set to NaN and `self.is_viable` to False; also, the returned exception is
-        assigned to `self.exception` for possible later inspection.  If the
+        set to NaN and `self.is_viable` to False; also, the returned exception
+        is assigned to `self.exception` for possible later inspection.  If the
         individual was successfully evaluated, `self.is_viable` is set to true.
         NaN fitness values will figure into comparing individuals in that NaN
         will always be considered worse than non-NaN fitness values.

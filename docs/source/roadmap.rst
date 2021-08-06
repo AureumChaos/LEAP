@@ -1,61 +1,9 @@
 Roadmap
 =======
+Please see the CHANGELOG.md for a history of feature implementations.
 
-The LEAP development roadmap is as follows:
+Future features, in no particular order of priority:
 
-1. pre-Minimally Viable Product -- released 1/14/2020 as ``0.1-pre``
-    * basic support for binary representations
-        * bit bitflip mutation
-        * point-wise crossover
-        * uniform crossover
-    * basic support for real-valued representations
-        * mutate gaussian
-    * selection operators
-        * truncation selection
-        * tournament_selection selection
-        * random selection
-        * deterministic cyclic selection
-        * insertion selection
-    * continuous integration via Travis
-    * common test functions
-        * binary
-            * MAXONES
-        * real-valued, optionally translated, rotated, and scaled
-            * Ackley
-            * Cosine
-            * Griewank
-            * Langermann
-            * Lunacek
-            * Noisy Quartic
-            * Rastrigin
-            * Rosenbock
-            * Schwefel
-            * Shekel
-            * Spheroid
-            * Step
-            * Weierstrass
-    * test harnesses
-        * ``pytest`` supported
-    * simple usage examples
-        * canonical EAs
-            * genetic algorithms (GA)
-            * evolutionary programming (EP)
-            * evolutionary strategies (ES)
-        * simple island model
-        * basic run-time visualizations
-        * use with Jupyter notebooks
-    * documentation outline/stubs for ReadTheDocs
-2. Minimally Viable Product, second part -- released 6/14/2020 as ``0.2.0``
-    * distributed / parallel fitness evaluations
-        * distribute local cores vs. distributed cluster nodes
-        * synchronous vs. asynchronous evaluations
-    * variable-length genomes
-    * Gray encoding
-3. Version 0.6.0 -- released 6/13/2021
-    * parsimony pressure
-    * elitism
-    * integer representation
-4. Future features, in no particular order of priority
     * multi-objective optimization
     * minimally complete documentation
         * fleshed out ReadTheDocs documentation

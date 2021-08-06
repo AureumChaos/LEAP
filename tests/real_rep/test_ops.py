@@ -2,6 +2,8 @@
 import pytest
 from scipy import stats
 
+import numpy as np
+
 from leap_ec.individual import Individual
 from leap_ec.real_rep import ops
 
@@ -21,7 +23,7 @@ def test_mutate_gaussian():
 
     for _ in range(N):
         # Set up two parents with fixed genomes, two genes each
-        ind1 = Individual([0, 0.5])
+        ind1 = Individual(np.array([0, 0.5]))
         population = iter([ind1])
         
         # Mutate

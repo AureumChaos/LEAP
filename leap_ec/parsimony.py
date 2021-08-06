@@ -18,20 +18,22 @@ def lexical_parsimony(ind):
 
     >>> import toolz
     >>> from leap_ec.individual import Individual
-    >>> from leap_ec.decoder import IdentityDecoder
     >>> from leap_ec.binary_rep.problems import MaxOnes
     >>> import leap_ec.ops as ops
+    >>> import numpy as np
     >>> problem = MaxOnes()
-    >>> decoder = IdentityDecoder()
-    >>> pop = [Individual([0, 0, 0, 1, 1, 1], problem=problem, decoder=decoder), Individual([0, 0], problem=problem, decoder=decoder), Individual([1, 1], problem=problem, decoder=decoder), Individual([1, 1, 1], decoder=decoder, problem=problem)]
+    >>> pop = [Individual(np.array([0, 0, 0, 1, 1, 1]), problem=problem),
+    ...        Individual(np.array([0, 0]), problem=problem),
+    ...        Individual(np.array([1, 1]), problem=problem),
+    ...        Individual(np.array([1, 1, 1]), problem=problem)]
     >>> pop = Individual.evaluate_population(pop)
     >>> best = ops.truncation_selection(pop, size=1)
     >>> print(f'{best[0]!s}')
-    [0, 0, 0, 1, 1, 1] 3
+    [0 0 0 1 1 1] 3
 
     >>> best = ops.truncation_selection(pop, size=1, key=lexical_parsimony)
     >>> print(f'{best[0]!s}')
-    [1, 1, 1] 3
+    [1 1 1] 3
 
     .. [Luke2002]
         Luke, S., & Panait, L. (2002, July). Lexicographic parsimony pressure.
@@ -59,17 +61,20 @@ def koza_parsimony(ind, *, penalty):
     >>> from leap_ec.decoder import IdentityDecoder
     >>> from leap_ec.binary_rep.problems import MaxOnes
     >>> import leap_ec.ops as ops
+    >>> import numpy as np
     >>> problem = MaxOnes()
-    >>> decoder = IdentityDecoder()
-    >>> pop = [Individual([0, 0, 0, 1, 1, 1], problem=problem, decoder=decoder), Individual([0, 0], problem=problem, decoder=decoder), Individual([1, 1], problem=problem, decoder=decoder), Individual([1, 1, 1], decoder=decoder, problem=problem)]
+    >>> pop = [Individual(np.array([0, 0, 0, 1, 1, 1]), problem=problem),
+    ...        Individual(np.array([0, 0]), problem=problem),
+    ...        Individual(np.array([1, 1]), problem=problem),
+    ...        Individual(np.array([1, 1, 1]), problem=problem)]
     >>> pop = Individual.evaluate_population(pop)
     >>> best = ops.truncation_selection(pop, size=1)
     >>> print(f'{best[0]!s}')
-    [0, 0, 0, 1, 1, 1] 3
+    [0 0 0 1 1 1] 3
 
     >>> best = ops.truncation_selection(pop, size=1, key=koza_parsimony(penalty=.5))
     >>> print(f'{best[0]!s}')
-    [1, 1, 1] 3
+    [1 1 1] 3
 
     .. [Koza1992]
         J. R. Koza. Genetic Programming: On the Programming of
