@@ -20,6 +20,7 @@ These are the things to do when performing a release.
           2. Copy CHANGELOG entry
     2. ReadTheDocs `master` and `latest` docs
     3. update pypi.org
+       1. https://packaging.python.org/tutorials/packaging-projects/
     4. update roadmap 
 1. change to next release + 'dev' to emphasize working on next release on 
    `develop` branch
