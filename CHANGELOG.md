@@ -2,8 +2,9 @@
 
 Being a terse compilation by version of changes.
 
+## 0.8.0dev  (current develop branch)
 
-## 0.7.0dev (current develop branch)
+## 0.7.0, 8/5/2021
 
 * New features
   * Added `ops.sus_selection()` and `ops.proportional_selection()`
