@@ -1,6 +1,6 @@
 Decoders
 ========
-This section covers `Decoder`s in more detail.
+This section covers the `Decoder` class in more detail.
 
 Class Summary
 -------------
@@ -8,7 +8,7 @@ Class Summary
 .. figure:: _static/decoder_class_diagram.svg
     :align: center
 
-    **Figure 1: The `Decoder` abstract-base class**  This class diagram shows the
+    **Figure 1: The Decoder abstract-base class**  This class diagram shows the
     detail for `Decoder`, which is an abstract base class (ABC).  It has just
     a single abstract function, `decode()`, that is intended to be defined by
     subclasses.
@@ -34,6 +34,7 @@ Decoder
 .. autoclass:: leap_ec.decoder.Decoder
     :members:
     :undoc-members:
+    :noindex:
 
     .. automethod:: __init__
 
@@ -46,6 +47,7 @@ IdentityDecoder
 .. autoclass:: leap_ec.decoder.IdentityDecoder
     :members:
     :undoc-members:
+    :noindex:
 
     .. automethod:: __init__
 
@@ -57,6 +59,7 @@ BinaryToIntDecoder
 .. autoclass:: leap_ec.binary_rep.decoders.BinaryToIntDecoder
     :members:
     :undoc-members:
+    :noindex:
 
     .. automethod:: __init__
 
@@ -68,6 +71,7 @@ BinaryToRealDecoderCommon
 .. autoclass:: leap_ec.binary_rep.decoders.BinaryToRealDecoderCommon
     :members:
     :undoc-members:
+    :noindex:
 
     .. automethod:: __init__
 
@@ -79,6 +83,7 @@ BinaryToRealDecoder
 .. autoclass:: leap_ec.binary_rep.decoders.BinaryToRealDecoder
     :members:
     :undoc-members:
+    :noindex:
 
     .. automethod:: __init__
 
@@ -90,6 +95,7 @@ BinaryToIntGreyDecoder
 .. autoclass:: leap_ec.binary_rep.decoders.BinaryToIntGreyDecoder
     :members:
     :undoc-members:
+    :noindex:
 
     .. automethod:: __init__
 
@@ -101,6 +107,6 @@ BinaryToRealGreyDecoder
 .. autoclass:: leap_ec.binary_rep.decoders.BinaryToRealGreyDecoder
     :members:
     :undoc-members:
+    :noindex:
 
     .. automethod:: __init__
-
