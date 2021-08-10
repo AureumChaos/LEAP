@@ -44,7 +44,7 @@ def ea_solve(function, bounds, generations=100, pop_size=cpu_count(),
     :param (float, float) viz_ylim: initial bounds to use of the plots
         vertical axis
 
-    :param dask_client: is optional dask Client for enable parallel evaluations
+    :param dask_client: is optional dask Client to enable parallel evaluations
 
     The basic call includes instrumentation that prints the best-so-far fitness
     value of each generation to stdout:
