@@ -78,7 +78,7 @@ BinaryToRealDecoderCommon
 BinaryToRealDecoder
 ^^^^^^^^^^^^^^^^^^^
 
-.. inheritance-diagram:: leap_ec.binary_rep.BinaryToRealDecoder
+.. inheritance-diagram:: leap_ec.binary_rep.decoders.BinaryToRealDecoder
 
 .. autoclass:: leap_ec.binary_rep.decoders.BinaryToRealDecoder
     :members:
