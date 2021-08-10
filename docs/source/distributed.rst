@@ -59,6 +59,8 @@ There is a jupyter notebook that walks through a synchronous implementation in
 `examples/distributed/simple_sync_distributed.ipynb`.  The above example can also be found
 at `examples/distributed/simple_sync_distributed.py`.
 
+.. _asea:
+
 Asynchronous fitness evaluations
 --------------------------------
 Asynchronous fitness evaluations are a little more involved in that the EA immediately integrates

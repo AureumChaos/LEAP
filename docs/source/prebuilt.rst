@@ -24,7 +24,16 @@ make the best use of HPC resources. The bottom-most level provides the
 greatest amount of flexability, and is where users implement their
 evolutionary algorithms using low-level LEAP components.
 
+`ea_solve()` and `generational_ea()` is documented below.
+`asynchronous.steady_state()` is documented in :ref:`asea`.  Information on
+the bottom-most tier can be found in :doc:`building`.
+
 .. autoclass:: leap_ec.simple.ea_solve
+    :members:
+    :undoc-members:
+    :noindex:
+
+.. autoclass:: leap_ec.algorithm.generational_ea
     :members:
     :undoc-members:
     :noindex:

@@ -174,6 +174,7 @@ respectively.
 
 Citing LEAP
 -----------
+.. _10.1145/3377929.3398147:
 
 BiBTeX::
 
