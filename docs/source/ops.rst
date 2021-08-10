@@ -1,9 +1,10 @@
 Pipeline Operators
 ==================
 
+.. _pipeline:
 .. figure:: _static/Pipeline.png
 
-    **Figure 2: LEAP operator pipeline.** This figure depicts a typical
+    **LEAP operator pipeline.** This figure depicts a typical
     LEAP operator pipeline.  First is a parent population from which the
     next operator selects individuals, which are then cloned by the next
     operator to be followed by operators for mutating and evaluating the
@@ -29,7 +30,7 @@ operator pipeline objective is to create a new set of evaluated individuals
 from an existing set of prospective parents that can be in a new set of
 prospective parents.
 
-Fig.2 is shown again here to depict a typical set of LEAP pipeline
+:numref:`pipeline` is shown again here to depict a typical set of LEAP pipeline
 operators.  The pipeline generally starts with a "source", or a parent population,
 from which the next operator typically selects for creating offspring. This is
 followed by a clone operator that ensure the subsequent pertubation operators
@@ -382,6 +383,7 @@ Base operator classes and representation agnostic functions
     :members:
     :undoc-members:
     :show-inheritance:
+    :noindex:
 
 Pipeline operators for binary representations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -390,6 +392,7 @@ Pipeline operators for binary representations
     :members:
     :undoc-members:
     :show-inheritance:
+    :noindex:
 
 Pipeline operators for real-valued representations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -397,6 +400,7 @@ Pipeline operators for real-valued representations
     :members:
     :undoc-members:
     :show-inheritance:
+    :noindex:
 
 Pipeline operators for segmented representations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -404,3 +408,4 @@ Pipeline operators for segmented representations
     :members:
     :undoc-members:
     :show-inheritance:
+    :noindex:
