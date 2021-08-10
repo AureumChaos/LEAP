@@ -5,10 +5,11 @@ This section covers the class `Individual` in more detail.
 Class Summary
 -------------
 
+.. _individual-class:
 .. figure:: _static/individual-class-diagram.svg
     :align: center
 
-    **Figure 1: The `Individual` class**  This class diagram shows the detail
+    **The `Individual` class**  This class diagram shows the detail
     for `Individual`.  In additional to the association with `Decoder` and
     `ProbLem`, each `Individual` has a `genome` and `fitness`.  There are also
     several member functions for cloning, decoding, and evaluating individuals.
@@ -61,12 +62,13 @@ Class API
 .. autoclass:: leap_ec.individual.Individual
     :members:
     :undoc-members:
+    :noindex:
 
     .. automethod:: __init__
 
 .. autoclass:: leap_ec.individual.RobustIndividual
     :members:
     :undoc-members:
+    :noindex:
 
     .. automethod:: __init__
-
