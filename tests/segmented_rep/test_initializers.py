@@ -18,13 +18,16 @@ def gen_sequence():
 def test_segmented_initializer_fixed_length():
     """ created fixed length segments """
 
-    segments = create_segmented_sequence(1, gen_sequence)
+    segments_init = create_segmented_sequence(1, gen_sequence)
+    segments = segments_init()
     assert segments == [test_sequence]
 
-    segments = create_segmented_sequence(2, gen_sequence)
+    segments_init = create_segmented_sequence(2, gen_sequence)
+    segments = segments_init()
     assert segments == [test_sequence, test_sequence]
 
-    segments = create_segmented_sequence(3, gen_sequence)
+    segments_init = create_segmented_sequence(3, gen_sequence)
+    segments = segments_init()
     assert segments == [test_sequence, test_sequence, test_sequence]
 
 
@@ -46,8 +49,9 @@ def test_segmented_initializer_variable_length():
     for i in range(N):
         # randomly generate a sequence of segments with the number of segments
         # drawn from a uniform distribution
-        segments.append(create_segmented_sequence(distribution_func,
-                                                  gen_sequence))
+        initializer = create_segmented_sequence(distribution_func,
+                                                gen_sequence)
+        segments.append(initializer())
 
         # track the lengths of those segments
         segment_lengths.append(len(segments[-1]))

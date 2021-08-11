@@ -244,7 +244,8 @@ class PittRulesDecoder(Decoder):
 
                 return segment
 
-            return create_segmented_sequence(num_rules, create_rule)
+            rule_set = create_segmented_sequence(num_rules, create_rule)
+            return rule_set()
 
         return create_rule_set
 
