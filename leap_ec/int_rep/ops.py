@@ -218,6 +218,7 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
 ##############################
 # Function individual_mutate_binomial
 ##############################
+@curry
 def individual_mutate_binomial(genome,
                                std: float,
                                bounds: list,

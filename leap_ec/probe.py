@@ -413,7 +413,7 @@ class AttributesCSVProbe(op.Operator):
         if self.do_fitness:
             row['fitness'] = ind.fitness
         if self.do_genome:
-            row['genome'] = str(ind.genome)
+            row['genome'] = ind.genome
         for k, f in self.extra_metrics.items():
             row[k] = f(row)
 

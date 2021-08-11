@@ -35,7 +35,9 @@ def create_segmented_sequence(length, seq_initializer):
     else:
         num_segments = length
 
-    segments = [seq_initializer() for _ in range(num_segments)]
+    def segmented():
+        segments = [seq_initializer() for _ in range(num_segments)]
+        return segments
 
-    return segments
+    return segmented
 
