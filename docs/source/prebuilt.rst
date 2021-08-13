@@ -33,6 +33,7 @@ the bottom-most tier can be found in :doc:`building`.
     :undoc-members:
     :noindex:
 
+
 .. autoclass:: leap_ec.algorithm.generational_ea
     :members:
     :undoc-members:
