@@ -1,3 +1,5 @@
+.. _problem:
+
 Problems
 ========
 This section covers `Problem` classes in more detail.
