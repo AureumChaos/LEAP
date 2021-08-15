@@ -51,7 +51,7 @@ premade binary decoders can be found in :py:mod:`leap_ec.binary_rep.decoders`,
 and these can be used to convert binary sequences to integers or real values.
 Gray code versions of binary decoders are also included.
 
-.. pull-quote::
+.. note::
     **Gray encoding** Gray encoding is an alternative integer representation
     that use binary sequences. Gray encoding resolves
     the issue where bit flip mutation of higher order bits would greatly change
@@ -99,3 +99,18 @@ There are a number of example `Problem` implementations that can be found in
 
 Possibly defining or choosing a special `Individual` subclass
 -------------------------------------------------------------
+
+:ref:`individuals` encapsulate a posed solution to a problem and an associated
+fitness after evaluation.  For most situations the default `Individual`
+class should be fine.  However, you can also use :ref:`robust-individual` if
+you want individuals to handle exceptions that may be thrown during evaluation.
+If you are using the synchronous or asynchronous distributed evaluation
+support, then you may consider using :ref:`distributed-individual`, which itself
+is a subclass of `RobustIndividual`, but also assigns a UUID to each individual,
+a unique birth ID integer, and start and stop evaluation times in UNIX epoch
+time.
+
+Of course, if none of those `Individual` classes meet your needs, you can freely
+create your own `Individual` subclass.  For example, you may want a subclass
+that performs additional bookkeeping, such as perhaps maintaining links to
+its parents and any clones (offspring).
