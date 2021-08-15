@@ -53,7 +53,7 @@ Gray code versions of binary decoders are also included.
 
 .. pull-quote::
     **Gray encoding** Gray encoding is an alternative integer representation
-    for binary sequences that represent integer values. Gray encoding resolves
+    that use binary sequences. Gray encoding resolves
     the issue where bit flip mutation of higher order bits would greatly change
     the values, whereas a Grey encoded binary integer will only change the value
     a small amount regardless of which bit was flipped in the binary sequence.
