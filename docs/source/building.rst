@@ -9,7 +9,7 @@ This could be that you want to access the state of objects outside the
 pipeline during a run, or that you want to add complex bookkeeping
 not easily supported by a prebuilt, among many other possible reasons.
 
-This leaves assembling a bespoke evolutionary algorithm using low-level LEAP
+This leaves assembling a bespoke evolutionary algorithm (EA) using low-level LEAP
 components.  Generally, to do that you will need to do the following:
 
 * Come up with a suitable representation for your problem
@@ -30,8 +30,8 @@ components.  Generally, to do that you will need to do the following:
 
 These will be described in more detail in the following sub-sections.
 
-Coming up with a suitable representation
-----------------------------------------
+Deciding on a suitable representation
+-------------------------------------
 
 The first design decision you will have to make is how to best represent your
 problem.  There are two broad categories of representations, genotypic and
@@ -114,3 +114,32 @@ Of course, if none of those `Individual` classes meet your needs, you can freely
 create your own `Individual` subclass.  For example, you may want a subclass
 that performs additional bookkeeping, such as perhaps maintaining links to
 its parents and any clones (offspring).
+
+
+Putting all that together
+-------------------------
+
+Now that you have chosen a representation, an associated `Decoder`, a `Problem`,
+and an `Individual` class, you are now ready to assemble those components into
+a functional evolutionary algorithm.  Generally, your code will follow this
+pattern::
+
+    parents ← create_initial_random_population()
+
+    While not done:
+
+        offspring ← toolz.pipe(parents, *pipeline_ops)
+        parents ← offspring
+
+That is, first a population of parents are randomly created, and then we fall
+into a loop where we create offspring from those parents.  And then we replace
+the old parents with the offspring.  There is, of course, a lot more nuance to
+that with actual evolutionary algorithms, but that captures the essence of
+EAs.
+
+The part where the offspring are created merits more discussion.  We rely on
+`toolz.pipe()` to take a source of individuals, the current parents, from
+which to generate a set of offspring.  Individuals are selected by demand
+from the given sequent of pipeline operators, where each of these operators will
+manipulate the individuals that pass through them in some way.  This concept is
+described in more detail in :ref:`operator-pipeline`.
