@@ -3,14 +3,14 @@
 Implementing Tailored Evolutionary Algorithms with LEAP
 =======================================================
 
-The :ref:`prebuilt` LEAP functions, `ea_solve()`, `generational_ea()`,
+The :ref:`prebuilt` , `ea_solve()`, `generational_ea()`,
 and `asynchronous.steady_state()` may not be sufficient to address your problem.
 This could be that you want to access the state of objects outside the
 pipeline during a run, or that you want to add complex bookkeeping
 not easily supported by a prebuilt, among many other possible reasons.
 
 This leaves assembling a bespoke evolutionary algorithm using low-level LEAP
-components.  Generally, you will need to do the following:
+components.  Generally, to do that you will need to do the following:
 
 * Come up with a suitable representation for your problem
 
@@ -58,6 +58,22 @@ Gray code versions of binary decoders are also included.
     the values, whereas a Grey encoded binary integer will only change the value
     a small amount regardless of which bit was flipped in the binary sequence.
     `(See also: Grey code) <https://en.wikipedia.org/wiki/Gray_code>`_
+
+There will be two areas where you representation choice is going to have an
+impact on the code you write.  First is in how you initialize individuals with
+random genomes.  The second will be mutation and possibly crossover pipeline
+operators tailored to that representation.
+
+There are three numeric representations supported by LEAP, that for binary,
+integer, and real values.  You can find initializers that create random values
+for those value types in their respective sub-packages.  You can find them
+in :py:mod:`leap_ec.binary_rep.initializers`, :py:mod:`leap_ec.int_rep.initializers`,
+and :py:mod:`leap_ec.real_rep.initializers`, respectively.
+
+LEAP is flexible enough to support other, more exotic representations, such as
+graphs and matrices.  However, you will have to write your own initializers
+and mutation (and possibly crossover) operators to support such novel
+genome types.
 
 Defining a `Problem` subclass
 -----------------------------
