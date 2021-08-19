@@ -36,9 +36,7 @@ the bottom-most tier can be found in :doc:`building`.
 `ea_solve()`
 ------------
 
-.. autoclass:: leap_ec.simple.ea_solve
-    :members:
-    :undoc-members:
+.. autofunction:: leap_ec.simple.ea_solve
     :noindex:
 
 Example
@@ -48,9 +46,7 @@ And example using `ea_solve()` can be found in `examples/simple/simple.py`.
 `generational_ea()`
 -------------------
 
-.. autoclass:: leap_ec.algorithm.generational_ea
-    :members:
-    :undoc-members:
+.. autofunction:: leap_ec.algorithm.generational_ea
     :noindex:
 
 Example
