@@ -34,15 +34,20 @@ Deciding on a suitable representation
 -------------------------------------
 
 The first design decision you will have to make is how to best represent your
-problem.  There are two broad categories of representations, genotypic and
-phenotypic.  A genotypic representation is a form of indirect representation
+problem.  There are two broad categories of representations, *genotypic* and
+*phenotypic*.  A *genotypic* representation is a form of indirect representation
 whereby problem values use data that must be decoded into values that make
 sense to the associated `Problem` class you will also define.  One popular
 example is using a binary encoding that must be decoded into values, usually
 integers or real-value sequences, that can then be used by a `Problem`
 instance to evaluate an individual.  (However, there are some problems that
 directly use the binary sequences without having to interpret the values,
-such as the `MaxOnes` problem.)
+such as the `MaxOnes` problem.)  A *phenotypic* representation is able to
+directly represent problem relevant values in some way, usually as a vector
+of real-values that correspond to problem parameters.
+
+Decoders for binary representations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you use a binary representation, then you will almost certainly need to
 define an associated decoder to convert binary sequences within `Individual`
@@ -59,16 +64,31 @@ Gray code versions of binary decoders are also included.
     a small amount regardless of which bit was flipped in the binary sequence.
     `(See also: Grey code) <https://en.wikipedia.org/wiki/Gray_code>`_
 
+Impact on representation on choice of pipeline operators
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 There will be two areas where you representation choice is going to have an
 impact on the code you write.  First is in how you initialize individuals with
 random genomes.  The second will be mutation and possibly crossover pipeline
-operators tailored to that representation.
+operators tailored to that representation.  The mutation and crossover pipeline
+operators are generally going to be specific to the underlying representation.
+For example, bit flip mutation is relevant to binary representations, and a
+Gaussian mutation is appropriate for real-value representations.  There are
+sub-packages for integer, real, and binary representations that have an
+`ops.py` that will contain pertubation (mutation) operators appropriate for
+the associated representation.
+
+LEAP supports three numeric representations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 There are three numeric representations supported by LEAP, that for binary,
 integer, and real values.  You can find initializers that create random values
 for those value types in their respective sub-packages.  You can find them
 in :py:mod:`leap_ec.binary_rep.initializers`, :py:mod:`leap_ec.int_rep.initializers`,
 and :py:mod:`leap_ec.real_rep.initializers`, respectively.
+
+Support for exotic representations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 LEAP is flexible enough to support other, more exotic representations, such as
 graphs and matrices.  However, you will have to write your own initializers
