@@ -152,8 +152,9 @@ pattern::
         parents ← offspring
 
 That is, first a population of parents are randomly created, and then we fall
-into a loop where we create offspring from those parents.  And then we replace
-the old parents with the offspring.  There is, of course, a lot more nuance to
+into a loop where we create offspring from those parents by generation until we
+are done with some sort of arbitrary stopping criteria.  Within the loop the old
+parents are replaced with the offspring.  There is, of course, a lot more nuance to
 that with actual evolutionary algorithms, but that captures the essence of
 EAs.
 
@@ -163,3 +164,15 @@ which to generate a set of offspring.  Individuals are selected by demand
 from the given sequent of pipeline operators, where each of these operators will
 manipulate the individuals that pass through them in some way.  This concept is
 described in more detail in :ref:`operator-pipeline`.
+
+Evolutionary algorithm examples
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There are a number of examples to steer by found in `examples/simple`.  In
+particular:
+
+* `simple_ep.py` -- simple example of an Evolutionary Program
+* `simple_es.py` -- simple example of an Evolutionary Strategy
+* `simple_ga.py` -- simple example of a Genetic Algorithm
+* `simple_ev.py` -- simple example of an Evolutionary Algorithm as defined in
+  Ken De Jong's *Evolutionary Computation: A Unified Approach*.
