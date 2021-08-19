@@ -33,11 +33,16 @@ the bottom-most tier can be found in :doc:`building`.
 
 .. TODO: explicitly make these two subsections and add ancillary supporting text
 
+`ea_solve()`
+^^^^^^^^^^^^
+
 .. autoclass:: leap_ec.simple.ea_solve
     :members:
     :undoc-members:
     :noindex:
 
+`generational_ea()`
+^^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: leap_ec.algorithm.generational_ea
     :members:
