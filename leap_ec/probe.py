@@ -1,5 +1,6 @@
-"""Probes are pipeline operators to instrument state that passes through the
-pipeline such as populations or individuals. """
+""" Probes are pipeline operators to instrument state that passes through the
+pipeline such as populations or individuals.
+"""
 import csv
 import sys
 
@@ -12,20 +13,29 @@ from toolz import curry
 
 from leap_ec.global_vars import context
 from leap_ec import ops as op
-from leap_ec.ops import iteriter_op
+from leap_ec.ops import iteriter_op, listlist_op
 
 
 ##############################
 # print_probe
 ##############################
 @curry
+@listlist_op
 def print_probe(population, probe, stream=sys.stdout, prefix=''):
     """ pipeline operator for printing the given population
 
-    :param population:
-    :param probe:
-    :param stream:
-    :param prefix:
+    This is really a wrapper around `probe` that, itself, gets passed te
+    entire population.
+
+    The optional prefix is used to tag the output.  For example, you may want
+    to print 'before' to indicate that the population is before an operator
+    is applied.
+
+    :param population: to be printed
+    :param probe: secondary probe that gets the poplation as input and for
+        which the output is passed to `stream`
+    :param stream: to write output
+    :param prefix: optional string prefix to prepend to output
     :return: population
     """
     val = prefix + str(probe(population))
@@ -154,7 +164,7 @@ class FitnessStatsCSVProbe(op.Operator):
 
     """
     comment_character = '#'
-     
+
     time_col='step'
     default_metric_cols=('bsf', 'mean_fitness', 'std_fitness', 'min_fitness', 'max_fitness')
 
@@ -440,7 +450,7 @@ class PopulationMetricsPlotProbe:
             x_axis_value = lambda: context['leap']['generation']
         self.x_axis_value = x_axis_value
         self.context = context
-        
+
         # Create an empty line for each metric
         self.x = np.array([])
         self.y = [ np.array([]) for _ in range(len(metrics)) ]
@@ -644,7 +654,7 @@ class FitnessPlotProbe(PopulationMetricsPlotProbe):
 
         l = 10
         pop_size = 10
-        ea = generational_ea(generations=100, pop_size=pop_size,
+        ea = generational_ea(max_generations=100, pop_size=pop_size,
                              problem=SpheroidProblem(maximize=False),
 
                              representation=Representation(
@@ -699,7 +709,7 @@ class CartesianPhenotypePlotProbe:
         `bounds` attribute.
     :param int modulo: take and plot a measurement every `modulo` steps (
         default 1).
-    :param pad: A list of extra gene values, used to fill in the hidden 
+    :param pad: A list of extra gene values, used to fill in the hidden
         dimensions with contants while drawing fitness contours.
 
     Attach this probe to matplotlib :class:`Axes` and then insert it into an
@@ -775,7 +785,7 @@ class CartesianPhenotypePlotProbe:
         # Create an algorithm that contains the probe in the operator pipeline
 
         pop_size = 100
-        ea = generational_ea(generations=20, pop_size=pop_size,
+        ea = generational_ea(max_generations=20, pop_size=pop_size,
                              problem=problem,
 
                              representation=Representation(
@@ -868,7 +878,7 @@ class HistPhenotypePlotProbe():
         if ax is None:
             _, ax = plt.subplots()
         self.ax = ax
-        
+
         ax.set_title(title)
         self.title = title
         self.modulo = modulo
@@ -901,7 +911,7 @@ class HeatMapPhenotypeProbe():
         if ax is None:
             _, ax = plt.subplots()
         self.ax = ax
-        
+
         ax.set_title(title)
         self.title = title
         self.modulo = modulo
