@@ -70,10 +70,26 @@ def print_individual(next_individual: Iterator, prefix='',
 # BestSoFar probe
 ##############################
 class BestSoFarProbe(op.Operator):
+    """  This probe will track the best-so-far (BSF) individual.
+
+        Insert an object of this class into a pipeline to have it track the
+        the best individual it sees so far.  It will write the current best
+        individual for each __call__ invocation to a given stream in CSV
+        format.
+    """
     def __init__(self, stream=sys.stdout, header=True, context=context):
+        """
+
+        :param stream: to which to write best-so-far individuals
+        :param header: True if want CSV header
+        :param context: from which we get current generation (step)
+        """
         self.bsf = None
         self.context = context
         self.writer = csv.DictWriter(stream, fieldnames=['step', 'bsf'])
+
+        if header:
+            self.writer.writeheader()
 
     def __call__(self, next_individual):
         assert (next_individual is not None)
