@@ -13,5 +13,19 @@ Simple printing probes
 or a single individual to a given stream.  The default stream is `sys.stdout`.
 
 .. autofunction:: leap_ec.probe.print_probe
+    :noindex:
 
 .. autofunction:: leap_ec.probe.print_individual
+    :noindex:
+
+
+Information probes
+------------------
+
+These are probes do more than passive reporting of data that passes through
+the pipeline -- they actually do some data processing and report that.
+
+.. autoclass:: leap_ec.probe.BestSoFarProbe
+    :members:
+    :undoc-members:
+    :noindex:
