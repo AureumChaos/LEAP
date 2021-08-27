@@ -1180,6 +1180,51 @@ class ScaledProblem(ScalarProblem):
 
 
 ################################
+# Function random_orthonormal_matrix()
+################################
+def random_orthonormal_matrix(dimensions: int):
+    """Generate a random orthornomal matrix using the Gramm-Schmidt
+    process.
+
+    Orthonormal matrices represent rotations (and flips) of a space.
+    
+    The defining property of an orthonormal matrix is that its
+    transpose is its inverse:
+
+    >>> Q = random_orthonormal_matrix(10)
+    >>> np.allclose( Q.dot(Q.T), np.identity(10) )
+    True
+    
+    """
+    matrix = np.random.normal(size=[dimensions, dimensions])
+    for i, row in enumerate(matrix):
+        previous_rows = matrix[0:i, :]
+        row = row - \
+            sum([np.dot(row, prev) * prev for prev in previous_rows])
+        matrix[i, :] = row / np.linalg.norm(row)
+
+    # Any vector in the resulting matrix will be of unit length
+    assert (
+            round(
+                np.linalg.norm(
+                    matrix[0]),
+                5) == 1.0), f"A column in the transformation matrix has a " \
+                            f"norm of {np.linalg.norm(matrix[0])}, " \
+                            f"but it should always be approximately 1.0. "
+    # Any pair of vectors will be linearly independent
+    assert (abs(round(np.dot(matrix[0], matrix[1]), 5)) ==
+            0.0), f"A pair of columns in the transformation matrix has " \
+                    f"dot product of {round(np.dot(matrix[0], matrix[1]),5)},"\
+                    f" but it should always be approximately 0.0. "
+    # The matrix's transpose will be its inverse
+    assert(np.allclose(matrix.dot(matrix.T), np.identity(len(matrix)))), \
+        f"Any orthornormal matrix should satisfy Q^(-1) = Q^T, but we got " \
+        f"QQ^T = {matrix.dot(matrix.T)} instead of {np.identity(len(matrix))}."
+
+    return matrix
+    
+
+################################
 # Class MatrixTransformedProblem
 ################################
 class MatrixTransformedProblem(ScalarProblem):
@@ -1276,31 +1321,7 @@ class MatrixTransformedProblem(ScalarProblem):
            plt.subplot(224)
            plot_2d_problem(transformed_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
         """
-        matrix = np.random.normal(size=[dimensions, dimensions])
-        for i, row in enumerate(matrix):
-            previous_rows = matrix[0:i, :]
-            row = row - \
-                sum([np.dot(row, prev) * prev for prev in previous_rows])
-            matrix[i, :] = row / np.linalg.norm(row)
-
-        # Any vector in the resulting matrix will be of unit length
-        assert (
-                round(
-                    np.linalg.norm(
-                        matrix[0]),
-                    5) == 1.0), f"A column in the transformation matrix has a " \
-                                f"norm of {np.linalg.norm(matrix[0])}, " \
-                                f"but it should always be approximately 1.0. "
-        # Any pair of vectors will be linearly independent
-        assert (abs(round(np.dot(matrix[0], matrix[1]), 5)) ==
-                0.0), f"A pair of columns in the transformation matrix has " \
-                      f"dot product of {round(np.dot(matrix[0], matrix[1]),5)},"\
-                      f" but it should always be approximately 0.0. "
-        # The matrix's transpose will be its inverse
-        assert(np.allclose(matrix.dot(matrix.T), np.identity(len(matrix)))), \
-            f"Any orthornormal matrix should satisfy Q^(-1) = Q^T, but we got " \
-            f"QQ^T = {matrix.dot(matrix.T)} instead of {np.identity(len(matrix))}."
-
+        matrix = random_orthonormal_matrix(dimensions)
         return cls(problem, matrix, maximize)
 
     def evaluate(self, phenome):
