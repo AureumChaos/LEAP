@@ -1,3 +1,5 @@
+.. _individuals:
+
 Individuals
 ===========
 This section covers the class `Individual` in more detail.
@@ -40,6 +42,8 @@ over-ridden in a sub-class to pass along the UUID in addition to the decoded
 The `@total_ordering` class wrapper is used to expand the member functions
 `__lt__()` and `__eq__()` that are, in turn, heavily used in sorting, selection,
 and comparison operators.
+
+.. _robust-individual:
 
 `RobustIndividual`
 ^^^^^^^^^^^^^^^^^^^

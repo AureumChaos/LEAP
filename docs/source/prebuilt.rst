@@ -33,13 +33,22 @@ the bottom-most tier can be found in :doc:`building`.
 
 .. TODO: explicitly make these two subsections and add ancillary supporting text
 
-.. autoclass:: leap_ec.simple.ea_solve
-    :members:
-    :undoc-members:
+`ea_solve()`
+------------
+
+.. autofunction:: leap_ec.simple.ea_solve
     :noindex:
 
+Example
+^^^^^^^
+And example using `ea_solve()` can be found in `examples/simple/simple.py`.
 
-.. autoclass:: leap_ec.algorithm.generational_ea
-    :members:
-    :undoc-members:
+`generational_ea()`
+-------------------
+
+.. autofunction:: leap_ec.algorithm.generational_ea
     :noindex:
+
+Example
+^^^^^^^
+And example using `generational_ea()` can be found in `examples/simple/int_rep.py`.

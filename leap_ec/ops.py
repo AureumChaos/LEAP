@@ -246,7 +246,7 @@ def evaluate(next_individual: Iterator) -> Iterator:
     :param next_individual: iterator pointing to next individual to be evaluated
 
     :param kwargs: contains optional context state to pass down the pipeline
-    in context dictionaries
+       in context dictionaries
 
     :return: the evaluated individual
     """
@@ -398,7 +398,7 @@ def uniform_crossover(next_individual: Iterator,
         assert(isinstance(ind1.genome, np.ndarray))
         assert(isinstance(ind2.genome, np.ndarray))
 
-        # generate which indices we should swap 
+        # generate which indices we should swap
         min_length = min(ind1.genome.shape[0], ind2.genome.shape[0])
         selector = np.random.choice([0, 1], size=(min_length,),
                                     p=(1-p_swap, p_swap))
@@ -824,20 +824,20 @@ def tournament_selection(population: list, k: int = 2, key = None, select_worst:
     """Returns an opertaor that selects the best individual from k individuals randomly selected from
         the given population.
 
-        Like other selection operators, this assumes that if one individual is "greater than" another, then it is 
+        Like other selection operators, this assumes that if one individual is "greater than" another, then it is
         "better than" the other.  Whether this indicates maximization or minimization isn't handled here: the
         `Individual` class determines the semantics of its "greater than" operator.
 
         :param population: the population to select from.  Should be a list, not an iterator.
         :param int k: number of contestants in the tournament.  k=2 does binary tournament
             selection, which approximates linear ranking selection in the expectation.  Higher
-            values of k yield greedier selection strategies—k=3, for instance, is equal to 
+            values of k yield greedier selection strategies—k=3, for instance, is equal to
             quadratic ranking selection in the expectation.
         :param key: an optional function that computes keys to sort over.  Defaults to None,
             in which case Individuals are compared directly.
         :param bool select_worst: if True, select the worst individual from the tournament instead
             of the best.
-        :param list indices: an optional list that will be populated with the index of the 
+        :param list indices: an optional list that will be populated with the index of the
             selected individual.
         :return: the best of k individuals drawn from population
 
