@@ -1087,7 +1087,7 @@ def migrate(topology, emigrant_selector,
 
 
 ##############################
-# Class coop_evaluate
+# Class CooperativeEvaluate
 ##############################
 def concat_combine(collaborators):
     """Combine a list of individuals by concatenating their genomes.

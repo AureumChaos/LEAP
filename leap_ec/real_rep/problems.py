@@ -1279,9 +1279,8 @@ class MatrixTransformedProblem(ScalarProblem):
         matrix = np.random.normal(size=[dimensions, dimensions])
         for i, row in enumerate(matrix):
             previous_rows = matrix[0:i, :]
-            matrix[i, :] = row - \
+            row = row - \
                 sum([np.dot(row, prev) * prev for prev in previous_rows])
-            # FIXME Wait, doesn't this overwrite the previous line?
             matrix[i, :] = row / np.linalg.norm(row)
 
         # Any vector in the resulting matrix will be of unit length
@@ -1297,6 +1296,10 @@ class MatrixTransformedProblem(ScalarProblem):
                 0.0), f"A pair of columns in the transformation matrix has " \
                       f"dot product of {round(np.dot(matrix[0], matrix[1]),5)},"\
                       f" but it should always be approximately 0.0. "
+        # The matrix's transpose will be its inverse
+        assert(np.allclose(matrix.dot(matrix.T), np.identity(len(matrix)))), \
+            f"Any orthornormal matrix should satisfy Q^(-1) = Q^T, but we got " \
+            f"QQ^T = {matrix.dot(matrix.T)} instead of {np.identity(len(matrix))}."
 
         return cls(problem, matrix, maximize)
 
@@ -1352,7 +1355,7 @@ class MatrixTransformedProblem(ScalarProblem):
 # Function plot_2d_problem
 ##############################
 def plot_2d_problem(problem, xlim=None, ylim=None, kind='surface',
-                    ax=None, granularity=None, title=None, pad=()):
+                    ax=None, granularity=None, title=None, pad=None):
     """
     Convenience function for plotting a :class:`~leap.problem.Problem` that
     accepts 2-D real-valued phenomes and produces a 1-D scalar fitness output.
@@ -1437,7 +1440,7 @@ def plot_2d_problem(problem, xlim=None, ylim=None, kind='surface',
 ##############################
 # Function plot_2d_function
 ##############################
-def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=()):
+def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=None):
     """
     Convenience method for plotting a function that accepts 2-D real-valued
     imputs and produces a 1-D scalar output.
@@ -1471,6 +1474,8 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=
     """
     assert(len(xlim) == 2)
     assert(len(ylim) == 2)
+    if pad == None:
+        pad = np.array([])
     assert(isinstance(pad, np.ndarray)), f"Expected pad to be a numpy array.  Got {type(pad)}."
 
     if ax is None:
@@ -1494,7 +1499,7 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=
 ##############################
 # Function plot_2d_contour
 ##############################
-def plot_2d_contour(fun, xlim, ylim, granularity, ax=None, title=None, pad=()):
+def plot_2d_contour(fun, xlim, ylim, granularity, ax=None, title=None, pad=None):
     """
     Convenience method for plotting contours for a function that accepts 2-D
     real-valued inputs and produces a 1-D scalar output.
@@ -1531,6 +1536,8 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None, title=None, pad=()):
     """
     assert (len(xlim) == 2)
     assert (len(ylim) == 2)
+    if pad == None:
+        pad = np.array([])
     assert(isinstance(pad, np.ndarray)), f"Expected pad to be a numpy array.  Got {type(pad)}."
 
     if ax is None:
