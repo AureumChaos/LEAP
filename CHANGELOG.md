@@ -4,6 +4,13 @@ Being a terse compilation by version of changes.
 
 ## 0.8.0dev  (current develop branch)
 
+ * New Features
+   * Added `FitnessOffsetProblem` convenience wrapper to the `problem` module
+
+ * API changes
+   * Removed undocumented normalization term from `real_rep.problems.CosineFamilyProblem`
+
+
 ## 0.7.0, 8/5/2021
 
 * New features

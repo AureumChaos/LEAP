@@ -968,7 +968,7 @@ class CosineFamilyProblem(ScalarProblem):
     .. math::
 
        f_{\\cos}(\\mathbf{x}) = \\frac{\\sum_{i=1}^n -\\cos((G_i - 1)2 \\pi x_i)
-                                - \\alpha \\cdot \\cos((G_i - 1)2 \\pi L-i x_y)}{2n}
+                                - \\alpha \\cdot \\cos((G_i - 1)2 \\pi L_i x_i)}{2n}
 
     where :math:`G_i` and :math:`L_i` are parameters that indicate the number
     of global and local optima, respectively, in the ith dimension.
@@ -1026,10 +1026,7 @@ class CosineFamilyProblem(ScalarProblem):
             np.cos((self.global_optima_counts - 1) * 2 *
                    np.pi * self.local_optima_counts * phenome)
         value = np.sum(term1 + term2) / (2 * self.dimensions)
-        # We modify the original function to make it a maximization problem
-        # and so that the global optima are scaled to always have a fitness of
-        # 1
-        return -2 / (self.alpha + 1) * value
+        return value
 
     def __str__(self):
         """Returns the name of the class.
@@ -1495,7 +1492,7 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=
     """
     assert(len(xlim) == 2)
     assert(len(ylim) == 2)
-    if pad == None:
+    if pad is None:
         pad = np.array([])
     assert(isinstance(pad, np.ndarray)), f"Expected pad to be a numpy array.  Got {type(pad)}."
 
@@ -1557,7 +1554,7 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None, title=None, pad=None)
     """
     assert (len(xlim) == 2)
     assert (len(ylim) == 2)
-    if pad == None:
+    if pad is None:
         pad = np.array([])
     assert(isinstance(pad, np.ndarray)), f"Expected pad to be a numpy array.  Got {type(pad)}."
 

@@ -248,6 +248,60 @@ class ExternalProcessProblem(ScalarProblem):
         return fitnesses
 
 
+####################################
+# Class FitnessOffsetProblem
+####################################
+class FitnessOffsetProblem(ScalarProblem):
+    """
+    Takes an existing function and adds a constant value
+    to it output.
+
+    .. math::
+
+       f'(\\mathbf{x}) = f(\\mathbf{x}) + c
+
+    :param problem: the original problem to wrape
+    :param float fitness_offset: the scalar constant to add
+
+    """
+    def __init__(self, problem, fitness_offset, maximize=None):
+        if maximize is None:
+            maximize = problem.maximize
+        super().__init__(maximize=maximize)
+
+        assert(problem is not None)
+        assert(fitness_offset is not None)
+
+        self.problem = problem
+        self.fitness_offset = fitness_offset
+        if hasattr(problem, 'bounds'):
+            self.bounds = problem.bounds
+
+    def evaluate(self, phenome):
+        """
+        Evaluates the phenome's fitness in the wrapped function, then
+        adds the constant.
+
+        For example, here the original fitness function returns 5.0,
+        but we subtract 3.5 from it so that it yields 1.5.
+
+        >>> original = ConstantProblem(c=5.0)
+        >>> problem = FitnessOffsetProblem(original, fitness_offset=-3.5)
+        >>> problem.evaluate([0, 1, 2])
+        1.5
+        """
+        return self.problem.evaluate(phenome) + self.fitness_offset
+
+    def __str__(self):
+        """Returns the name of this class, followed by the `__str__ of the wrapped class
+        in parentheses.
+
+        >>> str(FitnessOffsetProblem(problem=ConstantProblem(), fitness_offset=5))
+        'FitnessOffsetProblem(ConstantProblem)'
+        """
+        return f"{FitnessOffsetProblem.__name__}({str(self.problem)})"
+
+
 ########################
 # class AverageFitnessProblem
 ########################
