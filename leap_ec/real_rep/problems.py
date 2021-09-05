@@ -1135,6 +1135,10 @@ class QuadraticFamilyProblem(ScalarProblem):
     @property
     def num_basins(self):
         return len(self.diagonal_matrices)
+
+    @property
+    def dimension(self):
+        return len(self.offset_vectors[0])
         
     def evaluate(self, phenome):
         basin_values = [ p.evaluate(phenome) for p in self.parabaloids ]
