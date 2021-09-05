@@ -10,6 +10,7 @@ Being a terse compilation by version of changes.
 
  * API changes
    * Removed undocumented normalization term from `real_rep.problems.CosineFamilyProblem`
+   * Expose a `reset` method on `PopulationMetricsPlotProbe`
 
 
 ## 0.7.0, 8/5/2021
