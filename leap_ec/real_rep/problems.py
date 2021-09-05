@@ -9,8 +9,10 @@ import warnings
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+from numpy.lib.twodim_base import diag
+from numpy.random import random
 
-from leap_ec.problem import ScalarProblem
+from leap_ec.problem import FitnessOffsetProblem, ScalarProblem
 
 
 ##############################
@@ -1035,6 +1037,175 @@ class CosineFamilyProblem(ScalarProblem):
         'CosineFamilyProblem'
         """
         return CosineFamilyProblem.__name__
+
+
+
+##############################
+# Class QuadraticFamilyProblem
+##############################
+class QuadraticFamilyProblem():
+    """
+    A configurable multi-modal function based on combinations of
+    spheroids or parabaloids.  Taken from the problem generators
+    proposed in
+
+    .. [Jani2008] "A Generator for Multimodal Test Functions with Multiple Global Optima,"
+         Jani Rönkkönen et al., *Asia-Pacific Conference on Simulated Evolution and Learning*. Springer, Berlin, Heidelberg, 2008.
+
+    [Jani2008]_
+
+    The function is given by 
+
+    .. math::
+
+       f(\\mathbf{x}) = \\min_{i=1,2,\\dots,q} \\left( (\\mathbf{x} - \\mathbf{p}_i)^\\top \\mathbf{B}_i^{-1} (\\mathbf{x} - \\mathbf{p}_i) + v_i \\right)
+
+    where the :math:`\\mathbf{p}_i` gives the center of each quadratic (i.e. the location
+    of each local minimum), the :math:`v_i` give their fitness values, and the 
+    :math:`\\mathbf{B}_i^{-1}` are symmetric matrices.
+
+    The easiest way to create one of these problems is to use the random generator:
+
+    .. plot::
+       :include-source:
+
+        from leap_ec.real_rep.problems import QuadraticFamilyProblem, plot_2d_problem
+        from matplotlib import pyplot as plt
+
+        problem = QuadraticFamilyProblem.generate(dimensions=2, num_basins=30)
+        plot_2d_problem(problem, xlim=(-10, 10), ylim=(-10, 10), granularity=0.5)
+        plt.show()
+
+    You can also specify the problem structure directly by providing two matrices for each
+    parabaloid along with an offset vector (for translation) and a scalar offset (to define the minimum
+    fitness value for the basin):
+
+    .. plot::
+       :include-source:
+
+        from leap_ec.real_rep.problems import QuadraticFamilyProblem, plot_2d_problem, random_orthonormal_matrix
+        from matplotlib import pyplot as plt
+        import numpy as np
+
+        # Define the parameters for each parabaloid
+
+        diag1 = np.diag([2, 4])     # Diagonal matrix defining the widths (eigenvalues) of the basin for each dimension
+        rot1 = np.identity(2)       # Rotation matrix, in this case the identity (no rotation)
+        offset1 = np.array([-1, -1])  # Offset used to translate the basin location
+        fitness1 = 0                # Fitness value of the local optimum
+
+        diag2 = np.diag([5, 1])
+        rot2 = random_orthonormal_matrix(dimensions=2)  # Apply a random rotation to the second basin
+        offset2 = np.array([3, 4])
+        fitness2 = 100.0
+
+        # Build the problem
+        problem = QuadraticFamilyProblem(
+            diagonal_matrices = [ diag1, diag2 ],
+            rotation_matrices = [ rot1, rot2 ],
+            offset_vectors = [ offset1, offset2 ],
+            fitness_offsets = [ fitness1, fitness2 ]
+        )
+
+        # Visualize
+        plot_2d_problem(problem, xlim=(-10, 10), ylim=(-10, 10), granularity=0.5)
+        plt.show()
+
+    """
+    def __init__(self, diagonal_matrices: list, rotation_matrices: list, offset_vectors: list, fitness_offsets: list):
+        assert(diagonal_matrices is not None)
+        assert(rotation_matrices is not None)
+        assert(offset_vectors is not None) 
+        assert(fitness_offsets is not None)
+        assert(len(diagonal_matrices) == len(rotation_matrices))
+        assert(len(offset_vectors) == len(rotation_matrices))
+        assert(len(fitness_offsets) == len(rotation_matrices))
+
+        parabaloids = [ ParabaloidProblem(d, r) for d, r in zip(diagonal_matrices, rotation_matrices) ]
+        parabaloids = [ TranslatedProblem(p, o) for p, o in zip(parabaloids, offset_vectors) ]
+        self.parabaloids = [ FitnessOffsetProblem(p, v) for p, v in zip(parabaloids, fitness_offsets) ]
+
+    def evaluate(self, phenome):
+        basin_values = [ p.evaluate(phenome) for p in self.parabaloids ]
+        return np.min(basin_values)
+
+    @classmethod
+    def generate(self, dimensions: int, num_basins: int, num_global_optima: int = 1, width_bounds: tuple = (1, 5), offset_bounds: tuple = (-10, 10), fitness_offset_bounds: tuple = (10, 100)):
+        assert(num_basins >= 0)
+        assert(len(width_bounds) == 2)
+        assert(len(offset_bounds) == 2)
+        assert(len(fitness_offset_bounds) == 2)
+        assert(num_global_optima <= num_basins)
+
+        diagonal_matrices = [ np.diag(np.random.uniform(*width_bounds, dimensions)) for _ in range(num_basins) ]
+        rotation_matrices = [ random_orthonormal_matrix(dimensions) for _ in range(num_basins) ]
+        offset_vectors = [ np.random.uniform(*offset_bounds, dimensions) for _ in range(num_basins) ]
+        fitness_offsets = np.append(np.zeros(num_global_optima), np.random.uniform(*fitness_offset_bounds, num_basins - num_global_optima))
+
+        return QuadraticFamilyProblem(diagonal_matrices, rotation_matrices, offset_vectors, fitness_offsets)
+
+
+##############################
+# ParabaloidProblem
+##############################
+class ParabaloidProblem(ScalarProblem):
+    """
+    A generalization of the `SpheroidProblem` into parabaloids (including elliptic and hyperbolic parabaloids).
+
+    We construct the parabaloid by combining a diagonal matrix (which defines an axis-aligned parabaloid)
+    with an orthornormal rotation.  Together, these make up the eigenvalues and 
+    eigenbasis, respectively, of an arbitrary parabaloid:
+
+    .. math::
+       \\mathbf{A} = \\mathbf{R}^\\top \\mathbf{D} \\mathbf{R}
+    
+    We then compute fitness by interpretting :math:`A` as a quadratic form:
+
+    .. math::
+       f(x) = x^\\top \\mathbf{A} x
+
+    When the eigenvalues are all positive, then the result is an elliptic parabaloid 
+    
+    .. plot::
+       :include-source:
+
+       from leap_ec.real_rep .problems import ParabaloidProblem, plot_2d_problem
+       from matplotlib import pyplot as plt
+       import numpy as np
+
+       p = ParabaloidProblem(diagonal_matrix=np.diag([1, 5]), rotation_matrix=np.identity(2))
+       plot_2d_problem(p, xlim=(-10, 10), ylim=(-10, 10), granularity=0.5)
+       plt.show()
+
+    If one or more eigenvalues are negative, then a hyperbolic parabloid results,
+    which has a saddle shape:
+
+    .. plot::
+       :include-source:
+
+       from leap_ec.real_rep .problems import ParabaloidProblem, plot_2d_problem
+       from matplotlib import pyplot as plt
+       import numpy as np
+
+       p = ParabaloidProblem(diagonal_matrix=np.diag([-3, 5]), rotation_matrix=np.identity(2))
+       plot_2d_problem(p, xlim=(-10, 10), ylim=(-10, 10), granularity=0.5)
+       plt.show()
+
+    """
+    def __init__(self, diagonal_matrix: np.ndarray, rotation_matrix: np.ndarray, maximize=False):
+        super().__init__(maximize)
+        assert(diagonal_matrix is not None)
+        assert(rotation_matrix is not None)
+        # Trick to check for diagonality: np.diagonal() extracts the diagonal, np.diag() builds a diagonal matrix from it.
+        # This should equal the original matrix.
+        assert(np.allclose(diagonal_matrix, np.diag(np.diagonal(diagonal_matrix)))), f"Expected a diagonal matrix, but received {diagonal_matrix}."
+        R = rotation_matrix
+        D = diagonal_matrix
+        # Construct the matrix for the quadratic form
+        self.matrix = R.T @ D @ R
+
+    def evaluate(self, phenome):
+        return phenome.T @ self.matrix @ phenome
 
 
 ##############################

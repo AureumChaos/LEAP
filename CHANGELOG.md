@@ -6,6 +6,7 @@ Being a terse compilation by version of changes.
 
  * New Features
    * Added `FitnessOffsetProblem` convenience wrapper to the `problem` module
+   * Added `ParabaloidProblem` and `QuadraticFamilyProblem` to the `real_rep.problems` module
 
  * API changes
    * Removed undocumented normalization term from `real_rep.problems.CosineFamilyProblem`
