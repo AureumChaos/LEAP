@@ -1043,7 +1043,7 @@ class CosineFamilyProblem(ScalarProblem):
 ##############################
 # Class QuadraticFamilyProblem
 ##############################
-class QuadraticFamilyProblem():
+class QuadraticFamilyProblem(ScalarProblem):
     """
     A configurable multi-modal function based on combinations of
     spheroids or parabaloids.  Taken from the problem generators
@@ -1112,7 +1112,8 @@ class QuadraticFamilyProblem():
         plt.show()
 
     """
-    def __init__(self, diagonal_matrices: list, rotation_matrices: list, offset_vectors: list, fitness_offsets: list):
+    def __init__(self, diagonal_matrices: list, rotation_matrices: list, offset_vectors: list, fitness_offsets: list, maximize=False):
+        super().__init__(maximize)
         assert(diagonal_matrices is not None)
         assert(rotation_matrices is not None)
         assert(offset_vectors is not None) 
@@ -1121,10 +1122,20 @@ class QuadraticFamilyProblem():
         assert(len(offset_vectors) == len(rotation_matrices))
         assert(len(fitness_offsets) == len(rotation_matrices))
 
+        # Store all of the input parameters in case the user wants to see them
+        self.diagonal_matrices = diagonal_matrices
+        self.rotation_matrices = rotation_matrices
+        self.offset_vectors = offset_vectors
+        self.fitness_offsets = fitness_offsets
+
         parabaloids = [ ParabaloidProblem(d, r) for d, r in zip(diagonal_matrices, rotation_matrices) ]
         parabaloids = [ TranslatedProblem(p, o) for p, o in zip(parabaloids, offset_vectors) ]
         self.parabaloids = [ FitnessOffsetProblem(p, v) for p, v in zip(parabaloids, fitness_offsets) ]
 
+    @property
+    def num_basins(self):
+        return len(self.diagonal_matrices)
+        
     def evaluate(self, phenome):
         basin_values = [ p.evaluate(phenome) for p in self.parabaloids ]
         return np.min(basin_values)
@@ -1133,7 +1144,9 @@ class QuadraticFamilyProblem():
     def generate(self, dimensions: int, num_basins: int, num_global_optima: int = 1, width_bounds: tuple = (1, 5), offset_bounds: tuple = (-10, 10), fitness_offset_bounds: tuple = (10, 100)):
         assert(num_basins >= 0)
         assert(len(width_bounds) == 2)
+        assert(width_bounds[1] >= width_bounds[0])
         assert(len(offset_bounds) == 2)
+        assert(offset_bounds[1] >= offset_bounds[0])
         assert(len(fitness_offset_bounds) == 2)
         assert(num_global_optima <= num_basins)
 
@@ -1142,7 +1155,9 @@ class QuadraticFamilyProblem():
         offset_vectors = [ np.random.uniform(*offset_bounds, dimensions) for _ in range(num_basins) ]
         fitness_offsets = np.append(np.zeros(num_global_optima), np.random.uniform(*fitness_offset_bounds, num_basins - num_global_optima))
 
-        return QuadraticFamilyProblem(diagonal_matrices, rotation_matrices, offset_vectors, fitness_offsets)
+        p = QuadraticFamilyProblem(diagonal_matrices, rotation_matrices, offset_vectors, fitness_offsets)
+        p.bounds = (-2*width_bounds[1], 2*width_bounds[1])
+        return p
 
 
 ##############################
