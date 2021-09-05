@@ -467,12 +467,6 @@ class PopulationMetricsPlotProbe:
         self.x_axis_value = x_axis_value
         self.context = context
 
-        # Create an empty line for each metric
-        self.x = np.array([])
-        self.y = [ np.array([]) for _ in range(len(metrics)) ]
-        for _ in range(len(metrics)):
-            ax.plot([], [])
-
         # Set axis limits, and some variables we'll use for real-time scaling
         ax.set_ylim(ylim)
         ax.set_xlim(xlim)
@@ -481,6 +475,7 @@ class PopulationMetricsPlotProbe:
         self.bottom, self.top = ylim
         plt.title(title)
 
+        self.reset()
 
     def __call__(self, population):
         assert (population is not None)
@@ -502,6 +497,13 @@ class PopulationMetricsPlotProbe:
             plt.pause(0.000001)
             #plt.ion()  # XXX Not sure this is needed
         return population
+
+    def reset(self):
+        # Create an empty line for each metric
+        self.x = np.array([])
+        self.y = [ np.array([]) for _ in range(len(self.metrics)) ]
+        for _ in range(len(self.metrics)):
+            self.ax.plot([], [])
 
     def __rescale_ax(self):
         if np.min(self.x) < self.left:
