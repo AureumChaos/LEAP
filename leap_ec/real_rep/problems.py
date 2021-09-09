@@ -1137,7 +1137,7 @@ class QuadraticFamilyProblem(ScalarProblem):
         return len(self.diagonal_matrices)
 
     @property
-    def dimension(self):
+    def dimensions(self):
         return len(self.offset_vectors[0])
         
     def evaluate(self, phenome):
