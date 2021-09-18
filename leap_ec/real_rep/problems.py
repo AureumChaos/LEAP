@@ -854,7 +854,7 @@ class LunacekProblem(ScalarProblem):
 class SchwefelProblem(ScalarProblem):
     """
     Schwefel's function is another traditional multimodal test function whose
-    local optima are distrib in a slightly irregular way, and whose
+    local optima are distributed in a slightly irregular way, and whose
     global optimum is out at the edge of the search space (with no gently
     sloping macrostructure to guide the algorithm toward it).
 

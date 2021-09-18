@@ -15,16 +15,21 @@ from copy import copy
 import csv
 import itertools
 from functools import wraps
+import logging
 import random
 from statistics import mean
-from typing import Iterator, List, Tuple, Callable
+from typing import Iterator, List
 
 import numpy as np
 import toolz
 from toolz import curry
 
+from leap_ec import leap_logger_name
 from leap_ec.global_vars import context
-from leap_ec.individual import Individual
+
+
+# Set up a logger using LEAP's global logger name
+logger = logging.getLogger(leap_logger_name)
 
 
 ##############################
@@ -913,7 +918,7 @@ def insertion_selection(offspring: List, parents: List, key = None) -> List:
 ##############################
 @curry
 @listiter_op
-def naive_cyclic_selection(population: List) -> Iterator:
+def naive_cyclic_selection(population: List, indices: List = None) -> Iterator:
     """ Deterministically returns individuals, and repeats the same test_sequence
     when exhausted.
 
@@ -932,10 +937,13 @@ def naive_cyclic_selection(population: List) -> Iterator:
     :param population: from which to select
     :return: the next selected individual
     """
-    itr = itertools.cycle(population)
 
-    while True:
-        yield next(itr)
+    for i, ind in itertools.cycle(enumerate(population)):
+        if indices is not None:
+            indices.clear()  # Nuke whatever is in there
+            indices.append(i)  # Add the index of the individual we're about to return
+
+        yield ind
 
 
 ##############################
@@ -1036,6 +1044,68 @@ def migrate(topology, emigrant_selector,
             replacement_selector, migration_gap,
             customs_stamp=lambda x, _: x,
             context=context):
+    """
+    A migration operator for use in island models.
+
+    This operator works with multi-population algorithms,
+    and is thus meant to used with :py:class:`leap_ec.algorithm.multi_population_ea`.
+    
+    Specifically, it assumes that
+
+     1. the `population` argument passed into the returned function
+        is a particular sub-population that we want to process 
+        "emigration" out of and "immigration" into,
+     2. the `context` state object contains an integer field
+        `context['leap']['generation']` indicating the current
+        generation count of the algorithm, and
+     3. the `context` also contains a integer field 
+        `context['leap']['current_subpopulation']` indicating the
+        index of the subpopulation that is currently being processed
+        in the overall collection of subpopulations (i.e. the one
+        that `population` belongs to).
+
+    These assumptions are essentially what :py:class:`leap_ec.algorithm.multi_population_ea`
+    implements.
+
+    >>> import networkx as nx
+    >>> from leap_ec import ops, context
+    >>> from leap_ec.data import test_population
+    >>> pop0 = test_population[:]  # Shallow copy
+    >>> pop1 = test_population[:]
+
+    >>> op = migrate(topology=nx.complete_graph(2),
+    ...              emigrant_selector=ops.tournament_selection,
+    ...              replacement_selector=ops.random_selection,
+    ...              migration_gap=50)
+    >>> context['leap']['generation'] = 0
+    >>> context['leap']['current_subpopulation'] = 0
+    >>> op(pop0)
+    [Individual(...), Individual(...), Individual(...), Individual(...)]
+
+    >>> context['leap']['current_subpopulation'] = 1
+    >>> op(pop1)
+    [Individual(...), Individual(...), Individual(...), Individual(...)]
+
+    This operator is a stateful closure: it maintains an 
+    internal list of all the out-going "emigrations" that
+    occurred in the previous time step, so that it can
+    process them as "immigrations" in the current time step.
+
+    :param topology: a `networkx` topology defining the connectivity among islands
+    :param emigrant_selector: a selection operator for choosing individuals to
+        leave an island
+    :param replacement_selector: a selection operator choosing contestants that
+        will be replaced by an incoming immigrant if the immigrant has higher fitness
+    :param int migration_gap: migration will occur regularly after every `migration_gap`
+        evolutionary steps
+    :param customs_stamp: an optional function to transfrom an individual upon its
+        arrival to a new island.  This can be used, for example, to change the 
+        individual's decoder or problem in a heterogeneous island model.
+    :param context: the context object to check for EA state, such as the current
+        generation number, and the ID of the subpopulation that is currently
+        being processed.
+
+    """
     num_islands = topology.number_of_nodes()
 
     # We wrap a closure around some persistent state to keep trag of
@@ -1045,41 +1115,45 @@ def migrate(topology, emigrant_selector,
     @listlist_op
     def do_migrate(population: List) -> List:
         current_subpop = context['leap']['current_subpopulation']
+        logger.debug(f"Migration operator called on subpop {current_subpop} (generation: {context['leap']['generation']})")
 
         # Immigration
-        for imm in immigrants[current_subpop]:
+        for i, imm in enumerate(immigrants[current_subpop]):
+            logger.debug(f"Processing immigrant {i+1} of {len(immigrants[current_subpop])} for subpop {current_subpop}.")
             # Do island-specific transformation
             # For example, this callback might update the individuals 'problem'
             # field to point to a new fitness function for the island, and
             # re-evalute its fitness.
             imm = customs_stamp(imm, current_subpop)
+
             # Compete for a place in the new population
-            contestant = next(replacement_selector(population))
+            indices = [] # List to collect the selected index
+            contestant = next(replacement_selector(population, indices=indices))
+            contestant_index = indices[0]
+
             if imm > contestant:
-                # FIXME This is fishy!  What if there are two copies of
-                # contestant?  What if contestant.__eq()__ is not properly
-                # implemented?
-                population.remove(contestant)
-                population.append(imm)
+                # Replace the contestant with the immgrant at the same position
+                population[contestant_index] = imm
 
         immigrants[current_subpop] = []
 
         # Emigration
         if context['leap']['generation'] % migration_gap == 0:
+            logger.debug(f"migration_gap reached: doing emigration on subpop {current_subpop}.")
             # Choose an emigrant individual
             sponsor = next(emigrant_selector(population))
+            logger.debug(f"Sponsor individual selected by emigrant_selector: {sponsor}")
             # Clone it and copy fitness
-            emi = next(emigrant_selector(population)).clone()
+            emi = sponsor.clone()
             emi.fitness = sponsor.fitness
+            logger.debug(f"Emigrant individual (copy of sponsor): {emi}")
             neighbors = topology.neighbors(
                 current_subpop)  # Get neighboring islands
             # Randomly select a neighboring island
             dest = random.choice(list(neighbors))
+            logger.debug(f"Destination island: {dest}")
             # Add the emigrant to its immigration list
             immigrants[dest].append(emi)
-            # FIXME In a heterogeneous island model, we also need to
-            # set the emigrant's decoder and/or problem to match the
-            # new islan'ds decoder and/or problem.
 
         return population
 

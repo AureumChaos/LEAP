@@ -1,6 +1,7 @@
 """
     Provides an island model example.
 """
+import logging
 import math
 import os
 import sys
@@ -8,7 +9,7 @@ import sys
 from matplotlib import pyplot as plt
 import networkx as nx
 
-from leap_ec import Individual, Representation, context, test_env_var
+from leap_ec import Individual, Representation, context, test_env_var, leap_logger_name
 from leap_ec import ops, probe
 from leap_ec.algorithm import multi_population_ea
 from leap_ec.real_rep.problems import SchwefelProblem
@@ -64,11 +65,35 @@ def viz_plots(problems, modulo):
 # Entry point
 ##############################
 if __name__ == '__main__':
+    #########################
+    # Parameters and Logging
+    #########################
+    l = 2
+    pop_size = 10
+
+    # When running the test harness, just run for two generations
+    # (we use this to quickly ensure our examples don't get bitrot)
+    if os.environ.get(test_env_var, False) == 'True':
+        generations = 2
+    else:
+        generations = 1000
+    
+    # Uncomment these lines to see logs of what genomes and fitness values are sent to your external process.
+    # This is useful for debugging a simulation.
+    logging.getLogger().addHandler(logging.StreamHandler())  # Log to stderr
+    logging.getLogger(leap_logger_name).setLevel(logging.DEBUG) # Log debug messages
+
+    #########################
+    # Topology and Problem
+    #########################
     # Set up up the network of connections between islands
     topology = nx.complete_graph(3)
     nx.draw(topology)
     problem = SchwefelProblem(maximize=False)
 
+    #########################
+    # Visualization probes
+    #########################
     genotype_probes, fitness_probes = viz_plots(
         [problem] * topology.number_of_nodes(), modulo=10)
     subpop_probes = list(zip(genotype_probes, fitness_probes))
@@ -77,17 +102,10 @@ if __name__ == '__main__':
         """Closure that returns a callback for retrieving the current island
         ID during logging."""
         return lambda _: context['leap']['current_subpopulation']
-    
-    # When running the test harness, just run for two generations
-    # (we use this to quickly ensure our examples don't get bitrot)
-    if os.environ.get(test_env_var, False) == 'True':
-        generations = 2
-    else:
-        generations = 1000
 
-    
-    l = 2
-    pop_size = 10
+    #########################
+    # Algorithm
+    #########################
     ea = multi_population_ea(max_generations=generations,
                              num_populations=topology.number_of_nodes(),
                              pop_size=pop_size,
