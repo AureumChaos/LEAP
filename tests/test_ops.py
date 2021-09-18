@@ -797,8 +797,8 @@ def test_migrate1():
 
     # Create the operator
     op = ops.migrate(topology=nx.complete_graph(2),
-                     emigrant_selector=ops.cyclic_selection,
-                     replacement_selector=ops.cyclic_selection,
+                     emigrant_selector=ops.naive_cyclic_selection,
+                     replacement_selector=ops.naive_cyclic_selection,
                      migration_gap=50)
     
     # Generation 0
@@ -813,13 +813,40 @@ def test_migrate1():
     assert(pop1[0].genome == 'A0'), "The first element of pop1 should be replaced by the first element of pop0"
     assert(pop1[0].fitness == pop0[0].fitness), "The immigrant should have the same fitness as the sponsor it was copied from."
 
-    # # Generation 1
-    # context['leap']['generation'] = 1
 
-    # context['leap']['current_subpopulation'] = 0
-    # pop0 = op(pop0)
-    # assert(pop1[0].genome == 'B0'), "pop1 should not yet be modified"
+def test_migrate2():
+    """If the population contains multilpe references to the same object,
+    only one of them should be removed during replacement.
 
-    # context['leap']['current_subpopulation'] = 1
-    # pop1 = op(pop1)
+    We don't really expect people to use populations this way, but
+    added this test to avoid any surprises.
+    """
+    # Set up two populations
 
+    # pop0 has just one individual in it
+    pop0 = [ Individual(f"A", problem=MaxOnes()) ]
+    pop0[0].fitness = 100
+
+    # pop1 has 5 references to the same individual
+    ind = Individual(f"B", problem=MaxOnes())
+    pop1 = [ ind for i in range(5) ]
+    for x in pop1:
+        x.fitness = 10
+    assert(len(pop1) == 5)
+
+    # Create the operator
+    op = ops.migrate(topology=nx.complete_graph(2),
+                     emigrant_selector=ops.naive_cyclic_selection,
+                     replacement_selector=ops.naive_cyclic_selection,
+                     migration_gap=50)
+    
+    # Generation 0
+    context['leap']['generation'] = 0
+
+    context['leap']['current_subpopulation'] = 0
+    pop0 = op(pop0)  # This call will choose an emigrant from pop0
+
+    context['leap']['current_subpopulation'] = 1
+    pop1 = op(pop1)
+    assert(len(pop1) == 5), f"The population's size shouldnt' change after migration, but got {len(pop1)} instead of 5."
+    #assert(pop1[0].genome == 'A'), "The first element of pop1 should be replaced by the first element of pop0"
