@@ -918,7 +918,7 @@ def insertion_selection(offspring: List, parents: List, key = None) -> List:
 ##############################
 @curry
 @listiter_op
-def naive_cyclic_selection(population: List) -> Iterator:
+def naive_cyclic_selection(population: List, indices: List = None) -> Iterator:
     """ Deterministically returns individuals, and repeats the same test_sequence
     when exhausted.
 
@@ -937,10 +937,13 @@ def naive_cyclic_selection(population: List) -> Iterator:
     :param population: from which to select
     :return: the next selected individual
     """
-    itr = itertools.cycle(population)
 
-    while True:
-        yield next(itr)
+    for i, ind in itertools.cycle(enumerate(population)):
+        if indices is not None:
+            indices.clear()  # Nuke whatever is in there
+            indices.append(i)  # Add the index of the individual we're about to return
+
+        yield ind
 
 
 ##############################
@@ -1122,14 +1125,15 @@ def migrate(topology, emigrant_selector,
             # field to point to a new fitness function for the island, and
             # re-evalute its fitness.
             imm = customs_stamp(imm, current_subpop)
+
             # Compete for a place in the new population
-            contestant = next(replacement_selector(population))
+            indices = [] # List to collect the selected index
+            contestant = next(replacement_selector(population, indices=indices))
+            contestant_index = indices[0]
+
             if imm > contestant:
-                # FIXME This is fishy!  What if there are two copies of
-                # contestant?  What if contestant.__eq()__ is not properly
-                # implemented?
-                population.remove(contestant)
-                population.append(imm)
+                # Replace the contestant with the immgrant at the same position
+                population[contestant_index] = imm
 
         immigrants[current_subpop] = []
 
@@ -1140,7 +1144,7 @@ def migrate(topology, emigrant_selector,
             sponsor = next(emigrant_selector(population))
             logger.debug(f"Sponsor individual selected by emigrant_selector: {sponsor}")
             # Clone it and copy fitness
-            emi = next(emigrant_selector(population)).clone()  # FIXME Excuse me? Why we we selecting a second emigrant?
+            emi = sponsor.clone()
             emi.fitness = sponsor.fitness
             logger.debug(f"Emigrant individual (copy of sponsor): {emi}")
             neighbors = topology.neighbors(
