@@ -1043,6 +1043,7 @@ def pool(next_individual: Iterator, size: int) -> List:
 def migrate(topology, emigrant_selector,
             replacement_selector, migration_gap,
             customs_stamp=lambda x, _: x,
+            metric=None,
             context=context):
     """
     A migration operator for use in island models.
@@ -1101,6 +1102,8 @@ def migrate(topology, emigrant_selector,
     :param customs_stamp: an optional function to transfrom an individual upon its
         arrival to a new island.  This can be used, for example, to change the 
         individual's decoder or problem in a heterogeneous island model.
+    :param metric: an optional function of the form `f(generation, immigrant_individual, contestant_indidivudal, success)`
+        for recording information about migration events.
     :param context: the context object to check for EA state, such as the current
         generation number, and the ID of the subpopulation that is currently
         being processed.
@@ -1117,6 +1120,8 @@ def migrate(topology, emigrant_selector,
         current_subpop = context['leap']['current_subpopulation']
         logger.debug(f"Migration operator called on subpop {current_subpop} (generation: {context['leap']['generation']})")
 
+        generation = context['leap']['generation']
+
         # Immigration
         for i, imm in enumerate(immigrants[current_subpop]):
             logger.debug(f"Processing immigrant {i+1} of {len(immigrants[current_subpop])} for subpop {current_subpop}.")
@@ -1131,14 +1136,18 @@ def migrate(topology, emigrant_selector,
             contestant = next(replacement_selector(population, indices=indices))
             contestant_index = indices[0]
 
-            if imm > contestant:
+            success = (imm >= contestant)
+            if success:
                 # Replace the contestant with the immgrant at the same position
                 population[contestant_index] = imm
+            
+            if metric:
+                metric(generation, imm, contestant, success)
 
         immigrants[current_subpop] = []
 
         # Emigration
-        if context['leap']['generation'] % migration_gap == 0:
+        if generation % migration_gap == 0:
             logger.debug(f"migration_gap reached: doing emigration on subpop {current_subpop}.")
             # Choose an emigrant individual
             sponsor = next(emigrant_selector(population))
@@ -1158,6 +1167,74 @@ def migrate(topology, emigrant_selector,
         return population
 
     return do_migrate
+
+
+def migration_metric(stream, header: bool = True, notes: dict = None):
+    """
+    Returns a function that can be used to record migration events.
+
+    The purpose of a migration metric is to record information about
+    migrations that occur inside a migration operator.  Because these
+    events take place inside the operator (rather than across operators),
+    they cannot be recorded by a LEAP pipeline probe.
+
+    In general, the interface for a migration metric function takes
+    four parameters:
+        - `generation`: the current generation
+        - `immigrant_ind`: the individual that is attempting to migrate
+        - `contestant_ind`: the individual that has been chosen to be replaced
+        - `success`: True if the migration is successful, False otherwise
+
+    The metric included here records the fitness of both individuals and writes
+    them (along with the `generation` and `success` values) to a CSV.  You can
+    write your own metric if you need to record other information (such as, say,
+    genomes).
+
+    >>> import sys
+    >>> from leap_ec import Individual
+    >>> from leap_ec.binary_rep.problems import MaxOnes
+    >>> m = migration_metric(sys.stdout,
+    ...                      header=True,
+    ...                      notes={'run': 0, 'description': 'Test output'}
+    ... )
+    run,description,generation,migrant_fitness,contestant_fitness,success
+
+    >>> ind1 = Individual(np.array([1, 1, 1]), problem=MaxOnes())
+    >>> f = ind1.evaluate()
+    >>> contestant = Individual(np.array([0, 1, 1]), problem=MaxOnes())
+    >>> f = contestant.evaluate()
+    >>> m(0, ind1, contestant, True)
+    0,Test output,0,3,2,True
+
+    :param stream: file object to write the CSV data to
+    :param bool header: a CSV header will be written if True
+    :param dict notes: a dict specifying additional constant-value
+        columns to include in the CSV output
+    """
+    notes = {} if notes is None else notes
+
+    # Set up data collection if we're given a stream to write to
+    if stream is None:
+        writer = None
+    else:
+        fields = list(notes.keys()) + ['generation', 'migrant_fitness', 'contestant_fitness', 'success']
+        writer = csv.DictWriter(stream, fieldnames=fields, lineterminator='\n')
+        if header:
+            writer.writeheader()
+
+    def measure_migration(generation, migrant, contestant, success: bool):
+        """Write a row recording the given migration event."""
+        if writer is not None:
+            row_dict = {
+                **notes,
+                'generation': generation,
+                'migrant_fitness': migrant.fitness,
+                'contestant_fitness': contestant.fitness,
+                'success': success
+            }
+            writer.writerow(row_dict)
+
+    return measure_migration
 
 
 ##############################
