@@ -162,7 +162,7 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
     :param int max_generations: The max number of generations to run the algorithm for.
         Can pass in float('Inf') to run forever or until the `stop` condition is reached.
     :param int num_populations: The number of separate populations to maintain.
-    :param int pop_size: Size of the initial population
+    :param int pop_size: Size of each initial subpopulation
     :param int stop: A function that accepts a list of populations and
         returns True iff it's time to stop evolving.
     :param `Problem` problem: the Problem that should be used to evaluate
