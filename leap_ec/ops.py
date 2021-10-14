@@ -1257,11 +1257,19 @@ class CooperativeEvaluate(Operator):
     """A simple, non-parallel implementation of cooperative coevolutionary
     fitness evaluation.
 
+    :param int num_trials: the number of combined solutions & fitness estimates
+        to collect when computing a partial solution's fitness.
+    :param collaborator_selector: a selection operator that we use to choose
+        individuals from the *other* subpopulations to create a combined solution.
     :param context: the algorithm's state context.  Used to access
         subpopulation information.
+    :param log_stream: optional file object to collect statistics about
+        combined individuals to.
+    :param combine: the function used to combine partial solutions into
+        combined solutions.
     """
 
-    def __init__(self, num_trials, collaborator_selector,
+    def __init__(self, num_trials: int, collaborator_selector,
                  log_stream=None, combine=concat_combine,context=context):
         self.context = context
         self.num_trials = num_trials
