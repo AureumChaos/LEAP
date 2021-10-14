@@ -9,6 +9,7 @@ Being a terse compilation by version of changes.
    * Added `ParabaloidProblem` and `QuadraticFamilyProblem` to the `real_rep.problems` module
 
  * API changes
+   * Mutation operators (`mutate_gaussian()` and `mutate_binomial()`) can now be passed a list of `std` values to adjust the mutation width by gene.
    * Removed undocumented normalization term from `real_rep.problems.CosineFamilyProblem`
    * Expose a `reset` method on `PopulationMetricsPlotProbe`
 
