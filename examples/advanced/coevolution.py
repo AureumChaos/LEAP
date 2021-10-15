@@ -33,7 +33,6 @@ if __name__ == '__main__':
                                  init_evaluate=ops.const_evaluate(value=-100),
 
                                  representation=Representation(
-                                     individual_cls=Individual,
                                      initialize=create_binary_sequence(
                                          length=1)
                                  ),
