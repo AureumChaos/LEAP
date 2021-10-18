@@ -62,11 +62,15 @@ if __name__ == '__main__':
     with open('./coop_stats.csv', 'w') as log_stream:
         ea = multi_population_ea(max_generations=generations, pop_size=pop_size,
                                  num_populations=num_populations,
-                                 problem=MaxOnes(),
-                                 # Fitness function
 
+                                 # Fitness function
+                                 problem=MaxOnes(), 
+
+                                 # Assign a poor initial fitness to individuals
                                  init_evaluate=ops.const_evaluate(value=-100),
 
+                                 # Passing a list of representations causes
+                                 # different ones to be used for different subpops
                                  representation=representations,
 
                                  # Operator pipeline
