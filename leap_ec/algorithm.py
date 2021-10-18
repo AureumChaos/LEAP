@@ -9,6 +9,7 @@
 
 from leap_ec import ops, util
 from toolz import pipe
+from typing import Iterable
 
 from leap_ec.global_vars import context
 from leap_ec.individual import Individual
@@ -167,8 +168,10 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
         returns True iff it's time to stop evolving.
     :param `Problem` problem: the Problem that should be used to evaluate
         individuals' fitness
-    :param representation: the Decoder that should be used to convert
-        individual genomes into phenomes
+    :param representation: the `Representation` that governs the creation and decoding 
+        of individuals.  If a list of `Representation` objects is given, then
+        different representations will be used for different subpopulations; else
+        the same representation will be used for all subpopulations.
     :param list shared_pipeline: a list of operators that every population
         will uses to create the offspring population at each generation
     :param list subpop_pipelines: a list of population-specific operator
@@ -255,16 +258,22 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
 
     """
 
-    if not hasattr(problem, '__len__'):
-        problem = [problem for _ in range(num_populations)]
+    # If we are given a single problem, create a list assigning it to each subpop
+    if not hasattr(problem, '__len__'): # XXX Is 'isinstance(representation, Iterable):' better?
+        problem = [ problem for _ in range(num_populations) ]
+    # If we are given a single representation, create a list assigning it to each subpop
+    if not hasattr(representation, '__len__'):
+        representation = [ representation for _ in range(num_populations) ]
 
-    # Initialize populations of pop_size individuals of the same type as
-    # individual_cls
-    pops = [representation.create_population(pop_size, problem=problem[i])
-            for i in range(num_populations)]
+    assert(len(representation) == len(problem))
+
+    # Initialize the initial subpopulations
+    pops = [ r.create_population(pop_size, problem=p) for r, p in zip(representation, problem) ]
+
     # Include a reference to the populations in the context object.
     # This allows operators to see all of the subpopulations.
     context['leap']['subpopulations'] = pops
+    
     # Evaluate initial population
     pops = [init_evaluate(p) for p in pops]
 
