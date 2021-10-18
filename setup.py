@@ -27,6 +27,7 @@ setup(
     install_requires=[
         'dask[complete]', # Used for parallel and distributed algorithms
         'distributed',  # Used for parallel and distributed algorithms
+        'docopt',       # Elegant command-line interfaces
         'matplotlib',   # Used in visualizations
         'networkx',     # Used to specify island model topologies
         'numpy',        # Used for vector math
