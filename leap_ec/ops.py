@@ -1375,6 +1375,12 @@ def compute_expected_probability(expected_num_mutations: float,
     """ Computed the probability of mutation based on the desired average
     expected mutation and genome length.
 
+    The equation here is :math:`p = 1/L * \\texttt{expected_num_mutations}`.  To see why this is
+    correct, note that the number of mutations performed is characterized by
+    a binomial distribution with :math:`n=L` trials (one weighted "coin flip" per gene),
+    and that the mean (expected_num_mutations) of a binomial distribution
+    is given by :math:`n*p = expected_num_mutations`.
+
     :param expected_num_mutations: times individual is to be mutated on average
     :param individual_genome: genome for which to compute the probability
     :return: the corresponding probability of mutation
