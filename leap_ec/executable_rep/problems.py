@@ -175,7 +175,7 @@ class TruthTableProblem(ScalarProblem):
         score = 0
         for input_ in input_samples:
             expected = self.function(input_)
-            assert(hasattr(expected, '__len__')), "The function given to a TruthTableProblem must return a list of outputs with length 1 or greater."
+            assert(hasattr(expected, '__len__')), f"The function given to a TruthTableProblem must return a list of outputs, but got {expected}."
             assert(len(expected) > 0), f"The function given to TruthTableProblem must return a list of outputs with length 1 or greater, but its length was {len(expected)}."
             if self.pad_inputs and (len(input_) < executable.num_inputs):
                     input_ += [ 0 for _ in range(executable.num_inputs - len(input_)) ]
