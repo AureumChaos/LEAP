@@ -51,6 +51,7 @@ class CGPExecutable(Executable):
         for i in range(self.num_inputs, self.num_inputs + num_hidden):
             f = self.graph.nodes[i]['function']
             in_nodes = get_sorted_input_nodes(i)
+            # Collect paramter attributes from the nodes as well
             node_inputs = [ n['output'] for n in in_nodes ]
             self.graph.nodes[i]['output'] = f(*node_inputs)
 
@@ -73,14 +74,14 @@ class CGPExecutable(Executable):
 class CGPDecoder(Decoder):
     """Implements the genotype-phenotype decoding for Cartesian genetic programming (CGP).
 
-    A CGP genome is linear, but made up of one sub-test_sequence for each circuit elements.  In our
-    version here, the first gene in each sub-test_sequence indicates the primitive (i.e., function) that node computes,
+    A CGP genome is linear, but made up of one sub-sequence for each circuit element.  In our
+    version here, the first gene in each sub-sequence indicates the primitive (i.e., function) that node computes,
     and the subsequence genes indicate the inputs to that primitive.
 
     That is, each node is specified by three genes `[p_id, i_1, i_2]`, where `p_id` is the index of the node's
     primitive, and `i_1, i_2` are the indices of the nodes that feed into it.
 
-    The test_sequence `[ 0, 2, 3 ]` indicates an element that computes the 0th primitive
+    The sequence `[ 0, 2, 3 ]` indicates an element that computes the 0th primitive
     (as an index of the `primitives` list) and takes its inputs from nodes 2 and 3, respectively.
     """
 
@@ -280,6 +281,28 @@ class CGPDecoder(Decoder):
         graph.add_edges_from(zip(output_sources, output_nodes))
 
         return CGPExecutable(self.primitives, self.num_inputs, self.num_outputs, graph)
+
+
+
+##############################
+# Class CGPWithParametersDecoder
+##############################
+class CGPWithParametersDecoder():
+    def __init__(self, primitives, num_inputs: int, num_outputs: int, num_layers: int, nodes_per_layer: int, max_arity: int, num_parameters_per_node: int, levels_back=None):
+        assert(primitives is not None)
+        assert(len(primitives) > 0)
+        assert(num_inputs > 0)
+        assert(num_outputs > 0)
+        assert(num_layers > 0)
+        assert(nodes_per_layer > 0)
+        assert(max_arity > 0)
+        self.cgp_decoder = CGPDecoder(primitives, num_inputs, num_outputs, num_layers, nodes_per_layer, max_arity, levels_back)
+        self.num_parameters_per_node = num_parameters_per_node
+
+    def decoder(self, genome):
+        assert(len(genome) == 2), f"Genome should be made up of two segments, but found {len(genome)} top-level elements."
+        circuit_genome, parameters_genome = genome
+        executable = self.cgp_decoder.decoder(circuit_genome)
 
 
 ##############################
