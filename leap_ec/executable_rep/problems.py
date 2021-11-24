@@ -2,6 +2,9 @@ import numpy as np
 
 from leap_ec.real_rep.problems import ScalarProblem
 
+from PIL import Image, ImageOps
+
+
 ##############################
 # Class EnvironmentProblem
 ##############################
@@ -198,3 +201,50 @@ class TruthTableProblem(ScalarProblem):
             ones = [ [1] + row for row in tt_minus_1 ]
             return zeros + ones
 
+
+##############################
+# Class ImageXYProblem
+##############################
+class ImageXYProblem(ScalarProblem):
+    """
+    A problem that takes a function that generates an image defined over
+    (x, y) coordinates and computed its fitness based on its match to
+    an externally-defined image.
+    """
+    def __init__(self, path, maximize=False):
+        super().__init__(maximize)
+        im = Image.open(path)
+        self.img = im.load()
+        self.img_array = np.array(im.getdata())
+        self.width, self.height = im.size
+
+    @staticmethod
+    def generate_image(executable, width, height):
+        f_triples = []
+        # The order we iterate is important, because we want our
+        # f_triple array to follow the same order as Image.getdata()
+        for y in range(height):
+            for x in range(width):
+                fr, fg, fb = executable([x, y])
+                f_triples.append([int(fr), int(fg), int(fb)])
+
+        return np.array(f_triples)
+
+    def evaluate(self, executable):
+        # Collect the target image into an array
+        # XXX Competing this with loops for testing.
+        #     When complete, we can rely on self.img_array
+        img_triples = []
+        for y in range(self.height):
+            for x in range(self.width):
+                r, g, b = self.img[x, y]
+                img_triples.append([r, g, b])
+
+        img_array = np.array(img_triples)
+        assert(np.array_equal(img_array, self.img_array))
+
+        # Compute the candidate image from the function
+        f_array = ImageXYProblem.generate_image(executable, self.width, self.height)
+
+        # Euclidean distance between the two images
+        return np.linalg.norm(self.img_array - f_array)

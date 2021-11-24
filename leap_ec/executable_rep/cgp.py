@@ -7,7 +7,8 @@ import numpy as np
 from leap_ec import ops
 from leap_ec.decoder import Decoder
 from leap_ec.int_rep.initializers import create_int_vector
-from leap_ec.int_rep.ops import mutate_randint
+from leap_ec.int_rep.ops import mutate_randint, individual_mutate_randint
+from leap_ec.segmented_rep.initializers import create_segmented_sequence
 from .executable import Executable
 
 
@@ -298,7 +299,6 @@ class CGPDecoder(Decoder):
         return CGPExecutable(self.primitives, self.num_inputs, self.num_outputs, graph)
 
 
-
 ##############################
 # Class CGPWithParametersDecoder
 ##############################
@@ -324,7 +324,7 @@ class CGPWithParametersDecoder():
         self.cgp_decoder = CGPDecoder(primitives, num_inputs, num_outputs, num_layers, nodes_per_layer, max_arity, levels_back)
         self.num_parameters_per_node = num_parameters_per_node
 
-    def decode(self, genome):
+    def decode(self, genome, *args, **kwargs):
         """
         Decode a genome containing both a CGP graph and a list of auxiliary parameters.
 
@@ -363,6 +363,21 @@ class CGPWithParametersDecoder():
 
         return executable
 
+    def initialize(self, parameters_initializer):
+        """Return an initializer for creating the two-segment
+        genomes that this decoder expects as input.
+        
+        The first segment will be initialized with our standard
+        CGP initializer.  The second will use the provided 
+        initializer.
+        """
+        def create():
+            return create_segmented_sequence(2, [
+                create_cgp_vector(self.cgp_decoder),
+                parameters_initializer
+            ])
+        return create
+
 
 ##############################
 # Function cgp_mutate
@@ -391,6 +406,23 @@ def cgp_mutate(cgp_decoder,
 
 
 ##############################
+# Function cgp_genome_mutate()
+##############################
+def cgp_genome_mutate(cgp_decoder,
+               expected_num_mutations: float = None,
+               probability: float = None):
+    assert(cgp_decoder is not None)
+
+    def mutate(genome):
+        return individual_mutate_randint(genome,
+                                bounds=cgp_decoder.bounds(),
+                                expected_num_mutations=expected_num_mutations,
+                                probability=probability)
+    
+    return mutate
+
+
+##############################
 # Function create_cgp_vector
 ##############################
 def create_cgp_vector(cgp_decoder):
@@ -411,21 +443,20 @@ def cgp_art_primitives():
     Returns a standard set of primitives that Ashmore and Miller
     originally published in an online report on "Evolutionary Art with Cartesian Genetic Programming" (2004).
     """
-    p = 3  # Index of the "parameter" associated with each function
     return [
-        lambda x: x[0] | x[1],  # Bitwise OR of two numbers
-        lambda x: x[p] & x[0],  # Bitwise AND of parameter and a number
-        lambda x: x[0]/(1.0 + x[1] + x[p]),
-        lambda x: x[0] * x[1] * 255,
-        lambda x: (x[0] + x[1]) * 255,
-        lambda x: x[0] - x[1] if x[0] > x[1] else x[1] - x[0],
-        lambda x: 255 - x[0],
-        lambda x: np.abs(np.cos(x[0]) * 255),
-        lambda x: np.abs(np.tan((x[0] % 45) * np.PI/180.0 * 255)),
-        lambda x: np.abs(np.tan(x[0]) * 255) % 255,  # The original paper has a typo here which I interpretted as an erroneous trailing parenthesis
-        lambda x: min(np.sqrt( (x[0] - x[p])**2 + (x[1] - x[p])**2), 255),  # My interpretation of the original papers ambiguous remark that this be "thresholded at 255"
-        lambda x: x[0] % (x[p] + 1) + (255 - x[p]),
-        lambda x: (x[0] + x[1])/2,
-        lambda x: 255 * (x[1] + 1)/(x[0] + 1) if x[0] > x[1] else 255 * (x[0] + 1)/(x[1] + 1),
-        lambda x: np.abs(np.sqrt(x[0]**2 - x[p]**2 + x[1]**2 - x[p]**2 ) % 255 )
+        lambda x, y, p: int(x) | int(y),  # Bitwise OR of two numbers
+        lambda x, y, p: int(p) & int(x),  # Bitwise AND of parameter and a number
+        lambda x, y, p: x/(1.0 + y + p),
+        lambda x, y, p: x * y * 255,
+        lambda x, y, p: (x + y) * 255,
+        lambda x, y, p: x - y if x > y else y - x,
+        lambda x, y, p: 255 - x,
+        lambda x, y, p: np.abs(np.cos(x) * 255),
+        lambda x, y, p: np.abs(np.tan((x % 45) * np.pi/180.0 * 255)),
+        lambda x, y, p: np.abs(np.tan(x) * 255) % 255,  # The original paper has a typo here which I interpretted as an erroneous trailing parenthesis
+        lambda x, y, p: min(np.sqrt( (x - p)**2 + (y - p)**2), 255),  # My interpretation of the original papers ambiguous remark that this be "thresholded at 255"
+        lambda x, y, p: x % (p + 1) + (255 - p),
+        lambda x, y, p: (x + y)/2,
+        lambda x, y, p: 255 * (y + 1)/(x + 1) if x > y else 255 * (x + 1)/(y + 1),
+        lambda x, y, p: np.sqrt(np.abs(x**2 - p**2 + y**2 - p**2 )) % 255
     ]

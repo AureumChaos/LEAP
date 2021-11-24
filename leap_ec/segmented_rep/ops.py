@@ -21,7 +21,7 @@ def apply_mutation(next_individual: Iterator,
                    expected_num_mutations: float = 1.0) -> Iterator:
     """
     This expects next_individual to have a segmented representation; i.e.,
-    a test_sequence of sequences.  `mutator_func` will be applied to each
+    a test_sequence of sequences.  `mutator` will be applied to each
     sub-test_sequence with the expected probability.  The expected probability
     applies to *all* the sequences, and defaults to a single mutation among
     all components, on average.
@@ -54,6 +54,32 @@ def apply_mutation(next_individual: Iterator,
                                   expected_num_mutations=per_segment_expected_prob)
                           for segment in individual.genome]
 
+        individual.genome = mutated_genome
+
+        # invalidate the fitness since we have a modified genome
+        individual.fitness = None
+
+        yield individual
+
+
+##############################
+# Function segmented_mutation()
+##############################
+@curry
+@iteriter_op
+def segmented_mutate(next_individual: Iterator, mutator_functions: list):
+    """
+    A mutation operator that applies a different mutation operator
+    to each segment of a segmented genome.
+    """
+    while True:
+        individual = next(next_individual)
+        assert(len(individual.genome) == len(mutator_functions)), f"Found {len(individual.genome)} segments in this genome, but we've got {len(mutators)} mutators."
+        
+        mutated_genome = []
+        for segment, m in zip(individual.genome, mutator_functions):
+            mutated_genome.append(m(segment))
+        
         individual.genome = mutated_genome
 
         # invalidate the fitness since we have a modified genome
