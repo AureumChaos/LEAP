@@ -444,19 +444,19 @@ def cgp_art_primitives():
     originally published in an online report on "Evolutionary Art with Cartesian Genetic Programming" (2004).
     """
     return [
-        lambda x, y, p: int(x) | int(y),  # Bitwise OR of two numbers
-        lambda x, y, p: int(p) & int(x),  # Bitwise AND of parameter and a number
+        lambda x, y, p: np.bitwise_or(x.astype(int), y.astype(int)),  # Bitwise OR of two numbers
+        lambda x, y, p: np.bitwise_and(p.astype(int), x.astype(int)),  # Bitwise AND of parameter and a number
         lambda x, y, p: x/(1.0 + y + p),
         lambda x, y, p: x * y * 255,
         lambda x, y, p: (x + y) * 255,
-        lambda x, y, p: x - y if x > y else y - x,
+        lambda x, y, p: np.maximum(x - y, y - x),
         lambda x, y, p: 255 - x,
         lambda x, y, p: np.abs(np.cos(x) * 255),
         lambda x, y, p: np.abs(np.tan((x % 45) * np.pi/180.0 * 255)),
         lambda x, y, p: np.abs(np.tan(x) * 255) % 255,  # The original paper has a typo here which I interpretted as an erroneous trailing parenthesis
-        lambda x, y, p: min(np.sqrt( (x - p)**2 + (y - p)**2), 255),  # My interpretation of the original papers ambiguous remark that this be "thresholded at 255"
+        lambda x, y, p: np.minimum(np.sqrt( (x - p)**2 + (y - p)**2), 255),  # My interpretation of the original papers ambiguous remark that this be "thresholded at 255"
         lambda x, y, p: x % (p + 1) + (255 - p),
         lambda x, y, p: (x + y)/2,
-        lambda x, y, p: 255 * (y + 1)/(x + 1) if x > y else 255 * (x + 1)/(y + 1),
+        lambda x, y, p: np.minimum(255 * (y + 1)/(x + 1), 255 * (x + 1)/(y + 1)),
         lambda x, y, p: np.sqrt(np.abs(x**2 - p**2 + y**2 - p**2 )) % 255
     ]

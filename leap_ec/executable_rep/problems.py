@@ -223,12 +223,16 @@ class ImageXYProblem(ScalarProblem):
         f_triples = []
         # The order we iterate is important, because we want our
         # f_triple array to follow the same order as Image.getdata()
+        x_inputs = []
+        y_inputs = []
         for y in range(height):
             for x in range(width):
-                fr, fg, fb = executable([x, y])
-                f_triples.append([int(fr), int(fg), int(fb)])
-
-        return np.array(f_triples)
+                x_inputs.append(x)
+                y_inputs.append(y)
+                
+        fast_output = executable([np.array(x_inputs), np.array(y_inputs)])
+        fast_output = np.stack(fast_output, axis=1).astype(int)
+        return fast_output
 
     def evaluate(self, executable):
         # Collect the target image into an array
