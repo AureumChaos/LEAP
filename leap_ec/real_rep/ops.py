@@ -118,8 +118,9 @@ def genome_mutate_gaussian(std: float,
         # Pick out just the std values we need for the mutated genes
         std_selected = std if not isinstance(std, Iterable) else std[indices_to_mutate]
 
-        genome[indices_to_mutate] = np.random.normal(genome[indices_to_mutate],
-                                                    size=indices_to_mutate.shape[0]) \
+        # Apply additive Gaussian noise to the selected genes
+        genome[indices_to_mutate] = genome[indices_to_mutate] \
+                                    + np.random.normal(size=indices_to_mutate.shape[0]) \
                                     * std_selected  # scalar multiply if scalar; element-wise if std is an ndarray
 
         # Implement hard bounds

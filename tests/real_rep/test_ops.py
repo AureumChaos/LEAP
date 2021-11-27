@@ -68,7 +68,7 @@ def test_mutate_gaussian2():
 
     for _ in range(N):
         # Set up two parents with fixed genomes, two genes each
-        ind1 = Individual(np.array([0, 100]))
+        ind1 = Individual(np.array([0.0, 100.0]))
         population = iter([ind1])
         
         # Mutate
@@ -83,7 +83,8 @@ def test_mutate_gaussian2():
     p_threshold = 0.01
 
     # Gene 0 should follow N(0, 10)
-    _, p = stats.kstest(gene0_values, 'norm')
+    gene0_standardized_values = [ (x - 0)/10 for x in gene0_values ]
+    _, p = stats.kstest(gene0_standardized_values, 'norm')
     print(p)
     assert(p > p_threshold)
 
