@@ -32,7 +32,7 @@ def viz_plots(problems, modulo):
 
     num_rows = min(4, len(problems))
     num_columns = math.ceil(len(problems) / num_rows)
-    true_rows = len(problems) / num_columns
+    true_rows = int(len(problems) / num_columns)
     fig = plt.figure(figsize=(6 * num_columns, 2.5 * true_rows))
     fig.tight_layout()
     genotype_probes = []
