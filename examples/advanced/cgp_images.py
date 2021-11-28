@@ -131,27 +131,29 @@ if __name__ == '__main__':
     ##############################
     # Algorithm
     ##############################
-    ea = generational_ea(generations, pop_size,
+    with open('./cgp_images_genomes.csv', 'w') as genomes_file:
+        ea = generational_ea(generations, pop_size,
 
-            representation=cgp_representation,
+                representation=cgp_representation,
 
-            # Our fitness function will be to solve the XOR problem
-            problem=problem,
+                # Our fitness function will be to solve the XOR problem
+                problem=problem,
 
-            pipeline=[
-                ops.tournament_selection,
-                ops.clone,
-                segmented_mutate(mutator_functions=[
-                    cgp.cgp_genome_mutate(cgp_decoder, expected_num_mutations=1),
-                    genome_mutate_gaussian(std=params_mutate_std,
-                                           expected_num_mutations=1,
-                                           hard_bounds=(0, 255))
-                ]),
-                ops.evaluate,
-                ops.pool(size=pop_size),
-                probe.FitnessStatsCSVProbe(stream=sys.stdout)
-            ] + viz_probes
-    )
+                pipeline=[
+                    ops.tournament_selection,
+                    ops.clone,
+                    segmented_mutate(mutator_functions=[
+                        cgp.cgp_genome_mutate(cgp_decoder, expected_num_mutations=1),
+                        genome_mutate_gaussian(std=params_mutate_std,
+                                            expected_num_mutations=1,
+                                            hard_bounds=(0, 255))
+                    ]),
+                    ops.evaluate,
+                    ops.pool(size=pop_size),
+                    probe.FitnessStatsCSVProbe(stream=sys.stdout),
+                    probe.AttributesCSVProbe(stream=genomes_file, best_only=True, do_genome=True)
+                ] + viz_probes
+        )
 
-    list(ea)
+        list(ea)
 
