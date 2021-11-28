@@ -118,3 +118,10 @@ for phenome_str in sys.stdin:
                         )
 
     best_inds = list(ea)
+
+    if plots:
+        # If we're not in test-harness mode, block until the user closes the app
+        if os.environ.get(test_env_var, False) != 'True':
+            plt.show()
+            
+        plt.close('all')
