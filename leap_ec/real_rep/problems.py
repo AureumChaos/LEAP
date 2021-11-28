@@ -1161,6 +1161,11 @@ class QuadraticFamilyProblem(ScalarProblem):
 
         p = QuadraticFamilyProblem(diagonal_matrices, rotation_matrices, offset_vectors, fitness_offsets)
         p.bounds = (-2*width_bounds[1], 2*width_bounds[1])
+
+        # Record a global optimum for convenience
+        if num_global_optima > 0:
+            p.global_optimum = offset_vectors[0]
+
         return p
 
 
