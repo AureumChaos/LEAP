@@ -274,8 +274,8 @@ def genome_mutate_binomial(std,
         indices_to_mutate = np.nonzero(selector)[0]
 
         # Compute binomial parameters for each gene
-        binom_mean = n*p  # this will do elementwise multiplication if p is a vector
         selected_p_values = p if not isinstance(p, Iterable) else p[indices_to_mutate]
+        binom_mean = n*selected_p_values  # this will do elementwise multiplication if p is a vector
 
         # Apply binomial pertebations
         additive = np.random.binomial(n, selected_p_values, size=len(indices_to_mutate)) - np.floor(binom_mean)
