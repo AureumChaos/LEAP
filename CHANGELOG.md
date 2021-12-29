@@ -7,8 +7,9 @@ Being a terse compilation by version of changes.
  * New Features
    * Added `FitnessOffsetProblem` convenience wrapper to the `problem` module
    * Added `ParabaloidProblem` and `QuadraticFamilyProblem` to the `real_rep.problems` module
-   * CGP now supports auxiliary constant parameters on each node
+   * CGP now supports auxiliary constant parameters on each node via `CGPWithParametersDecoder`
    * Added `ImageXYProblem` to `executable_rep.problems`, and a `cgp_images.py` example demonstrating it
+   * Added experimental parameters to `mutate_gaussian()` to allow transforming genes by a linear function
 
  * API changes
    * Mutation operators (`mutate_gaussian()` and `mutate_binomial()`) can now be passed a list of `std` values to adjust the mutation width by gene.

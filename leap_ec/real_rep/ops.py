@@ -23,7 +23,9 @@ from leap_ec.ops import compute_expected_probability, iteriter_op
 def mutate_gaussian(next_individual: Iterator,
                     std,
                     expected_num_mutations: Union[int, str] = None,
-                    hard_bounds=(-math.inf, math.inf)) -> Iterator:
+                    hard_bounds=(-math.inf, math.inf),
+                    transform_slope: float = 1.0,
+                    transform_intercept: float = 0.0) -> Iterator:
     """Mutate and return an Individual with a real-valued representation.
 
     This operators on an iterator of Individuals:
@@ -58,7 +60,7 @@ def mutate_gaussian(next_individual: Iterator,
     if expected_num_mutations is None:
         raise ValueError("No value given for expected_num_mutations.  Must be either a float or the string 'isotropic'.")
     
-    genome_mutator = genome_mutate_gaussian(std, expected_num_mutations, hard_bounds)
+    genome_mutator = genome_mutate_gaussian(std, expected_num_mutations, hard_bounds, transform_slope, transform_intercept)
 
     while True:
         individual = next(next_individual)
@@ -73,7 +75,9 @@ def mutate_gaussian(next_individual: Iterator,
 def genome_mutate_gaussian(std: float,
                            expected_num_mutations,
                            hard_bounds: Tuple[float, float] =
-                             (-math.inf, math.inf)):
+                             (-math.inf, math.inf),
+                           transform_slope: float = 1.0,
+                           transform_intercept: float = 0.0):
     """Perform Gaussian mutation directly on real-valued genes (rather than
     on an Individual).
 
@@ -119,9 +123,11 @@ def genome_mutate_gaussian(std: float,
         std_selected = std if not isinstance(std, Iterable) else std[indices_to_mutate]
 
         # Apply additive Gaussian noise to the selected genes
-        genome[indices_to_mutate] = genome[indices_to_mutate] \
-                                    + np.random.normal(size=indices_to_mutate.shape[0]) \
-                                    * std_selected  # scalar multiply if scalar; element-wise if std is an ndarray
+        genome[indices_to_mutate] = transform_slope * (genome[indices_to_mutate] \
+                                                       + np.random.normal(size=indices_to_mutate.shape[0]) \
+                                                       # scalar multiply if scalar; element-wise if std is an ndarray
+                                                       * std_selected) \
+                                    + transform_intercept
 
         # Implement hard bounds
         genome = apply_hard_bounds(genome, hard_bounds)
