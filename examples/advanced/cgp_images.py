@@ -22,7 +22,7 @@ from PIL import Image
 from leap_ec.algorithm import generational_ea
 from leap_ec import ops, probe, context, test_env_var
 from leap_ec.representation import Representation
-from leap_ec.executable_rep import cgp, neural_network, problems
+from leap_ec.executable_rep import cgp, problems
 from leap_ec.int_rep import create_int_vector
 from leap_ec.real_rep.ops import genome_mutate_gaussian
 from leap_ec.segmented_rep.ops import segmented_mutate
@@ -88,15 +88,13 @@ if __name__ == '__main__':
                     max_arity=2,
                     num_parameters_per_node=1
                 )
-    cgp_decoder = decoder.cgp_decoder
-
 
     cgp_representation = Representation(
                             decoder=decoder,
                             # We use a sepecial initializer that obeys the CGP & parameter constraints
                             initialize=decoder.initialize(
                                 parameters_initializer=create_int_vector(
-                                    bounds=[(0, 255)]*cgp_decoder.num_layers*cgp_decoder.nodes_per_layer)
+                                    bounds=[(0, 255)]*decoder.num_layers*decoder.nodes_per_layer)
                             )
                         )
 
@@ -143,7 +141,7 @@ if __name__ == '__main__':
                     ops.tournament_selection,
                     ops.clone,
                     segmented_mutate(mutator_functions=[
-                        cgp.cgp_genome_mutate(cgp_decoder, expected_num_mutations=1),
+                        cgp.cgp_genome_mutate(decoder, expected_num_mutations=1),
                         genome_mutate_gaussian(std=params_mutate_std,
                                             expected_num_mutations=1,
                                             hard_bounds=(0, 255))

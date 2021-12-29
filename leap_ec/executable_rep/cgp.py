@@ -302,7 +302,7 @@ class CGPDecoder(Decoder):
 ##############################
 # Class CGPWithParametersDecoder
 ##############################
-class CGPWithParametersDecoder():
+class CGPWithParametersDecoder(CGPDecoder):
     """
     A CGP decoder that takes a genome with two segments: an integer vector defining
     the usual CGP genome (functions and connectivity), and an auxiliary vector
@@ -321,7 +321,7 @@ class CGPWithParametersDecoder():
         assert(num_layers > 0)
         assert(nodes_per_layer > 0)
         assert(max_arity > 0)
-        self.cgp_decoder = CGPDecoder(primitives, num_inputs, num_outputs, num_layers, nodes_per_layer, max_arity, levels_back)
+        super().__init__(primitives, num_inputs, num_outputs, num_layers, nodes_per_layer, max_arity, levels_back)
         self.num_parameters_per_node = num_parameters_per_node
 
     def decode(self, genome, *args, **kwargs):
@@ -351,15 +351,15 @@ class CGPWithParametersDecoder():
         circuit_genome, parameters_genome = genome
 
         # Construct the standard CGP circuit
-        executable = self.cgp_decoder.decode(circuit_genome)
+        executable = super().decode(circuit_genome)
 
         # Add the parameter attributes to each node of the phenotype
-        assert(len(parameters_genome) == self.num_parameters_per_node*self.cgp_decoder.nodes_per_layer*self.cgp_decoder.num_layers), f"Expected the parameter segment of the genome to contain {self.num_parameters_per_node*self.cgp_decoder.nodes_per_layer*self.cgp_decoder.num_layers} parameters ({self.num_parameters_per_node} for each computational node), but found {len(parameters_genome)}."
-        for layer in range(self.cgp_decoder.num_layers):
-            for node in range(self.cgp_decoder.nodes_per_layer):
-                computational_node_id = layer*self.cgp_decoder.nodes_per_layer + node
+        assert(len(parameters_genome) == self.num_parameters_per_node*self.nodes_per_layer*self.num_layers), f"Expected the parameter segment of the genome to contain {self.num_parameters_per_node*self.cgp_decoder.nodes_per_layer*self.cgp_decoder.num_layers} parameters ({self.num_parameters_per_node} for each computational node), but found {len(parameters_genome)}."
+        for layer in range(self.num_layers):
+            for node in range(self.nodes_per_layer):
+                computational_node_id = layer*self.nodes_per_layer + node
                 params = parameters_genome[computational_node_id*self.num_parameters_per_node:computational_node_id*self.num_parameters_per_node + self.num_parameters_per_node]
-                executable.graph.nodes[self.cgp_decoder.num_inputs + computational_node_id]['parameters'] = params
+                executable.graph.nodes[self.num_inputs + computational_node_id]['parameters'] = params
 
         return executable
 
@@ -373,7 +373,7 @@ class CGPWithParametersDecoder():
         """
         def create():
             return create_segmented_sequence(2, [
-                create_cgp_vector(self.cgp_decoder),
+                create_cgp_vector(self),
                 parameters_initializer
             ])
         return create
