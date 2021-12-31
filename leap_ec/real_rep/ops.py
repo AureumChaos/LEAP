@@ -123,11 +123,12 @@ def genome_mutate_gaussian(std: float,
         std_selected = std if not isinstance(std, Iterable) else std[indices_to_mutate]
 
         # Apply additive Gaussian noise to the selected genes
-        genome[indices_to_mutate] = transform_slope * (genome[indices_to_mutate] \
+        new_gene_values = transform_slope * (genome[indices_to_mutate] \
                                                        + np.random.normal(size=indices_to_mutate.shape[0]) \
                                                        # scalar multiply if scalar; element-wise if std is an ndarray
                                                        * std_selected) \
                                     + transform_intercept
+        genome[indices_to_mutate] = new_gene_values
 
         # Implement hard bounds
         genome = apply_hard_bounds(genome, hard_bounds)

@@ -16,14 +16,12 @@ import sys
 
 from docopt import docopt
 from matplotlib import pyplot as plt
-import numpy as np
-from PIL import Image
 
 from leap_ec.algorithm import generational_ea
 from leap_ec import ops, probe, context, test_env_var
 from leap_ec.representation import Representation
 from leap_ec.executable_rep import cgp, problems
-from leap_ec.int_rep import create_int_vector
+from leap_ec.real_rep import create_real_vector
 from leap_ec.real_rep.ops import genome_mutate_gaussian
 from leap_ec.segmented_rep.ops import segmented_mutate
 
@@ -93,7 +91,7 @@ if __name__ == '__main__':
                             decoder=decoder,
                             # We use a sepecial initializer that obeys the CGP & parameter constraints
                             initialize=decoder.initialize(
-                                parameters_initializer=create_int_vector(
+                                parameters_initializer=create_real_vector(
                                     bounds=[(0, 255)]*decoder.num_layers*decoder.nodes_per_layer)
                             )
                         )
