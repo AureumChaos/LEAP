@@ -26,8 +26,8 @@ def evaluate(individual, context=context):
 
     This function sets:
 
-    individual.start_eval_time has the time() of when evaluation started.
-    individual.stop_eval_time has the time() of when evaluation finished.
+    individual.start_eval_time has the time_ns() of when evaluation started.
+    individual.stop_eval_time has the time_ns() of when evaluation finished.
     individual.is_viable is True if viable, else False
     individual.exception will be assigned any raised exceptions
     individual.fitness will be NaN if not viable, else the calculated fitness
@@ -40,7 +40,7 @@ def evaluate(individual, context=context):
     """
     worker = distributed.get_worker()
 
-    individual.start_eval_time = time.time()
+    individual.start_eval_time = time.time_ns()
 
     if hasattr(worker, 'logger'):
         worker.logger.debug(
@@ -59,7 +59,7 @@ def evaluate(individual, context=context):
             worker.logger.warning(
                 f'Worker {worker.id}: {individual.exception!s} raised for {individual!s}')
 
-    individual.stop_eval_time = time.time()
+    individual.stop_eval_time = time.time_ns()
     individual.hostname = platform.node()
     individual.pid = os.getpid()
 
