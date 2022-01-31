@@ -76,6 +76,11 @@ def do_cgp(gens):
                 ops.tournament_selection,
                 ops.clone,
                 cgp.cgp_mutate(cgp_decoder, expected_num_mutations=1),
+                # The check_constraints() operator is optional, but can
+                # be useful if you are, say, writing your own operators and
+                # just want to verify you aren't creating invalilid CGP
+                # individuals:
+                cgp_decoder.check_constraints,
                 ops.evaluate,
                 ops.pool(size=pop_size),
                 probe.FitnessStatsCSVProbe(stream=sys.stdout)

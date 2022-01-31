@@ -18,11 +18,12 @@ from leap_ec.individual import Individual
 ##############################
 # Function generational_ea
 ##############################
-def generational_ea(max_generations, pop_size, problem, representation,
+def generational_ea(max_generations: int, pop_size: int, problem, representation,
                     pipeline,
                     stop=lambda x: False,
                     init_evaluate=Individual.evaluate_population,
-                    k_elites=1,
+                    k_elites: int=1,
+                    start_generation: int=0,
                     context=context):
     """
     This function provides an evolutionary algorithm with a generational
@@ -57,6 +58,9 @@ def generational_ea(max_generations, pop_size, problem, representation,
         may wish to pass a different operator in for distributed evaluation
         or other purposes.
     :param k_elites: keep k elites
+    :param start_generation: index of the first generation to count from (defaults to 0).
+        You might want to change this, for example, in experiments that involve stopping
+        and restarting an algorithm.
 
     :return: a generator of `(int, individual_cls)` pairs representing the
         best individual at each generation.
@@ -116,7 +120,7 @@ def generational_ea(max_generations, pop_size, problem, representation,
 
     # Set up a generation counter that records the current generation to
     # context
-    generation_counter = util.inc_generation(context=context)
+    generation_counter = util.inc_generation(start_generation=start_generation, context=context)
 
     # Evaluate initial population
     parents = init_evaluate(parents)
