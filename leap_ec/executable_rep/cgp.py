@@ -264,6 +264,79 @@ class CGPDecoder(Decoder):
         """
         return list(zip(self._min_bounds(), self._max_bounds()))
 
+    def check_constraints(self, next_individual: Iterator):
+        """An operator that checks whether individual's genomes satisfy the CGP constraints.
+        
+        For example, say we have the following population:
+        
+        >>> from leap_ec import Individual
+        >>> genome0 = np.array([ 0, 0, 1, 1, 0, 1, 2, 2, 3, 0, 2, 3, 4, 5 ])
+        >>> genome1 = np.array([ 0, 0, 1, 1, 0, 1, 2, 2, 3, 0, 2, 1, 4, 5 ])
+        >>> genome2 = np.array([ 0, 0, 1, 4, 0, 1, 2, 2, 3, 0, 2, 3, 4, 5 ])
+        >>> genome3 = np.array([ 0, 0, 1, 1, 0, 1, 2, 2, 3, 0, 2, 3, 4, 5, 3, 4, 5 ])
+        >>> genome4 = np.array([ 0.0, 0.0, 1.0, 1.0, 0, 1.0, 2.0, 2.0, 3.0, 0.0, 2.0, 3.0, 4.0, 5.0 ])
+        >>> population = iter([ Individual(genome0),
+        ...                     Individual(genome1),
+        ...                     Individual(genome2),
+        ...                     Individual(genome3),
+        ...                     Individual(genome4) ])
+
+        Then given this decoder:
+
+        >>> primitives = [ sum, lambda x: x[0] - x[1], lambda x: x[0] * x[1] ]
+        >>> decoder = CGPDecoder(primitives, num_inputs=2, num_outputs=2, num_layers=2, nodes_per_layer=2, max_arity=2, levels_back=1)
+
+        The first individual (genome0) satisfies the constraints:
+
+        >>> op = decoder.check_constraints
+        >>> next(op(population))
+        Individual(...)
+
+        The next fails (genome1), however, because it violates the levels_back constraint:
+        
+        >>> next(op(population))
+        Traceback (most recent call last):
+        ...
+        ValueError: CGP constraints violated by individual: expected gene at locus 11 to be between the values of (2, 3) (inclusive), but found a value of 1.
+        
+        Then genome2 fails because it contains a cycle:
+
+        >>> next(op(population))
+        Traceback (most recent call last):
+        ...
+        ValueError: CGP constraints violated by individual: expected gene at locus 3 to be between the values of (0, 2) (inclusive), but found a value of 4.
+
+        The new (genome3) fails because it has the incorrect genome length:
+        
+        >>> next(op(population))
+        Traceback (most recent call last):
+        ...
+        ValueError: CGP constraints violated by individual: genome of length 17 found, but expected 14 genes.
+
+        And the last (genome4) fails because the genes are of the wrong type:
+
+        >>> next(op(population))
+        Traceback (most recent call last):
+        ...
+        ValueError: CGP constraints violated by individual: genome must contain only integers, but the gene at locus 0 has a non-integral value of 0.0.
+
+        """
+        while True:
+            ind = next(next_individual)
+            bounds = self.bounds()
+
+            if len(ind.genome) != len(bounds):
+                raise ValueError(f"CGP constraints violated by individual: genome of length {len(ind.genome)} found, but expected {len(bounds)} genes.")
+
+            for i, (g, (_min, _max)) in enumerate(zip(ind, bounds)):
+                if not isinstance(g, int) and not isinstance(g, np.integer):
+                    raise ValueError(f"CGP constraints violated by individual: genome must contain only integers, but the gene at locus {i} has a non-integral value of {g}.")
+                
+                if g < _min or g > _max:
+                    raise ValueError(f"CGP constraints violated by individual: expected gene at locus {i} to be between the values of ({_min}, {_max}) (inclusive), but found a value of {g}.")
+            
+            yield ind
+
     def decode(self, genome, *args, **kwargs):
         """Decode a linear CGP genome into an executable circuit.
         

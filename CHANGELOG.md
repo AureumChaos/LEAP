@@ -10,6 +10,7 @@ Being a terse compilation by version of changes.
    * CGP now supports auxiliary constant parameters on each node via `CGPWithParametersDecoder`
    * Added `ImageXYProblem` to `executable_rep.problems`, and a `cgp_images.py` example demonstrating it
    * Added experimental parameters to `mutate_gaussian()` to allow transforming genes by a linear function
+   * Added a `check_constraints()` operator to the `CGPDecoder` class, to help verify custom algorithms
 
  * API changes
    * Mutation operators (`mutate_gaussian()` and `mutate_binomial()`) can now be passed a list of `std` values to adjust the mutation width by gene.
