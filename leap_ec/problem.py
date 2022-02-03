@@ -380,7 +380,7 @@ class AlternatingProblem(Problem):
         self.context = context
         self.current_problem_idx = 0
 
-    def _get_current_problem(self):
+    def get_current_problem(self):
         assert('leap' in self.context)
         assert('generation' in self.context['leap'])
         step = self.context['leap']['generation']
@@ -390,10 +390,10 @@ class AlternatingProblem(Problem):
         return self.problems[i]
 
     def evaluate(self, phenome):
-        return self._get_current_problem().evaluate(phenome)
+        return self.get_current_problem().evaluate(phenome)
 
     def worse_than(self, first_fitness, second_fitness):
-        return self._get_current_problem().worse_than(first_fitness, second_fitness)
+        return self.get_current_problem().worse_than(first_fitness, second_fitness)
 
     def equivalent(self, first_fitness, second_fitness):
-        return self._get_current_problem().equivalent(first_fitness, second_fitness)
+        return self.get_current_problem().equivalent(first_fitness, second_fitness)

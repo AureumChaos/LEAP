@@ -123,7 +123,7 @@ class TruthTableProblem(ScalarProblem):
     a list of 1 or more outputs.
     """
 
-    def __init__(self, boolean_function, num_inputs, num_outputs, pad_inputs=False, maximize=True):
+    def __init__(self, boolean_function, num_inputs, num_outputs, name: str = None, pad_inputs=False, maximize=True):
         super().__init__(maximize)
         assert(boolean_function is not None)
         assert(callable(boolean_function))
@@ -133,6 +133,7 @@ class TruthTableProblem(ScalarProblem):
         self.num_inputs = num_inputs
         self.num_outputs = num_outputs
         self.pad_inputs = pad_inputs
+        self.name = name
 
     def evaluate(self, executable):
         """
