@@ -15,8 +15,8 @@ import time
 
 import numpy as np
 
-from leap_ec.problem import ScalarProblem
 from leap_ec.decoder import Decoder
+
 
 ##############################
 # Abstract Class Executable
