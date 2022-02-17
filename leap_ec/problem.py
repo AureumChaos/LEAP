@@ -4,6 +4,7 @@ and FunctionProblem.
 
 """
 from abc import ABC, abstractmethod
+import csv
 from itertools import islice
 import logging
 from math import nan, floor, isclose, isnan
@@ -367,9 +368,155 @@ class AverageFitnessProblem(Problem):
         return self.wrapped_problem.equivalent(first_fitness, second_fitness)
         
 
-########################
+##############################
+# Function concat_combine
+##############################
+def concat_combine(collaborators):
+    """Combine a list of individuals by concatenating their genomes.
+
+    This is a convenience function intended for use with CooperativeProblem.
+    """
+    # Clone one of the evaluators so we can use its problem and decoder later
+    combined_ind = collaborators[0].clone()
+
+    genomes = [ind.genome for ind in collaborators]
+    combined_ind.genome = np.concatenate(genomes)  # Concatenate
+    return combined_ind
+
+
+##############################
+# Class CooperativeProblem
+##############################
+class CooperativeProblem(Problem):
+    """
+    A Problem that implements cooperative coevolution.  This provides a fitness
+    function that takes *partial solutions* as input (i.e. from one of the subpopulations
+    of the cooperative algorithm), and evaluates their fitness by combining them
+    with other individuals in the population.
+
+    You can think of a CooperativeProblem as defining a fitness function for a subpopulation
+    in a multi-population model, where the fitness function that is computed is itself a
+    function of the state of the other subpopulations:
+
+    ..math
+      
+      \\mbox{fitness} = f_{p_i}(\\vec{\\mathbf{x}}, \\mathcal{P} \\\\ p_i)
+
+
+    This class works by wrapping another fitness function, which is defined over
+    complete solutions, and by taking a selection operator (which is used to select
+    "collaborators" from other subpopulations to form complete solutions):
+
+    >>> from leap_ec import ops
+    >>> from leap_ec.real_rep.problems import SpheroidProblem
+    >>> complete_problem = SpheroidProblem()
+    >>> problem = CooperativeProblem(
+    ...             problem = SpheroidProblem(),
+    ...             num_trials = 3,
+    ...             colllaborator_selector = ops.random_selection)
+    
+    """
+    def __init__(self, problem, num_trials: int, collaborator_selector,
+                 log_stream=None, combine_genomes=lambda x: np.concatenate,context=context):
+        assert(problem is not None)
+        assert(num_trials > 0)
+        assert(collaborator_selector is not None)
+        assert(combine_genomes is not None)
+        assert(callable(combine_genomes))
+        assert(context is not None)
+
+        self.problem = problem
+        self.context = context
+        self.num_trials = num_trials
+        self.collaborator_selector = collaborator_selector
+        self.combine_genomes = combine_genomes
+
+        # Set up the CSV writier
+        if log_stream is not None:
+            self.log_writer = csv.DictWriter(
+                log_stream,
+                fieldnames=[
+                    'generation',
+                    'subpopulation',
+                    'individual_type',
+                    'collaborator_subpopulation',
+                    'genome',
+                    'fitness'])
+            # We print the header at construction time
+            self.log_writer.writeheader()
+        else:
+            self.log_writer = None
+
+
+    def evaluate(self, phenome):
+        # Pull references to all subpopulations from the context object
+        subpopulations = self.context['leap']['subpopulations']
+        current_subpop = self.context['leap']['current_subpopulation']
+
+        # Create iterators that select individuals from each subpopulation
+        selectors = [self.collaborator_selector(
+            subpop) for subpop in subpopulations]
+
+        # Choose collaborators and evaulate
+        fitnesses = []
+        for i in range(self.num_trials):
+            collaborators = self._choose_collaborators(
+                current_ind, subpopulations, current_subpop, selectors)
+            combined_ind = self.combine(collaborators)
+            fitness = combined_ind.evaluate()
+            # Optionally write out data about the collaborations
+            if self.log_writer is not None:
+                self._log_trial(
+                    self.log_writer,
+                    collaborators,
+                    combined_ind,
+                    i,
+                    context=self.context)
+
+            fitnesses.append(fitness)
+
+        current_ind.fitness = mean(fitnesses)
+        pass
+
+    @staticmethod
+    def _choose_collaborators(subpopulations,
+                              current_subpop, selectors):
+        """Choose collaborators from the subpopulations."""
+        collaborators = []
+        for i in range(len(subpopulations)):
+            if i != current_subpop:
+                # Select a fellow collaborator from the other subpopulations
+                ind = next(selectors[i])
+                # Make sure we actually got something with a genome back
+                assert (hasattr(ind, 'genome'))
+                collaborators.append(ind)
+
+        assert (len(collaborators) == len(subpopulations) - 1)
+        return collaborators
+
+    @staticmethod
+    def _log_trial(writer, collaborators, combined_ind, trial_id,
+                   context=context):
+        """Record information about a batch of collaborators to a CSV writer."""
+        for i, collab in enumerate(collaborators):
+            writer.writerow({'generation'                : context['leap']['generation'],
+                             'subpopulation'             : context['leap']['current_subpopulation'],
+                             'individual_type'           : 'Collaborator',
+                             'collaborator_subpopulation': i,
+                             'genome'                    : collab.genome,
+                             'fitness'                   : collab.fitness})
+
+        writer.writerow({'generation'                : context['leap']['generation'],
+                         'subpopulation'             : context['leap']['current_subpopulation'],
+                         'individual_type'           : 'Combined Individual',
+                         'collaborator_subpopulation': None,
+                         'genome'                    : combined_ind.genome,
+                         'fitness'                   : combined_ind.fitness})
+
+
+#############################
 # Class AlternatingProblem
-########################
+#############################
 class AlternatingProblem(Problem):
     def __init__(self, problems, modulo, context=context):
         assert(len(problems) > 0)
