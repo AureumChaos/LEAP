@@ -19,6 +19,7 @@ Being a terse compilation by version of changes.
    * Mutation operators (`mutate_gaussian()` and `mutate_binomial()`) can now be passed a list of `std` values to adjust the mutation width by gene.
    * Removed undocumented normalization term from `real_rep.problems.CosineFamilyProblem`
    * Expose a `reset` method on `PopulationMetricsPlotProbe`
+   * `util.inc_generation()` now takes a `start_generation` argument
 
 
 ## 0.7.0, 8/5/2021
