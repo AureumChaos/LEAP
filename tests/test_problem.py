@@ -1,10 +1,10 @@
 """Unit tests for the leap_ec.problem module."""
-from leap_ec import problem
-from leap_ec.real_rep import problems as real_prob
-
 import numpy as np
 import pytest
 from scipy.stats import norm
+
+from leap_ec import Individual, problem
+from leap_ec.real_rep import problems as real_prob
 
 
 ##############################
@@ -24,7 +24,7 @@ def test_averagefitnessproblem():
                     wrapped_problem = real_prob.NoisyQuarticProblem(),
                     n = n)
     x = [ 1, 1, 1, 1 ]
-    y = p.evaluate(x)
+    y = p.evaluate(Individual(x))
 
     # The value of the noisy-quartic is sum(i*x**4) plus additive Gaussian noise
     expected_mean = 10.0  # = 1 + 2 + 3 + 4 

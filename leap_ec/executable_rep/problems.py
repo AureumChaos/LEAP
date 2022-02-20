@@ -2,7 +2,7 @@ import numpy as np
 
 from leap_ec.real_rep.problems import ScalarProblem
 
-from PIL import Image, ImageOps
+from PIL import Image
 
 
 ##############################
@@ -89,9 +89,10 @@ class EnvironmentProblem(ScalarProblem):
             # Otherwise just look at the shape of the space directly
             return int(np.prod(observation_space.shape))
 
-    def evaluate(self, executable):
-        """Run the environmental simulation using `executable` as a controller,
+    def evaluate(self, individual):
+        """Run the environmental simulation using `executable` phenotype as a controller,
         and use the resulting observations & rewards to compute a fitness value."""
+        executable = individual.phenome
         observations = []
         rewards = []
         for r in range(self.runs):
@@ -135,7 +136,7 @@ class TruthTableProblem(ScalarProblem):
         self.pad_inputs = pad_inputs
         self.name = name
 
-    def evaluate(self, executable):
+    def evaluate(self, individual):
         """
         Say our object function is $(x_0 \wedge x_1) \vee x_3$:
 
@@ -160,7 +161,8 @@ class TruthTableProblem(ScalarProblem):
         entry (in the second one, TTT=F).  So we expect a fitness value of 
         $7/8 = 0.875$:
         
-        >>> problem.evaluate(executable)
+        >>> from leap_ec import Individual
+        >>> problem.evaluate(Individual(executable))
         0.875
 
         Note that we our lambda functions above return a list that contains a 
@@ -168,10 +170,11 @@ class TruthTableProblem(ScalarProblem):
         this framework allows us to work with functions of more than one output:
 
         >>> problem = TruthTableProblem(lambda x: [ x[0] and x[1], x[0] or x[1] ], num_inputs=3, num_outputs=2)
-        >>> problem.evaluate(lambda x: [ x[0] and x[1], x[0] or x[1] ])
+        >>> problem.evaluate(Individual(lambda x: [ x[0] and x[1], x[0] or x[1] ]))
         1.0
 
         """
+        executable = individual.phenome
         assert(executable is not None)
         assert(callable(executable))
         input_samples = self._enumerate_tt(self.num_inputs)
@@ -235,7 +238,10 @@ class ImageXYProblem(ScalarProblem):
         fast_output = np.stack(fast_output, axis=1).astype(int)
         return fast_output
 
-    def evaluate(self, executable):
+    def evaluate(self, individual):
+        executable = individual.phenome
+        assert(executable is not None)
+        assert(callable(executable))
         # Collect the target image into an array
         # XXX Competing this with loops for testing.
         #     When complete, we can rely on self.img_array

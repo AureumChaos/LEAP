@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 from toolz import curry
 
+from leap_ec import Individual
 from leap_ec.global_vars import context
 from leap_ec import ops as op
 from leap_ec.ops import iteriter_op, listlist_op
@@ -834,7 +835,7 @@ class CartesianPhenotypePlotProbe:
             @np.vectorize
             def v_fun(x, y):
                 phenome = np.concatenate((np.hstack((x,y)), pad))
-                return contours.evaluate(phenome)
+                return contours.evaluate(Individual(phenome))
 
             if granularity is None:
                 granularity = (contours.bounds[1] - contours.bounds[0]) / 50.

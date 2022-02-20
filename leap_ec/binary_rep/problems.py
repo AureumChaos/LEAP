@@ -26,20 +26,20 @@ class MaxOnes(ScalarProblem):
         """
         super().__init__(maximize)
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         """
         >>> from leap_ec.individual import Individual
         >>> import numpy as np
         >>> p = MaxOnes()
         >>> ind = Individual(np.array([0, 0, 1, 1, 0, 1, 0, 1, 1]),
         ...                   problem=p)
-        >>> p.evaluate(ind.decode())
+        >>> p.evaluate(ind)
         5
         """
-        if not isinstance(phenome, np.ndarray):
+        if not isinstance(individual.phenome, np.ndarray):
             raise ValueError(("Expected phenome to be a numpy array. "
-                              f"Got {type(phenome)}."))
-        return np.count_nonzero(phenome == 1)
+                              f"Got {type(individual.phenome)}."))
+        return np.count_nonzero(individual.phenome == 1)
 
 
 ##############################
@@ -62,9 +62,9 @@ class ImageProblem(ScalarProblem):
         x = ImageOps.fit(x, size)
         return x.convert('1')
 
-    def evaluate(self, phenome):
-        assert (len(phenome) == len(self.flat_img)
-                ), f"Bad genome length: got {len(phenome)}, expected " \
+    def evaluate(self, individual):
+        assert (len(individual.phenome) == len(self.flat_img)
+                ), f"Bad genome length: got {len(individual.phenome)}, expected " \
                    f"{len(self.flat_img)} "
-        diff = np.logical_not(phenome ^ self.flat_img)
+        diff = np.logical_not(individual.phenome ^ self.flat_img)
         return sum(diff)

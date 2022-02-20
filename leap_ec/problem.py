@@ -13,7 +13,7 @@ from subprocess import Popen, PIPE, STDOUT
 
 import numpy as np
 
-from leap_ec import leap_logger_name
+from leap_ec import leap_logger_name, Individual
 from leap_ec.global_vars import context
 
 
@@ -39,9 +39,9 @@ class Problem(ABC):
         super().__init__()
 
     @abstractmethod
-    def evaluate(self, phenome, *args, **kwargs):
+    def evaluate(self, individual: Individual, *args, **kwargs):
         """
-        Evaluate the given individual based on its decoded phenome.
+        Evaluate the given individual.
 
         Practitioners *must* over-ride this member function.
 
@@ -49,18 +49,18 @@ class Problem(ABC):
         maximization problem; if this is a minimization problem, then just
         negate the value when returning the fitness.
 
-        :param phenome:
-        :return: fitness
+        :param individual: the individual to evaluate (this will *not be modified*)
+        :return: the fitness value
         """
         raise NotImplementedError
 
-    def evaluate_multiple(self, phenomes):
+    def evaluate_multiple(self, individuals):
         """Evaluate multiple individuals all at once, returning a list of fitness
         values.
         
         By default this just calls `self.evaluate()` multiple times.  Override this
         if you need to, say, send a group of individuals off to parallel """
-        return [ self.evaluate(p) for p in phenomes ]
+        return [ self.evaluate(ind) for ind in individuals ]
 
     @abstractmethod
     def worse_than(self, first_fitness, second_fitness):
@@ -142,8 +142,9 @@ class FunctionProblem(ScalarProblem):
         super().__init__(maximize)
         self.fitness_function = fitness_function
 
-    def evaluate(self, phenome, *args, **kwargs):
-        return self.fitness_function(phenome, *args, **kwargs)
+    def evaluate(self, individual, *args, **kwargs):
+        
+        return self.fitness_function(individual.phenome, *args, **kwargs)
 
 
 ##############################
@@ -178,18 +179,18 @@ class ConstantProblem(ScalarProblem):
         super().__init__(maximize)
         self.c = c
 
-    def evaluate(self, phenome, *args, **kwargs):
+    def evaluate(self, individual, *args, **kwargs):
         """
         Return a contant value for any input phenome:
 
-        >>> phenome = [0.5, 0.8, 1.5]
-        >>> ConstantProblem().evaluate(phenome)
+        >>> ind = Individual([0.5, 0.8, 1.5])
+        >>> ConstantProblem().evaluate(ind)
         1.0
 
-        >>> ConstantProblem(c=500.0).evaluate('foo bar')
+        >>> ConstantProblem(c=500.0).evaluate(Individual('foo bar'))
         500.0
 
-        :param phenome: real-valued vector to be evaluated
+        :param individual: individual to be evaluated
         :return: 1.0, or the constant defined in the constructor
         """
         return self.c
@@ -214,16 +215,16 @@ class ExternalProcessProblem(ScalarProblem):
         self.command = command
         self.args = args[:] if args else []
         
-    def evaluate(self, phenome):
-        fitnesses = self.evaluate_multiple([ phenome ])
+    def evaluate(self, individual):
+        fitnesses = self.evaluate_multiple([ individual ])
         assert(len(fitnesses) == 1)
         return fitnesses[0]
     
-    def evaluate_multiple(self, phenomes):
+    def evaluate_multiple(self, individuals):
         # Convert the phenomes into one big string
         def phenome_to_str(p):
             return ','.join([ str(x) for x in p ])
-        phenome_bytes = '\n'.join([ phenome_to_str(p) for p in phenomes ]).encode()
+        phenome_bytes = '\n'.join([ phenome_to_str(ind.phenome) for ind in individuals ]).encode()
         
         logger.debug(f"Input: {phenome_bytes}")
 
@@ -241,8 +242,8 @@ class ExternalProcessProblem(ScalarProblem):
         out_strs = outs.split(b'\n')[:-1]  # Ignoring  trailing newline
         fitnesses = [ float(o) for o in out_strs]
         
-        if len(fitnesses) != len(phenomes):
-            raise RuntimeError(f"Expected to receive {len(phenomes)} fitness values back from external simulation, but actually received {len(fitnesses)}.")
+        if len(fitnesses) != len(individuals):
+            raise RuntimeError(f"Expected to receive {len(individuals)} fitness values back from external simulation, but actually received {len(fitnesses)}.")
 
         logger.debug(f"Fitnesses: {fitnesses}\n")
             
@@ -278,7 +279,7 @@ class FitnessOffsetProblem(ScalarProblem):
         if hasattr(problem, 'bounds'):
             self.bounds = problem.bounds
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         """
         Evaluates the phenome's fitness in the wrapped function, then
         adds the constant.
@@ -288,10 +289,10 @@ class FitnessOffsetProblem(ScalarProblem):
 
         >>> original = ConstantProblem(c=5.0)
         >>> problem = FitnessOffsetProblem(original, fitness_offset=-3.5)
-        >>> problem.evaluate([0, 1, 2])
+        >>> problem.evaluate(Individual([0, 1, 2]))
         1.5
         """
-        return self.problem.evaluate(phenome) + self.fitness_offset
+        return self.problem.evaluate(individual) + self.fitness_offset
 
     def __str__(self):
         """Returns the name of this class, followed by the `__str__ of the wrapped class
@@ -317,7 +318,7 @@ class AverageFitnessProblem(Problem):
     >>> p = AverageFitnessProblem(
     ...                 wrapped_problem = NoisyQuarticProblem(),
     ...                 n = 20)
-    >>> x = [ 1, 1, 1, 1 ]
+    >>> x = Individual([ 1, 1, 1, 1 ])
     >>> y = p.evaluate(x)
     >>> print(f"Fitness: {y}")  # The mean of this will be approximately 10
     Fitness: ...
@@ -330,12 +331,12 @@ class AverageFitnessProblem(Problem):
         self.wrapped_problem = wrapped_problem
         self.n = n
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         """Evaluates the wrapped function n times sequentially and returns the mean."""
-        fitnesses = [ self.wrapped_problem.evaluate(phenome) for _ in range(self.n) ]
+        fitnesses = [ self.wrapped_problem.evaluate(individual) for _ in range(self.n) ]
         return np.mean(fitnesses)
 
-    def evaluate_multiple(self, phenomes: list):
+    def evaluate_multiple(self, individuals: list):
         """
         Evaluate a collections of phenomes by creating n jobs for each phenome,
         sending all the jobs to the wrapped evaluate_multiple() function, and then
@@ -350,15 +351,15 @@ class AverageFitnessProblem(Problem):
             return means
             
         # Copy each phenome n times, because we're going to evaluate each one n times
-        expanded_phenomes = [ p for p in phenomes for _ in range(self.n) ]
+        expanded_individuals = [ ind for ind in individuals for _ in range(self.n) ]
 
         # Evaluate them
-        fitnesses = self.wrapped_problem.evaluate_multiple(expanded_phenomes)
+        fitnesses = self.wrapped_problem.evaluate_multiple(expanded_individuals)
 
         # Average the copies back together
         contracted_phenomes = mean_by_chunk(fitnesses)
 
-        assert(len(contracted_phenomes) == len(phenomes))
+        assert(len(contracted_phenomes) == len(individuals))
         return contracted_phenomes
 
     def worse_than(self, first_fitness, second_fitness):
@@ -536,8 +537,8 @@ class AlternatingProblem(Problem):
 
         return self.problems[i]
 
-    def evaluate(self, phenome):
-        return self.get_current_problem().evaluate(phenome)
+    def evaluate(self, individual):
+        return self.get_current_problem().evaluate(individual)
 
     def worse_than(self, first_fitness, second_fitness):
         return self.get_current_problem().worse_than(first_fitness, second_fitness)
