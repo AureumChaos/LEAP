@@ -3,7 +3,6 @@
     Pipeline operators for real-valued representations
 """
 import math
-import random
 from collections.abc import Iterable
 from typing import Iterator, List, Tuple, Union
 
@@ -11,7 +10,6 @@ import numpy as np
 
 from toolz import curry
 
-from leap_ec import util
 from leap_ec.ops import compute_expected_probability, iteriter_op
 
 
@@ -60,7 +58,11 @@ def mutate_gaussian(next_individual: Iterator,
     if expected_num_mutations is None:
         raise ValueError("No value given for expected_num_mutations.  Must be either a float or the string 'isotropic'.")
     
-    genome_mutator = genome_mutate_gaussian(std, expected_num_mutations, hard_bounds, transform_slope, transform_intercept)
+    genome_mutator = genome_mutate_gaussian(std=std,
+                                expected_num_mutations=expected_num_mutations,
+                                hard_bounds=hard_bounds,
+                                transform_slope=transform_slope,
+                                transform_intercept=transform_intercept)
 
     while True:
         individual = next(next_individual)
@@ -72,7 +74,12 @@ def mutate_gaussian(next_individual: Iterator,
         yield individual
 
 
-def genome_mutate_gaussian(std: float,
+##############################
+# Function genome_mutate_gaussian
+##############################
+@curry
+def genome_mutate_gaussian(genome,
+                           std: float,
                            expected_num_mutations,
                            hard_bounds: Tuple[float, float] =
                              (-math.inf, math.inf),
@@ -100,41 +107,38 @@ def genome_mutate_gaussian(std: float,
     if isinstance(std, Iterable):
         std = np.array(std)
 
-    def mutate(genome):
-        """Function to return as a closure."""
-        # compute actual probability of mutation based on expected number of
-        # mutations and the genome length
+    # compute actual probability of mutation based on expected number of
+    # mutations and the genome length
 
-        if not isinstance(genome, np.ndarray):
-            raise ValueError(("Expected genome to be a numpy array. "
-                            f"Got {type(genome)}."))
+    if not isinstance(genome, np.ndarray):
+        raise ValueError(("Expected genome to be a numpy array. "
+                        f"Got {type(genome)}."))
 
-        if expected_num_mutations == 'isotropic':
-            # Default to isotropic Gaussian mutation
-            p = 1.0
-        else:
-            p = compute_expected_probability(expected_num_mutations, genome)
+    if expected_num_mutations == 'isotropic':
+        # Default to isotropic Gaussian mutation
+        p = 1.0
+    else:
+        p = compute_expected_probability(expected_num_mutations, genome)
 
-        # select which indices to mutate at random
-        selector = np.random.choice([0, 1], size=genome.shape, p=(1 - p, p))
-        indices_to_mutate = np.nonzero(selector)[0]
+    # select which indices to mutate at random
+    selector = np.random.choice([0, 1], size=genome.shape, p=(1 - p, p))
+    indices_to_mutate = np.nonzero(selector)[0]
 
-        # Pick out just the std values we need for the mutated genes
-        std_selected = std if not isinstance(std, Iterable) else std[indices_to_mutate]
+    # Pick out just the std values we need for the mutated genes
+    std_selected = std if not isinstance(std, Iterable) else std[indices_to_mutate]
 
-        # Apply additive Gaussian noise to the selected genes
-        new_gene_values = transform_slope * (genome[indices_to_mutate] \
-                                                       + np.random.normal(size=indices_to_mutate.shape[0]) \
-                                                       # scalar multiply if scalar; element-wise if std is an ndarray
-                                                       * std_selected) \
-                                    + transform_intercept
-        genome[indices_to_mutate] = new_gene_values
+    # Apply additive Gaussian noise to the selected genes
+    new_gene_values = transform_slope * (genome[indices_to_mutate] \
+                                                    + np.random.normal(size=indices_to_mutate.shape[0]) \
+                                                    # scalar multiply if scalar; element-wise if std is an ndarray
+                                                    * std_selected) \
+                                + transform_intercept
+    genome[indices_to_mutate] = new_gene_values
 
-        # Implement hard bounds
-        genome = apply_hard_bounds(genome, hard_bounds)
+    # Implement hard bounds
+    genome = apply_hard_bounds(genome, hard_bounds)
 
-        return genome
-    return mutate
+    return genome
 
 
 ##############################

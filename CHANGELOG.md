@@ -20,6 +20,7 @@ Being a terse compilation by version of changes.
    * Removed undocumented normalization term from `real_rep.problems.CosineFamilyProblem`
    * Expose a `reset` method on `PopulationMetricsPlotProbe`
    * `util.inc_generation()` now takes a `start_generation` argument
+   * `genome_mutate_gaussian()` is now a curried function instead of a closure
 
 
 ## 0.7.0, 8/5/2021
