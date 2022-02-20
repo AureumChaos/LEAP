@@ -13,6 +13,9 @@ Being a terse compilation by version of changes.
    * Added a `check_constraints()` operator to the `CGPDecoder` class, to help verify custom algorithms
 
  * API changes
+   * `Problem.evaluate()` now takes an `Individual` instead of a `phenome` as an argument
+     * ^ this is a major API change that is not backword compatible!
+   * `Individual` now has a `phenome` property
    * Mutation operators (`mutate_gaussian()` and `mutate_binomial()`) can now be passed a list of `std` values to adjust the mutation width by gene.
    * Removed undocumented normalization term from `real_rep.problems.CosineFamilyProblem`
    * Expose a `reset` method on `PopulationMetricsPlotProbe`

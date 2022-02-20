@@ -1321,7 +1321,10 @@ class TranslatedProblem(ScalarProblem):
             raise ValueError(("Expected phenome to be a numpy array. "
                               f"Got {type(individual.phenome)}."))
         new_phenome = individual.phenome - self.offset
-        return self.problem.evaluate(Individual(new_phenome))
+
+        new_ind = individual.clone()
+        new_ind.phenome = new_phenome
+        return self.problem.evaluate(new_ind)
 
     def __str__(self):
         """Returns the name of this class, followed by the `__str__ of the wrapped class
@@ -1360,7 +1363,10 @@ class ScaledProblem(ScalarProblem):
                                           self.bounds[1] - self.bounds[0]) \
                               * (self.old_bounds[1] - self.old_bounds[0])
         assert (len(transformed_phenome) == len(individual.phenome))
-        return self.problem.evaluate(Individual(transformed_phenome))
+
+        transformed_ind = individual.clone()
+        transformed_ind.phenome = transformed_phenome
+        return self.problem.evaluate(transformed_ind)
 
     def __str__(self):
         """Returns the name of this class, followed by the `__str__ of the wrapped class
@@ -1553,7 +1559,9 @@ class MatrixTransformedProblem(ScalarProblem):
             self.matrix)), f"Tried to evalute a {len(individual.phenome)}-D genome in a " \
                            f"{len(self.matrix)}-D fitness function. "
         new_point = np.matmul(self.matrix, individual.phenome)
-        return self.problem.evaluate(new_point)
+        new_ind = individual.clone()
+        new_ind.phenome = new_point
+        return self.problem.evaluate(new_ind)
 
     def __str__(self):
         """Returns the name of this class, followed by the `__str__ of the wrapped class

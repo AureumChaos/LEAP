@@ -161,6 +161,7 @@ class TruthTableProblem(ScalarProblem):
         entry (in the second one, TTT=F).  So we expect a fitness value of 
         $7/8 = 0.875$:
         
+        >>> from leap_ec import Individual
         >>> problem.evaluate(Individual(executable))
         0.875
 
@@ -238,7 +239,7 @@ class ImageXYProblem(ScalarProblem):
         return fast_output
 
     def evaluate(self, individual):
-        executable = individual
+        executable = individual.phenome
         assert(executable is not None)
         assert(callable(executable))
         # Collect the target image into an array
