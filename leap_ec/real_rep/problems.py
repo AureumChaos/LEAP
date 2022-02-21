@@ -12,6 +12,7 @@ import numpy as np
 from numpy.lib.twodim_base import diag
 from numpy.random import random
 
+from leap_ec import Individual
 from leap_ec.problem import FitnessOffsetProblem, ScalarProblem
 
 
@@ -46,20 +47,20 @@ class SpheroidProblem(ScalarProblem):
     def __init__(self, maximize=False):
         super().__init__(maximize)
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         """
         Computes the function value from a real-valued list phenome:
 
         >>> phenome = [0.5, 0.8, 1.5]
-        >>> SpheroidProblem().evaluate(phenome)
+        >>> SpheroidProblem().evaluate(Individual(phenome))
         3.14
 
         :param phenome: real-valued vector to be evaluated
         :return: it's fitness, `sum(phenome**2)`
         """
-        if isinstance(phenome, np.ndarray):
-            return np.sum(phenome ** 2)
-        return sum([x ** 2 for x in phenome])
+        if isinstance(individual.phenome, np.ndarray):
+            return np.sum(individual.phenome ** 2)
+        return sum([x ** 2 for x in individual.phenome])
 
     def worse_than(self, first_fitness, second_fitness):
         """
@@ -119,23 +120,23 @@ class RastriginProblem(ScalarProblem):
         super().__init__(maximize)
         self.a = a
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         """
         Computes the function value from a real-valued list phenome:
 
         >>> phenome = [1.0/12, 0]
-        >>> RastriginProblem().evaluate(phenome) # doctest: +ELLIPSIS
+        >>> RastriginProblem().evaluate(Individual(phenome)) # doctest: +ELLIPSIS
         0.1409190406...
 
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness
         """
-        if isinstance(phenome, np.ndarray):
-            return self.a * len(phenome) + \
-                np.sum(phenome ** 2 - self.a * np.cos(2 * np.pi * phenome))
+        if isinstance(individual.phenome, np.ndarray):
+            return self.a * len(individual.phenome) + \
+                np.sum(individual.phenome ** 2 - self.a * np.cos(2 * np.pi * individual.phenome))
         return self.a * \
-            len(phenome) + sum([x ** 2 - self.a *
-                                np.cos(2 * np.pi * x) for x in phenome])
+            len(individual.phenome) + sum([x ** 2 - self.a *
+                                np.cos(2 * np.pi * x) for x in individual.phenome])
 
     def worse_than(self, first_fitness, second_fitness):
         """
@@ -191,25 +192,25 @@ class RosenbrockProblem(ScalarProblem):
     def __init__(self, maximize=False):
         super().__init__(maximize)
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         """
         Computes the function value from a real-valued list phenome:
 
         >>> phenome = [0.5, -0.2, 0.1]
-        >>> RosenbrockProblem().evaluate(phenome)
+        >>> RosenbrockProblem().evaluate(Individual(phenome))
         22.3
 
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness
         """
-        if isinstance(phenome, np.ndarray):
-            x_p = phenome[1:]
-            x = phenome[:-1]
+        if isinstance(individual.phenome, np.ndarray):
+            x_p = individual.phenome[1:]
+            x = individual.phenome[:-1]
             return np.sum(100 * (x_p - x ** 2) ** 2 + (x - 1) ** 2)
 
         sum = 0
-        for i, x in enumerate(phenome[0:-1]):
-            x_p = phenome[i + 1]
+        for i, x in enumerate(individual.phenome[0:-1]):
+            x_p = individual.phenome[i + 1]
             sum += 100 * (x_p - x ** 2) ** 2 + (x - 1) ** 2
         return sum
 
@@ -269,19 +270,19 @@ class StepProblem(ScalarProblem):
     def __init__(self, maximize=True):
         super().__init__(maximize)
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         """
         Computes the function value from a real-valued list phenome:
 
         >>> import numpy as np
         >>> phenome = np.array([3.5, -3.8, 5.0])
-        >>> StepProblem().evaluate(phenome)
+        >>> StepProblem().evaluate(Individual(phenome))
         4.0
 
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness
         """
-        return np.sum(np.floor(phenome))
+        return np.sum(np.floor(individual.phenome))
 
     def worse_than(self, first_fitness, second_fitness):
         """
@@ -336,21 +337,21 @@ class NoisyQuarticProblem(ScalarProblem):
     def __init__(self, maximize=False):
         super().__init__(maximize)
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         """
         Computes the function value from a real-valued list phenome (the output varies, since the function has noise):
 
         >>> phenome = [3.5, -3.8, 5.0]
-        >>> r = NoisyQuarticProblem().evaluate(phenome)
+        >>> r = NoisyQuarticProblem().evaluate(Individual(phenome))
         >>> print(f'Result: {r}')
         Result: ...
 
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness
         """
-        indices = np.arange(len(phenome)) + 1
-        noise = np.random.normal(0, 1, len(phenome))
-        return np.dot(indices, np.power(phenome, 4)) + np.sum(noise)
+        indices = np.arange(len(individual.phenome)) + 1
+        noise = np.random.normal(0, 1, len(individual.phenome))
+        return np.dot(indices, np.power(individual.phenome, 4)) + np.sum(noise)
 
     def worse_than(self, first_fitness, second_fitness):
         """
@@ -431,18 +432,18 @@ class ShekelProblem(ScalarProblem):
         self.k = k
         self.c = c
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         """
         Computes the function value from a real-valued list phenome (the output varies, since the function has noise).
 
         :param phenome: real-valued to be evaluated
         :returns: its fitness
         """
-        assert (len(phenome) == 2)
+        assert (len(individual.phenome) == 2)
 
         def f(j):
-            return self.c[j] + (phenome[0] - self.points[0][j]
-                                ) ** 6 + (phenome[1] - self.points[1][j]) ** 6
+            return self.c[j] + (individual.phenome[0] - self.points[0][j]
+                                ) ** 6 + (individual.phenome[1] - self.points[1][j]) ** 6
 
         return 1 / (1 / self.k + np.sum([1 / f(j) for j in range(25)]))
 
@@ -505,19 +506,19 @@ class GriewankProblem(ScalarProblem):
     def __init__(self, maximize=False):
         super().__init__(maximize)
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         """
         Computes the function value from a real-valued phenome.
 
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness.
         """
-        if not isinstance(phenome, np.ndarray):
+        if not isinstance(individual.phenome, np.ndarray):
             raise ValueError(("Expected phenome to be a numpy array. "
-                              f"Got {type(phenome)}."))
-        t1 = np.sum(np.power(phenome, 2) / 4000)
-        i_vector = np.sqrt(np.arange(1, len(phenome) + 1))
-        t2 = np.prod(np.cos(phenome / i_vector))
+                              f"Got {type(individual.phenome)}."))
+        t1 = np.sum(np.power(individual.phenome, 2) / 4000)
+        i_vector = np.sqrt(np.arange(1, len(individual.phenome) + 1))
+        t2 = np.prod(np.cos(individual.phenome / i_vector))
         return t1 - t2 + 1
 
     def __str__(self):
@@ -563,20 +564,20 @@ class AckleyProblem(ScalarProblem):
         self.b = b
         self.c = c
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         """
         Computes the function value from a real-valued phenome.
 
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness.
         """
-        if not isinstance(phenome, np.ndarray):
+        if not isinstance(individual.phenome, np.ndarray):
             raise ValueError(("Expected phenome to be a numpy array. "
-                              f"Got {type(phenome)}."))
-        d = len(phenome)
+                              f"Got {type(individual.phenome)}."))
+        d = len(individual.phenome)
         t1 = -self.a * np.exp(-self.b * np.sqrt(1.0 /
-                                                d * np.sum(np.power(phenome, 2))))
-        t2 = np.exp(1.0 / d * np.sum(np.cos(self.c * phenome)))
+                                                d * np.sum(np.power(individual.phenome, 2))))
+        t2 = np.exp(1.0 / d * np.sum(np.cos(self.c * individual.phenome)))
         return t1 - t2 + self.a + np.e
 
     def __str__(self):
@@ -624,18 +625,18 @@ class WeierstrassProblem(ScalarProblem):
         self.a = a
         self.b = b
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         """
         Computes the function value from a real-valued phenome.
 
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness.
         """
-        if not isinstance(phenome, np.ndarray):
+        if not isinstance(individual.phenome, np.ndarray):
             raise ValueError(("Expected phenome to be a numpy array. "
-                              f"Got {type(phenome)}."))
+                              f"Got {type(individual.phenome)}."))
         result = 0
-        for x in phenome:
+        for x in individual.phenome:
             t1 = 0
             for k in range(self.kmax):
                 t1 += self.a ** k * \
@@ -646,7 +647,7 @@ class WeierstrassProblem(ScalarProblem):
         for k in range(self.kmax):
             t2 += self.a ** k * np.cos(np.pi * (self.b ** k))
 
-        result = result - len(phenome) * t2
+        result = result - len(individual.phenome) * t2
         return result
 
     def __str__(self):
@@ -722,25 +723,25 @@ class LangermannProblem(ScalarProblem):
             raise ValueError(
                 f"Got a value of shape {self.a.shape} for 'a', but must be a {m}xd matrix.")
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         """
         Computes the function value from a real-valued phenome.
 
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness.
         """
-        assert (phenome is not None)
-        if not isinstance(phenome, np.ndarray):
+        assert (individual.phenome is not None)
+        if not isinstance(individual.phenome, np.ndarray):
             raise ValueError(("Expected phenome to be a numpy array. "
-                              f"Got {type(phenome)}."))
-        if len(phenome) != self.a.shape[1]:
+                              f"Got {type(individual.phenome)}."))
+        if len(individual.phenome) != self.a.shape[1]:
             raise ValueError(
-                f"Received an {len(phenome)}-dimensional phenome, but this is a {self.a.shape[1]}-dimensional Langerman function.")
+                f"Received an {len(individual.phenome)}-dimensional phenome, but this is a {self.a.shape[1]}-dimensional Langerman function.")
         result = 0
         for i in range(self.m):
             result -= self.c[i] * np.exp(
-                -1.0 / np.pi * np.sum((phenome - self.a[i]) ** 2)) \
-                      * np.cos(np.pi * np.sum((phenome - self.a[i]) ** 2))
+                -1.0 / np.pi * np.sum((individual.phenome - self.a[i]) ** 2)) \
+                      * np.cos(np.pi * np.sum((individual.phenome - self.a[i]) ** 2))
         return result
 
     def __str__(self):
@@ -819,24 +820,24 @@ class LunacekProblem(ScalarProblem):
         self.mu_2 = mu_2 if mu_2 is not None else - \
             np.sqrt((mu_1**2 - d) / self.s)
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         """
         Computes the function value from a real-valued phenome.
 
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness.
         """
-        assert(phenome is not None)
-        if len(phenome) != self.N:
+        assert(individual.phenome is not None)
+        if len(individual.phenome) != self.N:
             warnings.warn(
-                f"Phenome has length {len(phenome)}, but this function expected {self.N}-dimensional input.")
-        if not isinstance(phenome, np.ndarray):
+                f"Phenome has length {len(individual.phenome)}, but this function expected {self.N}-dimensional input.")
+        if not isinstance(individual.phenome, np.ndarray):
             raise ValueError(("Expected phenome to be a numpy array. "
-                              f"Got {type(phenome)}."))
-        sphere1 = np.sum((phenome - self.mu_1)**2)
-        sphere2 = self.d * len(phenome) + self.s * \
-            np.sum((phenome - self.mu_2)**2)
-        sinusoid = 10 * np.sum(1 - np.cos(2 * np.pi * (phenome - self.mu_1)))
+                              f"Got {type(individual.phenome)}."))
+        sphere1 = np.sum((individual.phenome - self.mu_1)**2)
+        sphere2 = self.d * len(individual.phenome) + self.s * \
+            np.sum((individual.phenome - self.mu_2)**2)
+        sinusoid = 10 * np.sum(1 - np.cos(2 * np.pi * (individual.phenome - self.mu_1)))
         return min(sphere1, sphere2) + sinusoid
 
     def __str__(self):
@@ -883,20 +884,20 @@ class SchwefelProblem(ScalarProblem):
         super().__init__(maximize)
         self.alpha = alpha
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         """
         Computes the function value from a real-valued phenome.
 
-        :param phenome: real-valued vector to be evaluated
+        :param individual: individual with a real-valued phenome to be evaluated
         :returns: its fitness.
         """
-        assert(phenome is not None)
-        if not isinstance(phenome, np.ndarray):
+        assert(individual.phenome is not None)
+        if not isinstance(individual.phenome, np.ndarray):
             raise ValueError(("Expected phenome to be a numpy array. "
-                              f"Got {type(phenome)}."))
+                              f"Got {type(individual.phenome)}."))
 
-        return np.sum(-phenome * np.sin(np.sqrt(np.abs(phenome)))
-                      ) + self.alpha * len(phenome)
+        return np.sum(-individual.phenome * np.sin(np.sqrt(np.abs(individual.phenome)))
+                      ) + self.alpha * len(individual.phenome)
 
     def __str__(self):
         """Returns the name of the class.
@@ -936,14 +937,14 @@ class GaussianProblem(ScalarProblem):
         self.width = 1
         self.height = 1
 
-    def evaluate(self, phenome):
-        assert(phenome is not None)
+    def evaluate(self, individual):
+        assert(individual.phenome is not None)
 
-        if not isinstance(phenome, np.ndarray):
+        if not isinstance(individual.phenome, np.ndarray):
             raise ValueError(("Expected phenome to be a numpy array. "
-                              f"Got {type(phenome)}."))
+                              f"Got {type(individual.phenome)}."))
 
-        return self.height * np.exp(-np.sum(np.power(phenome/self.width, 2)))
+        return self.height * np.exp(-np.sum(np.power(individual.phenome/self.width, 2)))
 
     def __str__(self):
         """Returns the name of the class.
@@ -1013,20 +1014,20 @@ class CosineFamilyProblem(ScalarProblem):
         self.global_optima_counts = np.array(global_optima_counts)
         self.local_optima_counts = np.array(local_optima_counts)
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         """
         Computes the function value from a real-valued phenome.
 
-        :param phenome: real-valued vector to be evaluated
+        :param phenome: individual with a real-valued phenome vector to be evaluated
         :returns: its fitness.
         """
-        if not isinstance(phenome, np.ndarray):
+        if not isinstance(individual.phenome, np.ndarray):
             raise ValueError(("Expected phenome to be a numpy array. "
-                              f"Got {type(phenome)}."))
-        term1 = -np.cos((self.global_optima_counts - 1) * 2 * np.pi * phenome)
+                              f"Got {type(individual.phenome)}."))
+        term1 = -np.cos((self.global_optima_counts - 1) * 2 * np.pi * individual.phenome)
         term2 = - self.alpha * \
             np.cos((self.global_optima_counts - 1) * 2 *
-                   np.pi * self.local_optima_counts * phenome)
+                   np.pi * self.local_optima_counts * individual.phenome)
         value = np.sum(term1 + term2) / (2 * self.dimensions)
         return value
 
@@ -1140,8 +1141,8 @@ class QuadraticFamilyProblem(ScalarProblem):
     def dimensions(self):
         return len(self.offset_vectors[0])
         
-    def evaluate(self, phenome):
-        basin_values = [ p.evaluate(phenome) for p in self.parabaloids ]
+    def evaluate(self, individual):
+        basin_values = [ p.evaluate(individual.phenome) for p in self.parabaloids ]
         return np.min(basin_values)
 
     @classmethod
@@ -1228,8 +1229,8 @@ class ParabaloidProblem(ScalarProblem):
         # Construct the matrix for the quadratic form
         self.matrix = R.T @ D @ R
 
-    def evaluate(self, phenome):
-        return phenome.T @ self.matrix @ phenome
+    def evaluate(self, individual):
+        return individual.phenome.T @ self.matrix @ individual.phenome
 
 
 ##############################
@@ -1297,7 +1298,7 @@ class TranslatedProblem(ScalarProblem):
         offset = np.random.uniform(min_offset, max_offset, dimensions)
         return cls(problem, offset, maximize=maximize)
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         """
         Evaluate the fitness of a point after translating the fitness function.
 
@@ -1307,20 +1308,23 @@ class TranslatedProblem(ScalarProblem):
         >>> offset = [-1.0, -1.0, 1.0, 1.0, -5.0]
         >>> t_sphere = TranslatedProblem(SpheroidProblem(), offset)
         >>> genome = np.array([0.5, 2.0, 3.0, 8.5, -0.6])
-        >>> t_sphere.evaluate(genome)
+        >>> t_sphere.evaluate(Individual(genome))
         90.86
         """
-        assert (len(phenome) == len(self.offset)), \
-            f"Tried to evalute a {len(phenome)}-D genome in a " \
+        assert (len(individual.phenome) == len(self.offset)), \
+            f"Tried to evalute a {len(individual.phenome)}-D genome in a " \
             f"{len(self.offset)}-D fitness function. "
         # Substract the offset so that we are moving the origin *to* the offset.
         # This way we can think of it as offsetting the fitness function,
         # rather than the input points.
-        if not isinstance(phenome, np.ndarray):
+        if not isinstance(individual.phenome, np.ndarray):
             raise ValueError(("Expected phenome to be a numpy array. "
-                              f"Got {type(phenome)}."))
-        new_phenome = phenome - self.offset
-        return self.problem.evaluate(new_phenome)
+                              f"Got {type(individual.phenome)}."))
+        new_phenome = individual.phenome - self.offset
+
+        new_ind = individual.clone()
+        new_ind.phenome = new_phenome
+        return self.problem.evaluate(new_ind)
 
     def __str__(self):
         """Returns the name of this class, followed by the `__str__ of the wrapped class
@@ -1350,16 +1354,19 @@ class ScaledProblem(ScalarProblem):
         self.old_bounds = problem.bounds
         self.bounds = new_bounds
 
-    def evaluate(self, phenome):
-        if not isinstance(phenome, np.ndarray):
+    def evaluate(self, individual):
+        if not isinstance(individual.phenome, np.ndarray):
             raise ValueError(("Expected phenome to be a numpy array. "
-                              f"Got {type(phenome)}."))
+                              f"Got {type(individual.phenome)}."))
         transformed_phenome = self.old_bounds[0] + (
-                    phenome - self.bounds[0]) / (
+                    individual.phenome - self.bounds[0]) / (
                                           self.bounds[1] - self.bounds[0]) \
                               * (self.old_bounds[1] - self.old_bounds[0])
-        assert (len(transformed_phenome) == len(phenome))
-        return self.problem.evaluate(transformed_phenome)
+        assert (len(transformed_phenome) == len(individual.phenome))
+
+        transformed_ind = individual.clone()
+        transformed_ind.phenome = transformed_phenome
+        return self.problem.evaluate(transformed_ind)
 
     def __str__(self):
         """Returns the name of this class, followed by the `__str__ of the wrapped class
@@ -1516,7 +1523,7 @@ class MatrixTransformedProblem(ScalarProblem):
         matrix = random_orthonormal_matrix(dimensions)
         return cls(problem, matrix, maximize)
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         """
         Evaluated the fitness of a point on the transformed fitness landscape.
 
@@ -1525,7 +1532,7 @@ class MatrixTransformedProblem(ScalarProblem):
 
         >>> import numpy as np
         >>> s = TranslatedProblem(SpheroidProblem(), offset=[0, 1])
-        >>> round(s.evaluate(np.array([0, 1])), 5)
+        >>> round(s.evaluate(Individual(np.array([0, 1]))), 5)
         0
 
         Now let's take a rotation matrix that transforms the space by pi/2
@@ -1539,20 +1546,22 @@ class MatrixTransformedProblem(ScalarProblem):
 
         The rotation has moved the new global optimum to (1, 0)
 
-        >>> round(r.evaluate(np.array([1, 0])), 5)
+        >>> round(r.evaluate(Individual(np.array([1, 0]))), 5)
         0.0
 
         The point (0, 1) lies at a distance of sqrt(2) from the new optimum,
         and has a fitness of 2:
 
-        >>> round(r.evaluate(np.array([0, 1])), 5)
+        >>> round(r.evaluate(Individual(np.array([0, 1]))), 5)
         2.0
         """
-        assert (len(phenome) == len(
-            self.matrix)), f"Tried to evalute a {len(phenome)}-D genome in a " \
+        assert (len(individual.phenome) == len(
+            self.matrix)), f"Tried to evalute a {len(individual.phenome)}-D genome in a " \
                            f"{len(self.matrix)}-D fitness function. "
-        new_point = np.matmul(self.matrix, phenome)
-        return self.problem.evaluate(new_point)
+        new_point = np.matmul(self.matrix, individual.phenome)
+        new_ind = individual.clone()
+        new_ind.phenome = new_point
+        return self.problem.evaluate(new_ind)
 
     def __str__(self):
         """Returns the name of this class, followed by the `__str__ of the wrapped class
@@ -1626,7 +1635,7 @@ def plot_2d_problem(problem, xlim=None, ylim=None, kind='surface',
     """
 
     def call(phenome):
-        return problem.evaluate(phenome)
+        return problem.evaluate(Individual(phenome))
 
     if xlim is None:
         xlim = problem.bounds
