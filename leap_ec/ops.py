@@ -269,7 +269,7 @@ def evaluate(next_individual: Iterator) -> Iterator:
 ##############################
 @curry
 @listlist_op
-def grouped_evaluate(population: list, problem, max_individuals_per_chunk: int = None) -> list:
+def grouped_evaluate(population: list, max_individuals_per_chunk: int = None) -> list:
     """Evaluate the population by sending groups of multiple individuals to
     a fitness function so they can be evaluated simultaneously.
 
@@ -282,6 +282,9 @@ def grouped_evaluate(population: list, problem, max_individuals_per_chunk: int =
         """Yield successive n-sized chunks from lst."""
         for i in range(0, len(lst), n):
             yield lst[i:i + n]
+
+    problem = population[0].problem
+    assert(all([ind.problem == problem for ind in population])), f"Two or more individuals in the population have different problem references; cannot perform grouped evaluation!"
 
     fitnesses = []
     for chunk in chunks(population, max_individuals_per_chunk):

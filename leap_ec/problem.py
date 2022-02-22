@@ -14,6 +14,7 @@ from subprocess import Popen, PIPE, STDOUT
 import numpy as np
 
 from leap_ec import leap_logger_name, Individual
+from leap_ec.decoder import Decoder, IdentityDecoder
 from leap_ec.global_vars import context
 
 
@@ -412,24 +413,26 @@ class CooperativeProblem(Problem):
     >>> from leap_ec.real_rep.problems import SpheroidProblem
     >>> complete_problem = SpheroidProblem()
     >>> problem = CooperativeProblem(
-    ...             problem = SpheroidProblem(),
+    ...             wrapped_problem = SpheroidProblem(),
     ...             num_trials = 3,
-    ...             colllaborator_selector = ops.random_selection)
+    ...             collaborator_selector = ops.random_selection)
     
     """
-    def __init__(self, problem, num_trials: int, collaborator_selector,
-                 log_stream=None, combine_genomes=lambda x: np.concatenate,context=context):
-        assert(problem is not None)
+    def __init__(self, wrapped_problem, num_trials: int, collaborator_selector,
+                 combined_decoder: Decoder=IdentityDecoder(), log_stream=None, combine_genomes=lambda x: np.concatenate(x), context=context):
+        assert(wrapped_problem is not None)
         assert(num_trials > 0)
         assert(collaborator_selector is not None)
+        assert(combined_decoder is not None)
         assert(combine_genomes is not None)
         assert(callable(combine_genomes))
         assert(context is not None)
 
-        self.problem = problem
+        self.wrapped_problem = wrapped_problem
         self.context = context
         self.num_trials = num_trials
         self.collaborator_selector = collaborator_selector
+        self.combined_decoder = combined_decoder
         self.combine_genomes = combine_genomes
 
         # Set up the CSV writier
@@ -448,58 +451,64 @@ class CooperativeProblem(Problem):
         else:
             self.log_writer = None
 
+    def evaluate(self, individual):
 
-    def evaluate(self, phenome):
+        current_genome = individual.genome
+
         # Pull references to all subpopulations from the context object
         subpopulations = self.context['leap']['subpopulations']
-        current_subpop = self.context['leap']['current_subpopulation']
-
-        # Create iterators that select individuals from each subpopulation
-        selectors = [self.collaborator_selector(
-            subpop) for subpop in subpopulations]
+        current_subpop_index = self.context['leap']['current_subpopulation']
 
         # Choose collaborators and evaulate
         fitnesses = []
         for i in range(self.num_trials):
-            collaborators = self._choose_collaborators(
-                current_ind, subpopulations, current_subpop, selectors)
-            combined_ind = self.combine(collaborators)
+            all_collaborators = self._choose_collaborators(current_genome, current_subpop_index, subpopulations)
+            combined_genome = self.combine_genomes(all_collaborators)
+            combined_ind = Individual(combined_genome, decoder=self.combined_decoder, problem=self.wrapped_problem)
             fitness = combined_ind.evaluate()
+
             # Optionally write out data about the collaborations
             if self.log_writer is not None:
                 self._log_trial(
                     self.log_writer,
-                    collaborators,
+                    all_collaborators,
                     combined_ind,
                     i,
                     context=self.context)
 
             fitnesses.append(fitness)
 
-        current_ind.fitness = mean(fitnesses)
-        pass
+        return np.mean(fitnesses)
 
-    @staticmethod
-    def _choose_collaborators(subpopulations,
-                              current_subpop, selectors):
-        """Choose collaborators from the subpopulations."""
-        collaborators = []
+    def _choose_collaborators(self, current_genome, current_subpop_index, subpopulations):
+        """Choose collaborators from the subpopulations, returning a list that contains
+        the genome for the current individual and all of the genomes for collaborators, 
+        in the order that they will be combined."""
+
+        # Create iterators that select individuals from each subpopulation
+        selection_iterators = [self.collaborator_selector(subpop) for subpop in subpopulations]
+
+        all_collaborators = []
         for i in range(len(subpopulations)):
-            if i != current_subpop:
+            if i != current_subpop_index:
                 # Select a fellow collaborator from the other subpopulations
-                ind = next(selectors[i])
+                ind = next(selection_iterators[i])
                 # Make sure we actually got something with a genome back
                 assert (hasattr(ind, 'genome'))
-                collaborators.append(ind)
+                all_collaborators.append(ind.genome)
+            else:
+                # Stick this subpop's individual in as-is
+                all_collaborators.append(current_genome)
 
-        assert (len(collaborators) == len(subpopulations) - 1)
-        return collaborators
+        assert (len(all_collaborators) == len(subpopulations))
+
+        return all_collaborators
 
     @staticmethod
-    def _log_trial(writer, collaborators, combined_ind, trial_id,
+    def _log_trial(writer, all_collaborators, combined_ind, trial_id,
                    context=context):
         """Record information about a batch of collaborators to a CSV writer."""
-        for i, collab in enumerate(collaborators):
+        for i, collab in enumerate(all_collaborators):
             writer.writerow({'generation'                : context['leap']['generation'],
                              'subpopulation'             : context['leap']['current_subpopulation'],
                              'individual_type'           : 'Collaborator',
@@ -513,6 +522,12 @@ class CooperativeProblem(Problem):
                          'collaborator_subpopulation': None,
                          'genome'                    : combined_ind.genome,
                          'fitness'                   : combined_ind.fitness})
+
+    def worse_than(self, first_fitness, second_fitness):
+        return self.wrapped_problem.worse_than(first_fitness, second_fitness)
+
+    def equivalent(self, first_fitness, second_fitness):
+        return self.wrapped_problem.equivalent(first_fitness, second_fitness)
 
 
 #############################
