@@ -54,8 +54,8 @@ if __name__ == '__main__':
 
     # When running the test harness, just run for two generations
     # (we use this to quickly ensure our examples don't get bitrot)
-    if os.environ.get(test_env_var, False) != 'True':
-        generations = 1000
+    if os.environ.get(test_env_var, False) == 'True':
+        generations = 2
 
     # Initialize a representation for each subpopulation
     representations = [ get_representation(l) for l in genes_per_subpopulation]

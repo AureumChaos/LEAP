@@ -40,8 +40,6 @@ def get_representation(length: int):
 ##############################
 if __name__ == '__main__':
     arguments = docopt(__doc__)
-    print(arguments)
-
 
     # CLI parameters
     pop_size = int(arguments['--pop-size'])
@@ -53,8 +51,8 @@ if __name__ == '__main__':
 
     # When running the test harness, just run for two generations
     # (we use this to quickly ensure our examples don't get bitrot)
-    if os.environ.get(test_env_var, False) != 'True':
-        generations = 1000
+    if os.environ.get(test_env_var, False) == 'True':
+        generations = 2
 
     # Initialize a representation for each subpopulation
     representations = [ get_representation(l) for l in genes_per_subpopulation]
@@ -79,7 +77,7 @@ if __name__ == '__main__':
                                      ops.clone,
                                      mutate_bitflip(expected_num_mutations=1),
                                      ops.CooperativeEvaluate(
-                                         num_trials=1,
+                                         num_trials=3,
                                          collaborator_selector=ops.random_selection,
                                          log_stream=log_stream),
                                      ops.pool(size=pop_size)
