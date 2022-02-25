@@ -10,6 +10,7 @@ Options:
   -h --help             Show this screen.
   -g --generations=<n>  Generations to run for. [default: 2000]
   --pop-size=<n>        Number of individuals in each subpopulation. [default: 20]
+  --chunk-size=<n>      Max number of individuals to evaluate at once in each grouped call. [default: 20]
 """
 import os
 
@@ -21,6 +22,7 @@ from leap_ec.algorithm import multi_population_ea
 from leap_ec.binary_rep.problems import MaxOnes
 from leap_ec.binary_rep.initializers import create_binary_sequence
 from leap_ec.binary_rep.ops import mutate_bitflip
+from leap_ec.problem import CooperativeProblem
 
 
 ##############################
@@ -44,6 +46,7 @@ if __name__ == '__main__':
     # CLI parameters
     pop_size = int(arguments['--pop-size'])
     generations = int(arguments['--generations'])
+    chunk_size = int(arguments['--chunk-size'])
 
     # Fixed parameters
     num_populations = 4
@@ -62,7 +65,11 @@ if __name__ == '__main__':
                                  num_populations=num_populations,
 
                                  # Fitness function
-                                 problem=MaxOnes(), 
+                                 problem=CooperativeProblem(
+                                     wrapped_problem=MaxOnes(),
+                                     num_trials=3,
+                                     collaborator_selector = ops.random_selection
+                                 ), 
 
                                  # Assign a poor initial fitness to individuals
                                  init_evaluate=ops.const_evaluate(value=-100),
@@ -76,11 +83,8 @@ if __name__ == '__main__':
                                      ops.tournament_selection,
                                      ops.clone,
                                      mutate_bitflip(expected_num_mutations=1),
-                                     ops.CooperativeEvaluate(
-                                         num_trials=3,
-                                         collaborator_selector=ops.random_selection,
-                                         log_stream=log_stream),
-                                     ops.pool(size=pop_size)
+                                     ops.pool(size=pop_size),
+                                     ops.grouped_evaluate(max_individuals_per_chunk=chunk_size),
                                  ])
 
         print('generation, subpop_bsf')

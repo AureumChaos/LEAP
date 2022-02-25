@@ -111,7 +111,7 @@ for phenome_str in sys.stdin:
                                                 expected_num_mutations=1),
                                 ops.pool(size=pop_size),
                                 # Here again, we use grouped_evaluate to send chunks of individuals to the ExternalProcessProblem.
-                                ops.grouped_evaluate(problem=problem, max_individuals_per_chunk=max_individuals_per_chunk),
+                                ops.grouped_evaluate(max_individuals_per_chunk=max_individuals_per_chunk),
                                 # Print fitness statistics to stdout at each genration
                                 probe.FitnessStatsCSVProbe(stream=sys.stdout)
                             ] + (viz_probes if plots else [])
