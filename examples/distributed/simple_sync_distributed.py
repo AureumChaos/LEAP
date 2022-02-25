@@ -93,6 +93,9 @@ if __name__ == '__main__':
             print('generation:', current_generation)
             [print(x.genome, x.fitness) for x in offspring]
 
+            if current_generation % 5000 == 0:
+                client.restart()
+
             parents = offspring
 
     print('Final population:')
