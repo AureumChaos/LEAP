@@ -1142,11 +1142,17 @@ class QuadraticFamilyProblem(ScalarProblem):
         return len(self.offset_vectors[0])
         
     def evaluate(self, individual):
-        basin_values = [ p.evaluate(individual.phenome) for p in self.parabaloids ]
+        basin_values = [ p.evaluate(individual) for p in self.parabaloids ]
         return np.min(basin_values)
 
     @classmethod
     def generate(self, dimensions: int, num_basins: int, num_global_optima: int = 1, width_bounds: tuple = (1, 5), offset_bounds: tuple = (-10, 10), fitness_offset_bounds: tuple = (10, 100)):
+        """
+        Convenient method to generate a QuadraticFamilyProblem by randomly sampling the matrices that define it.
+
+        >>> problem = QuadraticFamilyProblem.generate(10, 20, num_global_optima = 2)
+        >>> x = problem.evaluate(Individual(np.array([0.0, 0.5, 0.0, 0.6, 0.0, 0.7, 0.6, 0.8, 4.3, 0.2])))
+        """
         assert(num_basins >= 0)
         assert(len(width_bounds) == 2)
         assert(width_bounds[1] >= width_bounds[0])
