@@ -149,6 +149,9 @@ class ArgmaxExecutable(Executable):
     def __getattr__(self, attr):
         """If somebody tries to access an attribute we don't have, pass the
         request on to the wrapped object."""
+        # Use the regular __getattr__ for wrapped executable, to avoid an infinite loop
+        if attr == 'wrapped_executable':
+            return super().__getattr__(attr)
         return getattr(self.wrapped_executable, attr)
 
 
