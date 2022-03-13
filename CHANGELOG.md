@@ -21,6 +21,7 @@ Being a terse compilation by version of changes.
    * Expose a `reset` method on `PopulationMetricsPlotProbe`
    * `util.inc_generation()` now takes a `start_generation` argument
    * `genome_mutate_gaussian()` is now a curried function instead of a closure
+   * `plot_2d_problem()` and `plot_2d_function()` now accept extra `kwargs` to forward to Matplotlib
 
 
 ## 0.7.0, 8/5/2021

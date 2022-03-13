@@ -1583,7 +1583,7 @@ class MatrixTransformedProblem(ScalarProblem):
 # Function plot_2d_problem
 ##############################
 def plot_2d_problem(problem, xlim=None, ylim=None, kind='surface',
-                    ax=None, granularity=None, title=None, pad=None):
+                    ax=None, granularity=None, title=None, pad=None, **kwargs):
     """
     Convenience function for plotting a :class:`~leap.problem.Problem` that
     accepts 2-D real-valued phenomes and produces a 1-D scalar fitness output.
@@ -1599,12 +1599,12 @@ def plot_2d_problem(problem, xlim=None, ylim=None, kind='surface',
     :type kind: str
     :param pad: An array of extra gene values, used to fill in the hidden
         dimensions with contants while drawing fitness contours.
-
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
         be created).
     :param float granularity: Spacing of the grid to sample points along. If
         none is given, then the granularity will default to 1/50th of the range
         of the function's `bounds` attribute.
+    :param kwargs: additional keyword arguments to pass along to plot_surface()
 
 
     The difference between this and :meth:`plot_2d_function` is that this
@@ -1658,9 +1658,9 @@ def plot_2d_problem(problem, xlim=None, ylim=None, kind='surface',
                              "granularity to plot the problem.")
 
     if kind == 'surface':
-        return plot_2d_function(call, xlim, ylim, granularity, ax, title, pad)
+        return plot_2d_function(call, xlim, ylim, granularity, ax, title, pad, **kwargs)
     elif kind == 'contour':
-        return plot_2d_contour(call, xlim, ylim, granularity, ax, title, pad)
+        return plot_2d_contour(call, xlim, ylim, granularity, ax, title, pad, **kwargs)
     else:
         raise ValueError(f'Unrecognized plot kind: "{kind}".')
 
@@ -1668,7 +1668,7 @@ def plot_2d_problem(problem, xlim=None, ylim=None, kind='surface',
 ##############################
 # Function plot_2d_function
 ##############################
-def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=None):
+def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=None, **kwargs):
     """
     Convenience method for plotting a function that accepts 2-D real-valued
     imputs and produces a 1-D scalar output.
@@ -1682,6 +1682,7 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=
     :param float granularity: Spacing of the grid to sample points along.
     :param pad: An array of extra gene values, used to fill in the hidden
         dimensions with contants while drawing fitness contours.
+    :param kwargs: additional keyword arguments to pass along to plot_surface() or contour()
 
     The difference between this and :meth:`plot_2d_problem` is that this
     takes a raw function (instead of a :class:`~leap.problem.Problem` object).
@@ -1721,7 +1722,7 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=
     if title:
         ax.set_title(title)
 
-    return ax.plot_surface(xx, yy, v_fun(xx, yy))
+    return ax.plot_surface(xx, yy, v_fun(xx, yy), **kwargs)
 
 
 ##############################
