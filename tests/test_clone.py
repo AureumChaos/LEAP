@@ -1,6 +1,8 @@
 """
     Unit tests for cloning
 """
+import numpy as np
+
 from leap_ec.individual import Individual
 from leap_ec.decoder import IdentityDecoder
 from leap_ec.binary_rep.problems import MaxOnes
@@ -20,8 +22,11 @@ def test_clone():
     assert original == cloned
 
     # Yes, but did the other state make it across OK?
+    print(original.__dict__)
+    print(cloned.__dict__)
 
     assert original.fitness == cloned.fitness
     assert original.decoder == cloned.decoder
     assert original.problem == cloned.problem
-    assert original.__dict__ == cloned.__dict__
+    # use this when comparing complex objects with arrays
+    np.testing.assert_equal(original.__dict__, cloned.__dict__)

@@ -55,8 +55,7 @@ def test_segmented_initializer_variable_length():
     distribution = Counter(segment_lengths)
 
     # TODO have a stat helper that can generate this conveniently
-    # We expect the values to be evenly distributed in [1,5]
+    # We expect the values to be evenly distrib in [1,5]
     expected_distribution = {1: N/5, 2: N/5, 3: N/5, 4: N/5, 5: N/5}
 
     assert stat.stochastic_equals(distribution, expected_distribution, p=0.001)
-

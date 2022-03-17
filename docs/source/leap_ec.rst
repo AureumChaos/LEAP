@@ -9,9 +9,10 @@ Subpackages
 
    leap_ec.binary_rep
    leap_ec.contrib
-   leap_ec.distributed
+   leap_ec.distrib
    leap_ec.executable_rep
    leap_ec.int_rep
+   leap_ec.landscape_features
    leap_ec.real_rep
    leap_ec.segmented_rep
 
@@ -22,14 +23,6 @@ leap\_ec.algorithm module
 -------------------------
 
 .. automodule:: leap_ec.algorithm
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-leap\_ec.context module
------------------------
-
-.. automodule:: leap_ec.context
    :members:
    :undoc-members:
    :show-inheritance:
@@ -50,6 +43,14 @@ leap\_ec.decoder module
    :undoc-members:
    :show-inheritance:
 
+leap\_ec.global\_vars module
+----------------------------
+
+.. automodule:: leap_ec.global_vars
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 leap\_ec.individual module
 --------------------------
 
@@ -62,6 +63,14 @@ leap\_ec.ops module
 -------------------
 
 .. automodule:: leap_ec.ops
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+leap\_ec.parsimony module
+-------------------------
+
+.. automodule:: leap_ec.parsimony
    :members:
    :undoc-members:
    :show-inheritance:

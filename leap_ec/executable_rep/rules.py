@@ -19,7 +19,7 @@ import uuid
 from matplotlib import pyplot as plt
 from matplotlib import patches
 
-from leap_ec import context
+from leap_ec.global_vars import context
 from leap_ec.decoder import Decoder
 from leap_ec.executable_rep.executable import Executable
 from leap_ec.executable_rep.problems import EnvironmentProblem
@@ -215,7 +215,7 @@ class PittRulesDecoder(Decoder):
 
         >>> initialize = decoder.initializer(num_rules=4)
         >>> initialize()
-        [[..., ..., ..., ..., ..., ..., ...], [..., ..., ..., ..., ..., ..., ...], [..., ..., ..., ..., ..., ..., ...], [..., ..., ..., ..., ..., ..., ...]]
+        [array(...), array(...), array(...), array(...)]
         
         Notice that it creates four top-level segments (one for each rule), and that the condition bounds for 
         each input within a rule are wrapped in tuple sub-segments.
@@ -230,7 +230,7 @@ class PittRulesDecoder(Decoder):
                 low = self.input_space.sample()
                 high = self.input_space.sample()
                 condition_pairs = list(zip(low, high))
-                condition_genes = list(np.array(condition_pairs).flatten())
+                condition_genes = np.array(condition_pairs).flatten()
 
 
                 # TODO do the same for memory registers
@@ -238,19 +238,19 @@ class PittRulesDecoder(Decoder):
                 if self.num_memory_registers > 0:
                     raise ValueError("Memory registers on Pitt rules are not fully support.")
 
-                action_genes = [ self.output_space.sample() ]
-                segment = condition_genes + action_genes #+ memory_genes
+                action_genes = np.array([ self.output_space.sample() ])
+                segment = np.concatenate((condition_genes, action_genes)) #+ memory_genes
                 assert(len(segment) == self.num_genes_per_rule)
 
                 return segment
-            
+
             return create_segmented_sequence(num_rules, create_rule)
 
         return create_rule_set
 
     def _split_rule(self, rule_segment):
         """Split a segment into its condition, action, and memory register sections.
-        
+
         For example, given a `decoder`
 
         >>> from gym import spaces
@@ -286,7 +286,7 @@ class PittRulesDecoder(Decoder):
 
         if self.num_memory_registers == 0:
             action_genes = rule_segment[-self.num_outputs:]
-            memory_genes = []
+            memory_genes = np.array([])
         else:
             action_genes = rule_segment[-self.num_outputs - self.num_memory_registers:len(rule_segment)-self.num_memory_registers]
             memory_genes = rule_segment[-self.num_memory_registers:]
@@ -336,15 +336,21 @@ class PittRulesDecoder(Decoder):
             assert((None not in c_mutated) and (None not in a_mutated)), f"Null values found in newly created rule genome segment: {c_mutated + a_mutated}.\nParent segment was: {segment}."
 
             # Concatenate the results back together
-            return c_mutated + a_mutated
+            return np.concatenate((c_mutated, a_mutated))
 
         def _rulset_mutate(next_individual):
             """Take a full ruleset individual and mutate its rules."""
             while True:
                 individual = next(next_individual)
+                mutated_genome = [_single_rule_mutator(segment)
+                                  for segment in individual.genome]
 
-                mutated_genome = [ _single_rule_mutator(segment) for segment in individual.genome ]
-                individual.genome = mutated_genome
+                # need to keep types consistent and allow for
+                # list genomes
+                if isinstance(individual.genome, np.ndarray):
+                    individual.genome = np.array(mutated_genome)
+                else:
+                    individual.genome = mutated_genome
 
                 # invalidate the fitness since we have a modified genome
                 individual.fitness = None
@@ -355,7 +361,7 @@ class PittRulesDecoder(Decoder):
 
     def genome_to_rules(self, genome):
         """Convert a genome into a list of Rules.
-        
+
         Usage example:
 
         >>> import numpy as np
@@ -389,12 +395,12 @@ class PittRulesDecoder(Decoder):
 
             rule = Rule(conditions=conditions, actions=action_genes)
             rules.append(rule)
-        
+
         return rules
 
     def decode(self, genome, *args, **kwargs):
         """Decodes a real-valued genome into a PittRulesExecutable.
-        
+
         For example, say we have a Decoder that takes continuous inputs from a 2-D box and selects between
         two discrete actions:
 
@@ -731,13 +737,16 @@ class PlotPittRuleProbe:
     returns the population unmodified.  This allows the probe to be inserted into an EA's operator pipeline.
 
     >>> from leap_ec.individual import Individual
-    >>> ruleset = [ [ 0.0,0.6, 0.0,0.5, 0 ],
-    ...             [ 0.4,1.0, 0.3,1.0, 1 ],
-    ...             [ 0.1,0.2, 0.1,0.2, 0 ],
-    ...             [ 0.5,0.6, 0.8,1.0, 1 ] ]
-    >>> pop = [ Individual(genome=ruleset) ]
+    >>> ruleset = np.array([[0.0, 0.6, 0.0, 0.5, 0],
+    ...                     [0.4, 1.0, 0.3, 1.0, 1],
+    ...                     [0.1, 0.2, 0.1, 0.2, 0],
+    ...                     [0.5, 0.6, 0.8, 1.0, 1]])
+    >>> pop = [Individual(genome=ruleset)]
     >>> probe(pop)
-    [Individual([[0.0, 0.6, 0.0, 0.5, 0], [0.4, 1.0, 0.3, 1.0, 1], [0.1, 0.2, 0.1, 0.2, 0], [0.5, 0.6, 0.8, 1.0, 1]], None, None)]
+    [Individual(array([[0. , 0.6, 0. , 0.5, 0. ],
+           [0.4, 1. , 0.3, 1. , 1. ],
+           [0.1, 0.2, 0.1, 0.2, 0. ],
+           [0.5, 0.6, 0.8, 1. , 1. ]]), IdentityDecoder(), None)]
 
 
     .. plot::
@@ -764,7 +773,7 @@ class PlotPittRuleProbe:
 
     """
 
-    def __init__(self, decoder, plot_dimensions: (int, int) = (0, 1), ax=None, xlim=(0, 1), ylim=(0, 1), modulo=1, context=context.context):
+    def __init__(self, decoder, plot_dimensions: (int, int) = (0, 1), ax=None, xlim=(0, 1), ylim=(0, 1), modulo=1, context=context):
         assert(context is not None)
         assert(decoder is not None)
         assert(plot_dimensions is not None)

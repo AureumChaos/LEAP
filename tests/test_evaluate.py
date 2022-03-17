@@ -3,8 +3,9 @@
 """
 from math import nan
 
+import numpy as np
+
 from leap_ec.individual import Individual, RobustIndividual
-from leap_ec.decoder import IdentityDecoder
 
 import leap_ec.ops as ops
 import leap_ec.problem
@@ -13,8 +14,8 @@ from leap_ec.binary_rep.problems import MaxOnes
 
 def test_simple_evaluate():
     # Let's try evaluating a single individual
-    pop = [Individual([1, 1], decoder=IdentityDecoder(),
-                           problem=MaxOnes())]
+    pop = [Individual(np.array([1, 1]),
+                      problem=MaxOnes())]
 
     evaluated_individual = next(ops.evaluate(iter(pop)))
 
@@ -23,8 +24,8 @@ def test_simple_evaluate():
 
 def test_simple_robust_evaluate():
     # Let's try evaluating a single individual
-    pop = [RobustIndividual([1, 1], decoder=IdentityDecoder(),
-                           problem=MaxOnes())]
+    pop = [RobustIndividual(np.array([1, 1]),
+                            problem=MaxOnes())]
 
     evaluated_individual = next(ops.evaluate(iter(pop)))
 
@@ -38,14 +39,14 @@ class BrokenProblem(leap_ec.problem.ScalarProblem):
     def __init__(self, maximize):
         super().__init__(maximize)
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         raise RuntimeError('Simulated exception')
 
 
 def test_broken_evaluate():
     # Test evaluations that throw exception
-    pop = [RobustIndividual([1, 1], decoder=IdentityDecoder(),
-                           problem=BrokenProblem(True))]
+    pop = [RobustIndividual(np.array([1, 1]),
+                            problem=BrokenProblem(True))]
 
     evaluated_individual = next(ops.evaluate(iter(pop)))
 
@@ -56,14 +57,14 @@ def test_broken_evaluate():
 
 def test_multiple_evaluations():
     # Let's try evaluating a single individual
-    pop = [Individual([0, 0], decoder=IdentityDecoder(),
-                           problem=MaxOnes()),
-           Individual([0, 1], decoder=IdentityDecoder(),
-                           problem=MaxOnes()),
-           Individual([1, 0], decoder=IdentityDecoder(),
-                           problem=MaxOnes()),
-           Individual([1, 1], decoder=IdentityDecoder(),
-                           problem=MaxOnes())]
+    pop = [Individual(np.array([0, 0]),
+                      problem=MaxOnes()),
+           Individual(np.array([0, 1]),
+                      problem=MaxOnes()),
+           Individual(np.array([1, 0]),
+                      problem=MaxOnes()),
+           Individual(np.array([1, 1]),
+                      problem=MaxOnes())]
 
     evaluated_individuals = Individual.evaluate_population(pop)
 

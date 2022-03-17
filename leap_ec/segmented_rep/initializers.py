@@ -35,7 +35,12 @@ def create_segmented_sequence(length, seq_initializer):
     else:
         num_segments = length
 
-    segments = [seq_initializer() for _ in range(num_segments)]
+    if not hasattr(seq_initializer, '__len__'):
+        seq_initializer = [ seq_initializer for _ in range(num_segments) ]
+
+    assert(len(seq_initializer) == num_segments)
+
+    segments = [ init() for init in seq_initializer ]
 
     return segments
 

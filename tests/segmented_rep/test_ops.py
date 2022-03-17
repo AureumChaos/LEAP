@@ -4,6 +4,8 @@ import random
 import functools
 from collections import Counter
 
+import numpy as np
+
 from leap_ec.individual import Individual
 
 from leap_ec import statistical_helpers as stat
@@ -33,10 +35,11 @@ def test_apply_mutation():
     """Applying segment-wise mutation operators with expected_num_mutations=len(genome) should
     result in every gene of every segment being mutated."""
     mutation_op = apply_mutation(mutator=genome_mutate_bitflip, expected_num_mutations=4)
-    original = Individual([[0,0],[1,1]])
+    original = Individual([np.array([0,0]),np.array([1,1])])
     mutated = next(mutation_op(iter([original])))
-    assert(mutated.genome == [[1, 1], [0, 0]])
 
+    assert np.all(mutated.genome[0] == [1, 1]) \
+        and np.all(mutated.genome[1] == [0, 0])
 
 ##############################
 # Tests for remove_segment()

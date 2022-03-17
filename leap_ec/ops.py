@@ -15,16 +15,21 @@ from copy import copy
 import csv
 import itertools
 from functools import wraps
+import logging
 import random
 from statistics import mean
-from typing import Iterator, List, Tuple, Callable
+from typing import Iterator, List
 
 import numpy as np
 import toolz
 from toolz import curry
 
-from leap_ec.context import context
-from leap_ec.individual import Individual
+from leap_ec import leap_logger_name
+from leap_ec.global_vars import context
+
+
+# Set up a logger using LEAP's global logger name
+logger = logging.getLogger(leap_logger_name)
 
 
 ##############################
@@ -39,6 +44,8 @@ class Operator(abc.ABC):
     some global state or parameters independent of the population.
 
     TODO The above description is outdated. --Siggy
+    TODO Also this is for a *population* based operator.  We also have operators
+    *for individuals*
 
     You can inherit from this class to define operators as classes.  Classes
     support operators that take extra arguments at construction time (such as
@@ -234,17 +241,19 @@ def evaluate(next_individual: Iterator) -> Iterator:
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.decoder import IdentityDecoder
     >>> from leap_ec.binary_rep.problems import MaxOnes
+    >>> import numpy as np
 
     We need to specify the decoder and problem so that evaluation is possible.
 
-    >>> ind = Individual([1,1], decoder=IdentityDecoder(), problem=MaxOnes())
+    >>> genome = np.array([1, 1])
+    >>> ind = Individual(genome, decoder=IdentityDecoder(), problem=MaxOnes())
 
     >>> evaluated_ind = next(evaluate(iter([ind])))
 
     :param next_individual: iterator pointing to next individual to be evaluated
 
     :param kwargs: contains optional context state to pass down the pipeline
-    in context dictionaries
+       in context dictionaries
 
     :return: the evaluated individual
     """
@@ -253,6 +262,39 @@ def evaluate(next_individual: Iterator) -> Iterator:
         individual.evaluate()
 
         yield individual
+
+
+##############################
+# evaluate operator
+##############################
+@curry
+@listlist_op
+def grouped_evaluate(population: list, max_individuals_per_chunk: int = None) -> list:
+    """Evaluate the population by sending groups of multiple individuals to
+    a fitness function so they can be evaluated simultaneously.
+
+    This is useful, for example, as a way to evaluate individuals in parallel
+    on a GPU."""
+    if max_individuals_per_chunk is None:
+        max_individuals_per_chunk = len(population)
+
+    def chunks(lst, n):
+        """Yield successive n-sized chunks from lst."""
+        for i in range(0, len(lst), n):
+            yield lst[i:i + n]
+
+    problem = population[0].problem
+    assert(all([ind.problem == problem for ind in population])), f"Two or more individuals in the population have different problem references; cannot perform grouped evaluation!"
+
+    fitnesses = []
+    for chunk in chunks(population, max_individuals_per_chunk):
+        fit = problem.evaluate_multiple(chunk)
+        fitnesses.extend(fit)
+
+    for fit, ind in zip(fitnesses, population):
+        ind.fitness = fit
+
+    return population
 
 
 ##############################
@@ -285,10 +327,12 @@ def clone(next_individual: Iterator) -> Iterator:
     """ clones and returns the next individual in the pipeline
 
     >>> from leap_ec.individual import Individual
+    >>> import numpy as np
 
     Create a common decoder and problem for individuals.
 
-    >>> original = Individual([1,1])
+    >>> genome = np.array([1, 1])
+    >>> original = Individual(genome)
 
     >>> cloned_generator = clone(iter([original]))
 
@@ -321,9 +365,12 @@ def uniform_crossover(next_individual: Iterator,
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.ops import uniform_crossover
+    >>> import numpy as np
 
-    >>> first = Individual([0,0])
-    >>> second = Individual([1,1])
+    >>> genome1 = np.array([0, 0])
+    >>> genome2 = np.array([1, 1])
+    >>> first = Individual(genome1)
+    >>> second = Individual(genome2)
     >>> i = iter([first, second])
     >>> result = uniform_crossover(i)
 
@@ -357,14 +404,19 @@ def uniform_crossover(next_individual: Iterator,
         :return: a copy of both individuals with individual.genome bits
                  swapped based on probability
         """
-        if len(ind1.genome) != len(ind2.genome):
-            # TODO what about variable length genomes?
-            raise RuntimeError(
-                'genomes must be same length for uniform crossover')
+        assert(isinstance(ind1.genome, np.ndarray))
+        assert(isinstance(ind2.genome, np.ndarray))
 
-        for i in range(len(ind1.genome)):
-            if random.random() < p_swap:
-                ind1.genome[i], ind2.genome[i] = ind2.genome[i], ind1.genome[i]
+        # generate which indices we should swap
+        min_length = min(ind1.genome.shape[0], ind2.genome.shape[0])
+        selector = np.random.choice([0, 1], size=(min_length,),
+                                    p=(1-p_swap, p_swap))
+        indices_to_swap = np.nonzero(selector)[0]
+
+        # perform swap
+        tmp = ind1.genome[indices_to_swap]
+        ind1.genome[indices_to_swap] = ind2.genome[indices_to_swap]
+        ind2.genome[indices_to_swap] = tmp
 
         return ind1, ind2
 
@@ -377,6 +429,10 @@ def uniform_crossover(next_individual: Iterator,
             yield parent2
         else:  # Else do crossover
             child1, child2 = _uniform_crossover(parent1, parent2, p_swap)
+
+            # Invalidate fitness since the genomes have changed
+            child1.fitness = child2.fitness = None
+
             yield child1
             yield child2
 
@@ -397,9 +453,12 @@ def n_ary_crossover(next_individual: Iterator,
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.ops import n_ary_crossover
+    >>> import numpy as np
 
-    >>> first = Individual([0,0])
-    >>> second = Individual([1,1])
+    >>> genome1 = np.array([0, 0])
+    >>> genome2 = np.array([1, 1])
+    >>> first = Individual(genome1)
+    >>> second = Individual(genome2)
     >>> i = iter([first, second])
     >>> result = n_ary_crossover(i)
 
@@ -418,11 +477,12 @@ def n_ary_crossover(next_individual: Iterator,
         """
         Randomly choose (without replacement) crossover points.
         """
-        pp = list(range(0, genome_size))  # See De Jong, EC, pg 145
+        # See De Jong, EC, pg 145
+        pp = np.arange(genome_size, dtype=int)
 
-        xpts = sorted([pp.pop(random.randrange(len(pp)))
-                       for i in range(num_points)])
-        xpts = [0] + xpts + [genome_size]  # Add start and end
+        xpts = np.random.choice(pp, size=(num_points,), replace=False)
+        xpts.sort()
+        xpts = [0] + list(xpts) + [genome_size]  # Add start and end
 
         return xpts
 
@@ -433,9 +493,9 @@ def n_ary_crossover(next_individual: Iterator,
                 'Invalid number of crossover points for n_ary_crossover')
 
         children = [child1, child2]
-        genome1 = child1.genome[0:0]  # empty test_sequence - maintain type
-        genome2 = child2.genome[0:0]
-
+        # store each section of the genome to concatenate later
+        genome1_sections = []
+        genome2_sections = []
         # Used to toggle which sub-test_sequence is copied between offspring
         src1, src2 = 0, 1
 
@@ -443,14 +503,22 @@ def n_ary_crossover(next_individual: Iterator,
         xpts = _pick_crossover_points(num_points, len(child1.genome))
 
         for start, stop in toolz.itertoolz.sliding_window(2, xpts):
-            genome1 += children[src1].genome[start:stop]
-            genome2 += children[src2].genome[start:stop]
+            genome1_sections.append(children[src1].genome[start:stop])
+            genome2_sections.append(children[src2].genome[start:stop])
 
             # Now swap crossover direction
             src1, src2 = src2, src1
 
-        child1.genome = genome1
-        child2.genome = genome2
+        # allows for crossover in both simple representations
+        # and segmented representations, respectively
+        if isinstance(child1.genome, np.ndarray):
+            child1.genome = np.concatenate(genome1_sections)
+            child2.genome = np.concatenate(genome2_sections)
+        else:
+            child1.genome = list(
+                itertools.chain.from_iterable(genome1_sections))
+            child2.genome = list(
+                itertools.chain.from_iterable(genome2_sections))
 
         return child1, child2
 
@@ -469,25 +537,186 @@ def n_ary_crossover(next_individual: Iterator,
 
 
 ##############################
+# Function proportional_selection
+##############################
+@curry
+@listiter_op
+def proportional_selection(population: List, offset=0, exponent: int = 1,
+                           key=lambda x: x.fitness) -> Iterator:
+    """ Returns an individual from a population in direct proportion to their
+        fitness or another given metric.
+
+        To deal with negative fitness values use `offset='pop-min'` or set a
+        custom offset. A `ValueError` is thrown if the result of adding
+        `offset` to a fitness value results in a negative number. The value
+        of an individual is calculated as follows
+
+        `value = (fitness + offset)^exponent`
+
+        :param population: the population to select from.
+            Should be a list, not an iterator.
+        :param offset: the offset from zero. If negative fitness values are
+            possible and the minimum is unknown use `offest='pop-min'` for
+            an adaptive offset. Defaults to 0.
+        :param int exponent: the power to which fitness values are raised to.
+            This can be tuned to increase or decrease selection pressure by
+            creating larger or smaller differences between fitness values in
+            the population. Defaults to 1.
+        :param key: a function that computes the metric used to compare
+            individuals. Defaults to fitness.
+        :return: a random individual based on the proportion of the given
+            metric in the population.
+
+        >>> from leap_ec import Individual
+        >>> from leap_ec.binary_rep.problems import MaxOnes
+        >>> from leap_ec.ops import proportional_selection
+        >>> import numpy as np
+
+        >>> genome1 = np.array([0, 0, 0])
+        >>> genome2 = np.array([0, 0, 1])
+        >>> pop = [Individual(genome1, problem=MaxOnes()),
+        ...        Individual(genome2, problem=MaxOnes())]
+        >>> pop = Individual.evaluate_population(pop)
+        >>> selected = proportional_selection(pop)
+    """
+    # scale and shift to account for possible negative values
+    values = compute_population_values(population, offset=offset,
+                                       exponent=exponent, key=key)
+    assert(values.shape[0] == len(population))
+
+    # throw error on negative values since the algorithm does not
+    # work otherwise
+    if (values < 0.0).any():
+        raise ValueError('negative value found after applying offset.')
+
+    population_total = np.sum(values)
+    proportions = values / population_total
+
+    while True:
+        choices = random.choices(population, weights=proportions)
+        yield choices[0]
+
+
+##############################
+# Function sus_selection
+##############################
+@curry
+@listiter_op
+def sus_selection(population: List, n=None, shuffle: bool = True,
+                  offset=0, exponent: int = 1,
+                  key=lambda x: x.fitness) -> Iterator:
+    """ Returns an individual from a population in proportion to their
+        fitness or another given metric using the stochastic universal
+        sampling algorithm.
+
+        To deal with negative fitness values use `offset='pop-min'` or set a
+        custom offset. A `ValueError` is thrown if the result of adding
+        `offset` to a fitness value results in a negative number. The value
+        of an individual is calculated as follows
+
+        `value = (fitness + offset)^exponent`
+
+        :param population: the population to select from.
+            Should be a list, not an iterator.
+        :param n: the number of evenly spaced points to use in the algorithm.
+            Default is None which uses `len(population)`.
+        :param bool shuffle: if True, `n` points are resampled after one full
+            pass over them. If False, selection repeats over the same `n`
+            points. Defaults to True.
+        :param offset: the offset from zero. If negative fitness values are
+            possible and the minimum is unknown use `offset='pop-min'` for
+            an adaptive offset. Defaults to 0.
+        :param int exponent: the power to which fitness values are raised to.
+            This can be tuned to increase or decrease selection pressure by
+            creating larger or smaller differences between fitness values in
+            the population. Defaults to 1.
+        :param key: a function that computes the metric used to compare
+            individuals. Defaults to fitness.
+        :return: a random individual based on the proportion of the given
+            metric in the population.
+
+        >>> from leap_ec import Individual
+        >>> from leap_ec.binary_rep.problems import MaxOnes
+        >>> from leap_ec.ops import sus_selection
+        >>> import numpy as np
+
+        >>> genome1 = np.array([0, 0, 0])
+        >>> genome2 = np.array([1, 1, 1])
+        >>> pop = [Individual(genome1, problem=MaxOnes()),
+        ...        Individual(genome2, problem=MaxOnes())]
+        >>> pop = Individual.evaluate_population(pop)
+        >>> selected = sus_selection(pop)
+    """
+    # determine number of points to sample if not specified
+    if n is None:
+        n = len(population)
+
+    # check for non-positive number of points
+    if n <= 0:
+        raise ValueError(f'cannot sample {n} number of points')
+
+    # scale and shift to account for possible negative values
+    values = compute_population_values(population, offset=offset,
+                                       exponent=exponent, key=key)
+    assert(values.shape[0] == len(population))
+
+    # throw error on negative values since the algorithm does not
+    # work otherwise
+    if (values < 0.0).any():
+        raise ValueError('negative value found after applying offset.')
+
+    population_total = np.sum(values)
+    even_spacing = population_total / n
+    random_start = np.random.uniform(low=0.0, high=even_spacing)
+    selection_points = [random_start + i*even_spacing for i in range(0, n)]
+    selection_idx = 0
+    population_idx = 0
+    running_sum = 0.0
+    while True:
+        # check if all points have been selected
+        if selection_idx == len(selection_points):
+            # reset to allow for continuous selection
+            if shuffle:
+                random_start = np.random.uniform(low=0.0, high=even_spacing)
+                selection_points = [random_start + i*even_spacing
+                                    for i in range(0, n)]
+            selection_idx = 0
+            running_sum = 0.0
+            population_idx = 0
+
+        current_point = selection_points[selection_idx]
+        # continue until the running sum is greater than the point
+        while running_sum < current_point:
+            running_sum += values[population_idx]
+            population_idx += 1
+        selection_idx += 1
+
+        # yield the individual that caused the running_sum
+        # to move past the current_point
+        yield population[population_idx-1]
+
+
+##############################
 # Function truncation_selection
 ##############################
 @curry
 @listlist_op
 def truncation_selection(offspring: List, size: int,
-                         parents: List = None) -> List:
+                         parents: List = None,
+                         key = None) -> List:
     """ return the `size` best individuals from the given population
 
         This defaults to (mu, lambda) if `parents` is not given.
 
         >>> from leap_ec.individual import Individual
-        >>> from leap_ec.decoder import IdentityDecoder
         >>> from leap_ec.binary_rep.problems import MaxOnes
         >>> from leap_ec.ops import truncation_selection
+        >>> import numpy as np
 
-        >>> pop = [Individual([0, 0, 0], decoder=IdentityDecoder(), problem=MaxOnes()),
-        ...        Individual([0, 0, 1], decoder=IdentityDecoder(), problem=MaxOnes()),
-        ...        Individual([1, 1, 0], decoder=IdentityDecoder(), problem=MaxOnes()),
-        ...        Individual([1, 1, 1], decoder=IdentityDecoder(), problem=MaxOnes())]
+        >>> pop = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+        ...        Individual(np.array([0, 0, 1]), problem=MaxOnes()),
+        ...        Individual(np.array([1, 1, 0]), problem=MaxOnes()),
+        ...        Individual(np.array([1, 1, 1]), problem=MaxOnes())]
 
         We need to evaluate them to get their fitness to sort them for
         truncation.
@@ -504,11 +733,18 @@ def truncation_selection(offspring: List, size: int,
                                   with population for downsizing
         :return: truncated population
     """
-    if parents is not None:
-        return list(toolz.itertoolz.topk(
-            size, itertools.chain(offspring, parents)))
+    if key:
+        if parents is not None:
+            return list(toolz.itertoolz.topk(
+                size, itertools.chain(offspring, parents), key=key))
+        else:
+            return list(toolz.itertoolz.topk(size, offspring, key=key))
     else:
-        return list(toolz.itertoolz.topk(size, offspring))
+        if parents is not None:
+            return list(toolz.itertoolz.topk(
+                size, itertools.chain(offspring, parents)))
+        else:
+            return list(toolz.itertoolz.topk(size, offspring))
 
 
 ##############################
@@ -516,22 +752,27 @@ def truncation_selection(offspring: List, size: int,
 ##############################
 @curry
 @listlist_op
-def elitist_survival(offspring: List, parents: List, k: int = 1) -> List:
+def elitist_survival(offspring: List, parents: List, k: int = 1, key = None) -> List:
     """ This allows k best parents to compete with the offspring.
 
         >>> from leap_ec.individual import Individual
-        >>> from leap_ec.decoder import IdentityDecoder as ID
         >>> from leap_ec.binary_rep.problems import MaxOnes
+        >>> import numpy as np
 
         First, let's make a "pretend" population of parents using the MaxOnes
         problem.
 
-        >>> pretend_parents = [Individual([0, 0, 0], decoder=ID(), problem=MaxOnes()), Individual([1, 1, 1], decoder=ID(), problem=MaxOnes())]
+        >>> pretend_parents = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+        ...                    Individual(np.array([1, 1, 1]), problem=MaxOnes())]
 
         Then a "pretend" population of offspring. (Pretend in that we're
         pretending that the offspring came from the parents.)
 
-        >>> pretend_offspring = [Individual([0, 0, 0], decoder=ID(), problem=MaxOnes()), Individual([1, 1, 0], decoder=ID(), problem=MaxOnes()), Individual([1, 0, 1], decoder=ID(), problem=MaxOnes()), Individual([0, 1, 1], decoder=ID(), problem=MaxOnes()), Individual([0, 0, 1], decoder=ID(), problem=MaxOnes())]
+        >>> pretend_offspring = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+        ...                      Individual(np.array([1, 1, 0]), problem=MaxOnes()),
+        ...                      Individual(np.array([1, 0, 1]), problem=MaxOnes()),
+        ...                      Individual(np.array([0, 1, 1]), problem=MaxOnes()),
+        ...                      Individual(np.array([0, 0, 1]), problem=MaxOnes())]
 
         We need to evaluate them to get their fitness to sort them for
         elitist_survival.
@@ -559,6 +800,8 @@ def elitist_survival(offspring: List, parents: List, k: int = 1) -> List:
     :param offspring: list of created offpring, probably from pool()
     :param parents: list of parents, usually the ones that offspring came from
     :param k: how many elites from parents to keep?
+    :param key: optional key criteria for selecting; e.g., can be used to impose
+        parsimony pressure
     :return: surviving population, which will be offspring with offspring
         replaced by any superior parent elites
     """
@@ -567,12 +810,18 @@ def elitist_survival(offspring: List, parents: List, k: int = 1) -> List:
     original_num_offspring = len(offspring)
 
     # Append the requested number of best parents to the offspring.
-    elites = list(toolz.itertoolz.topk(k, parents))
+    if key:
+        elites = list(toolz.itertoolz.topk(k, parents, key=key))
+    else:
+        elites = list(toolz.itertoolz.topk(k, parents))
     offspring.extend(elites)
 
     # Now return the offspring (plus possibly an elite) truncating the least
     # fit individual.
-    return list(toolz.itertoolz.topk(original_num_offspring, offspring))
+    if key:
+        return list(toolz.itertoolz.topk(original_num_offspring, offspring, key))
+    else:
+        return list(toolz.itertoolz.topk(original_num_offspring, offspring))
 
 
 ##############################
@@ -580,37 +829,52 @@ def elitist_survival(offspring: List, parents: List, k: int = 1) -> List:
 ##############################
 @curry
 @listiter_op
-def tournament_selection(population: List, k: int = 2) -> Iterator:
-    """ Selects the best individual from k individuals randomly selected from
-        the given population
+def tournament_selection(population: list, k: int = 2, key = None, select_worst: bool=False, indices = None) -> Iterator:
+    """Returns an opertaor that selects the best individual from k individuals randomly selected from
+        the given population.
 
-        >>> from leap_ec.individual import Individual
-        >>> from leap_ec.decoder import IdentityDecoder
+        Like other selection operators, this assumes that if one individual is "greater than" another, then it is
+        "better than" the other.  Whether this indicates maximization or minimization isn't handled here: the
+        `Individual` class determines the semantics of its "greater than" operator.
+
+        :param population: the population to select from.  Should be a list, not an iterator.
+        :param int k: number of contestants in the tournament.  k=2 does binary tournament
+            selection, which approximates linear ranking selection in the expectation.  Higher
+            values of k yield greedier selection strategies—k=3, for instance, is equal to
+            quadratic ranking selection in the expectation.
+        :param key: an optional function that computes keys to sort over.  Defaults to None,
+            in which case Individuals are compared directly.
+        :param bool select_worst: if True, select the worst individual from the tournament instead
+            of the best.
+        :param list indices: an optional list that will be populated with the index of the
+            selected individual.
+        :return: the best of k individuals drawn from population
+
+        >>> from leap_ec import Individual
         >>> from leap_ec.binary_rep.problems import MaxOnes
         >>> from leap_ec.ops import tournament_selection
+        >>> import numpy as np
 
-        >>> pop = [Individual([0, 0, 0], IdentityDecoder(), problem=MaxOnes()),
-        ...        Individual([0, 0, 1], IdentityDecoder(), problem=MaxOnes())]
-
-        We need to evaluate them to get their fitness to sort them for
-        truncation.
-
+        >>> pop = [Individual(np.array([0, 0, 0]), problem=MaxOnes()),
+        ...        Individual(np.array([0, 0, 1]), problem=MaxOnes())]
         >>> pop = Individual.evaluate_population(pop)
-
         >>> best = tournament_selection(pop)
-
-        :param population: from which to select
-
-        :param k: are randomly drawn from which to choose the best; by
-        default this is 2 for binary tournament selection
-
-        :return: the best of k individuals drawn from population
     """
-    while True:
-        choices = random.choices(population, k=k)
-        best = max(choices)
+    assert((indices is None) or (isinstance(indices, list))), f"Only a list should be passed to tournament_selection() for indices, but received {indices}."
 
-        yield best
+    while True:
+        choices_idx = random.choices(range(len(population)), k=k)
+        judge = min if select_worst else max
+        if key:
+            best_idx = judge(choices_idx, key=lambda x: key(population[x]))
+        else:
+            best_idx = judge(choices_idx, key=lambda x: population[x])
+
+        if indices is not None:
+            indices.clear()  # Nuke whatever is in there
+            indices.append(best_idx)  # Add the index of the individual we're about to return
+
+        yield population[best_idx]
 
 
 ##############################
@@ -618,7 +882,7 @@ def tournament_selection(population: List, k: int = 2) -> Iterator:
 ##############################
 @curry
 @listlist_op
-def insertion_selection(offspring: List, parents: List) -> List:
+def insertion_selection(offspring: List, parents: List, key = None) -> List:
     """ do exclusive selection between offspring and parents
 
     This is typically used for Ken De Jong's EV algorithm for survival
@@ -633,14 +897,22 @@ def insertion_selection(offspring: List, parents: List) -> List:
     :param offspring: population to select from
     :param parents: parents that are copied and which the copies are
            potentially updated with better offspring
+    :param key: optional key for determining max() by other criteria such as
+        for parsimony pressure
     :return: the updated parent population
     """
     copied_parents = copy(parents)
     for child in offspring:
         selected_parent_index = random.randrange(len(copied_parents))
-        copied_parents[selected_parent_index] = max(child,
-                                                    copied_parents[
-                                                        selected_parent_index])
+        if key:
+            copied_parents[selected_parent_index] = max(child,
+                                                        copied_parents[
+                                                            selected_parent_index],
+                                                        key=key)
+        else:
+            copied_parents[selected_parent_index] = max(child,
+                                                        copied_parents[
+                                                            selected_parent_index])
 
         return copied_parents
 
@@ -650,7 +922,7 @@ def insertion_selection(offspring: List, parents: List) -> List:
 ##############################
 @curry
 @listiter_op
-def naive_cyclic_selection(population: List) -> Iterator:
+def naive_cyclic_selection(population: List, indices: List = None) -> Iterator:
     """ Deterministically returns individuals, and repeats the same test_sequence
     when exhausted.
 
@@ -659,19 +931,23 @@ def naive_cyclic_selection(population: List) -> Iterator:
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.ops import naive_cyclic_selection
+    >>> import numpy as np
 
-    >>> pop = [Individual([0, 0]),
-    ...        Individual([0, 1])]
+    >>> pop = [Individual(np.array([0, 0])),
+    ...        Individual(np.array([0, 1]))]
 
     >>> cyclic_selector = naive_cyclic_selection(pop)
 
     :param population: from which to select
     :return: the next selected individual
     """
-    itr = itertools.cycle(population)
 
-    while True:
-        yield next(itr)
+    for i, ind in itertools.cycle(enumerate(population)):
+        if indices is not None:
+            indices.clear()  # Nuke whatever is in there
+            indices.append(i)  # Add the index of the individual we're about to return
+
+        yield ind
 
 
 ##############################
@@ -686,9 +962,10 @@ def cyclic_selection(population: List) -> Iterator:
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.ops import cyclic_selection
+    >>> import numpy as np
 
-    >>> pop = [Individual([0, 0]),
-    ...        Individual([0, 1])]
+    >>> pop = [Individual(np.array([0, 0])),
+    ...        Individual(np.array([0, 1]))]
 
     >>> cyclic_selector = cyclic_selection(pop)
 
@@ -712,15 +989,22 @@ def cyclic_selection(population: List) -> Iterator:
 ##############################
 # Function random_selection
 ##############################
+@curry
 @listiter_op
-def random_selection(population: List) -> Iterator:
+def random_selection(population: List, indices = None) -> Iterator:
     """ return a uniformly randomly selected individual from the population
 
     :param population: from which to select
     :return: a uniformly selected individual
     """
     while True:
-        yield random.choice(population)
+        choice_idx = random.choice(range(len(population)))
+
+        if indices is not None:
+            indices.clear()  # Nuke whatever is in there
+            indices.append(choice_idx)  # Add the index of the individual we're about to return
+
+        yield population[choice_idx]
 
 
 ##############################
@@ -738,9 +1022,10 @@ def pool(next_individual: Iterator, size: int) -> List:
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.ops import naive_cyclic_selection
+    >>> import numpy as np
 
-    >>> pop = [Individual([0, 0]),
-    ...        Individual([0, 1])]
+    >>> pop = [Individual(np.array([0, 0])),
+    ...        Individual(np.array([0, 1]))]
 
     >>> cyclic_selector = naive_cyclic_selection(pop)
 
@@ -762,7 +1047,72 @@ def pool(next_individual: Iterator, size: int) -> List:
 def migrate(topology, emigrant_selector,
             replacement_selector, migration_gap,
             customs_stamp=lambda x, _: x,
+            metric=None,
             context=context):
+    """
+    A migration operator for use in island models.
+
+    This operator works with multi-population algorithms,
+    and is thus meant to used with :py:class:`leap_ec.algorithm.multi_population_ea`.
+
+    Specifically, it assumes that
+
+     1. the `population` argument passed into the returned function
+        is a particular sub-population that we want to process
+        "emigration" out of and "immigration" into,
+     2. the `context` state object contains an integer field
+        `context['leap']['generation']` indicating the current
+        generation count of the algorithm, and
+     3. the `context` also contains a integer field
+        `context['leap']['current_subpopulation']` indicating the
+        index of the subpopulation that is currently being processed
+        in the overall collection of subpopulations (i.e. the one
+        that `population` belongs to).
+
+    These assumptions are essentially what :py:class:`leap_ec.algorithm.multi_population_ea`
+    implements.
+
+    >>> import networkx as nx
+    >>> from leap_ec import ops, context
+    >>> from leap_ec.data import test_population
+    >>> pop0 = test_population[:]  # Shallow copy
+    >>> pop1 = test_population[:]
+
+    >>> op = migrate(topology=nx.complete_graph(2),
+    ...              emigrant_selector=ops.tournament_selection,
+    ...              replacement_selector=ops.random_selection,
+    ...              migration_gap=50)
+    >>> context['leap']['generation'] = 0
+    >>> context['leap']['current_subpopulation'] = 0
+    >>> op(pop0)
+    [Individual(...), Individual(...), Individual(...), Individual(...)]
+
+    >>> context['leap']['current_subpopulation'] = 1
+    >>> op(pop1)
+    [Individual(...), Individual(...), Individual(...), Individual(...)]
+
+    This operator is a stateful closure: it maintains an
+    internal list of all the out-going "emigrations" that
+    occurred in the previous time step, so that it can
+    process them as "immigrations" in the current time step.
+
+    :param topology: a `networkx` topology defining the connectivity among islands
+    :param emigrant_selector: a selection operator for choosing individuals to
+        leave an island
+    :param replacement_selector: a selection operator choosing contestants that
+        will be replaced by an incoming immigrant if the immigrant has higher fitness
+    :param int migration_gap: migration will occur regularly after every `migration_gap`
+        evolutionary steps
+    :param customs_stamp: an optional function to transfrom an individual upon its
+        arrival to a new island.  This can be used, for example, to change the
+        individual's decoder or problem in a heterogeneous island model.
+    :param metric: an optional function of the form `f(generation, immigrant_individual, contestant_indidivudal, success)`
+        for recording information about migration events.
+    :param context: the context object to check for EA state, such as the current
+        generation number, and the ID of the subpopulation that is currently
+        being processed.
+
+    """
     num_islands = topology.number_of_nodes()
 
     # We wrap a closure around some persistent state to keep trag of
@@ -772,49 +1122,127 @@ def migrate(topology, emigrant_selector,
     @listlist_op
     def do_migrate(population: List) -> List:
         current_subpop = context['leap']['current_subpopulation']
+        logger.debug(f"Migration operator called on subpop {current_subpop} (generation: {context['leap']['generation']})")
+
+        generation = context['leap']['generation']
 
         # Immigration
-        for imm in immigrants[current_subpop]:
+        for i, imm in enumerate(immigrants[current_subpop]):
+            logger.debug(f"Processing immigrant {i+1} of {len(immigrants[current_subpop])} for subpop {current_subpop}.")
             # Do island-specific transformation
             # For example, this callback might update the individuals 'problem'
             # field to point to a new fitness function for the island, and
             # re-evalute its fitness.
             imm = customs_stamp(imm, current_subpop)
+
             # Compete for a place in the new population
-            contestant = next(replacement_selector(population))
-            if imm > contestant:
-                # FIXME This is fishy!  What if there are two copies of
-                # contestant?  What if contestant.__eq()__ is not properly
-                # implemented?
-                population.remove(contestant)
-                population.append(imm)
+            indices = [] # List to collect the selected index
+            contestant = next(replacement_selector(population, indices=indices))
+            contestant_index = indices[0]
+
+            success = (imm >= contestant)
+            if success:
+                # Replace the contestant with the immgrant at the same position
+                population[contestant_index] = imm
+
+            if metric:
+                metric(generation, imm, contestant, success)
 
         immigrants[current_subpop] = []
 
         # Emigration
-        if context['leap']['generation'] % migration_gap == 0:
+        if generation % migration_gap == 0:
+            logger.debug(f"migration_gap reached: doing emigration on subpop {current_subpop}.")
             # Choose an emigrant individual
             sponsor = next(emigrant_selector(population))
+            logger.debug(f"Sponsor individual selected by emigrant_selector: {sponsor}")
             # Clone it and copy fitness
-            emi = next(emigrant_selector(population)).clone()
+            emi = sponsor.clone()
             emi.fitness = sponsor.fitness
+            logger.debug(f"Emigrant individual (copy of sponsor): {emi}")
             neighbors = topology.neighbors(
                 current_subpop)  # Get neighboring islands
             # Randomly select a neighboring island
             dest = random.choice(list(neighbors))
+            logger.debug(f"Destination island: {dest}")
             # Add the emigrant to its immigration list
             immigrants[dest].append(emi)
-            # FIXME In a heterogeneous island model, we also need to
-            # set the emigrant's decoder and/or problem to match the
-            # new islan'ds decoder and/or problem.
 
         return population
 
     return do_migrate
 
 
+def migration_metric(stream, header: bool = True, notes: dict = None):
+    """
+    Returns a function that can be used to record migration events.
+
+    The purpose of a migration metric is to record information about
+    migrations that occur inside a migration operator.  Because these
+    events take place inside the operator (rather than across operators),
+    they cannot be recorded by a LEAP pipeline probe.
+
+    In general, the interface for a migration metric function takes
+    four parameters:
+        - `generation`: the current generation
+        - `immigrant_ind`: the individual that is attempting to migrate
+        - `contestant_ind`: the individual that has been chosen to be replaced
+        - `success`: True if the migration is successful, False otherwise
+
+    The metric included here records the fitness of both individuals and writes
+    them (along with the `generation` and `success` values) to a CSV.  You can
+    write your own metric if you need to record other information (such as, say,
+    genomes).
+
+    >>> import sys
+    >>> from leap_ec import Individual
+    >>> from leap_ec.binary_rep.problems import MaxOnes
+    >>> m = migration_metric(sys.stdout,
+    ...                      header=True,
+    ...                      notes={'run': 0, 'description': 'Test output'}
+    ... )
+    run,description,generation,migrant_fitness,contestant_fitness,success
+
+    >>> ind1 = Individual(np.array([1, 1, 1]), problem=MaxOnes())
+    >>> f = ind1.evaluate()
+    >>> contestant = Individual(np.array([0, 1, 1]), problem=MaxOnes())
+    >>> f = contestant.evaluate()
+    >>> m(0, ind1, contestant, True)
+    0,Test output,0,3,2,True
+
+    :param stream: file object to write the CSV data to
+    :param bool header: a CSV header will be written if True
+    :param dict notes: a dict specifying additional constant-value
+        columns to include in the CSV output
+    """
+    notes = {} if notes is None else notes
+
+    # Set up data collection if we're given a stream to write to
+    if stream is None:
+        writer = None
+    else:
+        fields = list(notes.keys()) + ['generation', 'migrant_fitness', 'contestant_fitness', 'success']
+        writer = csv.DictWriter(stream, fieldnames=fields, lineterminator='\n')
+        if header:
+            writer.writeheader()
+
+    def measure_migration(generation, migrant, contestant, success: bool):
+        """Write a row recording the given migration event."""
+        if writer is not None:
+            row_dict = {
+                **notes,
+                'generation': generation,
+                'migrant_fitness': migrant.fitness,
+                'contestant_fitness': contestant.fitness,
+                'success': success
+            }
+            writer.writerow(row_dict)
+
+    return measure_migration
+
+
 ##############################
-# Class coop_evaluate
+# Class CooperativeEvaluate
 ##############################
 def concat_combine(collaborators):
     """Combine a list of individuals by concatenating their genomes.
@@ -825,7 +1253,7 @@ def concat_combine(collaborators):
     combined_ind = collaborators[0].clone()
 
     genomes = [ind.genome for ind in collaborators]
-    combined_ind.genome = list(itertools.chain(*genomes))  # Concatenate
+    combined_ind.genome = np.concatenate(genomes)  # Concatenate
     return combined_ind
 
 
@@ -833,11 +1261,19 @@ class CooperativeEvaluate(Operator):
     """A simple, non-parallel implementation of cooperative coevolutionary
     fitness evaluation.
 
+    :param int num_trials: the number of combined solutions & fitness estimates
+        to collect when computing a partial solution's fitness.
+    :param collaborator_selector: a selection operator that we use to choose
+        individuals from the *other* subpopulations to create a combined solution.
     :param context: the algorithm's state context.  Used to access
         subpopulation information.
+    :param log_stream: optional file object to collect statistics about
+        combined individuals to.
+    :param combine: the function used to combine partial solutions into
+        combined solutions.
     """
 
-    def __init__(self, num_trials, collaborator_selector,
+    def __init__(self, num_trials: int, collaborator_selector,
                  log_stream=None, combine=concat_combine,context=context):
         self.context = context
         self.num_trials = num_trials
@@ -857,6 +1293,8 @@ class CooperativeEvaluate(Operator):
                     'fitness'])
             # We print the header at construction time
             self.log_writer.writeheader()
+        else:
+            self.log_writer = None
 
     def __call__(self, next_individual: Iterator) -> Iterator:
         """Execute the evaluation operator on a subpopulation."""
@@ -941,8 +1379,40 @@ def compute_expected_probability(expected_num_mutations: float,
     """ Computed the probability of mutation based on the desired average
     expected mutation and genome length.
 
+    The equation here is :math:`p = 1/L * \\texttt{expected_num_mutations}`.  To see why this is
+    correct, note that the number of mutations performed is characterized by
+    a binomial distribution with :math:`n=L` trials (one weighted "coin flip" per gene),
+    and that the mean (expected_num_mutations) of a binomial distribution
+    is given by :math:`n*p = expected_num_mutations`.
+
     :param expected_num_mutations: times individual is to be mutated on average
     :param individual_genome: genome for which to compute the probability
     :return: the corresponding probability of mutation
     """
     return 1.0 / len(individual_genome) * expected_num_mutations
+
+
+##############################
+# function compute_population_values
+##############################
+def compute_population_values(population: List, offset=0, exponent: int = 1,
+                     key=lambda x: x.fitness) -> np.ndarray:
+    """ Returns a list of values where the zero-point of the population is
+        shifted and the values are scaled by exponentiation.
+
+        :param population: the population to compute values from.
+        :param offset: the offset from zero. Specifying `offset='pop-min'`
+            will use the population's minimum value as the new zero-point.
+            Defaults to 0.
+        :param int exponent: the power to which values are raised to.
+            Defaults to 1.
+        :param key: a function that computes a metric based
+            on an `Individual`.
+        :return: a numpy array of values that have been shifted by `offset` and
+            scaled by `exponent` corresponding to each individual in the
+            population.
+    """
+    values = np.array([key(ind) for ind in population])
+    if offset == 'pop-min':
+        offset = -values.min(axis=0)
+    return (values + offset) ** exponent

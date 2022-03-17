@@ -6,7 +6,7 @@ from toolz import pipe
 
 from leap_ec.individual import Individual
 from leap_ec.decoder import IdentityDecoder
-from leap_ec.context import context
+from leap_ec.global_vars import context
 
 import leap_ec.ops as ops
 from leap_ec.binary_rep.problems import MaxOnes

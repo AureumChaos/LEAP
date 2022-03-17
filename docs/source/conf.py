@@ -6,6 +6,7 @@
 # full list see the documentation:
 # http://www.sphinx-doc.org/en/master/config
 
+
 # -- Path setup --------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -16,6 +17,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../../'))
 
+from leap_ec import __version__
 
 # -- Project information -----------------------------------------------------
 
@@ -24,16 +26,16 @@ copyright = '2019, Jeffrey K. Bassett, Mark Coletti, and Eric O. Scott'
 author = 'Jeffrey K. Bassett, Mark Coletti, and Eric O. Scott'
 
 # The short X.Y version
-version = '0.5'
+version = __version__
 # The full version, including alpha/beta/rc tags
-release = 'version 0.5.0'
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
-# needs_sphinx = '1.0'
+needs_sphinx = '2.0'
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -46,7 +48,7 @@ extensions = [
     'sphinx.ext.inheritance_diagram',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
-    'sphinxcontrib.bibtex',
+    'sphinxcontrib.bibtex', # need sphinx 2.0
     'sphinx_rtd_theme'
 ]
 
@@ -106,6 +108,7 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 
+numfig = True
 
 # -- Options for HTMLHelp output ---------------------------------------------
 

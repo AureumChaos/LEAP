@@ -1,3 +1,5 @@
+.. _problem:
+
 Problems
 ========
 This section covers `Problem` classes in more detail.
@@ -5,10 +7,10 @@ This section covers `Problem` classes in more detail.
 Class Summary
 -------------
 
+.. _problem-class:
 .. figure:: _static/problem_class_diagram.svg
-    :align: center
 
-    **Figure 1: The `Problem` abstract-base class**  This class diagram shows the
+    **The `Problem` abstract-base class**  This class diagram shows the
     detail for `Problem`, which is an abstract base class (ABC).  It has three
     abstract methods that must be over-ridden by subclasses. `evaluate()`
     takes a phenome from an individual and compute a fitness from that.
@@ -16,7 +18,7 @@ Class Summary
     individuals and, as the name suggests, respectively returns the worst
     of the two or the equivalent within the `Problem` context.
 
-As shown in Fig. 1, the `Problem`abstract-base class has three abstract
+As shown in :numref:`problem-class`, the `Problem` abstract-base class has three abstract
 methods. `evaluate()` takes
 a phenome that was `decode()d` from an `Individual`'s genome, and returns a value
 denoting the quality, or fitness, of that individual.  `Problems` are also used
@@ -32,6 +34,7 @@ Class API
 .. automodule:: leap_ec.problem
     :members:
     :undoc-members:
+    :noindex:
 
 Binary Problems API
 -------------------
@@ -40,6 +43,8 @@ Binary Problems API
 .. automodule:: leap_ec.binary_rep.problems
     :members:
     :undoc-members:
+    :noindex:
+
 
 Real-value Problems API
 -----------------------
@@ -48,6 +53,4 @@ Real-value Problems API
 .. automodule:: leap_ec.real_rep.problems
     :members:
     :undoc-members:
-
-
-
+    :noindex:

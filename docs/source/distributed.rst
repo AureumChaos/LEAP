@@ -15,12 +15,12 @@ batch, and progress in the EA only proceeds when all individuals have been evalu
 
 Components
 ^^^^^^^^^^
-`leap_ec.distributed.synchronous` provides two components to implement synchronous
+`leap_ec.distrib.synchronous` provides two components to implement synchronous
 individual parallel evaluations.
 
-:leap_ec.distributed.synchronous.eval_population:
+:leap_ec.distrib.synchronous.eval_population:
     which evaluates an entire population in parallel, and returns the evaluated population
-:leap_ec.distributed.synchronous.eval_pool:
+:leap_ec.distrib.synchronous.eval_pool:
     is a pipeline operator that will collect offspring and then evaluate them all
     at once in parallel; the evaluated offspring are returned
 
@@ -29,10 +29,9 @@ Example
 The following shows a simple example of how to use the synchronous parallel
 fitness evaluation in LEAP.
 
-.. literalinclude:: ../../examples/simple_sync_distributed.py
+.. literalinclude:: ../../examples/distributed/simple_sync_distributed.py
     :linenos:
     :language: python
-    :lines: 5-42
 
 This example of a basic genetic algorithm that solves the MAX ONES problem
 does not use a provided monolithic entry point, such as found with
@@ -57,8 +56,10 @@ Separate Examples
 ^^^^^^^^^^^^^^^^^
 
 There is a jupyter notebook that walks through a synchronous implementation in
-`examples/simple_sync_distributed.ipynb`.  The above example can also be found
-at `examples/simple_sync_distributed.py`.
+`examples/distributed/simple_sync_distributed.ipynb`.  The above example can also be found
+at `examples/distributed/simple_sync_distributed.py`.
+
+.. _asea:
 
 Asynchronous fitness evaluations
 --------------------------------
@@ -93,18 +94,14 @@ Example
 
     from dask.distributed import Client, LocalCluster
 
-    from leap_ec.decoder import IdentityDecoder
-    from leap_ec.representation import Representation
-
-    import leap_ec.ops as ops
-
+    from leap_ec import Representation
+    from leap_ec import ops
     from leap_ec.binary_rep.problems import MaxOnes
     from leap_ec.binary_rep.initializers import create_binary_sequence
     from leap_ec.binary_rep.ops import mutate_bitflip
-
-    from leap_ec.distributed import asynchronous
-    from leap_ec.distributed.probe import log_worker_location, log_pop
-    from leap_ec.distributed.individual import DistributedIndividual
+    from leap_ec.distrib import DistributedIndividual
+    from leap_ec.distrib import asynchronous
+    from leap_ec.distrib.probe import log_worker_location, log_pop
 
     MAX_BIRTHS = 500
     INIT_POP_SIZE = 20
@@ -118,7 +115,6 @@ Example
                                       pop_size=POP_SIZE,
 
                                       representation=Representation(
-                                          decoder=IdentityDecoder(),
                                           initialize=create_binary_sequence(
                                               GENOME_LENGTH),
                                           individual_cls=DistributedIndividual),
@@ -170,7 +166,7 @@ selected parents to be modified by any applied mutation or crossover operators.)
 There are two optional callback function reporting parameters, `evaluated_probe` and `pop_probe`.
 `evaluated_probe` takes a single `Individual` class, or subclass, as an argument,
 and can be used to write out that individual's state in a desired format.
-`distributed.probe.log_worker_location` can be passed in as this argument to
+`distrib.probe.log_worker_location` can be passed in as this argument to
 write each individual's state as a CSV row to a file; by default it will write to
 `sys.stdout`.  The `pop_probe` parameter is similar, but allows for taking
 snapshots of the hidden population at preset intervals, also in CSV format.
@@ -195,7 +191,7 @@ as follows:
     of being inserted.  (And, if so, at the removal of an individual that was
     already in the population.  Or, colloquially, someone is voted off the island.)
 
-    There are two provided inserters, `steady_state.insert_into_pop` and
+    There are two provided inserters, `steady_state.tournament_insert_into_pop` and
     `greedy_insert_into_pop`.  The first will randomly select an individual from
     the internal population, and will replace it if its fitness is worse than
     the new individual.  The second will compare the new individual with the
@@ -215,6 +211,9 @@ as follows:
 :context: contains global state where the running number of births and non-viable individuals
     is kept.  This defaults to `context`.
 
+
+.. _distributed-individual:
+
 DistributedIndividual
 ^^^^^^^^^^^^^^^^^^^^^
 `DistributedIndividual` is a subclass of `RobustIndividual` that contains some additional
@@ -226,7 +225,7 @@ state that may be useful for distributed fitness evaluations.
 :start_eval_time: is when evaluation began for this individul, and is in `time_t` format
 :stop_eval_time: when evaluation completed in `time_t` format
 
-This additional state is set in `distributed.evaluate.evaluate()` and
+This additional state is set in `distrib.evaluate.evaluate()` and
 `is_viable` and `exception` are set as with the base class, `core.Individual`.
 
 .. note:: The `uuid` is useful if one wanted to save, say, a model or some other
@@ -248,5 +247,5 @@ This additional state is set in `distributed.evaluate.evaluate()` and
 Separate Examples
 ^^^^^^^^^^^^^^^^^
 There is also a jupyter notebook walkthrough for the asynchronous implementation,
-`examples/simple_async_distributed.ipynb`.  Moreover, there is standalone
-code in `examples/simple_async_distributed.py`.
+`examples/distributed/simple_async_distributed.ipynb`.  Moreover, there is standalone
+code in `examples/distributed/simple_async_distributed.py`.
