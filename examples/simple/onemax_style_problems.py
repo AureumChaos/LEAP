@@ -12,7 +12,7 @@ from leap_ec import ops, probe
 from leap_ec.algorithm import generational_ea
 from leap_ec.binary_rep.initializers import create_binary_sequence
 from leap_ec.binary_rep.ops import mutate_bitflip
-from leap_ec.binary_rep.problems import MaxOnes, DeceptiveTrap
+from leap_ec.binary_rep.problems import MaxOnes, DeceptiveTrap, TwoMax
 
 
 ##############################
@@ -32,6 +32,7 @@ if __name__ == '__main__':
     # Our fitness function will be the venerable MaxOnes problem or
     # one of its variations
     #problem = MaxOnes()
+    #problem = TwoMax()
     problem = DeceptiveTrap()
     
 
