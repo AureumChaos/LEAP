@@ -11,6 +11,7 @@ Being a terse compilation by version of changes.
    * Added `ImageXYProblem` to `executable_rep.problems`, and a `cgp_images.py` example demonstrating it
    * Added experimental parameters to `mutate_gaussian()` to allow transforming genes by a linear function
    * Added a `check_constraints()` operator to the `CGPDecoder` class, to help verify custom algorithms
+   * Added `DeceptiveTrapProblem`, `SumPhenotypePlotProbe`, and a new example for visualizing evolution on OneMax-style problems
 
  * API changes
    * `Problem.evaluate()` now takes an `Individual` instead of a `phenome` as an argument

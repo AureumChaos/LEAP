@@ -732,7 +732,7 @@ class CartesianPhenotypePlotProbe:
         dimensions with contants while drawing fitness contours.
 
     Attach this probe to matplotlib :class:`Axes` and then insert it into an
-    EA's operator pipeline to get a live fitness plot that updates every
+    EA's operator pipeline to get a live phenotype plot that updates every
     `modulo` steps.
 
     >>> import matplotlib.pyplot as plt
@@ -954,6 +954,184 @@ class HeatMapPhenotypeProbe():
             #self.ax.figure.canvas.draw()
             plt.pause(0.000001)
         return population
+
+
+
+##############################
+# Class CartesianPhenotypePlotProbe
+##############################
+class SumPhenotypePlotProbe:
+    """
+    Plot the population's location on a fitness landscape that is defined
+    over the sum of a vector phenotype's elements.  This is useful for visualizing
+    OneMax functions and similar functions that can be understood in
+    terms of a graph with "the number of ones" along the x axis.
+
+    :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
+        be created).
+    :param xlim: Bounds of the horizontal axis.
+    :type xlim: (float, float)
+    :param ylim: Bounds of the vertical axis.
+    :type ylim: (float, float)
+    :param ~leap.problem.Problem problem: a problem that will be used to draw
+        a fitness curve.
+    :param float granularity: (Optional) spacing of the grid to sample points
+        along while drawing the fitness contours. If none is given, then the
+        granularity will default to 1.0.
+    :param int modulo: take and plot a measurement every `modulo` steps (
+        default 1).
+
+    Attach this probe to matplotlib :class:`Axes` and then insert it into an
+    EA's operator pipeline to get a live phenotype plot that updates every
+    `modulo` steps.
+
+    >>> import matplotlib.pyplot as plt
+    >>> from leap_ec.probe import SumPhenotypePlotProbe
+    >>> from leap_ec.representation import Representation
+
+    >>> from leap_ec.individual import Individual
+    >>> from leap_ec.algorithm import generational_ea
+
+    >>> from leap_ec import ops
+    >>> from leap_ec.binary_rep.problems import DeceptiveTrapProblem
+    >>> from leap_ec.binary_rep.initializers import create_binary_sequence
+    >>> from leap_ec.binary_rep.ops import mutate_bitflip
+
+    >>> # The fitness landscape
+    >>> problem = DeceptiveTrapProblem()
+
+    >>> # If no axis is provided, a new figure will be created for the probe to write to
+    >>> trajectory_probe = SumPhenotypePlotProbe(problem=problem,
+    ...                                        xlim=(0, 1), ylim=(0, 1))
+
+    >>> # Create an algorithm that contains the probe in the operator pipeline
+
+    >>> pop_size = 100
+    >>> dimensions = 20
+    >>> ea = generational_ea(max_generations=20, pop_size=pop_size,
+    ...                      problem=problem,
+    ...
+    ...                      representation=Representation(
+    ...                         individual_cls=Individual,
+    ...                         initialize=create_binary_sequence(length=dimensions)
+    ...                      ),
+    ...
+    ...                      pipeline=[
+    ...                         trajectory_probe,  # Insert the probe into the pipeline like so
+    ...                         ops.tournament_selection,
+    ...                         ops.clone,
+    ...                         mutate_bitflip(expected_num_mutations=1),
+    ...                         ops.evaluate,
+    ...                         ops.pool(size=pop_size)
+    ...                      ])
+    >>> result = list(ea);
+
+    .. plot::
+
+        import matplotlib.pyplot as plt
+        from leap_ec.probe import SumPhenotypePlotProbe
+        from leap_ec.representation import Representation
+
+        from leap_ec.individual import Individual
+        from leap_ec.algorithm import generational_ea
+
+        from leap_ec import ops
+        from leap_ec.binary_rep.problems import Deceptive
+        from leap_ec.binary_rep.initializers import creat
+        from leap_ec.binary_rep.ops import mutate_bitflip
+
+        # The fitness landscape
+        problem = DeceptiveTrapProblem()
+
+        # If no axis is provided, a new figure will be created for the probe to write to
+        trajectory_probe = SumPhenotypePlotProbe(problem=problem,
+                                                    xlim=(0, 1), ylim=(0, 1))
+
+        # Create an algorithm that contains the probe in the operator pipeline
+
+        pop_size = 100
+        dimensions = 20
+        ea = generational_ea(max_generations=20, pop_size=pop_size,
+                             problem=problem,
+
+                             representation=Representation(
+                                individual_cls=Individual,
+                                initialize=create_binary_sequence(length=dimensions)
+                             ),
+
+                             pipeline=[
+                                 trajectory_probe,  # Insert the probe into the pipeline like so
+                                 ops.tournament_selection,
+                                 ops.clone,
+                                 mutate_bitflip(expected_num_mutations=1),
+                                 ops.evaluate,
+                                 ops.pool(size=pop_size)
+                             ])
+        result = list(ea);
+
+
+    """
+
+    def __init__(self, ax=None, xlim=(-5.12, 5.12), ylim=(-5.12, 5.12),
+                 problem=None, granularity=1, title='Sum Phenotypes',
+                 modulo=1, context=context):
+        if ax is None:
+            _, ax = plt.subplots()
+
+        if problem:
+            # If a problem is provided, plot the fitness function
+
+            # First we need to generate a series of genomes to
+            # feed into the fitnes function
+            max_number_of_ones = xlim[1]
+            def bitstring_with_ones(num_ones):
+                """Generate a bitstring with n initial ones, and
+                otherwise filled with zeroes."""
+                assert(num_ones <= max_number_of_ones)
+                return np.array([1]*num_ones + [0]*(max_number_of_ones - num_ones))
+            x = np.arange(xlim[0], max_number_of_ones + 1, int(granularity))
+            
+            # Now plot the function over them
+            y = np.array([ problem.evaluate(Individual(bitstring_with_ones(i))) for i in x ])
+            ax.plot(x, y, color='black', linewidth=3)
+
+        self.sc = ax.scatter([], [])
+
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        self.ax = ax
+        self.left, self.right = xlim
+        self.bottom, self.top = ylim
+        self.x = np.array([])
+        self.y = np.array([])
+        plt.title(title)
+        self.modulo = modulo
+        self.context = context
+
+    def __call__(self, population):
+        assert (population is not None)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
+        step = self.context['leap']['generation']
+
+        if step % self.modulo == 0:
+            self.x = np.array([np.sum(ind.decode()) for ind in population])
+            self.y = np.array([ind.fitness for ind in population])
+            self.sc.set_offsets(np.c_[self.x, self.y])
+            self.__rescale_ax()
+            self.ax.figure.canvas.draw()
+            plt.pause(0.000001)
+        return population
+
+    def __rescale_ax(self):
+        if np.min(self.x) < self.left:
+            self.ax.set_xlim(left=np.min(self.x))
+        if np.max(self.x) > self.right:
+            self.ax.set_xlim(right=np.max(self.x))
+        if np.min(self.y) < self.bottom:
+            self.ax.set_ylim(bottom=np.min(self.y))
+        if np.max(self.y) > self.top:
+            self.ax.set_ylim(top=np.max(self.y))
 
 
 ##############################
