@@ -184,6 +184,8 @@ class MultiObjectiveProblem(Problem):
         :param maximize: a list of booleans where True indicates a given feature
             is a maximization objective, else minimization.
         """
+        super().__init__()
+
         assert(maximize is not None)
         assert(len(maximize) > 0)
         # Represent maximize as a vector of 1's and -1's; this is used in
