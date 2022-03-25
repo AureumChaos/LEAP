@@ -718,7 +718,9 @@ class MultiObjectiveToolkitProblem(MultiObjectiveProblem):
         self.g = g
         self.h = h
 
-    def evaluate(self, phenome, *args, **kwargs):
+    def evaluate(self, Individual, *args, **kwargs):
+        phenome = Individual.phenome
+
         y = phenome[:self.f1_input_length]
         z = phenome[self.f1_input_length:]
 
