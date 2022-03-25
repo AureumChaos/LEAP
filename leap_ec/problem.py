@@ -730,6 +730,3 @@ class MultiObjectiveToolkitProblem(MultiObjectiveProblem):
         g_out = self.g(z)
         o2 = g_out * h(o1, g_out)
         return (o1, o2)
-
-        return self.get_current_problem().equivalent(first_fitness,
-                                                     second_fitness)
