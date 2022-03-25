@@ -180,13 +180,21 @@ class MultiObjectiveProblem(Problem):
 
     """
     def __init__(self, maximize: list):
+        """
+        :param maximize: a list of booleans where True indicates a given feature
+            is a maximization objective, else minimization.
+        """
         assert(maximize is not None)
         assert(len(maximize) > 0)
-        # Represent maximize as a vector of 1's and -1's
+        # Represent maximize as a vector of 1's and -1's; this is used in
+        # worse_than() to ensure we are always dealing with maximization by
+        # converting objectives to maximization objectives as needed.
+        # E.g., for l = [True, False, True, True]
+        #   1 * np.array(l) - 1 * np.invert(l) -> array([ 1, -1,  1,  1])
         self.maximize = 1 * np.array(maximize) - 1 * np.invert(maximize)
 
-    def worse_than(self, first_fitness, second_fitness):
-        """Return true if first_fitness is Pareto-dominated by second_fitness.
+    def worse_than(self, first_fitnesses, second_fitnesses):
+        """Return true if first_fitnesses is Pareto-dominated by second_fitnesses.
 
         In the case of maximization over all objectives, a solution :math:`b`
         dominates :math:`a`, written :math:`b \succ a`, if and only if
@@ -201,30 +209,39 @@ class MultiObjectiveProblem(Problem):
         Here we may maximize over some objectives, and minimize over others,
         depending on the values in the `self.maximize` list.
 
+        :param first_fitnesses: a np array of real-valued fitnesses for an
+            individual, where each element corresponds to a single objective
+        :param second_fitnesses: same as `first_fitnesses`, but for a different
+            individual
         """
-        assert(first_fitness is not None)
-        assert(second_fitness is not None)
-        assert(len(first_fitness) == len(self.maximize))
-        assert(len(second_fitness) == len(self.maximize))
+        assert(first_fitnesses is not None)
+        assert(second_fitnesses is not None)
+        assert(len(first_fitnesses) == len(self.maximize))
+        assert(len(second_fitnesses) == len(self.maximize))
 
-        # Negate the minimization problems, so we can treat all objectives as maximization
-        first_max = first_fitness * self.maximize
-        second_max = second_fitness * self.maximize
+        # Negate the minimization problems, so we can treat all objectives as
+        # maximization
+        first_max = first_fitnesses * self.maximize
+        second_max = second_fitnesses * self.maximize
 
         # Now check the two conditions for dominance using numpy comparisons
         return all (second_max >= first_max) \
                 and any (second_max > first_max)
 
-    def equivalent(self, first_fitness, second_fitness):
+    def equivalent(self, first_fitnesses, second_fitnesses):
         """Return true if first_fitness and second_fitness are mutually
         Pareto non-dominating.
 
         .. math::
             a \\not \\succ b \\text{ and } b \\not \\succ a
 
+        :param first_fitnesses: a np array of real-valued fitnesses for an
+            individual, where each element corresponds to a single objective
+        :param second_fitnesses: same as `first_fitnesses`, but for a different
+            individual
         """
-        return not self.worse_than(first_fitness, second_fitness) \
-            and not self.worse_than(second_fitness, first_fitness)
+        return not self.worse_than(first_fitnesses, second_fitnesses) \
+               and not self.worse_than(second_fitnesses, first_fitnesses)
 
 
 ##############################
@@ -650,10 +667,12 @@ class AlternatingProblem(Problem):
         return self.get_current_problem().evaluate(individual)
 
     def worse_than(self, first_fitness, second_fitness):
-        return self.get_current_problem().worse_than(first_fitness, second_fitness)
+        return self.get_current_problem().worse_than(first_fitness,
+                                                     second_fitness)
 
     def equivalent(self, first_fitness, second_fitness):
-        return self.get_current_problem().equivalent(first_fitness, second_fitness)
+        return self.get_current_problem().equivalent(first_fitness,
+                                                     second_fitness)
 
 
 ##############################
@@ -708,4 +727,5 @@ class MultiObjectiveToolkitProblem(MultiObjectiveProblem):
         o2 = g_out * h(o1, g_out)
         return (o1, o2)
 
-        return self.get_current_problem().equivalent(first_fitness, second_fitness)
+        return self.get_current_problem().equivalent(first_fitness,
+                                                     second_fitness)
