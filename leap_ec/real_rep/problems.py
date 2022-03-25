@@ -67,11 +67,11 @@ class SpheroidProblem(ScalarProblem):
         We minimize by default:
 
         >>> s = SpheroidProblem()
-        >>> s.worse_than(100, 10)
+        >>> s.worse_than(100,10)
         True
 
         >>> s = SpheroidProblem(maximize=True)
-        >>> s.worse_than(100, 10)
+        >>> s.worse_than(100,10)
         False
         """
         return super().worse_than(first_fitness, second_fitness)
@@ -143,11 +143,11 @@ class RastriginProblem(ScalarProblem):
         We minimize by default:
 
         >>> s = RastriginProblem()
-        >>> s.worse_than(100, 10)
+        >>> s.worse_than(100,10)
         True
 
         >>> s = RastriginProblem(maximize=True)
-        >>> s.worse_than(100, 10)
+        >>> s.worse_than(100,10)
         False
         """
         return super().worse_than(first_fitness, second_fitness)
@@ -219,11 +219,11 @@ class RosenbrockProblem(ScalarProblem):
         We minimize by default:
 
         >>> s = RosenbrockProblem()
-        >>> s.worse_than(100, 10)
+        >>> s.worse_than(100,10)
         True
 
         >>> s = RosenbrockProblem(maximize=True)
-        >>> s.worse_than(100, 10)
+        >>> s.worse_than(100,10)
         False
         """
         return super().worse_than(first_fitness, second_fitness)
@@ -289,11 +289,11 @@ class StepProblem(ScalarProblem):
         We maximize by default:
 
         >>> s = StepProblem()
-        >>> s.worse_than(100, 10)
+        >>> s.worse_than(100,10)
         False
 
         >>> s = StepProblem(maximize=False)
-        >>> s.worse_than(100, 10)
+        >>> s.worse_than(100,10)
         True
         """
         return super().worse_than(first_fitness, second_fitness)
@@ -358,11 +358,11 @@ class NoisyQuarticProblem(ScalarProblem):
         We minimize by default:
 
         >>> s = NoisyQuarticProblem()
-        >>> s.worse_than(100, 10)
+        >>> s.worse_than(100,10)
         True
 
         >>> s = NoisyQuarticProblem(maximize=True)
-        >>> s.worse_than(100, 10)
+        >>> s.worse_than(100,10)
         False
         """
         return super().worse_than(first_fitness, second_fitness)
@@ -452,11 +452,11 @@ class ShekelProblem(ScalarProblem):
         We minimize by default:
 
         >>> s = ShekelProblem()
-        >>> s.worse_than(100, 10)
+        >>> s.worse_than(100,10)
         True
 
         >>> s = ShekelProblem(maximize=True)
-        >>> s.worse_than(100, 10)
+        >>> s.worse_than(100,10)
         False
         """
         return super().worse_than(first_fitness, second_fitness)
