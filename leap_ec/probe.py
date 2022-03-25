@@ -993,21 +993,21 @@ class SumPhenotypePlotProbe:
     >>> from leap_ec.algorithm import generational_ea
 
     >>> from leap_ec import ops
-    >>> from leap_ec.binary_rep.problems import DeceptiveTrapProblem
+    >>> from leap_ec.binary_rep.problems import DeceptiveTrap
     >>> from leap_ec.binary_rep.initializers import create_binary_sequence
     >>> from leap_ec.binary_rep.ops import mutate_bitflip
 
     >>> # The fitness landscape
-    >>> problem = DeceptiveTrapProblem()
+    >>> problem = DeceptiveTrap()
 
     >>> # If no axis is provided, a new figure will be created for the probe to write to
+    >>> dimensions = 20
     >>> trajectory_probe = SumPhenotypePlotProbe(problem=problem,
-    ...                                        xlim=(0, 1), ylim=(0, 1))
+    ...                                        xlim=(0, dimensions), ylim=(0, dimensions))
 
     >>> # Create an algorithm that contains the probe in the operator pipeline
 
     >>> pop_size = 100
-    >>> dimensions = 20
     >>> ea = generational_ea(max_generations=20, pop_size=pop_size,
     ...                      problem=problem,
     ...
@@ -1083,13 +1083,13 @@ class SumPhenotypePlotProbe:
 
             # First we need to generate a series of genomes to
             # feed into the fitnes function
-            max_number_of_ones = xlim[1]
+            max_number_of_ones = int(xlim[1])
             def bitstring_with_ones(num_ones):
                 """Generate a bitstring with n initial ones, and
                 otherwise filled with zeroes."""
                 assert(num_ones <= max_number_of_ones)
                 return np.array([1]*num_ones + [0]*(max_number_of_ones - num_ones))
-            x = np.arange(xlim[0], max_number_of_ones + 1, int(granularity))
+            x = np.arange(int(xlim[0]), max_number_of_ones + 1, int(granularity))
             
             # Now plot the function over them
             y = np.array([ problem.evaluate(Individual(bitstring_with_ones(i))) for i in x ])
