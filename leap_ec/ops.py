@@ -20,11 +20,14 @@ from statistics import mean
 from typing import Iterator, List, Tuple, Callable
 
 import numpy as np
+import math
 import toolz
 from toolz import curry
 
 from leap_ec.global_vars import context
 from leap_ec.individual import Individual
+
+import matlab.engine
 
 
 ##############################
@@ -526,7 +529,86 @@ def n_ary_crossover(next_individual: Iterator,
             yield child1
             yield child2
 
+##############################
+# Function fmga_breeding
+##############################
+@curry
+@iteriter_op
+def fmga_breeding(next_individual: Iterator,
+                      p_mut = 0.1, stdv = 0.2,
+                      hard_bounds=(-math.inf, math.inf)) -> Iterator:
+    """Breeding through a minimzation of the fitness function by fission
+    matrix interpolation between two parents.
 
+    If the minimization fails or produces a duplicate genome, traditional
+    breeding used instead
+    
+    :param p_mut: probability of mutation if traditional breeding is used
+    :param stdv: standard deviation use for gaussian mutation.
+    """
+
+    def _fmga_breeding(ind1, ind2):
+        
+        genomes = [ind1.decode().tolist(),  ind2.decode().tolist()]
+        
+        
+        eng = matlab.engine.start_matlab()
+        
+        genomes = matlab.double(genomes)
+        phenomes = matlab.double([ind1.genome.tolist(),ind2.genome.tolist()])
+        FMs = matlab.double(np.concatenate((ind1.FM[:,:,np.newaxis],ind2.FM[:,:,np.newaxis]),axis=2).tolist())
+        
+        ret = eng.FMbreedingFcn_python(genomes,phenomes,FMs,nargout = 2)
+        
+        child = ind1.clone()
+        child.genome = np.asarray(ret[0]).squeeze()
+        
+        valid = int(ret[1])
+        eng.quit()
+        
+        return child, valid
+    
+    def _traditional_breeding(ind1, ind2):
+        
+        child = np.zeros(len(ind1))
+        for i in range(len(ind1)):
+            child[i] = abs(ind1[i] - ind2[i])*np.random.rand() + min(ind1[i],ind2[i])
+            if np.random.rand() < p_mut:
+                #TODO: implement hard bounds
+                mut = -1
+                while mut < 0:
+                     mut = np.random.normal(child[i],stdv)
+                child[i] = mut
+                
+        return child
+        
+            
+    
+    def _check_duplicate(child):
+        db = context['leap']['database']
+        
+        diff = abs(np.array(db) - child.genome)
+        diff = diff < 1e-3
+        if sum(sum(diff.T)>=len(child.genome)):
+            print('dup')
+            return False
+        
+        return True
+
+    while True:
+        parent1 = next(next_individual)
+        parent2 = next(next_individual)
+        
+        child, valid = _fmga_breeding(parent1, parent2)
+        
+        if valid:
+            valid = _check_duplicate(child)
+        
+        if not valid:
+            child.genome = _traditional_breeding(parent1.genome, parent2.genome)
+            
+        context['leap']['database'].append(child.genome)
+        yield child
 ##############################
 # Function proportional_selection
 ##############################
@@ -868,6 +950,31 @@ def tournament_selection(population: list, k: int = 2, key = None, select_worst:
         yield population[best_idx]
 
 
+
+##############################
+# Function elitist_selection
+##############################
+@curry
+@listiter_op
+def elitist_selection(population: list, k = None, key = None, indices = None) -> Iterator:
+    """Returns an opertaor that selects two random individuals from k elite
+    individuals of the population.        
+    """
+    
+    assert((indices is None) or (isinstance(indices, list))), f"Only a list should be passed to elitist_selection() for indices, but received {indices}."
+    
+    if not k:
+        k = int(len(population)*0.2)
+    
+    elite_population = list(toolz.itertoolz.topk(k,population))
+    
+    while True:
+        if key:
+            pass
+        else:
+            parents = random.sample(elite_population,2)
+            yield parents[0]
+            yield parents[1]
 ##############################
 # Function insertion_selection
 ##############################
@@ -1247,3 +1354,4 @@ def compute_population_values(population: List, offset=0, exponent: int = 1,
     if offset == 'pop-min':
         offset = -values.min(axis=0)
     return (values + offset) ** exponent
+

@@ -6,8 +6,6 @@ from math import nan
 from copy import deepcopy
 from functools import total_ordering
 
-import numpy as np
-
 from leap_ec.decoder import IdentityDecoder
 
 
@@ -267,3 +265,54 @@ class RobustIndividual(Individual):
         # *return* it to give more options to the programmer for using the
         # newly evaluated fitness.
         return self.fitness
+
+
+##############################
+# Class FmgaIndividual
+##############################
+
+
+class FmgaIndividual(Individual):
+    
+    """
+        Represents a single solution to a `Problem` that uses fission matrices.
+
+        We represent an `Individual` by a `genome` and a `fitness`.
+        `Individual` also maintains a reference to the `Problem` it will be
+        evaluated on, and an `decoder`, which defines how genomes are
+        converted into phenomes for fitness evaluation.
+    """
+    
+    def __init__(self, genome, decoder=IdentityDecoder(), problem=None):
+        super().__init__(genome, decoder=decoder, problem = problem)
+        
+        self.k = None
+        self.f_dist = None
+        self.FM = None
+        
+        
+    def clone(self):
+        """Create a 'clone' of this `Individual`, copying the genome and fission
+        matrix but not fitness.
+
+
+        """
+        new_genome = deepcopy(self.genome)
+        cloned = type(self)(new_genome, self.decoder, self.problem)
+        cloned.fitness = None
+        cloned.FM = self.FM
+        return cloned
+        
+    def evaluate(self):
+        
+        """ Determine Individual's fitness and associated k_eff, fission distribution
+        and fission matrix
+        
+        :return: calculated fitness, k_eff, fission distribution and fission matrix
+        """
+        
+        self.fitness, self.k, self.f_dist, self.FM = self.evaluate_imp()
+        
+        return self.fitness, self.k, self.f_dist, self.FM
+
+

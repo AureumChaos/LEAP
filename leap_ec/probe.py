@@ -943,3 +943,31 @@ def best_of_gen(population):
     """
     assert (len(population) > 0)
     return max(population)
+
+
+##############################
+# avg_fitness function
+##############################
+def avg_fitness(population):
+    
+    pop_size = len(population)
+    avg_fitness = 0
+    
+    for indv in population:
+        avg_fitness += indv.fitness/pop_size
+        
+    return avg_fitness
+
+
+##############################
+# num_max function
+##############################
+def num_max(population):
+    
+    num_max = 0
+    
+    for indv in population:
+        if indv.fitness == 1:
+            num_max += 1
+        
+    return num_max
