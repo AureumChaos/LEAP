@@ -22,7 +22,7 @@ from leap_ec.ops import compute_expected_probability, iteriter_op
 @iteriter_op
 def mutate_gaussian(next_individual: Iterator,
                     std: float,
-                    expected_num_mutations: Union[int, str] = None,
+                    p_mut: float = 0.2,
                     hard_bounds=(-math.inf, math.inf)) -> Iterator:
     """Mutate and return an individual with a real-valued representation.
 
@@ -42,14 +42,14 @@ def mutate_gaussian(next_individual: Iterator,
     :param hard_bounds: to clip for mutations; defaults to (- ∞, ∞)
     :return: a generator of mutated individuals.
     """
-    if expected_num_mutations is None:
-        raise ValueError("No value given for expected_num_mutations.  Must be either a float or the string 'isotropic'.")
+    if p_mut < 0  or p_mut > 1:
+        raise ValueError("Mutation value must be a value from 0 to 1.")
     while True:
         individual = next(next_individual)
 
         individual.genome = genome_mutate_gaussian(individual.genome,
                                                    std,
-                                                   expected_num_mutations,
+                                                   p_mut,
                                                    hard_bounds)
         # invalidate fitness since we have new genome
         individual.fitness = None
@@ -60,7 +60,7 @@ def mutate_gaussian(next_individual: Iterator,
 @curry
 def genome_mutate_gaussian(genome,
                            std: float,
-                           expected_num_mutations,
+                           p_mut,
                            hard_bounds: Tuple[float, float] =
                              (-math.inf, math.inf)):
     """ Perform actual Gaussian mutation on real-valued genes
@@ -74,7 +74,7 @@ def genome_mutate_gaussian(genome,
     :param expected_num_mutations: on average how many mutations are expected
     :return: mutated genome
     """
-    assert(expected_num_mutations is not None)
+    # assert(expected_num_mutations is not None)
 
     if not isinstance(genome, np.ndarray):
         raise ValueError(("Expected genome to be a numpy array. "
@@ -82,11 +82,11 @@ def genome_mutate_gaussian(genome,
 
     # compute actual probability of mutation based on expected number of
     # mutations and the genome length
-    if expected_num_mutations == 'isotropic':
-        # Default to isotropic Gaussian mutation
-        p = 1.0
-    else:
-        p = compute_expected_probability(expected_num_mutations, genome)
+    # if expected_num_mutations == 'isotropic':
+    #     # Default to isotropic Gaussian mutation
+    #     p = 1.0
+    # else:
+    p = p_mut
 
     # select which indices to mutate at random
     selector = np.random.choice([0, 1], size=genome.shape, p=(1 - p, p))
