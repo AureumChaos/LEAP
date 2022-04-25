@@ -289,6 +289,7 @@ class FmgaIndividual(Individual):
         self.k = None
         self.f_dist = None
         self.FM = None
+        self.fitness = 1
         
         
     def clone(self):
@@ -314,5 +315,15 @@ class FmgaIndividual(Individual):
         self.fitness, self.k, self.f_dist, self.FM = self.evaluate_imp()
         
         return self.fitness, self.k, self.f_dist, self.FM
+    
+    def evaluate_imp(self):
+        """ This is the evaluate 'implementation' called by
+            self.evaluate().   It's intended to be optionally over-ridden by
+            sub-classes to give an opportunity to pass in ancillary data to
+            the evaluate process either by tailoring the problem interface or
+            that of the given decoder.
+        """
+        return self.problem.evaluate(self.decode(), self.fitness==None)
+
 
 
