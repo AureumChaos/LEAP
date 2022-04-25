@@ -529,6 +529,58 @@ def n_ary_crossover(next_individual: Iterator,
             yield child1
             yield child2
 
+
+
+##############################
+# Function recombination
+##############################
+@curry
+@iteriter_op
+def recombination(next_individual: Iterator) -> Iterator:
+    """Parameterized uniform crossover iterates through two parents' genomes
+    and swaps each of their genes with the given probability.
+
+    Whole arithmetic recombination iterates through two parents' genomes and
+    takes a random weighted average of the genes to produce a single offspring
+
+    :param next_individual: where we get the next individual
+    """
+
+    def _recombination(ind1, ind2):
+        """ 
+        :param ind1: The first individual
+        :param ind2: The second individual
+        
+        :return: a copy of the new individuals with individual.genome bits
+                 calculated as weighted average
+        """
+        assert(isinstance(ind1.genome, np.ndarray))
+        assert(isinstance(ind2.genome, np.ndarray))
+
+        # generate which indices we should swap 
+        min_length = min(ind1.genome.shape[0], ind2.genome.shape[0])
+        alpha = np.random.rand(min_length)
+        
+        # perform swap
+        child = ind1.clone()
+        child.genome = alpha*ind1.genome + (1-alpha)*ind2.genome
+
+        return child
+
+    while True:
+        parent1 = next(next_individual)
+        parent2 = next(next_individual)
+        # Return the parents unmodified if we're not performing crossover
+        
+        
+        child = _recombination(parent1, parent2)
+
+        # Invalidate fitness since the genomes have changed
+        child.fitness = None
+
+        yield child
+        
+
 ##############################
 # Function fmga_breeding
 ##############################
@@ -609,6 +661,8 @@ def fmga_breeding(next_individual: Iterator,
             
         context['leap']['database'].append(child.genome)
         yield child
+        
+        
 ##############################
 # Function proportional_selection
 ##############################
@@ -1354,4 +1408,3 @@ def compute_population_values(population: List, offset=0, exponent: int = 1,
     if offset == 'pop-min':
         offset = -values.min(axis=0)
     return (values + offset) ** exponent
-
