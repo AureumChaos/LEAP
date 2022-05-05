@@ -312,7 +312,14 @@ class FmgaIndividual(Individual):
         :return: calculated fitness, k_eff, fission distribution and fission matrix
         """
         
-        self.fitness, self.k, self.f_dist, self.FM = self.evaluate_imp()
+        try:
+            self.fitness, self.k, self.f_dist, self.FM = self.evaluate_imp()
+            self.is_viable = True  # we were able to evaluate
+        except Exception as e:
+            self.fitness = nan
+            self.exception = e
+            self.is_viable = False  # we could not complete an eval
+        
         
         return self.fitness, self.k, self.f_dist, self.FM
     
@@ -323,6 +330,7 @@ class FmgaIndividual(Individual):
             the evaluate process either by tailoring the problem interface or
             that of the given decoder.
         """
+        
         return self.problem.evaluate(self.decode(), self.fitness==None)
 
 

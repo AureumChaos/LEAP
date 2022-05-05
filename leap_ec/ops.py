@@ -18,6 +18,7 @@ from functools import wraps
 import random
 from statistics import mean
 from typing import Iterator, List, Tuple, Callable
+import io
 
 import numpy as np
 import math
@@ -27,7 +28,7 @@ from toolz import curry
 from leap_ec.global_vars import context
 from leap_ec.individual import Individual
 
-import matlab.engine
+
 
 
 ##############################
@@ -598,25 +599,30 @@ def fmga_breeding(next_individual: Iterator,
     :param p_mut: probability of mutation if traditional breeding is used
     :param stdv: standard deviation use for gaussian mutation.
     """
-
+    
+    import matlab.engine
+    
+    eng = matlab.engine.start_matlab()
+    out = io.StringIO()
+    err = io.StringIO()
     def _fmga_breeding(ind1, ind2):
         
         genomes = [ind1.decode().tolist(),  ind2.decode().tolist()]
         
         
-        eng = matlab.engine.start_matlab()
+        
         
         genomes = matlab.double(genomes)
         phenomes = matlab.double([ind1.genome.tolist(),ind2.genome.tolist()])
         FMs = matlab.double(np.concatenate((ind1.FM[:,:,np.newaxis],ind2.FM[:,:,np.newaxis]),axis=2).tolist())
         
-        ret = eng.FMbreedingFcn_python(genomes,phenomes,FMs,nargout = 2)
+        ret = eng.FMbreedingFcn_python(genomes,phenomes,FMs,nargout = 2,stdout=out,stderr=err)
         
         child = ind1.clone()
         child.genome = np.asarray(ret[0]).squeeze()
         
         valid = int(ret[1])
-        eng.quit()
+        
         
         return child, valid
     
@@ -642,7 +648,6 @@ def fmga_breeding(next_individual: Iterator,
         diff = abs(np.array(db) - child.genome)
         diff = diff < 1e-3
         if sum(sum(diff.T)>=len(child.genome)):
-            print('dup')
             return False
         
         return True
@@ -661,6 +666,8 @@ def fmga_breeding(next_individual: Iterator,
             
         context['leap']['database'].append(child.genome)
         yield child
+        
+    eng.quit()
         
         
 ##############################
