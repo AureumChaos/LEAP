@@ -24,6 +24,7 @@ import numpy as np
 import math
 import toolz
 from toolz import curry
+from scipy.optimize import minimize
 
 from leap_ec.global_vars import context
 from leap_ec.individual import Individual
@@ -599,33 +600,37 @@ def fmga_breeding(next_individual: Iterator,
     :param p_mut: probability of mutation if traditional breeding is used
     :param stdv: standard deviation use for gaussian mutation.
     """
+    from FMint import FMinterpolation
     
-    import matlab.engine
-    
-    eng = matlab.engine.start_matlab()
-    out = io.StringIO()
-    err = io.StringIO()
     def _fmga_breeding(ind1, ind2):
         
-        genomes = [ind1.decode().tolist(),  ind2.decode().tolist()]
+        phenomes = np.array([ind1.genome,ind2.genome])
+        genomes = np.array([ind1.decode(),  ind2.decode()])
+        FMs = np.array([ind1.FM,ind2.FM])
         
+        x0 = np.mean(phenomes,axis=0)
         
+        ub = np.max(phenomes,axis=0) + 0.05
+        lb = np.min(phenomes,axis=0) - 0.05
+        lb[lb<0] = 0
         
-        
-        genomes = matlab.double(genomes)
-        phenomes = matlab.double([ind1.genome.tolist(),ind2.genome.tolist()])
-        FMs = matlab.double(np.concatenate((ind1.FM[:,:,np.newaxis],ind2.FM[:,:,np.newaxis]),axis=2).tolist())
-        
-        ret = eng.FMbreedingFcn_python(genomes,phenomes,FMs,nargout = 2,stdout=out,stderr=err)
+        bnds = []
+        for l,u in zip(lb,ub):
+            bnds.append((l,u))
         
         child = ind1.clone()
-        child.genome = np.asarray(ret[0]).squeeze()
-        
-        valid = int(ret[1])
-        
-        
+        try:
+            res = minimize(FMinterpolation, x0, args=(genomes,FMs), method='trust-constr',bounds=tuple(bnds))
+            
+            if res.success:
+                child.genome, valid = np.array(res.x),True
+            else:
+                valid = False
+                
+        except:
+            valid = False
+            
         return child, valid
-    
     def _traditional_breeding(ind1, ind2):
         
         child = np.zeros(len(ind1))
@@ -667,7 +672,7 @@ def fmga_breeding(next_individual: Iterator,
         context['leap']['database'].append(child.genome)
         yield child
         
-    eng.quit()
+    
         
         
 ##############################
