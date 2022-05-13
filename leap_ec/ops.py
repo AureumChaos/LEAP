@@ -830,7 +830,7 @@ def elitist_survival(offspring: List, parents: List, k: int = 1, key = None) -> 
 @curry
 @listiter_op
 def tournament_selection(population: list, k: int = 2, key = None, select_worst: bool=False, indices = None) -> Iterator:
-    """Returns an opertaor that selects the best individual from k individuals randomly selected from
+    """Returns an operator that selects the best individual from k individuals randomly selected from
         the given population.
 
         Like other selection operators, this assumes that if one individual is "greater than" another, then it is
