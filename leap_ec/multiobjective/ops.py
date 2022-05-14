@@ -13,10 +13,12 @@ from typing import Iterator
 import random
 from itertools import chain.from_iterable
 from toolz import curry
+from math import inf
 
 import numpy as np
 
 from leap_ec.ops import compute_expected_probability, listlist_op, iteriter_op
+
 
 def tournament_selection():
     """ Tournament selection that takes into consideration rank and crowding
@@ -43,7 +45,7 @@ def fast_nondominated_sort(population: list, parents: list = []) -> list:
     :param parents: optional parents population to be included with the ranking
         process
     """
-    ranks = {1 : []} # rank 1 initially empty
+    ranks = {1: []}  # rank 1 initially empty
 
     # First, find rank 1
     for individual in chain.from_iterable(population, parents):
@@ -85,14 +87,39 @@ def fast_nondominated_sort(population: list, parents: list = []) -> list:
     return population
 
 
-
 ##############################
 # crowding_distance_calc operator
 ##############################
 @curry
 @listlist_op
-def crowding_distance_calc(population: list) -> list:
-    raise NotImplementedError
+def crowding_distance_calc(population: list, parents: list = []) -> list:
+    """ This implements the NSGA-II crowding-distance-assignment()
+
+    :param population: population to calculate crowding distances
+    :param parents: optional parents population to be included
+    """
+    # Bring over a copy of everyone, parents possibly included, because we're
+    # going to be sorting them for each objective.
+    entire_pop = list(chain.from_iterable(population, parents))
+
+    [i.distance = 0 for i in entire_pop]  # init distances to zero to start
+
+    # Presuming this is a population with homogeneous objectives, then we can
+    # arbitrarily peep at the first individual's fitness values to determine
+    # how many objectives we have.
+    num_objectives = population[0].fitness.shape[0]
+
+    for objective in range(num_objectives):
+        # sort by objective being mindful that maximization vs. minimization may
+        # be different for each objective
+
+        # set first and last elements to infinity
+
+        # update the distance per individuals with a sliding window of
+        # three fitnesses for the current objective starting from the second to
+        # the second to last individual's
+
+    return population
 
 
 ##############################
