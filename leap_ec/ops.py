@@ -17,7 +17,7 @@ import itertools
 from functools import wraps
 import random
 from statistics import mean
-from typing import Iterator, List, Tuple, Callable
+from typing import Iterator, List, Tuple, Callable, Union
 
 import numpy as np
 import toolz
@@ -1247,3 +1247,18 @@ def compute_population_values(population: List, offset=0, exponent: int = 1,
     if offset == 'pop-min':
         offset = -values.min(axis=0)
     return (values + offset) ** exponent
+
+
+##############################
+# function bernoulli_process
+##############################
+def bernoulli_process(shape: Union[int, Tuple], p: float = 0.5) -> np.ndarray:
+    """ Generates a random vector from a Bernoulli process.
+
+        :param shape: shape of the random vector.
+        :param p: success probability of the bernoulli trials.
+        :return: boolean numpy array 
+    """
+    assert(p>=0 and p<=1)
+    shape = (shape,) if isinstance(shape, int) else shape
+    return np.random.rand(*shape) < p
