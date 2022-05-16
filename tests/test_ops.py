@@ -4,6 +4,7 @@ import pytest
 
 import leap_ec.ops as ops
 from leap_ec.data import test_population
+import numpy as np
 
 
 ##############################
@@ -186,3 +187,24 @@ def test_pool():
 
     assert(len(pop) == 3)
     assert(pop == [ 'a', 'b', 'c' ])
+
+##############################
+# Test bernoulli_process()
+##############################
+def test_bernoulli_process_shape():
+    """ Checks if shape parameters can be int and a tuple and that probability and mean are close """
+    shape = (100, 2)
+    p = 0.5
+    x = ops.bernoulli_process(shape, p)
+    assert(pytest.approx(np.mean(x), abs=1e-1) == p)
+
+    shape = 100
+    x = ops.bernoulli_process(shape, p)
+    assert(pytest.approx(np.mean(x), abs=1e-1) == p)
+
+def test_bernoulli_process_p():
+    """ Checks if error is thrown when p is out of range """
+    shape = 10
+    p = 2
+    with pytest.raises(AssertionError):
+        x = ops.bernoulli_process(shape, p)
