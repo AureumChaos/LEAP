@@ -12,7 +12,7 @@ import numpy as np
 from toolz import curry
 
 from leap_ec import util
-from leap_ec.ops import compute_expected_probability, iteriter_op
+from leap_ec.ops import bernoulli_process, compute_expected_probability, iteriter_op
 
 
 ##############################
@@ -89,8 +89,7 @@ def genome_mutate_gaussian(genome,
         p = compute_expected_probability(expected_num_mutations, genome)
 
     # select which indices to mutate at random
-    selector = np.random.choice([0, 1], size=genome.shape, p=(1 - p, p))
-    indices_to_mutate = np.nonzero(selector)[0]
+    indices_to_mutate = bernoulli_process(shape=genome.shape, p=p)
 
     genome[indices_to_mutate] = np.random.normal(genome[indices_to_mutate], std,
                                                  size=indices_to_mutate.shape[0])

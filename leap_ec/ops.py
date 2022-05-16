@@ -399,10 +399,8 @@ def uniform_crossover(next_individual: Iterator,
         assert(isinstance(ind2.genome, np.ndarray))
 
         # generate which indices we should swap 
-        min_length = min(ind1.genome.shape[0], ind2.genome.shape[0])
-        selector = np.random.choice([0, 1], size=(min_length,),
-                                    p=(1-p_swap, p_swap))
-        indices_to_swap = np.nonzero(selector)[0]
+        length = min(ind1.genome.shape[0], ind2.genome.shape[0])
+        indices_to_swap = bernoulli_process(length, p_swap)
 
         # perform swap
         tmp = ind1.genome[indices_to_swap]

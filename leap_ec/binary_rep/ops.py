@@ -8,7 +8,7 @@ from toolz import curry
 
 import numpy as np
 
-from leap_ec.ops import compute_expected_probability, iteriter_op
+from leap_ec.ops import compute_expected_probability, iteriter_op, bernoulli_process
 
 
 ##############################
@@ -90,9 +90,7 @@ def genome_mutate_bitflip(genome: np.ndarray,
     else:
         p = probability
 
-    selector = np.random.choice([0, 1], size=genome.shape,
-                                p=(1-p, p))
-    indices_to_flip = np.nonzero(selector)[0]
+    indices_to_flip = bernoulli_process(shape=genome.shape, p=p)
     genome[indices_to_flip] = (genome[indices_to_flip] + 1) % 2
 
     return genome

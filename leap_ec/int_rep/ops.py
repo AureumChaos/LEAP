@@ -4,7 +4,7 @@ from typing import Iterator
 import numpy as np
 from toolz import curry
 
-from leap_ec.ops import compute_expected_probability, iteriter_op
+from leap_ec.ops import compute_expected_probability, iteriter_op, bernoulli_process
 from leap_ec.real_rep.ops import apply_hard_bounds
 
 
@@ -91,9 +91,7 @@ def individual_mutate_randint(genome,
     else:
         p = probability
 
-    selector = np.random.choice([0, 1], size=genome.shape,
-                                p=(1 - p, p))
-    indices_to_mutate = np.nonzero(selector)[0]
+    indices_to_mutate = bernoulli_process(shape=genome.shape, p=p)
 
     bounds = np.array(bounds, dtype=int)
     selected_bounds = bounds[indices_to_mutate]
@@ -248,12 +246,10 @@ def individual_mutate_binomial(genome,
     else:
         probability = probability
 
-    selector = np.random.choice([0, 1], size=genome.shape,
-                                p=(1 - probability, probability))
-    indices_to_mutate = np.nonzero(selector)[0]
+    indices_to_mutate = bernoulli_process(shape=genome.shape, p=probability)
     p = _binomial_p_from_std(n, std)
     binom_mean = n*p
-    additive = np.random.binomial(n, p, size=len(indices_to_mutate)) - int(binom_mean)
+    additive = np.random.binomial(n, p, size=np.sum(indices_to_mutate)) - int(binom_mean)
     mutated = genome[indices_to_mutate] + additive
     genome[indices_to_mutate] = mutated
     genome = apply_hard_bounds(genome, bounds).astype(datatype)

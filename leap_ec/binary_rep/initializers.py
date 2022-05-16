@@ -5,6 +5,7 @@
 import numpy as np
 
 from leap_ec.individual import Individual
+from leap_ec.ops import bernoulli_process
 
 ##############################
 # Closure create_binary_sequence
@@ -29,6 +30,6 @@ def create_binary_sequence(length):
     """
 
     def create():
-        return np.random.choice([0, 1], size=(length,))
+        return bernoulli_process(length)
 
     return create
