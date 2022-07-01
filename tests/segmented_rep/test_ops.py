@@ -88,27 +88,29 @@ def test_segmented_copy():
                                 probability=1.0,
                                 append=True))
 
-    possible_outcomes = [[[0, 0], [1, 1], [0, 0]],
-                         [[0, 0], [1, 1], [1, 1]],
+    possible_outcomes = [[np.array([0, 0]), np.array([1, 1]), np.array([0, 0])],
+                         [np.array([0, 0]), np.array([1, 1]), np.array([1, 1])],
                          ]
 
-    assert mutated.genome in possible_outcomes
+    tests = [np.array_equiv(mutated.genome, x) for x in possible_outcomes]
+    assert any(tests)
 
-    possible_outcomes = [[[0, 0], [0, 0], [1, 1]],
-                         [[0, 0], [1, 1], [0, 0]],
-                         [[1, 1], [0, 0], [1, 1]],
-                         [[0, 0], [1, 1], [1, 1]],
+    possible_outcomes = [[np.array([0, 0]), np.array([0, 0]), np.array([1, 1])],
+                         [np.array([0, 0]), np.array([1, 1]), np.array([0, 0])],
+                         [np.array([1, 1]), np.array([0, 0]), np.array([1, 1])],
+                         [np.array([0, 0]), np.array([1, 1]), np.array([1, 1])],
                          ]
 
     # TODO: it would be better to build a histogram of expected outcomes and
     # do the chi square test
     for i in range(20):
-        original = Individual([[0, 0], [1, 1]])
+        original = Individual([np.array([0, 0]), np.array([1, 1])])
         mutated = next(copy_segment(iter([original]),
                                     probability=1.0,
                                     append=False))
 
-        assert mutated.genome in possible_outcomes
+        tests = [np.array_equiv(mutated.genome, x) for x in possible_outcomes]
+        assert any(tests)
 
 
 ##############################
