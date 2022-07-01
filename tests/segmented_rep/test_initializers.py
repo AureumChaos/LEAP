@@ -2,13 +2,14 @@
 import pytest
 import random
 import functools
+import numpy as np
 from collections import Counter
 
 from leap_ec import statistical_helpers as stat
 from leap_ec.segmented_rep.initializers import create_segmented_sequence
 
 
-test_sequence = [12345] # just an arbitrary sequence for testing
+test_sequence = np.zeros(5) # just an arbitrary sequence of zeroes for testing
 
 def gen_sequence():
     """ return an arbitrary static test_sequence """
