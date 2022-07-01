@@ -18,7 +18,7 @@ from leap_ec.segmented_rep.ops import apply_mutation, remove_segment, add_segmen
 ##############################
 # Test Fixtures
 ##############################
-test_sequence = [12345]  # just an arbitrary sequence for testing
+test_sequence = np.array([2,2]) # just an arbitrary sequence of twos for testing
 
 @pytest.fixture
 def gen_sequence():
@@ -35,7 +35,7 @@ def test_apply_mutation():
     """Applying segment-wise mutation operators with expected_num_mutations=len(genome) should
     result in every gene of every segment being mutated."""
     mutation_op = apply_mutation(mutator=genome_mutate_bitflip, expected_num_mutations=4)
-    original = Individual([np.array([0,0]),np.array([1,1])])
+    original = Individual([np.array([0,0]), np.array([1,1])])
     mutated = next(mutation_op(iter([original])))
 
     assert np.all(mutated.genome[0] == [1, 1]) \
@@ -45,9 +45,9 @@ def test_apply_mutation():
 # Tests for remove_segment()
 ##############################
 def test_segmented_remove():
-    original = Individual([[0, 0], [1, 1]])
+    original = Individual([np.array([0,0]), np.array([1,1])])
     mutated = next(remove_segment(iter([original]), probability=1.0))
-    assert mutated.genome == [[0, 0]] or mutated.genome == [[1, 1]]
+    assert (mutated.genome[0] == [np.array([0, 0]), np.array([1, 1])]).any()
 
 
 ##############################
@@ -55,33 +55,35 @@ def test_segmented_remove():
 ##############################
 def test_segmented_add(gen_sequence):
     # Test with append first
-    original = Individual([[0, 0], [1, 1]])
+    original = Individual([np.array([0,0]), np.array([1,1])])
     mutated = next(add_segment(iter([original]),
                                seq_initializer=gen_sequence,
                                probability=1.0,
                                append=True))
-    assert mutated.genome == [[0, 0], [1, 1], test_sequence]
-
+    target = [np.array([0, 0]), np.array([1, 1]), test_sequence]
+    assert np.array_equiv(mutated.genome, target)
 
     # Test without append, so segment can inserted in one of three locations
-    possible_outcomes = [[test_sequence, [0, 0], [1, 1]],
-                         [[0, 0], test_sequence, [1, 1]],
-                         [[0, 0], [1, 1], test_sequence]]
+    possible_outcomes = [[test_sequence, np.array([0, 0]), np.array([1, 1])],
+                         [np.array([0, 0]), test_sequence, np.array([1, 1])],
+                         [np.array([0, 0]), np.array([1, 1]), test_sequence]]
 
     for i in range(20):
-        original = Individual([[0, 0], [1, 1]])
+        original = Individual([np.array([0,0]), np.array([1,1])])
         mutated = next(add_segment(iter([original]),
                                    seq_initializer=gen_sequence,
                                    probability=1.0,
                                    append=False))
-        assert mutated.genome in possible_outcomes
+
+        tests = [np.array_equiv(mutated.genome, x) for x in possible_outcomes]
+        assert any(tests)
 
 
 ##############################
 # Tests for copy_segment()
 ##############################
 def test_segmented_copy():
-    original = Individual([[0, 0], [1, 1]])
+    original = Individual([np.array([0,0]), np.array([1,1])])
     mutated = next(copy_segment(iter([original]),
                                 probability=1.0,
                                 append=True))
@@ -116,36 +118,36 @@ def test_segmented_crossover():
     """ test that n-ary crossover works as expected for fixed and variable
         length segments
     """
-    a = Individual([[0, 0], [1, 1]])
-    b = Individual([[1, 1], [0, 0]])
+    a = Individual([np.array([0,0]), np.array([1,1])])
+    b = Individual([np.array([1,1]), np.array([0,0])])
 
-    result = n_ary_crossover(iter([a,b]))
+    result = n_ary_crossover(iter([a, b]))
     c = next(result)
     d = next(result)
 
-    possible_outcomes = [[[0, 0], [1, 1]],
-                         [[1, 1], [0, 0]],
-                         [[0, 0], [0, 0]],
-                         [[1, 1], [1, 1]]]
+    possible_outcomes = [(np.array([0, 0]), np.array([1, 1])),
+                         (np.array([1, 1]), np.array([0, 0])),
+                         (np.array([0, 0]), np.array([0, 0])),
+                         (np.array([1, 1]), np.array([1, 1]))]
 
     assert c.genome in possible_outcomes and d.genome in possible_outcomes
 
     # Now for genomes of different lengths
     # TODO I need to *carefully* review the possible crossover possibilities
     possible_outcomes = [[],
-                         [[0, 0]],
-                         [[1, 1]],
-                         [[2, 2]],
-                         [[0, 0], [1, 1]],
-                         [[1, 1], [2, 2]],
-                         [[2, 2], [1, 1]],
-                         [[2, 2], [0, 0], [1, 1]],
-                         [[0, 0], [2, 2], [1, 1]],
-                         [[0, 0], [1, 1], [2, 2]],
+                         [np.array([0, 0])],
+                         [np.array([1, 1])],
+                         [np.array([2, 2])],
+                         [np.array([0, 0]), np.array([1, 1])],
+                         [np.array([1, 1]), np.array([2, 2])],
+                         [np.array([2, 2]), np.array([1, 1])],
+                         [np.array([2, 2]), np.array([0, 0]), np.array([1, 1])],
+                         [np.array([0, 0]), np.array([2, 2]), np.array([1, 1])],
+                         [np.array([0, 0]), np.array([1, 1]), np.array([2, 2])],
                          ]
 
     for _ in range(20):
-        a = Individual([[0, 0], [1, 1]])
+        a = Individual([np.array([0, 0]), np.array([1, 1])])
         b = Individual([[2, 2]])
 
         result = n_ary_crossover(iter([a, b]), num_points=1)
