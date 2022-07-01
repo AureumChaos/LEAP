@@ -1,19 +1,11 @@
-"""Unit tests for pipeline operators in the segmented representation package."""
-import pytest
-import random
-import functools
-from collections import Counter
-
+""" Unit tests for pipeline operators in the segmented representation package. """
 import numpy as np
-
-from leap_ec.individual import Individual
-
-from leap_ec import statistical_helpers as stat
-from leap_ec.ops import n_ary_crossover
+import pytest
 from leap_ec.binary_rep.ops import genome_mutate_bitflip
-from leap_ec.segmented_rep.initializers import create_segmented_sequence
-from leap_ec.segmented_rep.ops import apply_mutation, remove_segment, add_segment, copy_segment
-
+from leap_ec.individual import Individual
+from leap_ec.ops import n_ary_crossover
+from leap_ec.segmented_rep.ops import apply_mutation, remove_segment, \
+    add_segment, copy_segment
 
 ##############################
 # Test Fixtures
@@ -26,6 +18,11 @@ def gen_sequence():
     def f():
         return test_sequence
     return f
+
+
+def in_possible_outcomes(test_seq, possible_outcomes):
+    """ :returns: true if test_seq in possible_outcomes """
+    return any([np.array_equiv(test_seq, x) for x in possible_outcomes])
 
 
 ##############################
@@ -75,8 +72,7 @@ def test_segmented_add(gen_sequence):
                                    probability=1.0,
                                    append=False))
 
-        tests = [np.array_equiv(mutated.genome, x) for x in possible_outcomes]
-        assert any(tests)
+        assert in_possible_outcomes(mutated.genome, possible_outcomes)
 
 
 ##############################
@@ -92,8 +88,7 @@ def test_segmented_copy():
                          [np.array([0, 0]), np.array([1, 1]), np.array([1, 1])],
                          ]
 
-    tests = [np.array_equiv(mutated.genome, x) for x in possible_outcomes]
-    assert any(tests)
+    assert in_possible_outcomes(mutated.genome, possible_outcomes)
 
     possible_outcomes = [[np.array([0, 0]), np.array([0, 0]), np.array([1, 1])],
                          [np.array([0, 0]), np.array([1, 1]), np.array([0, 0])],
@@ -109,13 +104,8 @@ def test_segmented_copy():
                                     probability=1.0,
                                     append=False))
 
-        tests = [np.array_equiv(mutated.genome, x) for x in possible_outcomes]
-        assert any(tests)
+        assert in_possible_outcomes(mutated.genome, possible_outcomes)
 
-
-def in_possible_outcomes(test_seq, possible_outcomes):
-    """ :returns: true if test_seq in possible_outcomes """
-    return any([np.array_equiv(test_seq, x) for x in possible_outcomes])
 
 
 ##############################
