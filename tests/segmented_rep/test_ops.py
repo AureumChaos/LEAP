@@ -113,6 +113,11 @@ def test_segmented_copy():
         assert any(tests)
 
 
+def in_possible_outcomes(test_seq, possible_outcomes):
+    """ :returns: true if test_seq in possible_outcomes """
+    return any([np.array_equiv(test_seq, x) for x in possible_outcomes])
+
+
 ##############################
 # Tests for n_ary_crossover() on segmented genomes
 ##############################
@@ -132,7 +137,8 @@ def test_segmented_crossover():
                          (np.array([0, 0]), np.array([0, 0])),
                          (np.array([1, 1]), np.array([1, 1]))]
 
-    assert c.genome in possible_outcomes and d.genome in possible_outcomes
+    assert in_possible_outcomes(c.genome, possible_outcomes) and \
+           in_possible_outcomes(d.genome, possible_outcomes)
 
     # Now for genomes of different lengths
     # TODO I need to *carefully* review the possible crossover possibilities
@@ -156,5 +162,5 @@ def test_segmented_crossover():
         c = next(result)
         d = next(result)
 
-        assert c.genome in possible_outcomes
-        assert d.genome in possible_outcomes
+        assert in_possible_outcomes(c.genome, possible_outcomes)
+        assert in_possible_outcomes(d.genome, possible_outcomes)
