@@ -1,7 +1,9 @@
 """ Unit tests for pipeline operators in the segmented representation package. """
+import functools
 import numpy as np
 import pytest
 from leap_ec.binary_rep.ops import genome_mutate_bitflip
+from leap_ec.int_rep.ops import genome_mutate_binomial
 from leap_ec.individual import Individual
 from leap_ec.ops import n_ary_crossover
 from leap_ec.segmented_rep.ops import apply_mutation, remove_segment, \
@@ -37,6 +39,21 @@ def test_apply_mutation():
 
     assert np.all(mutated.genome[0] == [1, 1]) \
         and np.all(mutated.genome[1] == [0, 0])
+
+
+def test_apply_mutation_int():
+    """ Same test, but with integer mutation """
+    mutator = functools.partial(genome_mutate_binomial,
+                                std=1.0,
+                                bounds=[(0,10),(100,110)],
+                                expected_num_mutations=1)
+    mutation_op = functools.partial(apply_mutation, mutator=mutator,
+                                    expected_num_mutations=1)
+    original = Individual([np.array([0,100]), np.array([1,101])])
+    mutated = next(mutation_op(iter([original])))
+
+    pass
+
 
 ##############################
 # Tests for remove_segment()
