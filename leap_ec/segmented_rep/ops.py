@@ -75,11 +75,11 @@ def segmented_mutate(next_individual: Iterator, mutator_functions: list):
     while True:
         individual = next(next_individual)
         assert(len(individual.genome) == len(mutator_functions)), f"Found {len(individual.genome)} segments in this genome, but we've got {len(mutators)} mutators."
-        
+
         mutated_genome = []
         for segment, m in zip(individual.genome, mutator_functions):
             mutated_genome.append(m(segment))
-        
+
         individual.genome = mutated_genome
 
         # invalidate the fitness since we have a modified genome

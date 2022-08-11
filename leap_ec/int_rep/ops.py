@@ -120,7 +120,7 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
                     expected_num_mutations: float = None,
                     probability: float = None,
                     n: int = 10000) -> Iterator:
-    """Mutate genes by adding an integer offset sampled from a binomial distribution
+    """ Mutate genes by adding an integer offset sampled from a binomial distribution
     centered on the current gene value.
 
     This is very similar to applying additive Gaussian mutation and then rounding to
@@ -155,14 +155,14 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
     >>> mutated = next(operator(population))
 
     .. note::
-        The binomial distribution is defined by two parameters, `n` and `p`.  Here we 
+        The binomial distribution is defined by two parameters, `n` and `p`.  Here we
         simplify the interface by asking instead for an `std` parameter, and fixing
         a high value of `n` by default.  The value of `p` needed to obtain the
         given `std` is computed for you internally.
 
         As the plots below illustrate, the binomial distribution is approximated by a
         Gaussian.  For high `n` and large standard deviations, the two are effectively
-        equivalent.  But when the standard deviation (and thus binomial `p` parameter) 
+        equivalent.  But when the standard deviation (and thus binomial `p` parameter)
         is relatively small, the approximation becomes less accurate, and the binomial
         differs somewhat from a Gaussian.
 
@@ -281,7 +281,7 @@ def genome_mutate_binomial(std,
         additive = np.random.binomial(n, selected_p_values, size=len(indices_to_mutate)) - np.floor(binom_mean)
         mutated = genome[indices_to_mutate] + additive
         genome[indices_to_mutate] = mutated
-        
+
         genome = apply_hard_bounds(genome, bounds).astype(datatype)
 
         # consistency check on data type

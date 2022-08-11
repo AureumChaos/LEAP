@@ -1,7 +1,9 @@
 """ Unit tests for pipeline operators in the segmented representation package. """
+import functools
 import numpy as np
 import pytest
 from leap_ec.binary_rep.ops import genome_mutate_bitflip
+from leap_ec.int_rep.ops import genome_mutate_binomial, individual_mutate_randint
 from leap_ec.individual import Individual
 from leap_ec.ops import n_ary_crossover
 from leap_ec.segmented_rep.ops import apply_mutation, remove_segment, \
@@ -10,13 +12,17 @@ from leap_ec.segmented_rep.ops import apply_mutation, remove_segment, \
 ##############################
 # Test Fixtures
 ##############################
-test_sequence = np.array([2,2]) # just an arbitrary sequence of twos for testing
+test_sequence = np.array(
+    [2, 2])  # just an arbitrary sequence of twos for testing
+
 
 @pytest.fixture
 def gen_sequence():
     """Return a function that returns an arbitrary static test_sequence."""
+
     def f():
         return test_sequence
+
     return f
 
 
@@ -31,18 +37,51 @@ def in_possible_outcomes(test_seq, possible_outcomes):
 def test_apply_mutation():
     """Applying segment-wise mutation operators with expected_num_mutations=len(genome) should
     result in every gene of every segment being mutated."""
-    mutation_op = apply_mutation(mutator=genome_mutate_bitflip, expected_num_mutations=4)
-    original = Individual([np.array([0,0]), np.array([1,1])])
+    mutation_op = apply_mutation(mutator=genome_mutate_bitflip,
+                                 expected_num_mutations=4)
+    original = Individual([np.array([0, 0]), np.array([1, 1])])
     mutated = next(mutation_op(iter([original])))
 
     assert np.all(mutated.genome[0] == [1, 1]) \
-        and np.all(mutated.genome[1] == [0, 0])
+           and np.all(mutated.genome[1] == [0, 0])
+
+
+def test_apply_mutation_uniform_int():
+    """ Same test, but with integer mutation """
+    mutator = individual_mutate_randint(bounds=[(0, 10), (100, 110)])
+
+    mutation_op = apply_mutation(mutator=mutator,
+                                 expected_num_mutations=2)
+    original = Individual([np.array([0, 100]), np.array([1, 101])])
+    mutated = next(mutation_op(iter([original])))
+
+    # TODO add checks (didn't add at this time because we wanted to ensure
+    # that this would even generate valid behavior w/o an exception.
+
+    pass
+
+
+def test_apply_mutation_binomial_int():
+    """ Same test, but with integer mutation """
+    mutator = genome_mutate_binomial(
+        std=1.0,
+        bounds=[(0, 10), (100, 110)],
+        probability=1)
+    mutation_op = functools.partial(apply_mutation,
+                                    mutator=mutator)
+    original = Individual([np.array([0, 100]), np.array([1, 101])])
+    mutated = next(mutation_op(iter([original])))
+
+    pass
+
 
 ##############################
 # Tests for remove_segment()
 ##############################
+
+
 def test_segmented_remove():
-    original = Individual([np.array([0,0]), np.array([1,1])])
+    original = Individual([np.array([0, 0]), np.array([1, 1])])
     mutated = next(remove_segment(iter([original]), probability=1.0))
     assert (mutated.genome[0] == [np.array([0, 0]), np.array([1, 1])]).any()
 
@@ -52,7 +91,7 @@ def test_segmented_remove():
 ##############################
 def test_segmented_add(gen_sequence):
     # Test with append first
-    original = Individual([np.array([0,0]), np.array([1,1])])
+    original = Individual([np.array([0, 0]), np.array([1, 1])])
     mutated = next(add_segment(iter([original]),
                                seq_initializer=gen_sequence,
                                probability=1.0,
@@ -66,7 +105,7 @@ def test_segmented_add(gen_sequence):
                          [np.array([0, 0]), np.array([1, 1]), test_sequence]]
 
     for i in range(20):
-        original = Individual([np.array([0,0]), np.array([1,1])])
+        original = Individual([np.array([0, 0]), np.array([1, 1])])
         mutated = next(add_segment(iter([original]),
                                    seq_initializer=gen_sequence,
                                    probability=1.0,
@@ -79,7 +118,7 @@ def test_segmented_add(gen_sequence):
 # Tests for copy_segment()
 ##############################
 def test_segmented_copy():
-    original = Individual([np.array([0,0]), np.array([1,1])])
+    original = Individual([np.array([0, 0]), np.array([1, 1])])
     mutated = next(copy_segment(iter([original]),
                                 probability=1.0,
                                 append=True))
@@ -107,7 +146,6 @@ def test_segmented_copy():
         assert in_possible_outcomes(mutated.genome, possible_outcomes)
 
 
-
 ##############################
 # Tests for n_ary_crossover() on segmented genomes
 ##############################
@@ -115,8 +153,8 @@ def test_segmented_crossover():
     """ test that n-ary crossover works as expected for fixed and variable
         length segments
     """
-    a = Individual([np.array([0,0]), np.array([1,1])])
-    b = Individual([np.array([1,1]), np.array([0,0])])
+    a = Individual([np.array([0, 0]), np.array([1, 1])])
+    b = Individual([np.array([1, 1]), np.array([0, 0])])
 
     result = n_ary_crossover(iter([a, b]))
     c = next(result)
