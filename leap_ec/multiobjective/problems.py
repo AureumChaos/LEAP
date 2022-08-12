@@ -113,9 +113,9 @@ class MultiObjectiveProblem(Problem):
 
 
 ##############################
-# Class MultiObjectiveToolkitProblem
+# Class ZDTBenchmarkProblem
 ##############################
-class MultiObjectiveToolkitProblem(MultiObjectiveProblem):
+class ZDTBenchmarkProblem(MultiObjectiveProblem):
     """A problem that implements Kalyanmoy Deb's popular tunable two-objective problem 'toolkit.'
 
     This allows us to create custom two-objective functions by defining three functions:

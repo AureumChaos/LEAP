@@ -12,7 +12,7 @@ import numpy as np
 from numpy.lib.twodim_base import diag
 from numpy.random import random
 
-from leap_ec.problem import FitnessOffsetProblem, MultiObjectiveToolkitProblem, ScalarProblem
+from leap_ec.problem import FitnessOffsetProblem, ZDTBenchmarkProblem, ScalarProblem
 from leap_ec import Individual
 
 
@@ -1582,13 +1582,13 @@ class MatrixTransformedProblem(ScalarProblem):
 ##############################
 # Class ZTD1Problem
 ##############################
-class ZDT1Problem(MultiObjectiveToolkitProblem):
+class ZDT1Problem(ZDTBenchmarkProblem):
     """
     The first problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
     suite.  It's meant to provide a simple multi-objective problem with a *convex*
     Pareto-optimal front.
 
-    This function is defined via the :py:class:`leap_ec.problem.MultiObjectiveToolkitProblem`
+    This function is defined via the :py:class:`leap_ec.problem.ZDTBenchmarkProblem`
     with the following parameters:
 
     .. math::
@@ -1619,13 +1619,13 @@ class ZDT1Problem(MultiObjectiveToolkitProblem):
 ##############################
 # Class ZTD2Problem
 ##############################
-class ZDT2Problem(MultiObjectiveToolkitProblem):
+class ZDT2Problem(ZDTBenchmarkProblem):
     """
     The second problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
     suite.  This is similar to :py:class:`leap_ec.problem.ZDT1Problem`, except that
     it has a *non-convex* Pareto front.
 
-    This function is defined via the :py:class:`leap_ec.problem.MultiObjectiveToolkitProblem`
+    This function is defined via the :py:class:`leap_ec.problem.ZDTBenchmarkProblem`
     with the following parameters:
 
     .. math::
