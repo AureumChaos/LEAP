@@ -294,8 +294,11 @@ def genome_mutate_binomial(std,
 def _binomial_p_from_std(n, std):
     """Given a number of 'coin flips' n, compute the value of p that is
     needed to achieve a desired standard deviation."""
-    if (4*std**2/n > 1):
-        raise ValueError(f"The provided value of n ({n}) is too low to support a Binomial distribution with a standard deviation of {std}.  Choose a higher value of n, or reduce the std.")
+    if 4 * std ** 2 / n > 1:
+        raise ValueError(f"The provided value of n ({n}) is too low to "
+                         f"support a Binomial distribution with a stand"
+                         f"ard deviation of {std}.  Choose a higher value of "
+                         f"n, or reduce the std.")
     # We arrived at this expression by noting that σ^2 = np(1-p)
     # and solving for p via the quadratic formula
-    return (1 - np.sqrt(1-4*std**2/n))/2
+    return (1 - np.sqrt(1 - 4 * std ** 2 / n)) / 2
