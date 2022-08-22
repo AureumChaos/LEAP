@@ -157,7 +157,7 @@ class Individual:
             that of the given decoder.
         """
         self.decode()
-        return self.problem.evaluate(self)
+        return self.problem.evaluate(self.phenome)
 
     def evaluate(self):
         """ determine this individual's fitness

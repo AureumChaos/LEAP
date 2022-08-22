@@ -288,7 +288,7 @@ def grouped_evaluate(population: list, max_individuals_per_chunk: int = None) ->
 
     fitnesses = []
     for chunk in chunks(population, max_individuals_per_chunk):
-        fit = problem.evaluate_multiple(chunk)
+        fit = problem.evaluate_multiple([c.phenome for c in chunk])
         fitnesses.extend(fit)
 
     for fit, ind in zip(fitnesses, population):

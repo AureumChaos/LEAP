@@ -32,16 +32,14 @@ class MaxOnes(ScalarProblem):
         super().__init__(maximize)
         self.target_string = target_string
 
-    def evaluate(self, individual):
+    def evaluate(self, phenome):
         """
         By default this counts the number of 1's:
 
         >>> from leap_ec.individual import Individual
         >>> import numpy as np
         >>> p = MaxOnes()
-        >>> ind = Individual(np.array([0, 0, 1, 1, 0, 1, 0, 1, 1]),
-        ...                   problem=p)
-        >>> p.evaluate(ind)
+        >>> p.evaluate(np.array([0, 0, 1, 1, 0, 1, 0, 1, 1]))
         5
 
         Or, if a target string was given, we count matches:
@@ -49,20 +47,18 @@ class MaxOnes(ScalarProblem):
         >>> from leap_ec.individual import Individual
         >>> import numpy as np
         >>> p = MaxOnes(target_string=np.array([1, 1, 1, 1, 1, 0, 0, 0 ,0]))
-        >>> ind = Individual(np.array([0, 0, 1, 1, 0, 1, 0, 1, 1]),
-        ...                   problem=p)
-        >>> p.evaluate(ind)
+        >>> p.evaluate(np.array([0, 0, 1, 1, 0, 1, 0, 1, 1]))
         3
         """
-        if not isinstance(individual.phenome, np.ndarray):
+        if not isinstance(phenome, np.ndarray):
             raise ValueError(("Expected phenome to be a numpy array. "
-                              f"Got {type(individual.phenome)}."))
+                              f"Got {type(phenome)}."))
         # If we've 
         if self.target_string is not None:
-            assert(len(individual.phenome) == len(self.target_string)), f"Fitness function target string has {len(self.target_string)} dimensions, but received a phenome with {len(individual.phenome)} dimensions."
-            return np.sum(individual.phenome == self.target_string)
+            assert(len(phenome) == len(self.target_string)), f"Fitness function target string has {len(self.target_string)} dimensions, but received a phenome with {len(individual.phenome)} dimensions."
+            return np.sum(phenome == self.target_string)
         else:
-            return np.count_nonzero(individual.phenome == 1)
+            return np.count_nonzero(phenome == 1)
 
 
 ##############################
@@ -89,38 +85,31 @@ class LeadingOnes(ScalarProblem):
         super().__init__(maximize)
         self.target_string = target_string
 
-    def evaluate(self, individual):
+    def evaluate(self, phenome):
         """
         By default this counts the number of consecutive 1's at the
         start of the string:
 
-        >>> from leap_ec.individual import Individual
         >>> import numpy as np
         >>> p = LeadingOnes()
-        >>> ind = Individual(np.array([1, 1, 1, 1, 0, 1, 0, 1, 1]),
-        ...                   problem=p)
-        >>> p.evaluate(ind)
+        >>> p.evaluate(np.array([1, 1, 1, 1, 0, 1, 0, 1, 1]))
         4
 
         Or, if a target string was given, we count matches:
 
-        >>> from leap_ec.individual import Individual
-        >>> import numpy as np
         >>> p = LeadingOnes(target_string=np.array([1, 1, 0, 1, 1, 0, 0, 0 ,0]))
-        >>> ind = Individual(np.array([1, 1, 1, 1, 0, 1, 0, 1, 1]),
-        ...                   problem=p)
-        >>> p.evaluate(ind)
+        >>> p.evaluate(np.array([1, 1, 1, 1, 0, 1, 0, 1, 1]))
         2
         """
-        if not isinstance(individual.phenome, np.ndarray):
+        if not isinstance(phenome, np.ndarray):
             raise ValueError(("Expected phenome to be a numpy array. "
-                              f"Got {type(individual.phenome)}."))
+                              f"Got {type(phenome)}."))
         
         if self.target_string is not None:
-            assert(len(individual.phenome) == len(self.target_string)), f"Fitness function target string has {len(self.target_string)} dimensions, but received a phenome with {len(individual.phenome)} dimensions."
-            match_str = (individual.phenome == self.target_string)
+            assert(len(phenome) == len(self.target_string)), f"Fitness function target string has {len(self.target_string)} dimensions, but received a phenome with {len(individual.phenome)} dimensions."
+            match_str = (phenome == self.target_string)
         else:
-            match_str = (individual.phenome == 1)
+            match_str = (phenome == 1)
 
         groups = groupby(match_str)
         _, leading_vals = next(groups)
@@ -140,32 +129,28 @@ class DeceptiveTrap(ScalarProblem):
     def __init__(self, maximize=True):
         super().__init__(maximize=maximize)
     
-    def evaluate(self, individual):
+    def evaluate(self, phenome):
         
         """
-        >>> from leap_ec.individual import Individual
         >>> import numpy as np
         >>> p = DeceptiveTrap()
 
         The trap function has a global maximum when the number of one's
         is maximized:
 
-        >>> ind = Individual(np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]))
-        >>> p.evaluate(ind)
+        >>> p.evaluate(np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]))
         10
 
         It's minimized when we have just one zero:
-        >>> ind = Individual(np.array([1, 1, 1, 1, 0, 1, 1, 1, 1, 1]))
-        >>> p.evaluate(ind)
+        >>> p.evaluate(np.array([1, 1, 1, 1, 0, 1, 1, 1, 1, 1]))
         0
 
         And has a local optimum when we have no ones at all:
-        >>> ind = Individual(np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
-        >>> p.evaluate(ind)
+        >>> p.evaluate(np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
         9
         """
-        dimensions = len(individual.phenome)
-        max_ones = np.count_nonzero(individual.phenome == 1)
+        dimensions = len(phenome)
+        max_ones = np.count_nonzero(phenome == 1)
         if max_ones == dimensions:
             return dimensions
         else:
@@ -185,27 +170,24 @@ class TwoMax(ScalarProblem):
     def __init__(self, maximize=True):
         super().__init__(maximize=maximize)
     
-    def evaluate(self, individual):
+    def evaluate(self, phenome):
         
         """
-        >>> from leap_ec.individual import Individual
         >>> import numpy as np
         >>> p = TwoMax()
 
         The TwoMax problems returns the number over 1's if they are
         in the majority:
 
-        >>> ind = Individual(np.array([1, 1, 1, 1, 1, 1, 1, 0, 0, 0]))
-        >>> p.evaluate(ind)
+        >>> p.evaluate(np.array([1, 1, 1, 1, 1, 1, 1, 0, 0, 0]))
         7
 
         Else the number of zeros:
-        >>> ind = Individual(np.array([0, 0, 0, 1, 0, 0, 0, 1, 1, 1]))
-        >>> p.evaluate(ind)
+        >>> p.evaluate(np.array([0, 0, 0, 1, 0, 0, 0, 1, 1, 1]))
         6
         """
-        dimensions = len(individual.phenome)
-        max_ones = np.count_nonzero(individual.phenome == 1)
+        dimensions = len(phenome)
+        max_ones = np.count_nonzero(phenome == 1)
         return int(np.abs(dimensions/2 - max_ones) + dimensions/2)
 
 
@@ -229,9 +211,9 @@ class ImageProblem(ScalarProblem):
         x = ImageOps.fit(x, size)
         return x.convert('1')
 
-    def evaluate(self, individual):
-        assert (len(individual.phenome) == len(self.flat_img)
-                ), f"Bad genome length: got {len(individual.phenome)}, expected " \
+    def evaluate(self, phenome):
+        assert (len(phenome) == len(self.flat_img)
+                ), f"Bad genome length: got {len(phenome)}, expected " \
                    f"{len(self.flat_img)} "
-        diff = np.logical_not(individual.phenome ^ self.flat_img)
+        diff = np.logical_not(phenome ^ self.flat_img)
         return sum(diff)

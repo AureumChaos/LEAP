@@ -89,10 +89,10 @@ class EnvironmentProblem(ScalarProblem):
             # Otherwise just look at the shape of the space directly
             return int(np.prod(observation_space.shape))
 
-    def evaluate(self, individual):
+    def evaluate(self, phenome):
         """Run the environmental simulation using `executable` phenotype as a controller,
         and use the resulting observations & rewards to compute a fitness value."""
-        executable = individual.phenome
+        executable = phenome
         observations = []
         rewards = []
         for r in range(self.runs):
@@ -136,7 +136,7 @@ class TruthTableProblem(ScalarProblem):
         self.pad_inputs = pad_inputs
         self.name = name
 
-    def evaluate(self, individual):
+    def evaluate(self, phenome):
         """
         Say our object function is $(x_0 \wedge x_1) \vee x_3$:
 
@@ -174,7 +174,7 @@ class TruthTableProblem(ScalarProblem):
         1.0
 
         """
-        executable = individual.phenome
+        executable = phenome
         assert(executable is not None)
         assert(callable(executable))
         input_samples = self._enumerate_tt(self.num_inputs)
@@ -238,8 +238,8 @@ class ImageXYProblem(ScalarProblem):
         fast_output = np.stack(fast_output, axis=1).astype(int)
         return fast_output
 
-    def evaluate(self, individual):
-        executable = individual.phenome
+    def evaluate(self, phenome):
+        executable = phenome
         assert(executable is not None)
         assert(callable(executable))
         # Collect the target image into an array
