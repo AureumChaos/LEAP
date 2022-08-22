@@ -162,7 +162,7 @@ class TruthTableProblem(ScalarProblem):
         $7/8 = 0.875$:
         
         >>> from leap_ec import Individual
-        >>> problem.evaluate(Individual(executable))
+        >>> problem.evaluate(executable)
         0.875
 
         Note that we our lambda functions above return a list that contains a 
@@ -170,7 +170,7 @@ class TruthTableProblem(ScalarProblem):
         this framework allows us to work with functions of more than one output:
 
         >>> problem = TruthTableProblem(lambda x: [ x[0] and x[1], x[0] or x[1] ], num_inputs=3, num_outputs=2)
-        >>> problem.evaluate(Individual(lambda x: [ x[0] and x[1], x[0] or x[1] ]))
+        >>> problem.evaluate(lambda x: [ x[0] and x[1], x[0] or x[1] ])
         1.0
 
         """

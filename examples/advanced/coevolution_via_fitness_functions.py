@@ -22,6 +22,7 @@ from leap_ec.algorithm import multi_population_ea
 from leap_ec.binary_rep.problems import MaxOnes
 from leap_ec.binary_rep.initializers import create_binary_sequence
 from leap_ec.binary_rep.ops import mutate_bitflip
+from leap_ec.individual import WholeEvaluatedIndividual
 from leap_ec.problem import CooperativeProblem
 
 
@@ -33,7 +34,8 @@ def get_representation(length: int):
     binary sequences of the given length."""
     assert(length > 0)
     return Representation(
-        initialize=create_binary_sequence(length)
+        initialize=create_binary_sequence(length),
+        individual_cls=WholeEvaluatedIndividual
     )
 
 

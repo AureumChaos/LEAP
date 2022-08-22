@@ -221,7 +221,7 @@ class ExternalProcessProblem(ScalarProblem):
         assert(len(fitnesses) == 1)
         return fitnesses[0]
     
-    def evaluate_multiple(self, phenomes):
+    def evaluate_multiple(self, phenomes, *args, **kwargs):
         # Convert the phenomes into one big string
         def phenome_to_str(p):
             return ','.join([ str(x) for x in p ])
@@ -483,6 +483,14 @@ class CooperativeProblem(Problem):
             fitnesses.append(fitness)
 
         return np.mean(fitnesses)
+
+    def evaluate_multiple(self, phenomes, individuals):
+        """Evaluate multiple phenomes all at once, returning a list of fitness
+        values.
+        
+        By default this just calls `self.evaluate()` multiple times.  Override this
+        if you need to, say, send a group of individuals off to parallel """
+        return [ self.evaluate(p, individual=i) for p, i in zip(phenomes, individuals) ]
 
     def _choose_collaborators(self, current_genome, current_subpop_index, subpopulations):
         """Choose collaborators from the subpopulations, returning a list that contains
