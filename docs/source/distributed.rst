@@ -211,6 +211,9 @@ as follows:
 :context: contains global state where the running number of births and non-viable individuals
     is kept.  This defaults to `context`.
 
+
+.. _distributed-individual:
+
 DistributedIndividual
 ^^^^^^^^^^^^^^^^^^^^^
 `DistributedIndividual` is a subclass of `RobustIndividual` that contains some additional

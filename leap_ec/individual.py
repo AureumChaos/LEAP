@@ -68,6 +68,19 @@ class Individual:
         self.problem = problem
         self.decoder = decoder
         self.fitness = None
+        self._phenome = None
+
+    @property
+    def phenome(self):
+        """If the phenome has not yet been decoded, do so."""
+        if self._phenome is None:
+            self.decode()
+        return self._phenome
+
+    @phenome.setter
+    def phenome(self, value):
+        """Manually set the phenome, bypassing the decoder."""
+        self._phenome = value
 
     @classmethod
     def create_population(cls, n, initialize, decoder, problem):
@@ -125,9 +138,16 @@ class Individual:
 
     def decode(self, *args, **kwargs):
         """
+        Determe the indivduals phenome.
+
+        This is done by passing the genome self.decoder.
+
+        The result is both returned and saved to self.phenome.
+
         :return: the decoded value for this individual
         """
-        return self.decoder.decode(self.genome, args, kwargs)
+        self._phenome = self.decoder.decode(self.genome, args, kwargs)
+        return self._phenome
 
     def evaluate_imp(self):
         """ This is the evaluate 'implementation' called by
@@ -136,7 +156,8 @@ class Individual:
             the evaluate process either by tailoring the problem interface or
             that of the given decoder.
         """
-        return self.problem.evaluate(self.decode())
+        self.decode()
+        return self.problem.evaluate(self)
 
     def evaluate(self):
         """ determine this individual's fitness

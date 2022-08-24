@@ -27,12 +27,14 @@ evaluation; for example, a `Decoder` may translate a bit sequence into a vector
 of real-values that are then passed to the `Problem` as parameters during
 evaluation.
 
+.. _operator-pipeline:
+
 Operator Pipeline
 -----------------
 
 If the above classes are the "nouns" of LEAP, the pipeline operators are the
 "verbs" that work on those "nouns."  The overarching concept of the pipeline is
-similar to *nix style text processing command lines, where a sequence
+similar to \*nix style text processing command lines, where a sequence
 of operators pipe output of one text processing utility into the next one with
 the last one returning the final results.  For example::
 
@@ -80,7 +82,7 @@ representations; i.e., `binary_rep/ops.py`.  And, since `ops` is already used,
 we just directly import `mutate_bitflip`, which is why it does not have the
 `ops` qualifier.)
 
-.. _pipeline:
+.. _pipeline-figure:
 .. figure:: _static/Pipeline.png
 
     **LEAP operator pipeline.** This figure depicts a typical
@@ -95,7 +97,7 @@ we just directly import `mutate_bitflip`, which is why it does not have the
     another selection operator returns the final set of individuals based
     on the offspring pool and optionally the parents.
 
-:numref:`pipeline` depicts a general pattern of LEAP pipeline operators. Typically, the
+:numref:`pipeline-figure` depicts a general pattern of LEAP pipeline operators. Typically, the
 first pipeline element is a source for individuals followed by some form of
 selection operator and then a clone operator to create an offspring that is
 initially just a copy of the selected parent.  Following that there are one

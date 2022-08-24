@@ -1,9 +1,8 @@
-"""An example of an evolutionary algorithm with a basic real-vectored solution
-representation, and that logs several diversity metrics from the population to
-its CSV output.
+"""An example of an evolutionary algorithm that uses different mutation 
+parameters for different genes.
 
-We use a generational EA with Gaussian mutation of 2-D genomes to minimize
-the Langermann function.
+We use a generational EA with Gaussian mutation of real-valued genes to 
+minimize a function.
 """
 import os
 import sys
@@ -13,7 +12,7 @@ from matplotlib import pyplot as plt
 from leap_ec import Representation, test_env_var
 from leap_ec import ops, probe
 from leap_ec.algorithm import generational_ea
-from leap_ec.real_rep.initializers import create_real_vector
+from leap_ec.real_rep import create_real_vector
 from leap_ec.real_rep.ops import mutate_gaussian
 from leap_ec.real_rep.problems import LangermannProblem
 
@@ -22,9 +21,7 @@ from leap_ec.real_rep.problems import LangermannProblem
 # main
 ##############################
 if __name__ == '__main__':
-    # Our fitness function will be the Langermann
-    # This is defined over a real-valued space, but
-    # we can also use it to evaluate integer-valued genomes.
+    # Our fitness function will be the Langermann function
     problem = LangermannProblem(maximize=False)
 
     # When running the test harness, just run for two generations
@@ -32,27 +29,30 @@ if __name__ == '__main__':
     if os.environ.get(test_env_var, False) == 'True':
         generations = 2
     else:
-        generations = 1000
-
-    l = 2
+        generations = 100
+    
     pop_size = 10
+
+    # Here we specify different bounds for each gene,
+    # which we'll use for both initialization and hard-bounding below
+    bounds = [(0, 10), (0, 5)]
+
     ea = generational_ea(max_generations=generations,pop_size=pop_size,
                              problem=problem,  # Fitness function
 
                              # Representation
                              representation=Representation(
-                                 # Initialize a population of integer-vector genomes
+                                 # Initialize a population of real-vector genomes
                                  initialize=create_real_vector(
-                                     bounds=[problem.bounds] * l)
+                                     bounds=bounds)
                              ),
 
                              # Operator pipeline
                              pipeline=[
                                  ops.tournament_selection(k=2),
                                  ops.clone,
-
-                                 # Apply Gaussian mutation
-                                 mutate_gaussian(std=1.5, hard_bounds=[problem.bounds]*l,
+                                 # We pass two different std values to Gaussian mutation
+                                 mutate_gaussian(std=[1.5, 0.5], hard_bounds=bounds,
                                                  expected_num_mutations=1),
                                  ops.evaluate,
                                  ops.pool(size=pop_size),
@@ -64,13 +64,11 @@ if __name__ == '__main__':
                                         contours=problem),
                                  probe.FitnessPlotProbe(),
 
-                                 # Collect diversity metrics along with the standard CSV columns
-                                 probe.FitnessStatsCSVProbe(stream=sys.stdout,
-                                    extra_metrics={
-                                        'diversity_pairwise_dist': probe.pairwise_squared_distance_metric,
-                                        'diversity_sum_variance': probe.sum_of_variances_metric,
-                                        'diversity_num_fixated': probe.num_fixated_metric
-                                        })
+                                 probe.PopulationMetricsPlotProbe(
+                                     metrics=[ probe.pairwise_squared_distance_metric ],
+                                     title='Population Diversity'),
+
+                                 probe.FitnessStatsCSVProbe(stream=sys.stdout)
                              ]
                         )
 

@@ -1,2 +1,0 @@
-LEAP Metaheuristics
-===================

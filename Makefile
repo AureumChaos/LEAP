@@ -73,3 +73,7 @@ pep8:
 
 clean:
 	cd docs && make clean
+	find . -name *.pyc -delete
+	find . -name __pycache__ -type d -exec rm -rf {} +
+	find . -name *.egg-info -type d -exec rm -rf {} +
+

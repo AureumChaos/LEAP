@@ -1,3 +1,5 @@
+"""Evolutionary operators for maniuplating integer-vector genomes."""
+from collections.abc import Iterable
 import random
 from typing import Iterator
 
@@ -143,6 +145,15 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
     ...                            expected_num_mutations=1)
     >>> mutated = next(operator(population))
 
+    The `std` parameter can also be given as a list with a value
+    to use for each gene locus:
+
+    >>> population = iter([Individual(np.array([1, 1]))])
+    >>> operator = mutate_binomial(std=[2.5, 3.0],
+    ...                            bounds=[(0, 10), (0, 10)],
+    ...                            expected_num_mutations=1)
+    >>> mutated = next(operator(population))
+
     .. note::
         The binomial distribution is defined by two parameters, `n` and `p`.  Here we 
         simplify the interface by asking instead for an `std` parameter, and fixing
@@ -199,15 +210,17 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
     if (probability is not None) and ((probability < 0) or (probability > 1)):
         raise ValueError(f"The value of 'probability' is {probability}, but must be >= 0 and <= 1.")
 
+    genome_mutator = genome_mutate_binomial(std, bounds,
+                                            expected_num_mutations=expected_num_mutations,
+                                            probability=probability)
+
     while True:
         try:
             individual = next(next_individual)
         except StopIteration:
             return
 
-        individual.genome = individual_mutate_binomial(individual.genome, std, bounds,
-                                                      expected_num_mutations=expected_num_mutations,
-                                                      probability=probability)
+        individual.genome = genome_mutator(individual.genome)
 
         individual.fitness = None  # invalidate fitness since we have new genome
 
@@ -216,53 +229,67 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
 
 
 ##############################
-# Function individual_mutate_binomial
+# Function genome_mutate_binomial
 ##############################
 @curry
-def individual_mutate_binomial(genome,
-                               std: float,
-                               bounds: list,
-                               expected_num_mutations: float = None,
-                               probability: float = None,
-                               n: int = 10000,):
+def genome_mutate_binomial(std,
+                        bounds: list,
+                        expected_num_mutations: float = None,
+                        probability: float = None,
+                        n: int = 10000):
     """
     Perform additive binomial mutation of a particular genome.
 
     >>> import numpy as np
     >>> genome = np.array([42, 12])
     >>> bounds = [(0,50), (-10,20)]
-    >>> new_genome = individual_mutate_binomial(genome, std=0.5, bounds=bounds,
+    >>> genome_op = genome_mutate_binomial(std=0.5, bounds=bounds,
     ...                                         expected_num_mutations=1)
+    >>> new_genome = genome_op(genome)
 
     """
     assert(bool(expected_num_mutations is not None) ^ bool(probability is not None)), f"Got expected_num_mutations={expected_num_mutations} and probability={probability}.  One must be specified, but not both."
     assert((probability is None) or (probability >= 0))
     assert((probability is None) or (probability <= 1))
 
-    if not isinstance(genome, np.ndarray):
-        raise ValueError(("Expected genome to be a numpy array. "
-                          f"Got {type(genome)}."))
 
-    datatype = genome.dtype
-    if probability is None:
-        probability = compute_expected_probability(expected_num_mutations, genome)
+    if isinstance(std, Iterable):
+        p = np.array([_binomial_p_from_std(n, s) for s in std])
     else:
-        probability = probability
+        p = _binomial_p_from_std(n, std)
 
-    selector = np.random.choice([0, 1], size=genome.shape,
-                                p=(1 - probability, probability))
-    indices_to_mutate = np.nonzero(selector)[0]
-    p = _binomial_p_from_std(n, std)
-    binom_mean = n*p
-    additive = np.random.binomial(n, p, size=len(indices_to_mutate)) - int(binom_mean)
-    mutated = genome[indices_to_mutate] + additive
-    genome[indices_to_mutate] = mutated
-    genome = apply_hard_bounds(genome, bounds).astype(datatype)
+    def mutator(genome):
+        """Function to return as a closure."""
+        if not isinstance(genome, np.ndarray):
+            raise ValueError(("Expected genome to be a numpy array. "
+                            f"Got {type(genome)}."))
 
-    # consistency check on data type
-    assert datatype == genome.dtype
+        datatype = genome.dtype
+        if probability is None:
+            prob = compute_expected_probability(expected_num_mutations, genome)
+        else:
+            prob = probability
 
-    return genome
+        selector = np.random.choice([0, 1], size=genome.shape,
+                                    p=(1 - prob, prob))
+        indices_to_mutate = np.nonzero(selector)[0]
+
+        # Compute binomial parameters for each gene
+        selected_p_values = p if not isinstance(p, Iterable) else p[indices_to_mutate]
+        binom_mean = n*selected_p_values  # this will do elementwise multiplication if p is a vector
+
+        # Apply binomial pertebations
+        additive = np.random.binomial(n, selected_p_values, size=len(indices_to_mutate)) - np.floor(binom_mean)
+        mutated = genome[indices_to_mutate] + additive
+        genome[indices_to_mutate] = mutated
+        
+        genome = apply_hard_bounds(genome, bounds).astype(datatype)
+
+        # consistency check on data type
+        assert datatype == genome.dtype
+
+        return genome
+    return mutator
 
 
 def _binomial_p_from_std(n, std):

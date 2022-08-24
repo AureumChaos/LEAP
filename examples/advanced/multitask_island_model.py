@@ -32,7 +32,7 @@ def viz_plots(problems, modulo):
 
     num_rows = min(4, len(problems))
     num_columns = math.ceil(len(problems) / num_rows)
-    true_rows = len(problems) / num_columns
+    true_rows = int(len(problems) / num_columns)
     fig = plt.figure(figsize=(6 * num_columns, 2.5 * true_rows))
     fig.tight_layout()
     genotype_probes = []
@@ -144,3 +144,9 @@ if __name__ == '__main__':
                              subpop_pipelines=subpop_probes)
 
     list(ea)
+
+    # If we're not in test-harness mode, block until the user closes the app
+    if os.environ.get(test_env_var, False) != 'True':
+        plt.show()
+        
+    plt.close('all')

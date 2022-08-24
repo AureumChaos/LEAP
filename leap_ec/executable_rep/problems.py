@@ -2,6 +2,9 @@ import numpy as np
 
 from leap_ec.real_rep.problems import ScalarProblem
 
+from PIL import Image
+
+
 ##############################
 # Class EnvironmentProblem
 ##############################
@@ -86,9 +89,10 @@ class EnvironmentProblem(ScalarProblem):
             # Otherwise just look at the shape of the space directly
             return int(np.prod(observation_space.shape))
 
-    def evaluate(self, executable):
-        """Run the environmental simulation using `executable` as a controller,
+    def evaluate(self, individual):
+        """Run the environmental simulation using `executable` phenotype as a controller,
         and use the resulting observations & rewards to compute a fitness value."""
+        executable = individual.phenome
         observations = []
         rewards = []
         for r in range(self.runs):
@@ -120,7 +124,7 @@ class TruthTableProblem(ScalarProblem):
     a list of 1 or more outputs.
     """
 
-    def __init__(self, boolean_function, num_inputs, num_outputs, pad_inputs=False, maximize=True):
+    def __init__(self, boolean_function, num_inputs, num_outputs, name: str = None, pad_inputs=False, maximize=True):
         super().__init__(maximize)
         assert(boolean_function is not None)
         assert(callable(boolean_function))
@@ -130,8 +134,9 @@ class TruthTableProblem(ScalarProblem):
         self.num_inputs = num_inputs
         self.num_outputs = num_outputs
         self.pad_inputs = pad_inputs
+        self.name = name
 
-    def evaluate(self, executable):
+    def evaluate(self, individual):
         """
         Say our object function is $(x_0 \wedge x_1) \vee x_3$:
 
@@ -156,7 +161,8 @@ class TruthTableProblem(ScalarProblem):
         entry (in the second one, TTT=F).  So we expect a fitness value of 
         $7/8 = 0.875$:
         
-        >>> problem.evaluate(executable)
+        >>> from leap_ec import Individual
+        >>> problem.evaluate(Individual(executable))
         0.875
 
         Note that we our lambda functions above return a list that contains a 
@@ -164,10 +170,11 @@ class TruthTableProblem(ScalarProblem):
         this framework allows us to work with functions of more than one output:
 
         >>> problem = TruthTableProblem(lambda x: [ x[0] and x[1], x[0] or x[1] ], num_inputs=3, num_outputs=2)
-        >>> problem.evaluate(lambda x: [ x[0] and x[1], x[0] or x[1] ])
+        >>> problem.evaluate(Individual(lambda x: [ x[0] and x[1], x[0] or x[1] ]))
         1.0
 
         """
+        executable = individual.phenome
         assert(executable is not None)
         assert(callable(executable))
         input_samples = self._enumerate_tt(self.num_inputs)
@@ -175,7 +182,7 @@ class TruthTableProblem(ScalarProblem):
         score = 0
         for input_ in input_samples:
             expected = self.function(input_)
-            assert(hasattr(expected, '__len__')), "The function given to a TruthTableProblem must return a list of outputs with length 1 or greater."
+            assert(hasattr(expected, '__len__')), f"The function given to a TruthTableProblem must return a list of outputs, but got {expected}."
             assert(len(expected) > 0), f"The function given to TruthTableProblem must return a list of outputs with length 1 or greater, but its length was {len(expected)}."
             if self.pad_inputs and (len(input_) < executable.num_inputs):
                     input_ += [ 0 for _ in range(executable.num_inputs - len(input_)) ]
@@ -198,3 +205,57 @@ class TruthTableProblem(ScalarProblem):
             ones = [ [1] + row for row in tt_minus_1 ]
             return zeros + ones
 
+
+##############################
+# Class ImageXYProblem
+##############################
+class ImageXYProblem(ScalarProblem):
+    """
+    A problem that takes a function that generates an image defined over
+    (x, y) coordinates and computed its fitness based on its match to
+    an externally-defined image.
+    """
+    def __init__(self, path, maximize=False):
+        super().__init__(maximize)
+        im = Image.open(path)
+        self.img = im.load()
+        self.img_array = np.array(im.getdata())
+        self.width, self.height = im.size
+
+    @staticmethod
+    def generate_image(executable, width, height):
+        f_triples = []
+        # The order we iterate is important, because we want our
+        # f_triple array to follow the same order as Image.getdata()
+        x_inputs = []
+        y_inputs = []
+        for y in range(height):
+            for x in range(width):
+                x_inputs.append(x)
+                y_inputs.append(y)
+                
+        fast_output = executable([np.array(x_inputs), np.array(y_inputs)])
+        fast_output = np.stack(fast_output, axis=1).astype(int)
+        return fast_output
+
+    def evaluate(self, individual):
+        executable = individual.phenome
+        assert(executable is not None)
+        assert(callable(executable))
+        # Collect the target image into an array
+        # XXX Competing this with loops for testing.
+        #     When complete, we can rely on self.img_array
+        img_triples = []
+        for y in range(self.height):
+            for x in range(self.width):
+                r, g, b = self.img[x, y]
+                img_triples.append([r, g, b])
+
+        img_array = np.array(img_triples)
+        assert(np.array_equal(img_array, self.img_array))
+
+        # Compute the candidate image from the function
+        f_array = ImageXYProblem.generate_image(executable, self.width, self.height)
+
+        # Euclidean distance between the two images
+        return np.linalg.norm(self.img_array - f_array)

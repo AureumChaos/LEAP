@@ -1,9 +1,8 @@
-"""An example of an evolutionary algorithm with a basic real-vectored solution
-representation, and that logs several diversity metrics from the population to
-its CSV output.
+"""An example of a (1+1)-style evolutionary algorithm on the Spheroid function.
 
-We use a generational EA with Gaussian mutation of 2-D genomes to minimize
-the Langermann function.
+We implement it as a generational_ea(), using a population size of 1 (to generate
+1 offspring each generation), and with elitism of 1 (to enforce keeping the
+best individual among the parent and the offspring).
 """
 import os
 import sys
@@ -15,28 +14,28 @@ from leap_ec import ops, probe
 from leap_ec.algorithm import generational_ea
 from leap_ec.real_rep.initializers import create_real_vector
 from leap_ec.real_rep.ops import mutate_gaussian
-from leap_ec.real_rep.problems import LangermannProblem
+from leap_ec.real_rep.problems import SpheroidProblem
 
 
 ##############################
 # main
 ##############################
 if __name__ == '__main__':
-    # Our fitness function will be the Langermann
-    # This is defined over a real-valued space, but
-    # we can also use it to evaluate integer-valued genomes.
-    problem = LangermannProblem(maximize=False)
+    # Our fitness function.
+    problem = SpheroidProblem(maximize=False)
+
 
     # When running the test harness, just run for two generations
     # (we use this to quickly ensure our examples don't get bitrot)
     if os.environ.get(test_env_var, False) == 'True':
         generations = 2
     else:
-        generations = 1000
-
+        generations = 100
+    
     l = 2
-    pop_size = 10
+    pop_size = 1
     ea = generational_ea(max_generations=generations,pop_size=pop_size,
+                             k_elites=1,  # Keep the best individual
                              problem=problem,  # Fitness function
 
                              # Representation
@@ -48,29 +47,28 @@ if __name__ == '__main__':
 
                              # Operator pipeline
                              pipeline=[
-                                 ops.tournament_selection(k=2),
-                                 ops.clone,
 
-                                 # Apply Gaussian mutation
-                                 mutate_gaussian(std=1.5, hard_bounds=[problem.bounds]*l,
-                                                 expected_num_mutations=1),
-                                 ops.evaluate,
-                                 ops.pool(size=pop_size),
-
-                                 # Some visualization probes so we can watch what happens
+                                 # We put the probes first in this example, so that
+                                 # we only measure parents selected by the elitism
+                                 # mechanism (rather than transient offspring)
                                  probe.CartesianPhenotypePlotProbe(
                                         xlim=problem.bounds,
                                         ylim=problem.bounds,
                                         contours=problem),
+                                        
                                  probe.FitnessPlotProbe(),
 
-                                 # Collect diversity metrics along with the standard CSV columns
-                                 probe.FitnessStatsCSVProbe(stream=sys.stdout,
-                                    extra_metrics={
-                                        'diversity_pairwise_dist': probe.pairwise_squared_distance_metric,
-                                        'diversity_sum_variance': probe.sum_of_variances_metric,
-                                        'diversity_num_fixated': probe.num_fixated_metric
-                                        })
+                                 probe.FitnessStatsCSVProbe(stream=sys.stdout),
+
+                                 ops.cyclic_selection,
+                                 ops.clone,
+                                 # Apply binomial mutation: this is a lot like
+                                 # additive Gaussian mutation, but adds an integer
+                                 # value to each gene
+                                 mutate_gaussian(std=0.1, hard_bounds=[problem.bounds]*l,
+                                                 expected_num_mutations=1),
+                                 ops.evaluate,
+                                 ops.pool(size=pop_size),
                              ]
                         )
 

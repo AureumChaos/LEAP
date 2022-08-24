@@ -28,8 +28,8 @@ def create_segmented_sequence(length, seq_initializer):
     :type length: int or Callable
     :param seq_initializer: initializer for creating individual sequences
     :type seq_initializer: Callable
-    :return: test_sequence of segments
-    :rtype: list
+    :return: function that returns a list of segmented
+    :rtype: Callable
     """
     if callable(length):
         num_segments = length()

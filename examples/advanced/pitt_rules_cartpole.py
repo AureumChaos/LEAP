@@ -115,3 +115,9 @@ if __name__ == '__main__':
                                 *build_probes(genomes_file, decoder)  # Inserting all the probes at the end
                             ])
         list(ea)
+
+    # If we're not in test-harness mode, block until the user closes the app
+    if os.environ.get(test_env_var, False) != 'True':
+        plt.show()
+        
+    plt.close('all')
