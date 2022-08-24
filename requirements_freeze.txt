@@ -13,7 +13,7 @@ cloudpickle==1.6.0
 coverage==5.5
 coveralls==3.0.1
 cycler==0.10.0
-dask==2021.5.0
+dask==2021.10.0
 decorator==4.4.2
 defusedxml==0.7.1
 distributed==2021.5.0
