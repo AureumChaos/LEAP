@@ -315,8 +315,8 @@ class AttributesCSVProbe(op.Operator):
     You can retrieve the result programatically from the `dataframe` property:
 
     >>> probe.dataframe
-       step  fitness       genome
-    0   100        4  [0 1 1 1 1]
+       step  fitness           genome
+    0   100        4  [0, 1, 1, 1, 1]
 
     By default, the results are also written to `sys.stdout`.  You can pass
     any file object you like into the `stream` parameter.
@@ -440,7 +440,7 @@ class AttributesCSVProbe(op.Operator):
         if self.do_fitness:
             row['fitness'] = ind.fitness
         if self.do_genome:
-            row['genome'] = str(ind.genome)
+            row['genome'] = ind.genome
         for k, f in self.extra_metrics.items():
             row[k] = f(row)
 
