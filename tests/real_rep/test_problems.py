@@ -17,7 +17,7 @@ def test_GriewankProblem_eval():
     expected = t[0]**2/4000 + t[1]**2/4000 - np.cos(t[0]/np.sqrt(1))*np.cos(t[1]/np.sqrt(2)) + 1
 
     p = problems.GriewankProblem()
-    assert(approx(expected) == p.evaluate(Individual(t)))
+    assert(approx(expected) == p.evaluate(t))
 
 
 
@@ -30,5 +30,5 @@ def test_WeierstrassProblem_eval():
     """
     p = problems.WeierstrassProblem()
 
-    assert(approx(0) == p.evaluate(Individual(np.array([0, 0]))))
-    assert(approx(0) == p.evaluate(Individual(np.array([0]*25))))
+    assert(approx(0) == p.evaluate(np.array([0, 0])))
+    assert(approx(0) == p.evaluate(np.array([0]*25)))

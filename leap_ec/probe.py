@@ -835,7 +835,7 @@ class CartesianPhenotypePlotProbe:
             @np.vectorize
             def v_fun(x, y):
                 phenome = np.concatenate((np.hstack((x,y)), pad))
-                return contours.evaluate(Individual(phenome))
+                return contours.evaluate(phenome)
 
             if granularity is None:
                 granularity = (contours.bounds[1] - contours.bounds[0]) / 50.
@@ -1092,7 +1092,7 @@ class SumPhenotypePlotProbe:
             x = np.arange(int(xlim[0]), max_number_of_ones + 1, int(granularity))
             
             # Now plot the function over them
-            y = np.array([ problem.evaluate(Individual(bitstring_with_ones(i))) for i in x ])
+            y = np.array([ problem.evaluate(bitstring_with_ones(i)) for i in x ])
             ax.plot(x, y, color='black', linewidth=3)
 
         self.sc = ax.scatter([], [])

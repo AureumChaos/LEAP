@@ -288,7 +288,9 @@ def grouped_evaluate(population: list, max_individuals_per_chunk: int = None) ->
 
     fitnesses = []
     for chunk in chunks(population, max_individuals_per_chunk):
-        fit = problem.evaluate_multiple(chunk)
+        # XXX Always passing individuals along to the problem.
+        #     Does this create problems with dask, even when we aren't using individuals?
+        fit = problem.evaluate_multiple([c.phenome for c in chunk], individuals=chunk)
         fitnesses.extend(fit)
 
     for fit, ind in zip(fitnesses, population):
