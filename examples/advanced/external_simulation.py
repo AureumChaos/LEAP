@@ -94,7 +94,7 @@ for phenome_str in sys.stdin:
                             
                             # By default, the initial population would be evaluated one-at-a-time.
                             # Passing group_evaluate into init_evaluate evaluates the population in batches.
-                            init_evaluate=ops.grouped_evaluate(problem=problem, max_individuals_per_chunk=max_individuals_per_chunk),
+                            init_evaluate=ops.grouped_evaluate(max_individuals_per_chunk=max_individuals_per_chunk),
 
                             # Representation
                             representation=Representation(

@@ -24,7 +24,7 @@ def test_averagefitnessproblem():
                     wrapped_problem = real_prob.NoisyQuarticProblem(),
                     n = n)
     x = [ 1, 1, 1, 1 ]
-    y = p.evaluate(Individual(x))
+    y = p.evaluate(x)
 
     # The value of the noisy-quartic is sum(i*x**4) plus additive Gaussian noise
     expected_mean = 10.0  # = 1 + 2 + 3 + 4 

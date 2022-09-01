@@ -157,7 +157,7 @@ class Individual:
             that of the given decoder.
         """
         self.decode()
-        return self.problem.evaluate(self)
+        return self.problem.evaluate(self.phenome)
 
     def evaluate(self):
         """ determine this individual's fitness
@@ -288,3 +288,35 @@ class RobustIndividual(Individual):
         # *return* it to give more options to the programmer for using the
         # newly evaluated fitness.
         return self.fitness
+
+
+##############################
+# WholeEvalautedIndividual
+##############################
+class WholeEvaluatedIndividual(Individual):
+    """An Individual that, when evaluated, passes its whole self
+    to the evaluation function, rather than just its phenome.
+    
+    In most applications, fitness evaluation requires only phenome
+    information, so that is all that we pass from the Individual to the
+    Problem.  This is important, because during distributed evaluation,
+    we want to pass as little information as possible across nodes.
+
+    WholeEvaluatedIndividual is used for special cases where fitness
+    evaluation needs access to more information about an individual than
+    its phenome.  This is strange in most cases and should be avoided,
+    but can make certain algorithms more elegant (ex. it's helpful when
+    interpretting cooperative coevolution as an island model).
+    
+    This can dramatically slow down distributed evaluation (i.e. with dask)
+    in some applications—use with caution.
+    """
+    def evaluate_imp(self):
+        """ This is the evaluate 'implementation' called by
+            self.evaluate().   It's intended to be optionally over-ridden by
+            sub-classes to give an opportunity to pass in ancillary data to
+            the evaluate process either by tailoring the problem interface or
+            that of the given decoder.
+        """
+        self.decode()
+        return self.problem.evaluate(self.phenome, individual=self)
