@@ -252,14 +252,19 @@ def genome_mutate_binomial(std,
     assert((probability is None) or (probability >= 0))
     assert((probability is None) or (probability <= 1))
 
-
+    # Is the only reason we're making this a closure is to save from having to
+    # do this calculation with each mutation? -- Mark
     if isinstance(std, Iterable):
         p = np.array([_binomial_p_from_std(n, s) for s in std])
     else:
         p = _binomial_p_from_std(n, std)
 
-    def mutator(genome):
+    def mutator(genome,
+                expected_num_mutations: float = expected_num_mutations,
+                probability: float = probability):
         """Function to return as a closure."""
+        # Make this check here, too, since this is called within the pipeline
+        # and may be invoked dynamically with different parameters.
         if not isinstance(genome, np.ndarray):
             raise ValueError(("Expected genome to be a numpy array. "
                             f"Got {type(genome)}."))
@@ -278,7 +283,7 @@ def genome_mutate_binomial(std,
         selected_p_values = p if not isinstance(p, Iterable) else p[indices_to_mutate]
         binom_mean = n*selected_p_values  # this will do elementwise multiplication if p is a vector
 
-        # Apply binomial pertebations
+        # Apply binomial perturbations
         additive = np.random.binomial(n, selected_p_values, size=len(indices_to_mutate)) - np.floor(binom_mean)
         mutated = genome[indices_to_mutate] + additive
         genome[indices_to_mutate] = mutated
@@ -295,8 +300,11 @@ def genome_mutate_binomial(std,
 def _binomial_p_from_std(n, std):
     """Given a number of 'coin flips' n, compute the value of p that is
     needed to achieve a desired standard deviation."""
-    if (4*std**2/n > 1):
-        raise ValueError(f"The provided value of n ({n}) is too low to support a Binomial distribution with a standard deviation of {std}.  Choose a higher value of n, or reduce the std.")
+    if 4 * std ** 2 / n > 1:
+        raise ValueError(f"The provided value of n ({n}) is too low to "
+                         f"support a Binomial distribution with a stand"
+                         f"ard deviation of {std}.  Choose a higher value of "
+                         f"n, or reduce the std.")
     # We arrived at this expression by noting that σ^2 = np(1-p)
     # and solving for p via the quadratic formula
-    return (1 - np.sqrt(1-4*std**2/n))/2
+    return (1 - np.sqrt(1 - 4 * std ** 2 / n)) / 2
