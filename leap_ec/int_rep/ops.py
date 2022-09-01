@@ -259,8 +259,8 @@ def genome_mutate_binomial(std,
         p = _binomial_p_from_std(n, std)
 
     def mutator(genome,
-                expected_num_mutations: float = None,
-                probability: float = None):
+                expected_num_mutations: float = expected_num_mutations,
+                probability: float = probability):
         """Function to return as a closure."""
         # Make this check here, too, since this is called within the pipeline
         # and may be invoked dynamically with different parameters.
