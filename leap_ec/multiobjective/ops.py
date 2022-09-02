@@ -126,12 +126,3 @@ def crowding_distance_calc(population: list, parents: list = None) -> list:
         # the second to last individual's
 
     return population
-
-
-##############################
-# sort_by_dominance operator
-##############################
-@curry
-@listlist_op
-def sort_by_dominance(population: list) -> list:
-    raise NotImplementedError
