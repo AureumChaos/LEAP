@@ -12,7 +12,7 @@ import numpy as np
 from numpy.lib.twodim_base import diag
 from numpy.random import random
 
-from leap_ec.problem import FitnessOffsetProblem, ZDTBenchmarkProblem, ScalarProblem
+from leap_ec.problem import FitnessOffsetProblem, ScalarProblem
 from leap_ec import Individual
 
 
@@ -1569,80 +1569,6 @@ class MatrixTransformedProblem(ScalarProblem):
         'MatrixTransformedProblem(SpheroidProblem)'
         """
         return f"{MatrixTransformedProblem.__name__}({str(self.problem)})"
-
-
-##############################
-# Class ZTD1Problem
-##############################
-class ZDT1Problem(ZDTBenchmarkProblem):
-    """
-    The first problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
-    suite.  It's meant to provide a simple multi-objective problem with a *convex*
-    Pareto-optimal front.
-
-    This function is defined via the :py:class:`leap_ec.problem.ZDTBenchmarkProblem`
-    with the following parameters:
-
-    .. math::
-
-        \\begin{align}
-        f_1(x) &= x \\\\
-        g(x) &= 1 + \\frac{9}{n - 1}\sum_{i=2}^n x_i \\\\
-        h(f_1, g) &= 1 - \sqrt{f_1/g} \\\\
-        0 \\le x_i &\\le 1, \mbox{ } i = 1, \dots, n
-        \\end{align}
-
-    Traditionally the problem is used with :math:`|x| = 30` dimensions in the solution space.
-
-    - Zitzler, Eckart, Kalyanmoy Deb, and Lothar Thiele. "Comparison of multiobjective evolutionary
-      algorithms: Empirical results." *Evolutionary computation* 8.2 (2000): 173-195.
-
-    """
-    def __init__(self):
-        super().__init__(
-            f1 = lambda x: x[0],
-            f1_input_length = 1,
-            f2 = lambda x: 1 + 9/(len(x) - 2) * np.sum(x),
-            h = lambda f, g: np.sqrt(f/g),
-            maximize = [ False, False ]
-        )
-
-
-##############################
-# Class ZTD2Problem
-##############################
-class ZDT2Problem(ZDTBenchmarkProblem):
-    """
-    The second problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
-    suite.  This is similar to :py:class:`leap_ec.problem.ZDT1Problem`, except that
-    it has a *non-convex* Pareto front.
-
-    This function is defined via the :py:class:`leap_ec.problem.ZDTBenchmarkProblem`
-    with the following parameters:
-
-    .. math::
-
-        \\begin{align}
-        f_1(x) &= x \\\\
-        g(x) &= 1 + \\frac{9}{n - 1}\sum_{i=2}^n x_i \\\\
-        h(f_1, g) &= 1 - (f_1/g)^2 \\\\
-        0 \\le x_i &\\le 1, \mbox{ } i = 1, \dots, n
-        \\end{align}
-
-    Traditionally the problem is used with :math:`|x| = 30` dimensions in the solution space.
-
-    - Zitzler, Eckart, Kalyanmoy Deb, and Lothar Thiele. "Comparison of multiobjective evolutionary
-      algorithms: Empirical results." *Evolutionary computation* 8.2 (2000): 173-195.
-
-    """
-    def __init__(self):
-        super().__init__(
-            f1 = lambda x: x[0],
-            f1_input_length = 1,
-            f2 = lambda x: 1 + 9/(len(x) - 2) * np.sum(x),
-            h = lambda f, g: np.power(f/g, 2),
-            maximize = [ False, False ]
-        )
 
 
 ##############################
