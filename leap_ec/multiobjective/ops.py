@@ -38,13 +38,16 @@ def tournament_selection():
 ##############################
 @curry
 @listlist_op
-def fast_nondominated_sort(population: list, parents: list = []) -> list:
+def fast_nondominated_sort(population: list, parents: list = None) -> list:
     """ This implements the NSGA-II fast-non-dominated-sort()
 
     :param population: population to be ranked
     :param parents: optional parents population to be included with the ranking
         process
     """
+    if not parents:
+        parents = []
+
     ranks = {1: []}  # rank 1 initially empty
 
     # First, find rank 1
@@ -92,7 +95,7 @@ def fast_nondominated_sort(population: list, parents: list = []) -> list:
 ##############################
 @curry
 @listlist_op
-def crowding_distance_calc(population: list, parents: list = []) -> list:
+def crowding_distance_calc(population: list, parents: list = None) -> list:
     """ This implements the NSGA-II crowding-distance-assignment()
 
     :param population: population to calculate crowding distances
@@ -100,7 +103,10 @@ def crowding_distance_calc(population: list, parents: list = []) -> list:
     """
     # Bring over a copy of everyone, parents possibly included, because we're
     # going to be sorting them for each objective.
-    entire_pop = list(chain.from_iterable(population, parents))
+    if not parents:
+        entire_pop = population
+    else:
+        entire_pop = list(chain.from_iterable(population, parents))
 
     [i.distance = 0 for i in entire_pop]  # init distances to zero to start
 
