@@ -267,7 +267,6 @@ class CGPDecoder(Decoder):
         # Add edges connecting interior nodes to their sources
         for layer in range(self.num_layers):
             for node in range(self.nodes_per_layer):
-                # TODO Consider using Miller's pre-processing algorithm here to omit nodes that are disconnected from the circuit (making execution more efficient)
                 node_id = self.num_inputs + layer*self.nodes_per_layer + node
                 graph.nodes[node_id]['function'] = self.get_primitive(genome, layer, node)
                 inputs = self.get_input_sources(genome, layer, node)
@@ -278,6 +277,19 @@ class CGPDecoder(Decoder):
         output_sources = self.get_output_sources(genome)
         output_nodes = all_node_ids[-self.num_outputs:]
         graph.add_edges_from(zip(output_sources, output_nodes))
+
+        # Omit nodes that are disconnected from the circuit (making execution more efficient).
+        # We will do this by inducing a subgraph whose necessary nodes are the input nodes, the output nodes,
+        # and the "ancestors" of the output nodes.
+        # TODO: Compare this technique with Miller's pre-processing algorithm.
+        necessary_nodes = set(list(range(self.num_inputs)) + output_nodes)
+        for output_node in output_nodes:
+            necessary_nodes.update(nx.ancestors(graph, output_node))
+
+        # Induce a subgraph based on nodes.
+        graph = nx.subgraph(graph, list(necessary_nodes))
+        # The subgraph likely has fewer nodes than before, so we want to reindex them.
+        graph = nx.relabel.convert_node_labels_to_integers(graph, ordering="sorted")
 
         return CGPExecutable(self.primitives, self.num_inputs, self.num_outputs, graph)
 
