@@ -281,7 +281,10 @@ class CGPDecoder(Decoder):
         # Omit nodes that are disconnected from the circuit (making execution more efficient).
         # We will do this by inducing a subgraph whose necessary nodes are the input nodes, the output nodes,
         # and the "ancestors" of the output nodes.
-        # TODO: Compare this technique with Miller's pre-processing algorithm.
+        # TODO: This is stil not as fast as what's explained in section 2.5 of Miller's Cartesian Genetic Programming (2011).
+        # The reason is that the ancestors include nodes that are not actually used in computation. In CGP, every node
+        # has N-connections for a given maximum arity of N even if the specific function being looked up requires fewer inputs.
+        # To optimize for this, we would use our own "ancestors" function below.
         necessary_nodes = set(list(range(self.num_inputs)) + output_nodes)
         
         # TODO: This for-loop could be a single call if we augment the graph with a new node
