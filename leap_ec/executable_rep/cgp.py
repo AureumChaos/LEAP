@@ -283,6 +283,10 @@ class CGPDecoder(Decoder):
         # and the "ancestors" of the output nodes.
         # TODO: Compare this technique with Miller's pre-processing algorithm.
         necessary_nodes = set(list(range(self.num_inputs)) + output_nodes)
+        
+        # TODO: This for-loop could be a single call if we augment the graph with a new node
+        # that is connected to all of the output nodes. Then we would only call ancestors once
+        # on the augmented node. However, this node would have to be removed or ignored later.
         for output_node in output_nodes:
             necessary_nodes.update(nx.ancestors(graph, output_node))
 
