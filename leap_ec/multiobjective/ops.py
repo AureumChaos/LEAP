@@ -45,6 +45,9 @@ def fast_nondominated_sort(population: list, parents: list = None) -> list:
     :param parents: optional parents population to be included with the ranking
         process
     """
+    # Ensure that we're dealing with a multi-objective Problem.
+    assert issubclass(MultiObjectiveProblem, population[0].problem)
+
     if not parents:
         parents = []
 
@@ -114,7 +117,7 @@ def crowding_distance_calc(population: list, parents: list = None) -> list:
     # Presuming this is a population with homogeneous objectives, then we can
     # arbitrarily peep at the first individual's fitness values to determine
     # how many objectives we have.
-    num_objectives = population[0].fitness.shape[0]
+    num_objectives = entire_pop[0].fitness.shape[0]
 
     # Check if we're maximizing or minimizing; we arbitrarily check the first
     # individual.
@@ -123,7 +126,7 @@ def crowding_distance_calc(population: list, parents: list = None) -> list:
     # if there is a mix, that they're homogeneous with regards to maximizing.
     # Note that MultiObjectiveProblem.maximize is a numpy array where a -1 or 1
     # signifies whether we're dealing with maximizing or minimizing.
-    is_maximizing = population[0].problem.maximize
+    is_maximizing = entire_pop[0].problem.maximize
 
     # minimum and maximum fitnesses by objective, so we initialize to the
     # infinities. At first we assume maximization for all of the objectives,
