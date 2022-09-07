@@ -14,7 +14,7 @@ class MultiObjectiveProblem(Problem):
     an objective function that returns a list of real-value fitness values.
 
     In Pareto-dominance, an individual A is only considered "better than" an individual
-    B if A is unamibiguously better than B: i.e. it is at least as good as B on
+    B if A is unambiguously better than B: i.e. it is at least as good as B on
     all objectives, and it is strictly better than B on at least one objective.
 
     .. plot::
