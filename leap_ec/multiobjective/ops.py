@@ -126,18 +126,21 @@ def crowding_distance_calc(population: list, parents: list = None) -> list:
     is_maximizing = population[0].problem.maximize
 
     # minimum and maximum fitnesses by objective, so we initialize to the
-    # infinities.
+    # infinities. At first we assume maximization for all of the objectives,
+    # but then we fine-tune for minimization in the next step.
     f_min = np.full(num_objectives, np.inf)
     f_max = np.full(num_objectives, np.NINF)
 
+    for objective in num_objectives:
+        if is_maximizing[objective] == -1:
+            f_min[objective] = np.NINF
+            f_max[objective] = np.inf
+
     for i in entire_pop:
         i.distance = 0 # init distances to zero to start
-        for obj in num_objectives: # update fitness ranges
-            f_min[obj] = np.min(f_min[obj], i.fitness[obj])
-            f_max[obj] = np.max(f_min[obj], i.fitness[obj])
-
-
-
+        for objective in num_objectives: # update fitness ranges
+            f_min[objective] = np.min(f_min[objective], i.fitness[objective])
+            f_max[objective] = np.max(f_min[objective], i.fitness[objective])
 
     sorted_pop = []
 
@@ -157,5 +160,6 @@ def crowding_distance_calc(population: list, parents: list = None) -> list:
         # update the distance per individuals with a sliding window of
         # three fitnesses for the current objective starting from the second to
         # the second to last individual's
+        # TODO YOU WERE HERE
 
     return sorted_pop
