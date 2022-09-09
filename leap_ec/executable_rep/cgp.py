@@ -268,8 +268,14 @@ class CGPDecoder(Decoder):
         for layer in range(self.num_layers):
             for node in range(self.nodes_per_layer):
                 node_id = self.num_inputs + layer*self.nodes_per_layer + node
-                graph.nodes[node_id]['function'] = self.get_primitive(genome, layer, node)
+                function = self.get_primitive(genome, layer, node)
+                graph.nodes[node_id]['function'] = function
                 inputs = self.get_input_sources(genome, layer, node)
+
+                # If we know the arity of the function, we don't need to connect all the input nodes to the graph.
+                if hasattr(function, 'arity'):
+                    inputs = inputs[:function.arity]
+
                 # Mark each edge with an 'order' attribute so we know which port they feed into on the target node
                 graph.add_edges_from([(i, node_id, {'order': o}) for o, i in enumerate(inputs)])
 
@@ -281,12 +287,8 @@ class CGPDecoder(Decoder):
         # Omit nodes that are disconnected from the circuit (making execution more efficient).
         # We will do this by inducing a subgraph whose necessary nodes are the input nodes, the output nodes,
         # and the "ancestors" of the output nodes.
-        # TODO: This is stil not as fast as what's explained in section 2.5 of Miller's Cartesian Genetic Programming (2011).
-        # The reason is that the ancestors include nodes that are not actually used in computation. In CGP, every node
-        # has N-connections for a given maximum arity of N even if the specific function being looked up requires fewer inputs.
-        # To optimize for this, we would use our own "ancestors" function below.
         necessary_nodes = set(list(range(self.num_inputs)) + output_nodes)
-        
+
         # TODO: This for-loop could be a single call if we augment the graph with a new node
         # that is connected to all of the output nodes. Then we would only call ancestors once
         # on the augmented node. However, this node would have to be removed or ignored later.
