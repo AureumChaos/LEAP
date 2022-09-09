@@ -6,6 +6,7 @@ random search algorithm, so that the two may be compared.
 """
 import os
 import sys
+from abc import ABC, abstractmethod
 
 import click
 from matplotlib import pyplot as plt
@@ -17,17 +18,54 @@ from leap_ec.executable_rep import cgp, neural_network, problems
 
 
 ##############################
+# Primitives
+##############################
+
+
+class Primitive(ABC):
+
+    @property
+    @abstractmethod
+    def arity(self) -> int:
+        """How many args are used inside the __call__ function"""
+        return 0
+
+    @abstractmethod
+    def __call__(self, *args):
+        pass
+
+
+class NAND(Primitive):
+
+    @property
+    def arity(self):
+        return 2
+
+    def __call__(self, *args):
+        return not (args[0] and args[1])
+
+
+class NotX(Primitive):
+
+    @property
+    def arity(self):
+        return 1
+
+    def __call__(self, *args):
+        return not args[0]
+
+
+##############################
 # CGP components
 ##############################
 
 # The CGPDecoder is the heart of our CGP representation.
 # We'll set it up first because it's needed as a parameter
 # to a few different components.
+
+
 cgp_decoder = cgp.CGPDecoder(
-                    primitives=[
-                        lambda x, y: not (x and y),  # NAND
-                        lambda x, y: not x,  # NOT (ignoring y)
-                    ],
+                    primitives=[NAND(), NotX()],
                     num_inputs = 2,
                     num_outputs = 1,
                     num_layers=50,
