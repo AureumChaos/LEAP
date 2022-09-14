@@ -139,11 +139,14 @@ def crowding_distance_calc(population: list, parents: list = None) -> list:
             f_min[objective] = np.NINF
             f_max[objective] = np.inf
 
+    # Find ranges of fitness per objective
     for i in entire_pop:
         i.distance = 0 # init distances to zero to start
         for objective in num_objectives: # update fitness ranges
             f_min[objective] = np.min(f_min[objective], i.fitness[objective])
             f_max[objective] = np.max(f_min[objective], i.fitness[objective])
+
+    objective_ranges = f_max - f_min
 
     sorted_pop = []
 
@@ -163,6 +166,9 @@ def crowding_distance_calc(population: list, parents: list = None) -> list:
         # update the distance per individuals with a sliding window of
         # three fitnesses for the current objective starting from the second to
         # the second to last individual's
-        # TODO YOU WERE HERE
+        for i, individual in enumerate(sorted_pop[1:-1]):
+            individual.distance = individual.distance + \
+                                  (sorted_pop[i+1].fitness[objective] -
+                                   sorted_pop[i-1].fitness[objective]) / objective_ranges[objective]
 
     return sorted_pop
