@@ -2,7 +2,7 @@
 """
     LEAP Problem classes for multiobjective optimization.
 """
-
+from ..problem import Problem
 
 ##############################
 # Class MultiObjectiveProblem
@@ -116,7 +116,8 @@ class MultiObjectiveProblem(Problem):
 # Class ZDTBenchmarkProblem
 ##############################
 class ZDTBenchmarkProblem(MultiObjectiveProblem):
-    """A problem that implements Kalyanmoy Deb's popular tunable two-objective problem 'toolkit.'
+    """ A problem that implements Kalyanmoy Deb's popular tunable two-objective
+    problem 'toolkit.'
 
     This allows us to create custom two-objective functions by defining three functions:
     the first objective :math:`f_1(y)`, a second function :math:`g(x)`, and an extra
@@ -145,10 +146,10 @@ class ZDTBenchmarkProblem(MultiObjectiveProblem):
         assert(f1 is not None)
         assert(callable(f1))
         assert(f1_input_length > 0)
-        assert(g is not None)
-        assert(callable(g))
-        assert(h is not None)
-        assert(callable(h))
+        # assert(g is not None) Not all Deb benchmark functions have a g()
+        # assert(callable(g))
+        # assert(h is not None) None of the Deb benchmark functions have an h()
+        # assert(callable(h))
         super().__init__(maximize)
         self.f1 = f1
         self.f1_input_length = f1_input_length

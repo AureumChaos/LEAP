@@ -11,7 +11,7 @@
 """
 from typing import Iterator
 import random
-from itertools import chain.from_iterable
+from itertools import chain
 from toolz import curry
 from math import inf
 

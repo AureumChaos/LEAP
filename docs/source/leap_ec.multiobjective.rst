@@ -5,7 +5,7 @@ Submodules
 ----------
 
 leap\_ec.multiobjective.ops module
-------------------------------------
+----------------------------------
 
 .. automodule:: leap_ec.multiobjective.ops
    :members:
@@ -14,9 +14,18 @@ leap\_ec.multiobjective.ops module
 
 
 leap\_ec.multiobjective.problems module
-------------------------------------
+---------------------------------------
 
 .. automodule:: leap_ec.multiobjective.problems
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: leap_ec.multiobjective
    :members:
    :undoc-members:
    :show-inheritance:
