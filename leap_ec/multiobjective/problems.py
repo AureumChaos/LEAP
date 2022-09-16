@@ -4,6 +4,8 @@
 """
 from collections import Sequence
 
+import numpy as np
+
 from ..problem import Problem
 
 ##############################
@@ -144,7 +146,7 @@ class ZDTBenchmarkProblem(MultiObjectiveProblem):
     - Deb, Kalyanmoy. "Multi-objective genetic algorithms: Problem difficulties and
       construction of test problems." *Evolutionary computation* 7.3 (1999): 205-230.
     """
-    def __init__(self, f, n: int, g, maximize: list):
+    def __init__(self, f, n: int, g = None, maximize: list = None):
         """
         :param f: list of two or more objective functions
         :param n: problem dimension
@@ -153,30 +155,58 @@ class ZDTBenchmarkProblem(MultiObjectiveProblem):
         :param maximize: list of booleans that map to the functions in `f`, and
             are True if the corresponding function is maximizing
         """
-        assert f is not None
         assert isinstance(f, Sequence)
-        assert len(maximize) == len(f)
+        if maximize is not None:
+            # Ya'd better have specified min/max by objectives for the same
+            # number of objective functions.
+            assert len(maximize) == len(f)
+        else:
+            # by default we assume minimizing for all objectives
+            maximize = False * len(f)
         assert n > 0
         # assert(g is not None) Not all Deb benchmark functions have a g()
-        # assert(callable(g))
-        # assert(h is not None) None of the Deb benchmark functions have an h()
-        # assert(callable(h))
+        if g is not None:
+            assert(callable(g))
         super().__init__(maximize)
         self.f = f
         self.n = n
         self.g = g
-        # self.h = h
+
+
+    # def evaluate(self, phenome, *args, **kwargs):
+    #
+    #     y = phenome[:self.n]
+    #     z = phenome[self.n:]
+    #
+    #     o1 = self.f1(y)
+    #     g_out = self.g(z)
+    #     o2 = g_out * h(o1, g_out)
+    #     return (o1, o2)
+
+
+class SCHProblem(MultiObjectiveProblem):
+    """ SCH problem from Deb et al's benchmarks
+
+    .. math::
+
+        \\begin{align}
+        f_1(x) &= x^2 \\\\
+        f_2(x) &= (x-2)^2 \\\\
+        -10^3 \\le x &\\le 10^3
+        \\end{align}
+    """
+    def __init__(self):
+        super.__init__(maximize=(False,False))
 
     def evaluate(self, phenome, *args, **kwargs):
-
-        y = phenome[:self.n]
-        z = phenome[self.n:]
-
-        o1 = self.f1(y)
-        g_out = self.g(z)
-        o2 = g_out * h(o1, g_out)
-        return (o1, o2)
-
+        """
+        :param phenome: argument for objective functions
+        :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
+        """
+        fitness = np.zeros(2)
+        fitness[0] = phenome[0] ** 2
+        fitness[1] = (phenome[0] - 2) ** 2
+        return fitness
 
 
 ##############################
@@ -194,9 +224,9 @@ class ZDT1Problem(ZDTBenchmarkProblem):
     .. math::
 
         \\begin{align}
-        f_1(x) &= x \\\\
-        g(x) &= 1 + \\frac{9}{n - 1}\sum_{i=2}^n x_i \\\\
-        h(f_1, g) &= 1 - \sqrt{f_1/g} \\\\
+        f_1(x) &= x_1 \\\\
+        f_2(x) &= g(x)[1-\sqrt{x_1/g(x)}] \\\\
+        g(x) &= 1 + 9\\frac{\sum_{i=2}^n x_i}{n - 1} \\\\
         0 \\le x_i &\\le 1, \mbox{ } i = 1, \dots, n
         \\end{align}
 
@@ -206,14 +236,29 @@ class ZDT1Problem(ZDTBenchmarkProblem):
       algorithms: Empirical results." *Evolutionary computation* 8.2 (2000): 173-195.
 
     """
-    def __init__(self):
-        super().__init__(
-            f= lambda x: x[0],
-            n= 1,
-            f2 = lambda x: 1 + 9/(len(x) - 2) * np.sum(x),
-            h = lambda f, g: np.sqrt(f/g),
-            maximize = [ False, False ]
-        )
+    def __init__(self, n = 30, maximize = (False,) * n):
+        """
+        :param n: number of dimensions
+        :param maximize: boolean vector for each objective where True means
+            corresponding objective function is maximized
+        """
+        super().__init__(maximize=maximize)
+        self.n = n
+
+    def evaluate(self, phenome, *args, **kwargs):
+        """
+        :param phenome: contains x
+        :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
+        """
+        def g(x):
+            """:param x: phenome[1..n]"""
+            return 1.0 + 9.0 * (x.sum()) / (self.n - 1.0)
+        fitness = np.zeros(2)
+        fitness[0] = phenome[0]
+        fitness[1] = g(phenome[1:]) * (1 - np.sqrt(phenome[0]/g(phenome[1:])))
+
+        return fitness
+
 
 
 ##############################

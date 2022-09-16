@@ -18,14 +18,4 @@ leap\_ec.multiobjective.problems module
 
 .. automodule:: leap_ec.multiobjective.problems
    :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: leap_ec.multiobjective
-   :members:
-   :undoc-members:
    :show-inheritance:
