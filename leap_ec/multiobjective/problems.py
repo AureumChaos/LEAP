@@ -2,7 +2,7 @@
 """
     LEAP Problem classes for multiobjective optimization.
 """
-from collections import Sequence
+from typing import Sequence
 
 import numpy as np
 
@@ -48,7 +48,7 @@ class MultiObjectiveProblem(Problem):
         plt.title("Pareto dominance in two dimensions", fontsize=20)
 
     """
-    def __init__(self, maximize: list):
+    def __init__(self, maximize: Sequence[bool]):
         """
         :param maximize: a list of booleans where True indicates a given feature
             is a maximization objective, else minimization.
@@ -135,7 +135,7 @@ class SCHProblem(MultiObjectiveProblem):
       transactions on evolutionary computation 6, no. 2 (2002): 182-197.
     """
     def __init__(self):
-        super.__init__(maximize=(False,False))
+        super().__init__(maximize=(False, False))
 
     def evaluate(self, phenome, *args, **kwargs):
         """
