@@ -15,6 +15,7 @@ Welcome to LEAP: Library for Evolutionary Algorithms in Python's documentation!
    Prebuilt Algorithms <prebuilt>
    Building New Algorithms <building>
    Distributed LEAP <distributed>
+   Multiobjective Optimization <multiobjective>
    Cookbook <cookbook>
    Roadmap <roadmap>
    API <leap_ec>

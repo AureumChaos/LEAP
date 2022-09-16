@@ -2,6 +2,8 @@
 """
     LEAP Problem classes for multiobjective optimization.
 """
+from collections import Sequence
+
 from ..problem import Problem
 
 ##############################
@@ -142,25 +144,33 @@ class ZDTBenchmarkProblem(MultiObjectiveProblem):
     - Deb, Kalyanmoy. "Multi-objective genetic algorithms: Problem difficulties and
       construction of test problems." *Evolutionary computation* 7.3 (1999): 205-230.
     """
-    def __init__(self, f1, f1_input_length: int, g, h, maximize: list):
-        assert(f1 is not None)
-        assert(callable(f1))
-        assert(f1_input_length > 0)
+    def __init__(self, f, n: int, g, maximize: list):
+        """
+        :param f: list of two or more objective functions
+        :param n: problem dimension
+        :param g: optional function that describes interactions between
+            functions defined in `f`
+        :param maximize: list of booleans that map to the functions in `f`, and
+            are True if the corresponding function is maximizing
+        """
+        assert f is not None
+        assert isinstance(f, Sequence)
+        assert len(maximize) == len(f)
+        assert n > 0
         # assert(g is not None) Not all Deb benchmark functions have a g()
         # assert(callable(g))
         # assert(h is not None) None of the Deb benchmark functions have an h()
         # assert(callable(h))
         super().__init__(maximize)
-        self.f1 = f1
-        self.f1_input_length = f1_input_length
+        self.f = f
+        self.n = n
         self.g = g
-        self.h = h
+        # self.h = h
 
-    def evaluate(self, Individual, *args, **kwargs):
-        phenome = Individual.phenome
+    def evaluate(self, phenome, *args, **kwargs):
 
-        y = phenome[:self.f1_input_length]
-        z = phenome[self.f1_input_length:]
+        y = phenome[:self.n]
+        z = phenome[self.n:]
 
         o1 = self.f1(y)
         g_out = self.g(z)
@@ -198,8 +208,8 @@ class ZDT1Problem(ZDTBenchmarkProblem):
     """
     def __init__(self):
         super().__init__(
-            f1 = lambda x: x[0],
-            f1_input_length = 1,
+            f= lambda x: x[0],
+            n= 1,
             f2 = lambda x: 1 + 9/(len(x) - 2) * np.sum(x),
             h = lambda f, g: np.sqrt(f/g),
             maximize = [ False, False ]
@@ -235,8 +245,8 @@ class ZDT2Problem(ZDTBenchmarkProblem):
     """
     def __init__(self):
         super().__init__(
-            f1 = lambda x: x[0],
-            f1_input_length = 1,
+            f= lambda x: x[0],
+            n= 1,
             f2 = lambda x: 1 + 9/(len(x) - 2) * np.sum(x),
             h = lambda f, g: np.power(f/g, 2),
             maximize = [ False, False ]
