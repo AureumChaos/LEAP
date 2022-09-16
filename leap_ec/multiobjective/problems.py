@@ -184,6 +184,9 @@ class ZDTBenchmarkProblem(MultiObjectiveProblem):
     #     return (o1, o2)
 
 
+##############################
+# Class SCHProblem
+##############################
 class SCHProblem(MultiObjectiveProblem):
     """ SCH problem from Deb et al's benchmarks
 
@@ -194,6 +197,10 @@ class SCHProblem(MultiObjectiveProblem):
         f_2(x) &= (x-2)^2 \\\\
         -10^3 \\le x &\\le 10^3
         \\end{align}
+
+    - Deb, Kalyanmoy, Amrit Pratap, Sameer Agarwal, and T. A. M. T. Meyarivan.
+      "A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II." IEEE
+      transactions on evolutionary computation 6, no. 2 (2002): 182-197.
     """
     def __init__(self):
         super.__init__(maximize=(False,False))
