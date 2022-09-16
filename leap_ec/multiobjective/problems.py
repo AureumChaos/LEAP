@@ -236,12 +236,14 @@ class ZDT1Problem(ZDTBenchmarkProblem):
       algorithms: Empirical results." *Evolutionary computation* 8.2 (2000): 173-195.
 
     """
-    def __init__(self, n = 30, maximize = (False,) * n):
+    def __init__(self, n = 30, maximize = None):
         """
         :param n: number of dimensions
         :param maximize: boolean vector for each objective where True means
             corresponding objective function is maximized
         """
+        if maximize is None:
+            maximize = (False,) * n
         super().__init__(maximize=maximize)
         self.n = n
 
@@ -276,9 +278,9 @@ class ZDT2Problem(ZDTBenchmarkProblem):
     .. math::
 
         \\begin{align}
-        f_1(x) &= x \\\\
-        g(x) &= 1 + \\frac{9}{n - 1}\sum_{i=2}^n x_i \\\\
-        h(f_1, g) &= 1 - (f_1/g)^2 \\\\
+        f_1(x) &= x_1 \\\\
+        f_2(x) &= g(x)[1-(x_1/g(x))^2] \\\\
+        g(x) &= 1 + 9\\frac{\sum_{i=2}^n x_i}{n - 1} \\\\
         0 \\le x_i &\\le 1, \mbox{ } i = 1, \dots, n
         \\end{align}
 
@@ -288,11 +290,28 @@ class ZDT2Problem(ZDTBenchmarkProblem):
       algorithms: Empirical results." *Evolutionary computation* 8.2 (2000): 173-195.
 
     """
-    def __init__(self):
-        super().__init__(
-            f= lambda x: x[0],
-            n= 1,
-            f2 = lambda x: 1 + 9/(len(x) - 2) * np.sum(x),
-            h = lambda f, g: np.power(f/g, 2),
-            maximize = [ False, False ]
-        )
+    def __init__(self, n = 30, maximize = None):
+        """
+         :param n: number of dimensions
+         :param maximize: boolean vector for each objective where True means
+             corresponding objective function is maximized
+         """
+        if maximize is None:
+            maximize = (False,) * n
+        super().__init__(maximize=maximize)
+        self.n = n
+
+
+    def evaluate(self, phenome, *args, **kwargs):
+        """
+        :param phenome: contains x
+        :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
+        """
+        def g(x):
+            """:param x: phenome[1..n]"""
+            return 1.0 + 9.0 * (x.sum()) / (self.n - 1.0)
+        fitness = np.zeros(2)
+        fitness[0] = phenome[0]
+        fitness[1] = g(phenome[1:]) * (1 - (phenome[0] / g(phenome[1:])) ** 2)
+
+        return fitness
