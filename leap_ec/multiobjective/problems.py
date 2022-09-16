@@ -151,7 +151,7 @@ class SCHProblem(MultiObjectiveProblem):
 ##############################
 # Class ZTD1Problem
 ##############################
-class ZDT1Problem(ZDTBenchmarkProblem):
+class ZDT1Problem(MultiObjectiveProblem):
     """
     The first problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
     suite.  It's meant to provide a simple multi-objective problem with a *convex*
@@ -205,7 +205,7 @@ class ZDT1Problem(ZDTBenchmarkProblem):
 ##############################
 # Class ZTD2Problem
 ##############################
-class ZDT2Problem(ZDTBenchmarkProblem):
+class ZDT2Problem(MultiObjectiveProblem):
     """
     The second problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
     suite.  This is similar to :py:class:`leap_ec.problem.ZDT1Problem`, except that
