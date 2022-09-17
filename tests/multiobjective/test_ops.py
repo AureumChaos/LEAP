@@ -29,16 +29,9 @@ def generate_test_pop():
         Uses the SCH test function as that's a simple benchmark by which
         to do manual confirmation of results.
     """
-    # First set up individuals with two genes of combinations of
-    # [-2,-1,0,1,2]
-    genomes = [np.array(a) for a in itertools.product(range(3),repeat=2)]
-    # we start from the second element to skip (0,0) so it isn't duplicated
-    # to get all the negatives
-    genomes += [a * -1 for a in genomes[1:]]
-
     # We use the Schaffer's problem for Deb et al since that's the simplest
-    # benchmark.
-    pop = [Individual(genome=g, problem=SCHProblem()) for g in genomes]
+    # benchmark.  It only requires a single gene.
+    pop = [Individual(genome=np.array(g), problem=SCHProblem()) for g in range(-2,3)]
 
     pop = Individual.evaluate_population(pop)
 
