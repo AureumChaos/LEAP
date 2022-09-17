@@ -61,8 +61,12 @@ class MultiObjectiveProblem(Problem):
         # worse_than() to ensure we are always dealing with maximization by
         # converting objectives to maximization objectives as needed.
         # E.g., for l = [True, False, True, True]
-        #   1 * np.array(l) - 1 * np.invert(l) -> array([ 1, -1,  1,  1])
-        self.maximize = 1 * np.array(maximize) - 1 * np.invert(maximize)
+        # (breaking this up because of weirdness with numpy; normally would
+        # be a one-liner.)
+        ones = np.ones(len(maximize))
+        interim = np.negative(ones, where=maximize)
+
+        self.maximize = interim
 
     def worse_than(self, first_fitnesses, second_fitnesses):
         """Return true if first_fitnesses is Pareto-dominated by second_fitnesses.
