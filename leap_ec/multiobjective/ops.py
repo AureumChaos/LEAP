@@ -41,6 +41,14 @@ def tournament_selection():
 def fast_nondominated_sort(population: list, parents: list = None) -> list:
     """ This implements the NSGA-II fast-non-dominated-sort()
 
+    This is really *binning* the population by ranks.  In any case, the
+    returned population will have an attribute, `rank`, that will denote
+    the corresponding rank in which it is a member.
+
+    - Deb, Kalyanmoy, Amrit Pratap, Sameer Agarwal, and T. A. M. T. Meyarivan.
+      "A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II." IEEE
+      transactions on evolutionary computation 6, no. 2 (2002): 182-197.
+
     :param population: population to be ranked
     :param parents: optional parents population to be included with the ranking
         process
@@ -94,7 +102,7 @@ def fast_nondominated_sort(population: list, parents: list = None) -> list:
 
     # the parents will have been updated, too, but the next pipeline operator
     # will also look at them
-    return ranks
+    return working_pop
 
 
 ##############################
@@ -104,6 +112,10 @@ def fast_nondominated_sort(population: list, parents: list = None) -> list:
 @listlist_op
 def crowding_distance_calc(population: list, parents: list = None) -> list:
     """ This implements the NSGA-II crowding-distance-assignment()
+
+    - Deb, Kalyanmoy, Amrit Pratap, Sameer Agarwal, and T. A. M. T. Meyarivan.
+      "A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II." IEEE
+      transactions on evolutionary computation 6, no. 2 (2002): 182-197.
 
     :param population: population to calculate crowding distances
     :param parents: optional parents population to be included
