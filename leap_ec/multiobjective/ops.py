@@ -18,7 +18,7 @@ from math import inf
 import numpy as np
 
 from leap_ec.ops import compute_expected_probability, listlist_op, iteriter_op
-
+from .problems import MultiObjectiveProblem
 
 def tournament_selection():
     """ Tournament selection that takes into consideration rank and crowding
@@ -44,17 +44,21 @@ def fast_nondominated_sort(population: list, parents: list = None) -> list:
     :param population: population to be ranked
     :param parents: optional parents population to be included with the ranking
         process
+    :returns: individuals binned by ranks
     """
     # Ensure that we're dealing with a multi-objective Problem.
-    assert issubclass(MultiObjectiveProblem, population[0].problem)
+    assert isinstance(population[0].problem, MultiObjectiveProblem)
 
-    if not parents:
-        parents = []
+    # Have a separate working copy of the populations
+    if parents is not None:
+        working_pop = population + parents
+    else:
+        working_pop = population
 
     ranks = {1: []}  # rank 1 initially empty
 
     # First, find rank 1
-    for individual in chain.from_iterable(population, parents):
+    for individual in working_pop:
         individual.dominates = []
         individual.dominated_by = 0
         # there is no rank 0, we're just including in initialization as a
@@ -62,7 +66,7 @@ def fast_nondominated_sort(population: list, parents: list = None) -> list:
         # debugging, we know something went wrong
         individual.rank = 0
 
-        for other_individual in chain.from_iterable(population, parents):
+        for other_individual in working_pop:
             if individual is other_individual:
                 continue
             if individual > other_individual:
@@ -90,7 +94,7 @@ def fast_nondominated_sort(population: list, parents: list = None) -> list:
 
     # the parents will have been updated, too, but the next pipeline operator
     # will also look at them
-    return population
+    return ranks
 
 
 ##############################
