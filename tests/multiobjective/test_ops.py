@@ -39,4 +39,7 @@ def test_fast_nondominated_sort():
 
     sorted_pop = fast_nondominated_sort(pop)
 
+    # TODO add manual checks to ensure that sorted_pop is binned
+    # correctly by ranks.
+
     pass
