@@ -6,6 +6,7 @@ import itertools
 import numpy as np
 from leap_ec import Individual
 from leap_ec.multiobjective.problems import SCHProblem
+from leap_ec.multiobjective.ops import fast_nondominated_sort
 
 
 def test_sort_by_2nd_objective():
@@ -33,5 +34,9 @@ def test_fast_nondominated_sort():
     # We use the Schaffer's problem for Deb et al since that's the simplest
     # benchmark.
     pop = [Individual(genome=g, problem=SCHProblem()) for g in genomes]
+
+    pop = Individual.evaluate_population(pop)
+
+    sorted_pop = fast_nondominated_sort(pop)
 
     pass
