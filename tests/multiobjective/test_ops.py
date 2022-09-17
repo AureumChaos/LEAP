@@ -6,7 +6,8 @@ import itertools
 import numpy as np
 from leap_ec import Individual
 from leap_ec.multiobjective.problems import SCHProblem
-from leap_ec.multiobjective.ops import fast_nondominated_sort
+from leap_ec.multiobjective.ops import fast_nondominated_sort, \
+    crowding_distance_calc
 
 
 def test_sort_by_2nd_objective():
@@ -22,8 +23,12 @@ def test_sort_by_2nd_objective():
         assert all(ind.fitness == target[i])
 
 
-def test_fast_nondominated_sort():
-    """ Test for non-dominated sorting """
+def generate_test_pop():
+    """ Common mechanism for generating a test population
+
+        Uses the SCH test function as that's a simple benchmark by which
+        to do manual confirmation of results.
+    """
     # First set up individuals with two genes of combinations of
     # [-2,-1,0,1,2]
     genomes = [np.array(a) for a in itertools.product(range(3),repeat=2)]
@@ -37,9 +42,25 @@ def test_fast_nondominated_sort():
 
     pop = Individual.evaluate_population(pop)
 
+    return pop
+
+
+def test_fast_nondominated_sort():
+    """ Test for non-dominated sorting """
+    pop = generate_test_pop()
+
     sorted_pop = fast_nondominated_sort(pop)
 
     # TODO add manual checks to ensure that sorted_pop is binned
     # correctly by ranks.
+
+    pass
+
+
+def test_crowding_distance_calc():
+    """ Test of crowding distance calculation """
+    pop = generate_test_pop()
+
+    sorted_pop = crowding_distance_calc(pop)
 
     pass
