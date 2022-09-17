@@ -61,7 +61,7 @@ class MultiObjectiveProblem(Problem):
         # worse_than() to ensure we are always dealing with maximization by
         # converting objectives to maximization objectives as needed.
         # E.g., for l = [True, False, True, True]
-        # (breaking this up because of weirdness with numpy; normally would
+        # FIXME (breaking this up because of weirdness with numpy; normally would
         # be a one-liner.)
         ones = np.ones(len(maximize))
         interim = np.negative(ones, where=maximize)
@@ -126,6 +126,8 @@ class MultiObjectiveProblem(Problem):
 class SCHProblem(MultiObjectiveProblem):
     """ SCH problem from Deb et al's benchmarks
 
+    This expects a numpy scalar (zero dimensional) for a phenome.
+
     .. math::
 
         \\begin{align}
@@ -147,8 +149,8 @@ class SCHProblem(MultiObjectiveProblem):
         :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
         """
         fitness = np.zeros(2)
-        fitness[0] = phenome[0] ** 2
-        fitness[1] = (phenome[0] - 2) ** 2
+        fitness[0] = phenome ** 2
+        fitness[1] = (phenome - 2.0) ** 2
         return fitness
 
 
