@@ -15,7 +15,7 @@ through a LEAP pipeline.
 
 `crowding_distance_calc()` adds these:
 
-* `distance`, float, the average distance between its immediate neighbors
+* `distance`, float, the average distance between immediate neighbors
 
 Alternatively, we could have used a sub-class to manage this additional 
 state, but we felt that could unnecessarily complicate implementations, 
