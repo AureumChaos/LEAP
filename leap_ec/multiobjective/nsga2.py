@@ -7,7 +7,13 @@
       transactions on evolutionary computation 6, no. 2 (2002): 182-197.
 
 """
+from toolz import pipe
 
+from leap_ec import ops, util
+from leap_ec.global_vars import context
+from leap_ec.individual import Individual
+from leap_ec.multiobjective.ops import fast_nondominated_sort, \
+    crowding_distance_calc
 
 def nsga_2(max_generations: int, pop_size: int, problem, representation,
            pipeline,
@@ -40,3 +46,40 @@ def nsga_2(max_generations: int, pop_size: int, problem, representation,
     """
     # Ensure that we're dealing with a multi-objective Problem.
     assert isinstance(problem, MultiObjectiveProblem)
+
+    # Initialize a population of pop_size individuals of the same type as
+    # individual_cls
+    parents = representation.create_population(pop_size, problem=problem)
+
+    # Set up a generation counter that records the current generation to
+    # context
+    generation_counter = util.inc_generation(start_generation=start_generation,
+                                             context=context)
+
+    # Evaluate initial population
+    parents = init_evaluate(parents)
+
+    # Output the best individual in the initial population
+    # bsf = max(other_population)
+    # yield (0, bsf)
+
+    # FIXME just trial scaffolding code to get a better feel for NSGA-II
+    # needs.
+
+
+
+    while (generation_counter.generation() < max_generations) and not stop(
+            parents):
+        # Execute the operators to create a new offspring population
+        offspring = pipe(parents, *pipeline,
+                         ops.elitist_survival(parents=parents,
+                                              k=k_elites))
+
+        # if max(offspring) > bsf:  # Update the best-so-far individual
+        #     bsf = max(offspring)
+
+        parents = offspring  # Replace other_population with offspring
+        generation_counter()  # Increment to the next generation
+
+        # Output the best-so-far individual for each generation
+        # yield (generation_counter.generation(), bsf)
