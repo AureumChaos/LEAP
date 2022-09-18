@@ -3,6 +3,7 @@
     Tests for mutliobjective/ops.py
 """
 import itertools
+from toolz import pipe
 import numpy as np
 from leap_ec import Individual
 from leap_ec.multiobjective.problems import SCHProblem
@@ -59,4 +60,15 @@ def test_crowding_distance_calc():
 
     # TODO add manual checks to verify correct calculation for crowding
     # distance.
+    pass
+
+
+def test_sorting_criteria():
+    """ Test sorting by rank and distance criteria """
+    pop = pipe(generate_test_pop(),
+               fast_nondominated_sort,
+               crowding_distance_calc)
+
+    sorted_pop = sorted(pop, key=lambda x: (x.rank, -x.distance))
+
     pass
