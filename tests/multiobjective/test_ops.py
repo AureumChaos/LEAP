@@ -57,4 +57,6 @@ def test_crowding_distance_calc():
 
     sorted_pop = crowding_distance_calc(pop)
 
+    # TODO add manual checks to verify correct calculation for crowding
+    # distance.
     pass
