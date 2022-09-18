@@ -31,7 +31,8 @@ def generate_test_pop():
     """
     # We use the Schaffer's problem for Deb et al since that's the simplest
     # benchmark.  It only requires a single gene.
-    pop = [Individual(genome=np.array(g), problem=SCHProblem()) for g in range(-2,3)]
+    problem = SCHProblem()
+    pop = [Individual(genome=np.array(g), problem=problem) for g in range(-2,3)]
 
     pop = Individual.evaluate_population(pop)
 
