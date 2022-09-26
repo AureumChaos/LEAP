@@ -56,6 +56,9 @@ Here's an example that applies a genetic algorithm variant to solve the
 `MaxOnes` optimization problem.  It uses bitflip mutation, uniform crossover, 
 and binary tournament_selection selection:
 
+<details>
+    <summary>Python code for simple GA</summary>
+
 ```Python
 from leap_ec.algorithm import generational_ea
 from leap_ec import ops, decoder, representation
@@ -95,12 +98,17 @@ for i, best in ea:
     print(f"{i}, {best}")
 ```
 
+</details>
+
 ## Low-level Example
 
 However, it may sometimes be necessary to have access to low-level details of
 an EA implementation, in which case the programmer can arbitrarily connect
 individual components of the EA workflow for maximum tailorability.   For
 example:
+
+<details>
+    <summary>Low-level example python code</summary>
 
 ```python
 from toolz import pipe
@@ -145,6 +153,8 @@ while generation_counter.generation() < 6:
     util.print_population(parents, context['leap']['generation'])
 ```
 
+</details>
+                                          
 ## More Examples
 
 A number of LEAP demo applications are found in the the `example/` directory of the github repository:
