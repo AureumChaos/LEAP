@@ -20,17 +20,21 @@ import numpy as np
 from leap_ec.ops import compute_expected_probability, listlist_op, iteriter_op
 from .problems import MultiObjectiveProblem
 
-def tournament_selection():
-    """ Tournament selection that takes into consideration rank and crowding
-        distance.
+##############################
+# sort_by_dominance operator
+##############################
+@curry
+@listlist_op
+def sort_by_dominance(population: list) -> list:
+    """ Sort population by rank and distance
 
-        This should be used instead of leap_ec.ops.tournament_selection for
-        NSGA-II.
+        This presumes that fast_nondominated_sort() *and* crowding_distance_calc
+        have been used on *all* individuals in `population`.
 
-    TODO eventually this will be replaced by using a special key function for
-    leap_ec.ops.tournament_selection.
+        :param population: to be sorted
+        :returns: sorted population
     """
-    raise NotImplementedError
+    return sorted(population, key=lambda x: (x.rank, -x.distance))
 
 
 ##############################
