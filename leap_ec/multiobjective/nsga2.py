@@ -13,7 +13,7 @@ from leap_ec import ops, util
 from leap_ec.global_vars import context
 from leap_ec.individual import Individual
 from leap_ec.multiobjective.ops import fast_nondominated_sort, \
-    crowding_distance_calc
+    crowding_distance_calc, sort_by_dominance
 
 def nsga_2(max_generations: int, pop_size: int, problem, representation,
            pipeline,
@@ -59,19 +59,15 @@ def nsga_2(max_generations: int, pop_size: int, problem, representation,
     # Evaluate initial population
     parents = init_evaluate(parents)
 
-    # Output the best individual in the initial population
-    # bsf = max(other_population)
-    # yield (0, bsf)
+    # First do a non-dominated sort of the parents
+    parents = fast_nondominated_sort(parents)
 
-    # FIXME just trial scaffolding code to get a better feel for NSGA-II
-    # needs.
-
-
-
-    while (generation_counter.generation() < max_generations) and not stop(
-            parents):
+    while (generation_counter.generation() < max_generations) and \
+            not stop(parents):
         # Execute the operators to create a new offspring population
-        offspring = pipe(parents, *pipeline,
+        offspring = pipe(parents,
+                         crowding_distance_calc,
+                         sort_by_dominance,
                          ops.elitist_survival(parents=parents,
                                               k=k_elites))
 
@@ -83,3 +79,5 @@ def nsga_2(max_generations: int, pop_size: int, problem, representation,
 
         # Output the best-so-far individual for each generation
         # yield (generation_counter.generation(), bsf)
+
+    return parents
