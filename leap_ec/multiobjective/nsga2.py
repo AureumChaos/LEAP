@@ -14,6 +14,7 @@ from leap_ec.global_vars import context
 from leap_ec.individual import Individual
 from leap_ec.multiobjective.ops import fast_nondominated_sort, \
     crowding_distance_calc, sort_by_dominance
+from leap_ec.multiobjective.problems import MultiObjectiveProblem
 
 def nsga_2(max_generations: int, pop_size: int, problem, representation,
            pipeline,
@@ -70,16 +71,18 @@ def nsga_2(max_generations: int, pop_size: int, problem, representation,
 
     while (generation_counter.generation() < max_generations) and \
             not stop(parents):
-        # Execute the operators to create a new offspring population
         offspring = pipe(parents,
-                         *pipeline, # user defined selection, mutation & maybe crossover
+                         # pipeline for user defined selection, cloning,
+                         # mutation, and maybe crossover
+                         *pipeline,
                          fast_nondominated_sort,
                          crowding_distance_calc,
-                         # sort_by_dominance, truncation_selection w/ key should do this implicitly
+                         # sort_by_dominance,
+                         # truncation_selection w/ key should do this implicitly
                          ops.truncation_selection(parents=parents,
                                                   size=len(parents),
-                                                  key=lambda x: (x.rank, -x.distance))
-
+                                                  key=lambda x: (x.rank,
+                                                                 -x.distance)))
         parents = offspring  # Replace other_population with offspring
 
         generation_counter()  # Increment to the next generation
