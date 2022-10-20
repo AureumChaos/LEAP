@@ -75,12 +75,11 @@ def nsga_2(max_generations: int, pop_size: int, problem, representation,
                          # pipeline for user defined selection, cloning,
                          # mutation, and maybe crossover
                          *pipeline,
-                         fast_nondominated_sort,
+                         fast_nondominated_sort(parents=parents),
                          crowding_distance_calc,
                          # sort_by_dominance,
                          # truncation_selection w/ key should do this implicitly
-                         ops.truncation_selection(parents=parents,
-                                                  size=len(parents),
+                         ops.truncation_selection(size=len(parents),
                                                   key=lambda x: (x.rank,
                                                                  -x.distance)))
         parents = offspring  # Replace other_population with offspring
