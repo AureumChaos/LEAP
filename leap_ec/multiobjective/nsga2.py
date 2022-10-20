@@ -80,8 +80,8 @@ def nsga_2(max_generations: int, pop_size: int, problem, representation,
                          # sort_by_dominance,
                          # truncation_selection w/ key should do this implicitly
                          ops.truncation_selection(size=len(parents),
-                                                  key=lambda x: (x.rank,
-                                                                 -x.distance)))
+                                                  key=lambda x: (-x.rank,
+                                                                 x.distance)))
         parents = offspring  # Replace other_population with offspring
 
         generation_counter()  # Increment to the next generation
