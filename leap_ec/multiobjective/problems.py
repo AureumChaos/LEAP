@@ -149,8 +149,8 @@ class SCHProblem(MultiObjectiveProblem):
         :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
         """
         fitness = np.zeros(2)
-        fitness[0] = phenome[0] ** 2
-        fitness[1] = (phenome[1] - 2.0) ** 2
+        fitness[0] = phenome ** 2
+        fitness[1] = (phenome - 2.0) ** 2
         return fitness
 
 
