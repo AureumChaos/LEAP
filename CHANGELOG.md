@@ -19,8 +19,6 @@ Being a terse compilation by version of changes.
      * `multiobjective.ops` contains supporting pipeline operators, though most users will not see those if they use `nsga()`
 
  * API changes
-   * `Problem.evaluate()` now takes an `Individual` instead of a `phenome` as an argument
-     * ^ this is a major API change that is not backword compatible!
    * `Individual` now has a `phenome` property
    * Mutation operators (`mutate_gaussian()` and `mutate_binomial()`) can now be passed a list of `std` values to adjust the mutation width by gene.
    * Removed an undocumented normalization term from `real_rep.problems.CosineFamilyProblem`
