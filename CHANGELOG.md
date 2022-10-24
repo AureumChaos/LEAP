@@ -13,6 +13,10 @@ Being a terse compilation by version of changes.
    * Added a `check_constraints()` operator to the `CGPDecoder` class, to help verify custom algorithms
    * Added `LeadingOnes`, `DeceptiveTrap`, and `TwoMax` problems to `binary_rep.problems` module
    * Added `SumPhenotypePlotProbe`, and a new example using it to visualizing MaxOnes-style problems
+   * Added `multiobjective` sub-package that provides support for NSGA-II
+     * `multiobjective.nsga2.nsga2()` top-level monolithic function
+     * `multiobjective.problems.MultiObjectiveProblem` is new abstract base class for multiobjective problems
+     * `multiobjective.ops` contains supporting pipeline operators, though most users will not see those if they use `nsga()`
 
  * API changes
    * `Problem.evaluate()` now takes an `Individual` instead of a `phenome` as an argument
