@@ -12,8 +12,8 @@ import numpy as np
 from numpy.lib.twodim_base import diag
 from numpy.random import random
 
-from leap_ec import Individual
 from leap_ec.problem import FitnessOffsetProblem, ScalarProblem
+from leap_ec import Individual
 
 
 ##############################
@@ -1055,14 +1055,14 @@ class QuadraticFamilyProblem(ScalarProblem):
 
     [Jani2008]_
 
-    The function is given by 
+    The function is given by
 
     .. math::
 
        f(\\mathbf{x}) = \\min_{i=1,2,\\dots,q} \\left( (\\mathbf{x} - \\mathbf{p}_i)^\\top \\mathbf{B}_i^{-1} (\\mathbf{x} - \\mathbf{p}_i) + v_i \\right)
 
     where the :math:`\\mathbf{p}_i` gives the center of each quadratic (i.e. the location
-    of each local minimum), the :math:`v_i` give their fitness values, and the 
+    of each local minimum), the :math:`v_i` give their fitness values, and the
     :math:`\\mathbf{B}_i^{-1}` are symmetric matrices.
 
     The easiest way to create one of these problems is to use the random generator:
@@ -1117,7 +1117,7 @@ class QuadraticFamilyProblem(ScalarProblem):
         super().__init__(maximize)
         assert(diagonal_matrices is not None)
         assert(rotation_matrices is not None)
-        assert(offset_vectors is not None) 
+        assert(offset_vectors is not None)
         assert(fitness_offsets is not None)
         assert(len(diagonal_matrices) == len(rotation_matrices))
         assert(len(offset_vectors) == len(rotation_matrices))
@@ -1140,7 +1140,7 @@ class QuadraticFamilyProblem(ScalarProblem):
     @property
     def dimensions(self):
         return len(self.offset_vectors[0])
-        
+
     def evaluate(self, phenome):
         basin_values = [ p.evaluate(phenome) for p in self.parabaloids ]
         return np.min(basin_values)
@@ -1184,19 +1184,19 @@ class ParabaloidProblem(ScalarProblem):
     A generalization of the `SpheroidProblem` into parabaloids (including elliptic and hyperbolic parabaloids).
 
     We construct the parabaloid by combining a diagonal matrix (which defines an axis-aligned parabaloid)
-    with an orthornormal rotation.  Together, these make up the eigenvalues and 
+    with an orthornormal rotation.  Together, these make up the eigenvalues and
     eigenbasis, respectively, of an arbitrary parabaloid:
 
     .. math::
        \\mathbf{A} = \\mathbf{R}^\\top \\mathbf{D} \\mathbf{R}
-    
+
     We then compute fitness by interpretting :math:`A` as a quadratic form:
 
     .. math::
        f(x) = x^\\top \\mathbf{A} x
 
-    When the eigenvalues are all positive, then the result is an elliptic parabaloid 
-    
+    When the eigenvalues are all positive, then the result is an elliptic parabaloid
+
     .. plot::
        :include-source:
 
@@ -1386,14 +1386,14 @@ def random_orthonormal_matrix(dimensions: int):
     process.
 
     Orthonormal matrices represent rotations (and flips) of a space.
-    
+
     The defining property of an orthonormal matrix is that its
     transpose is its inverse:
 
     >>> Q = random_orthonormal_matrix(10)
     >>> np.allclose( Q.dot(Q.T), np.identity(10) )
     True
-    
+
     """
     matrix = np.random.normal(size=[dimensions, dimensions])
     for i, row in enumerate(matrix):
@@ -1421,7 +1421,7 @@ def random_orthonormal_matrix(dimensions: int):
         f"QQ^T = {matrix.dot(matrix.T)} instead of {np.identity(len(matrix))}."
 
     return matrix
-    
+
 
 ################################
 # Class MatrixTransformedProblem

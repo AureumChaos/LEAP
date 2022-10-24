@@ -58,7 +58,7 @@ class Problem(ABC):
     def evaluate_multiple(self, phenomes):
         """Evaluate multiple phenomes all at once, returning a list of fitness
         values.
-        
+
         By default this just calls `self.evaluate()` multiple times.  Override this
         if you need to, say, send a group of individuals off to parallel """
         return [ self.evaluate(p) for p in phenomes ]
@@ -76,6 +76,11 @@ class Problem(ABC):
 # Class ScalarProblem
 ##############################
 class ScalarProblem(Problem):
+    """A problem that compares individuals based on their scalar fitness values.
+
+    Inherit from this class and implement the `evaluate()` method to implement
+    an objective function that returns a single real-valued fitness value.
+    """
     def __init__(self, maximize):
         super().__init__()
         self.maximize = maximize
@@ -134,17 +139,19 @@ class ScalarProblem(Problem):
             return first_fitness == second_fitness
 
 
+
 ##############################
 # Class FunctionProblem
 ##############################
 class FunctionProblem(ScalarProblem):
-
+    """A convenience wrapper that takes a vanilla function that returns scalar
+    fitness values and makes it usable as an objective function."""
     def __init__(self, fitness_function, maximize):
         super().__init__(maximize)
         self.fitness_function = fitness_function
 
     def evaluate(self, phenome, *args, **kwargs):
-        
+
         return self.fitness_function(phenome, *args, **kwargs)
 
 
@@ -215,18 +222,18 @@ class ExternalProcessProblem(ScalarProblem):
         super().__init__(maximize=maximize)
         self.command = command
         self.args = args[:] if args else []
-        
+
     def evaluate(self, phenome):
         fitnesses = self.evaluate_multiple([ phenome ])
         assert(len(fitnesses) == 1)
         return fitnesses[0]
-    
+
     def evaluate_multiple(self, phenomes, *args, **kwargs):
         # Convert the phenomes into one big string
         def phenome_to_str(p):
             return ','.join([ str(x) for x in p ])
         phenome_bytes = '\n'.join([ phenome_to_str(p) for p in phenomes ]).encode()
-        
+
         logger.debug(f"Input: {phenome_bytes}")
 
         # Start the external process and send the phenomes to its stdin
@@ -239,15 +246,15 @@ class ExternalProcessProblem(ScalarProblem):
 
         if p.returncode != 0:
             raise RuntimeError(f"Error in the external simulation during fitness evaluation.")
-        
+
         out_strs = outs.split(b'\n')[:-1]  # Ignoring  trailing newline
         fitnesses = [ float(o) for o in out_strs]
-        
+
         if len(fitnesses) != len(phenomes):
             raise RuntimeError(f"Expected to receive {len(phenomes)} fitness values back from external simulation, but actually received {len(fitnesses)}.")
 
         logger.debug(f"Fitnesses: {fitnesses}\n")
-            
+
         return fitnesses
 
 
@@ -312,9 +319,9 @@ class AverageFitnessProblem(Problem):
     """Problem wrapper that copies each genome n times, evaluates them, and averages the
     results back together to produce a mean-fitness estimate.
 
-    This is a common strategy for approaching noisy fitness functions, to make it easier 
+    This is a common strategy for approaching noisy fitness functions, to make it easier
     for an optimization algorithm to follow a gradient.
-    
+
     >>> from leap_ec.real_rep.problems import NoisyQuarticProblem
     >>> p = AverageFitnessProblem(
     ...                 wrapped_problem = NoisyQuarticProblem(),
@@ -350,7 +357,7 @@ class AverageFitnessProblem(Problem):
                 chunk, l = l[:self.n], l[self.n:]
                 means.append(np.mean(chunk))
             return means
-            
+
         # Copy each phenome n times, because we're going to evaluate each one n times
         expanded_phenomes = [ p for p in phenomes for _ in range(self.n) ]
 
@@ -368,7 +375,7 @@ class AverageFitnessProblem(Problem):
 
     def equivalent(self, first_fitness, second_fitness):
         return self.wrapped_problem.equivalent(first_fitness, second_fitness)
-        
+
 
 ##############################
 # Function concat_combine
@@ -401,7 +408,7 @@ class CooperativeProblem(Problem):
     function of the state of the other subpopulations:
 
     ..math
-      
+
       \\mbox{fitness} = f_{p_i}(\\vec{\\mathbf{x}}, \\mathcal{P} \\\\ p_i)
 
 
@@ -416,7 +423,7 @@ class CooperativeProblem(Problem):
     ...             wrapped_problem = SpheroidProblem(),
     ...             num_trials = 3,
     ...             collaborator_selector = ops.random_selection)
-    
+
     """
     def __init__(self, wrapped_problem, num_trials: int, collaborator_selector,
                  combined_decoder: Decoder=IdentityDecoder(), log_stream=None, combine_genomes=lambda x: np.concatenate(x), context=context):
@@ -452,7 +459,7 @@ class CooperativeProblem(Problem):
             self.log_writer = None
 
     def evaluate(self, phenome, *args, **kwargs):
-        
+
         # Expecting the individual to be passed in via kwargs
         assert('individual' in kwargs), "CooperativeProblem.evaluate() requires an 'individual' to be passed in via kwargs, but none was found.  Are you using an evaluation operator that supports passing individuals to problems (rather than just phenomes)?"
         individual = kwargs['individual']
@@ -487,14 +494,14 @@ class CooperativeProblem(Problem):
     def evaluate_multiple(self, phenomes, individuals):
         """Evaluate multiple phenomes all at once, returning a list of fitness
         values.
-        
+
         By default this just calls `self.evaluate()` multiple times.  Override this
         if you need to, say, send a group of individuals off to parallel """
         return [ self.evaluate(p, individual=i) for p, i in zip(phenomes, individuals) ]
 
     def _choose_collaborators(self, current_genome, current_subpop_index, subpopulations):
         """Choose collaborators from the subpopulations, returning a list that contains
-        the genome for the current individual and all of the genomes for collaborators, 
+        the genome for the current individual and all of the genomes for collaborators,
         in the order that they will be combined."""
 
         # Create iterators that select individuals from each subpopulation
@@ -568,7 +575,9 @@ class AlternatingProblem(Problem):
         return self.get_current_problem().evaluate(phenome)
 
     def worse_than(self, first_fitness, second_fitness):
-        return self.get_current_problem().worse_than(first_fitness, second_fitness)
+        return self.get_current_problem().worse_than(first_fitness,
+                                                     second_fitness)
 
     def equivalent(self, first_fitness, second_fitness):
-        return self.get_current_problem().equivalent(first_fitness, second_fitness)
+        return self.get_current_problem().equivalent(first_fitness,
+                                                     second_fitness)
