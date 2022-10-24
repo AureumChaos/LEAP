@@ -61,11 +61,9 @@ class MultiObjectiveProblem(Problem):
         # worse_than() to ensure we are always dealing with maximization by
         # converting objectives to maximization objectives as needed.
         # E.g., for l = [True, False, True, True]
-        # FIXME (breaking this up because of weirdness with numpy; normally would
-        # be a one-liner.)
+        # Fix for maximize bug courtesy of Luke McCombs; he suggested using np.where()
         ones = np.ones(len(maximize))
-        interim = np.negative(ones, where=maximize)
-
+        interim = np.where(maximize, 1, -1)
         self.maximize = interim
 
     def worse_than(self, first_fitnesses, second_fitnesses):
