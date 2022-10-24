@@ -1,0 +1,2 @@
+0.8
+    Lucas McCombs for fix in MultiObjectiveProblem.__init__() for per-objective maximize flags
