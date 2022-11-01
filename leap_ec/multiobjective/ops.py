@@ -108,6 +108,131 @@ def fast_nondominated_sort(population: list, parents: list = None) -> list:
     # will also look at them
     return working_pop
 
+@curry
+@listlist_op
+def rank_ordinal_sort_numpy(population: list, parents: list = None) -> list:
+    if parents is not None:
+        population += parents
+    
+    # De-duplicate indentical fitness values, using the returned fitnesses for the sorting
+    unique_fitnesses, orig_inv_idx = np.unique([
+        ind.fitness * ind.problem.maximize
+        for ind in population
+    ], return_inverse=True, axis=0)
+    
+    # Extract the problem for sizing and min / max ordering
+    # Necessary if using boolean maximize
+    # prob = dedup[0].problem
+    
+    # Determine the per-objective ordering of the population
+    # Proper permutation ordering is the transposed and reversed argsort
+    indices_ord = np.argsort(unique_fitnesses, axis=0, kind="stable").T[:, ::-1]
+
+    # Using boolean maximize
+    # indices_ord[prob.maximize] = indices_ord[prob.maximize, ::-1]
+
+    permutations = np.arange(len(unique_fitnesses))[indices_ord]
+
+    # Determine objective ranks from the unique values of each fitness
+    objective_ranks = np.zeros(indices_ord.shape[::-1], dtype=np.uint)
+    for i, permute in enumerate(permutations):
+        _, unique_idx, inv_idx = np.unique(unique_fitnesses[permute, i], return_index=True, return_inverse=True)
+        objective_ranks[permute, i] = unique_idx[inv_idx]
+
+    ranks = np.zeros(len(unique_fitnesses), dtype=np.uint)
+    for i in permutations[0]:
+        k = np.argmax(objective_ranks[i])
+
+        # Get the set of values that may be dominable
+        dominable_set = permutations[k, objective_ranks[i, k]:]
+
+        # Get the subset of values that match i's rank, and therefore can be updated
+        updatable_set = dominable_set[ranks[i] == ranks[dominable_set]]
+
+        # Determine what of the subset is dominated and increment those value's rank
+        is_dominated = (objective_ranks[i] <= objective_ranks[updatable_set]).all(1)
+        ranks[updatable_set[is_dominated]] += 1
+
+        # Since i is always in the dominable set, every value's rank is +1
+        # This works out in the end by using np.zeros, and the return front rank is still rank == 1
+
+    # Use the inverse idx from deduplicating fitnesses to assign rankings
+    for ind, rank in zip(population, ranks[orig_inv_idx]):
+        ind.rank = rank
+    
+    return population
+
+@curry
+@listlist_op
+def rank_ordinal_sort_pythonic(population: list, parents: list = None) -> list:
+    if parents is not None:
+        population += parents
+    
+    # De-duplicate indentical fitness values, storing them with the first occurrence
+    unique, inv_idx = np.unique([
+        ind.fitness * ind.problem.maximize
+        for ind in population
+    ], return_inverse=True, axis=0)
+
+    dedup = np.full(len(unique), None)
+    for i, j in enumerate(inv_idx):
+        if dedup[j] is None:
+            dedup[j] = population[i]
+            population[i].duplicates = []
+        else:
+            dedup[j].duplicates.append(population[i])
+    
+    # Extract the problem for sizing and min / max ordering
+    # prob = dedup[0].problem
+
+    # Initialize necessary member variables
+    for ind in dedup:
+        if not hasattr(ind, "objective_ranks"):
+            ind.objective_ranks = np.zeros(ind.fitness.shape, dtype=np.uint)
+        ind.rank = 1
+    
+    # Determine the per-objective ordering of the population
+    # Proper permutation ordering is the transposed and reversed argsort
+    indices_ord = np.argsort(unique, axis=0, kind="stable").T[:, ::-1]
+
+    # Using boolean maximize
+    # indices_ord[prob.maximize] = indices_ord[prob.maximize, ::-1]
+
+    permutations = dedup[indices_ord]
+
+    # Set objective ranks to the index of the first occurrence of each value
+    for i, permute in enumerate(permutations):
+        last_j = 0
+        last_obj = permute[0].fitness[i]
+        for j, ind in enumerate(permute):
+            if ind.fitness[i] != last_obj:
+                last_obj = ind.fitness[i]
+                last_j = j
+            ind.objective_ranks[i] = last_j
+    
+    # Slow point of the algorithm, actual ranking
+    for rank_ind in permutations[0]:
+        # Search the minimal set of potentially dominatable individuals by finding the lowest ranking objective of the individual
+        k = np.argmax(rank_ind.objective_ranks)
+
+        for other_ind in permutations[k, rank_ind.objective_ranks[k]:]:
+            if other_ind is rank_ind:
+                continue
+            
+            # If the individual is the same rank, check if its dominated, then if so increment its rank
+            # As there are no duplicates, we don't have to check for at least one being less; if all are <=, one must be less
+            if rank_ind.rank == other_ind.rank and all(rank_ind.objective_ranks <= other_ind.objective_ranks):
+                other_ind.rank += 1
+    
+    # Propogate rankings across duplicates
+    for ind in dedup:
+        for other_ind in ind.duplicates:
+            other_ind.rank = ind.rank
+        # Clean up duplicate information so it isn't carried along
+        # Could clean up objective ranks as well, but it gets overwritten each time anyway
+        del ind.duplicates
+            
+    return population
 
 ##############################
 # crowding_distance_calc operator

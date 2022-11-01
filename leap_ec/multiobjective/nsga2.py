@@ -16,8 +16,9 @@ from leap_ec.multiobjective.ops import fast_nondominated_sort, \
     crowding_distance_calc, sort_by_dominance
 from leap_ec.multiobjective.problems import MultiObjectiveProblem
 
-def nsga_2(max_generations: int, pop_size: int, problem, representation,
+def nsga_2(max_generations: int, pop_size: int, problem: MultiObjectiveProblem, representation,
            pipeline,
+           rank_func=fast_nondominated_sort,
            stop=lambda x: False,
            init_evaluate=Individual.evaluate_population,
            start_generation: int = 0,
@@ -68,20 +69,20 @@ def nsga_2(max_generations: int, pop_size: int, problem, representation,
 
     # Evaluate initial population
     parents = init_evaluate(parents)
-
     while (generation_counter.generation() < max_generations) and \
             not stop(parents):
         offspring = pipe(parents,
                          # pipeline for user defined selection, cloning,
                          # mutation, and maybe crossover
                          *pipeline,
-                         fast_nondominated_sort(parents=parents),
+                         rank_func(parents=parents),
                          crowding_distance_calc,
-                         # sort_by_dominance,
+                         sort_by_dominance,
                          # truncation_selection w/ key should do this implicitly
                          ops.truncation_selection(size=len(parents),
                                                   key=lambda x: (-x.rank,
                                                                  x.distance)))
+        
         parents = offspring  # Replace other_population with offspring
 
         generation_counter()  # Increment to the next generation
