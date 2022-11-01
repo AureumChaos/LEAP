@@ -5,10 +5,12 @@
 import itertools
 from toolz import pipe
 import numpy as np
+import pandas as pd
+import logging
 from leap_ec import Individual
 from leap_ec.multiobjective.problems import SCHProblem
 from leap_ec.multiobjective.ops import fast_nondominated_sort, \
-    crowding_distance_calc
+    crowding_distance_calc, rank_ordinal_sort
 
 
 def test_sort_by_2nd_objective():
@@ -34,27 +36,47 @@ def generate_test_pop():
     # benchmark.  It only requires a single gene.
     problem = SCHProblem()
     pop = [Individual(genome=np.array(g), problem=problem) for g in range(-2,3)]
-
+    pop.append(pop[-1])
+    
     pop = Individual.evaluate_population(pop)
+    
+    ranks = [
+        3, # [4, 16] Note: Shared single-objective fitness with a higher rank
+        2, # [1, 9]
+        1, # [0, 4]
+        1, # [1, 1]
+        1, # [4, 0]
+        1  # [4, 0] Note: Duplicated fitness
+    ]
 
-    return pop
+    return pop, ranks
 
 
 def test_fast_nondominated_sort():
     """ Test for non-dominated sorting """
-    pop = generate_test_pop()
+    pop, ranks = generate_test_pop()
 
     sorted_pop = fast_nondominated_sort(pop)
+    
+    np.testing.assert_array_equal(
+        [ind.rank for ind in pop],
+        ranks
+    )
 
-    # TODO add manual checks to ensure that sorted_pop is binned
-    # correctly by ranks.
+def test_rank_ordinal_sort():
+    """ Test for rank ordinal sorting """
+    pop, ranks = generate_test_pop()
 
-    pass
-
+    sorted_pop = rank_ordinal_sort(pop)
+    
+    np.testing.assert_array_equal(
+        [ind.rank for ind in pop],
+        ranks
+    )
 
 def test_crowding_distance_calc():
     """ Test of crowding distance calculation """
-    pop = generate_test_pop()
+    pop, _ = generate_test_pop()
 
     sorted_pop = crowding_distance_calc(pop)
 
@@ -65,10 +87,11 @@ def test_crowding_distance_calc():
 
 def test_sorting_criteria():
     """ Test sorting by rank and distance criteria """
-    pop = pipe(generate_test_pop(),
+    pop, _ = generate_test_pop()
+    processed_pop = pipe(pop,
                fast_nondominated_sort,
                crowding_distance_calc)
 
-    sorted_pop = sorted(pop, key=lambda x: (x.rank, -x.distance))
+    sorted_pop = sorted(processed_pop, key=lambda x: (x.rank, -x.distance))
 
     pass
