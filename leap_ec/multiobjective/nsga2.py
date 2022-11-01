@@ -12,13 +12,15 @@ from toolz import pipe
 from leap_ec import ops, util
 from leap_ec.global_vars import context
 from leap_ec.individual import Individual
-from leap_ec.multiobjective.ops import fast_nondominated_sort, \
+from leap_ec.multiobjective.ops import rank_ordinal_sort, \
     crowding_distance_calc, sort_by_dominance
 from leap_ec.multiobjective.problems import MultiObjectiveProblem
 
-def nsga_2(max_generations: int, pop_size: int, problem: MultiObjectiveProblem, representation,
+# Add Ordinal Sort in docstring
+# add parameters
+def generalized_nsga_2(max_generations: int, pop_size: int, problem: MultiObjectiveProblem, representation,
            pipeline,
-           rank_func=fast_nondominated_sort,
+           rank_func=rank_ordinal_sort,
            stop=lambda x: False,
            init_evaluate=Individual.evaluate_population,
            start_generation: int = 0,
@@ -36,13 +38,15 @@ def nsga_2(max_generations: int, pop_size: int, problem: MultiObjectiveProblem, 
     :param int max_generations: The max number of generations to run the algorithm for.
         Can pass in float('Inf') to run forever or until the `stop` condition is reached.
     :param int pop_size: Size of the initial population
+    :param rank_func: the function used to calculate non-domination rankings for the
+        individuals of the population.
     :param int stop: A function that accepts a population and
         returns True iff it's time to stop evolving.
     :param `Problem` problem: the Problem that should be used to evaluate
         individuals' fitness
     :param representation: How the problem is represented in individuals
     :param list pipeline: a list of operators that are applied (in order) to
-        create the offspring population at each generation
+        create the offspring population at each generation\
     :param init_evaluate: a function used to evaluate the initial population,
         before the main pipeline is run.  The default of
         `Individual.evaluate_population` is suitable for many cases, but you
