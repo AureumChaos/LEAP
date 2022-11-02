@@ -36,7 +36,7 @@ def generate_test_pop():
     # benchmark.  It only requires a single gene.
     problem = SCHProblem()
     pop = [Individual(genome=np.array(g), problem=problem) for g in range(-2,3)]
-    pop.append(pop[-1])
+    pop.append(pop[-1].clone())
     
     pop = Individual.evaluate_population(pop)
     
