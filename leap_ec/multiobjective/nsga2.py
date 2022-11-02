@@ -31,6 +31,9 @@ def generalized_nsga_2(max_generations: int, pop_size: int, problem: MultiObject
           "A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II." IEEE
           transactions on evolutionary computation 6, no. 2 (2002): 182-197.
 
+        - Bogdan Burlacu. 2022. Rank-based Non-dominated Sorting. arXiv.
+          DOI:https://doi.org/10.48550/ARXIV.2203.13654 
+
     :note: You will need a selection as first operator in `pipeline`, which we
     recommend to be ops.tournament_selection. This will use Deb's multiobjective
     criteria for comparing individuals as dictated in `MultiobjectiveProblem`.
