@@ -23,14 +23,50 @@ def generalized_nsga_2(max_generations: int, pop_size: int, problem: MultiObject
            init_evaluate=Individual.evaluate_population,
            start_generation: int = 0,
            context=context):
-    """ NSGA-II multi-objective evolutionary algorithm
+    """ NSGA-II multi-objective evolutionary algorithm.
 
         - Deb, Kalyanmoy, Amrit Pratap, Sameer Agarwal, and T. A. M. T. Meyarivan.
-          "A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II." IEEE
-          transactions on evolutionary computation 6, no. 2 (2002): 182-197.
+            "A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II." IEEE
+            transactions on evolutionary computation 6, no. 2 (2002): 182-197.
 
         - Bogdan Burlacu. 2022. Rank-based Non-dominated Sorting. arXiv.
-          DOI:https://doi.org/10.48550/ARXIV.2203.13654 
+            DOI:https://doi.org/10.48550/ARXIV.2203.13654
+    
+    This classic algorithm relies on the idea of "non-dominated sorting" and de-crowding
+    to evolve a diverse Pareto front.  The "generalized" NSGA-II we implement here differs
+    slightly from the canonical algorithm, in that we default to a faster sorting
+    algorithm devised by Burlacu (2022).
+
+    If you wish the algorithm to use the original NSGA-II behavior instead (which runs much
+    slower), you can select the original operator by passing in `rank_func=fast_nondominated_sort`.
+    
+    >>> from leap_ec.representation import Representation
+    >>> from leap_ec.ops import random_selection, clone, evaluate, pool
+    >>> from leap_ec.real_rep.initializers import create_real_vector
+    >>> from leap_ec.real_rep.ops import mutate_gaussian
+    >>> from leap_ec.multiobjective.nsga2 import generalized_nsga_2
+    >>> from leap_ec.multiobjective.problems import SCHProblem
+    >>> pop_size = 100
+    >>> max_generations = 250
+    >>> final_pop = generalized_nsga_2(
+    ...     max_generations=max_generations, pop_size=pop_size,
+    ...     
+    ...     problem=SCHProblem(),
+    ...     
+    ...     representation=Representation(
+    ...         initialize=create_real_vector(bounds=[(-10, 10)])    
+    ...     ),
+    ...     
+    ...     pipeline=[
+    ...         random_selection,
+    ...         clone,
+    ...         mutate_gaussian(std=0.5, expected_num_mutations=1),
+    ...         evaluate,
+    ...         pool(size=pop_size),
+    ...     ]
+    ... )
+    >>> final_pop # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    [Individual(...), Individual(...), Individual(...), ... Individual(...)]
 
     :note: You will need a selection as first operator in `pipeline`, which we
     recommend to be ops.tournament_selection. This will use Deb's multiobjective
