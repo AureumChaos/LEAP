@@ -138,11 +138,10 @@ def rank_ordinal_sort(population: list, parents: list = None) -> list:
     
     # Determine the per-objective ordering of the population
     # Proper permutation ordering is the transposed and reversed argsort
-    indices_ord = np.argsort(unique_fitnesses, axis=0, kind="stable").T[:, ::-1]
-    permutations = np.arange(len(unique_fitnesses))[indices_ord]
+    permutations = np.argsort(unique_fitnesses, axis=0, kind="stable").T[:, ::-1]
 
     # Determine objective ranks from the unique values of each fitness
-    objective_ranks = np.zeros(indices_ord.shape[::-1], dtype=np.uint)
+    objective_ranks = np.zeros(permutations.shape[::-1], dtype=np.uint)
     for i, permute in enumerate(permutations):
         _, unique_idx, inv_idx = np.unique(unique_fitnesses[permute, i], return_index=True, return_inverse=True)
         objective_ranks[permute, i] = unique_idx[inv_idx]
