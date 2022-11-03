@@ -16,8 +16,6 @@ from leap_ec.multiobjective.ops import rank_ordinal_sort, \
     crowding_distance_calc, sort_by_dominance
 from leap_ec.multiobjective.problems import MultiObjectiveProblem
 
-# Add Ordinal Sort in docstring
-# add parameters
 def generalized_nsga_2(max_generations: int, pop_size: int, problem: MultiObjectiveProblem, representation,
            pipeline,
            rank_func=rank_ordinal_sort,
@@ -49,7 +47,7 @@ def generalized_nsga_2(max_generations: int, pop_size: int, problem: MultiObject
         individuals' fitness
     :param representation: How the problem is represented in individuals
     :param list pipeline: a list of operators that are applied (in order) to
-        create the offspring population at each generation\
+        create the offspring population at each generation
     :param init_evaluate: a function used to evaluate the initial population,
         before the main pipeline is run.  The default of
         `Individual.evaluate_population` is suitable for many cases, but you
@@ -84,7 +82,7 @@ def generalized_nsga_2(max_generations: int, pop_size: int, problem: MultiObject
                          *pipeline,
                          rank_func(parents=parents),
                          crowding_distance_calc,
-                         sort_by_dominance,
+                         # sort_by_dominance,
                          # truncation_selection w/ key should do this implicitly
                          ops.truncation_selection(size=len(parents),
                                                   key=lambda x: (-x.rank,
