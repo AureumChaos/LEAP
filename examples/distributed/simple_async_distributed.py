@@ -141,6 +141,7 @@ if __name__ == '__main__':
         args.workers, args.init_pop_size, args.max_births, args.pop_size)
 
     track_workers_func = track_pop_func = None
+    client = None  # So the `finally` block below works if client never gets declared
 
     try:
         if args.scheduler_file:

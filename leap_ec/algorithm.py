@@ -62,8 +62,7 @@ def generational_ea(max_generations: int, pop_size: int, problem, representation
         You might want to change this, for example, in experiments that involve stopping
         and restarting an algorithm.
 
-    :return: a generator of `(int, individual_cls)` pairs representing the
-        best individual at each generation.
+    :return: the final population
 
     The intent behind this kind of EA interface is to allow the complete
     configuration of a basic evolutionary algorithm to be defined in a clean
@@ -80,12 +79,11 @@ def generational_ea(max_generations: int, pop_size: int, problem, representation
     >>> from leap_ec.binary_rep.ops import mutate_bitflip
     >>> import leap_ec.ops as ops
     >>> pop_size = 5
-    >>> ea = generational_ea(max_generations=100, pop_size=pop_size,
+    >>> final_pop = generational_ea(max_generations=100, pop_size=pop_size,
     ...
     ...                      problem=MaxOnes(),      # Solve a MaxOnes Boolean optimization problem
     ...
     ...                      representation=Representation(
-    ...                          individual_cls=Individual,     # Use the standard Individual as the prototype for the population
     ...                          initialize=create_binary_sequence(length=10)  # Initial genomes are random binary sequences
     ...                      ),
     ...
@@ -98,21 +96,21 @@ def generational_ea(max_generations: int, pop_size: int, problem, representation
     ...                          ops.evaluate,                       # Evaluate fitness
     ...                          ops.pool(size=pop_size)             # Collect offspring into a new population
     ...                      ])
-    >>> ea # doctest:+ELLIPSIS
-    <generator ...>
 
-    The algorithm evaluates lazily when you query the generator:
+    The algorithm runs immediately and returns the final population:
 
-    >>> print(*list(ea), sep='\\n') # doctest:+ELLIPSIS
-    (0, Individual(...))
-    (1, Individual(...))
-    (2, Individual(...))
+    >>> print(*final_pop, sep='\\n') # doctest:+ELLIPSIS
+    [...] ...
+    [...] ...
+    [...] ...
     ...
-    (100, Individual(...))
+    [...] ...
 
-    The best individual reported from the initial population  is reported at
-    generation 0) followed by the best-so-far individual at each subsequent
-    generation.
+    You can get the best individual by using `max` (since comparison on individuals is based on the `Problem` associated with
+    them, this will return the best individaul even on minimization problems)):
+    >>> max(final_pop)
+    Individual(...)
+
     """
     # Initialize a population of pop_size individuals of the same type as
     # individual_cls
@@ -125,10 +123,6 @@ def generational_ea(max_generations: int, pop_size: int, problem, representation
     # Evaluate initial population
     parents = init_evaluate(parents)
 
-    # Output the best individual in the initial population
-    bsf = max(parents)
-    yield (0, bsf)
-
     while (generation_counter.generation() < max_generations) and not stop(
             parents):
         # Execute the operators to create a new offspring population
@@ -136,14 +130,10 @@ def generational_ea(max_generations: int, pop_size: int, problem, representation
                          ops.elitist_survival(parents=parents,
                                               k=k_elites))
 
-        if max(offspring) > bsf:  # Update the best-so-far individual
-            bsf = max(offspring)
-
         parents = offspring  # Replace parents with offspring
         generation_counter()  # Increment to the next generation
 
-        # Output the best-so-far individual for each generation
-        yield (generation_counter.generation(), bsf)
+    return parents
 
 
 ##############################
@@ -271,15 +261,13 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
 
     assert(len(representation) == len(problem))
 
-    # Initialize the initial subpopulations
+    # Initialize & evaluate the initial subpopulations
     pops = [ r.create_population(pop_size, problem=p) for r, p in zip(representation, problem) ]
+    pops = [init_evaluate(p) for p in pops]
 
     # Include a reference to the populations in the context object.
     # This allows operators to see all of the subpopulations.
     context['leap']['subpopulations'] = pops
-    
-    # Evaluate initial population
-    pops = [init_evaluate(p) for p in pops]
 
     # Set up a generation counter that records the current generation to the
     # context

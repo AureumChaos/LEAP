@@ -66,7 +66,7 @@ if __name__ == '__main__':
     ##############################
     # Run!
     ##############################
-    ea = generational_ea(max_generations=generations,pop_size=pop_size,
+    final_pop = generational_ea(max_generations=generations,pop_size=pop_size,
                              problem=problem,  # Fitness function
 
                              # Representation
@@ -90,8 +90,6 @@ if __name__ == '__main__':
                                  *viz_probes  # Inserting the additional probes we defined above
                              ]
                         )
-
-    list(ea)
 
     # If we're not in test-harness mode, block until the user closes the app
     if os.environ.get(test_env_var, False) != 'True':
