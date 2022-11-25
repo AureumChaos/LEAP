@@ -37,7 +37,7 @@ if __name__ == '__main__':
     # which we'll use for both initialization and hard-bounding below
     bounds = [(0, 10), (0, 5)]
 
-    ea = generational_ea(max_generations=generations,pop_size=pop_size,
+    final_pop = generational_ea(max_generations=generations,pop_size=pop_size,
                              problem=problem,  # Fitness function
 
                              # Representation
@@ -71,8 +71,6 @@ if __name__ == '__main__':
                                  probe.FitnessStatsCSVProbe(stream=sys.stdout)
                              ]
                         )
-
-    list(ea)
 
     # If we're not in test-harness mode, block until the user closes the app
     if os.environ.get(test_env_var, False) != 'True':

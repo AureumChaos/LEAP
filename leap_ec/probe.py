@@ -68,15 +68,111 @@ def print_individual(next_individual: Iterator, prefix='',
 
 
 ##############################
-# BestSoFar probe
+# Class BestSoFarProbe
 ##############################
 class BestSoFarProbe(op.Operator):
-    """  This probe will track the best-so-far (BSF) individual.
+    """  This probe takes an list of individuals as input and will track the
+         best-so-far (BSF) individual across all the population it has seen.
 
         Insert an object of this class into a pipeline to have it track the
         the best individual it sees so far.  It will write the current best
         individual for each __call__ invocation to a given stream in CSV
         format.
+
+        Like many operators, this operator checks the context object to 
+        retrieve the current generation number for output purposes.
+
+        >>> from leap_ec import context, data
+        >>> from leap_ec import probe
+        >>> pop = data.test_population
+        >>> context['leap']['generation'] = 12
+
+        The probe will write its output to the provided stream (default is stdout,
+        but we illustrate here with a StringIO stream):
+
+        >>> import io
+        >>> stream = io.StringIO()
+        >>> probe = BestSoFarProbe(stream=stream)
+        >>> new_pop = probe(pop)
+        >>> print(stream.getvalue()) # doctest: +NORMALIZE_WHITESPACE
+        step,bsf
+        12,4
+        <BLANKLINE>
+
+        This operator does not change the state of the population:
+        >>> new_pop == pop
+        True
+
+    """
+    def __init__(self, stream=sys.stdout, header=True, context=context):
+        """
+
+        :param stream: to which to write best-so-far individuals
+        :param header: True if want CSV header
+        :param context: from which we get current generation (step)
+        """
+        self.bsf = None
+        self.context = context
+        self.writer = csv.DictWriter(stream, fieldnames=['step', 'bsf'])
+
+        if header:
+            self.writer.writeheader()
+
+    def __call__(self, population):
+        assert (population is not None)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
+
+        ind = max(population)
+        assert(ind.fitness is not None), f"Probe expects individuals to have fitness values, but found one that doesn't."
+        if self.bsf is None or (ind > self.bsf):
+            self.bsf = ind
+
+        self.writer.writerow({'step': self.context['leap']['generation'],
+                            'bsf' : self.bsf.fitness
+                            })
+
+        return population
+
+
+##############################
+# Class BestSoFarIterProbe
+##############################
+class BestSoFarIterProbe(op.Operator):
+    """  This probe takes an iterator as input and will track the
+         best-so-far (BSF) individual in the all the individuals it sees.
+
+        Insert an object of this class into a pipeline to have it track the
+        the best individual it sees so far.  It will write the current best
+        individual for each __call__ invocation to a given stream in CSV
+        format.
+
+        Like many operators, this operator checks the context object to 
+        retrieve the current generation number for output purposes.
+
+        >>> from leap_ec import context, data
+        >>> from leap_ec import probe
+        >>> pop = data.test_population
+        >>> context['leap']['generation'] = 12
+
+
+        The probe will write its output to the provided stream (default is stdout,
+        but we illustrate here with a StringIO stream):
+
+        >>> import io
+        >>> stream = io.StringIO()
+        >>> probe = BestSoFarIterProbe(stream=stream)
+        >>> bsf_output_iter = probe(iter(pop))
+        >>> x = next(bsf_output_iter)
+        >>> x = next(bsf_output_iter)
+        >>> x = next(bsf_output_iter)
+        >>> print(stream.getvalue()) # doctest: +NORMALIZE_WHITESPACE
+        step,bsf
+        12,...
+        12,...
+        12,...
+        <BLANKLINE>
+
     """
     def __init__(self, stream=sys.stdout, header=True, context=context):
         """
@@ -97,15 +193,17 @@ class BestSoFarProbe(op.Operator):
         assert ('leap' in self.context)
         assert ('generation' in self.context['leap'])
 
-        ind = next(next_individual)
-        if self.bsf is None or (ind > self.bsf):
-            self.bsf = ind
+        while True:
+            ind = next(next_individual)
+            assert(ind.fitness is not None), f"Probe expects individuals to have fitness values, but found one that doesn't."
+            if self.bsf is None or (ind > self.bsf):
+                self.bsf = ind
 
-        self.writer.writerow({'step': self.context['leap']['generation'],
-                              'bsf' : self.bsf.fitness
-                              })
+            self.writer.writerow({'step': self.context['leap']['generation'],
+                                'bsf' : self.bsf.fitness
+                                })
 
-        yield ind
+            yield ind
 
 
 ##############################

@@ -34,7 +34,7 @@ if __name__ == '__main__':
     
     l = 2
     pop_size = 1
-    ea = generational_ea(max_generations=generations,pop_size=pop_size,
+    final_pop = generational_ea(max_generations=generations,pop_size=pop_size,
                              k_elites=1,  # Keep the best individual
                              problem=problem,  # Fitness function
 
@@ -71,8 +71,6 @@ if __name__ == '__main__':
                                  ops.pool(size=pop_size),
                              ]
                         )
-
-    list(ea)
 
     # If we're not in test-harness mode, block until the user closes the app
     if os.environ.get(test_env_var, False) != 'True':
