@@ -120,7 +120,7 @@ def rank_ordinal_sort(population: list, parents: list = None) -> list:
     NSGA-II implementation, however performs much faster.
 
     - Bogdan Burlacu. 2022. Rank-based Non-dominated Sorting. arXiv.
-      DOI:https://doi.org/10.48550/ARXIV.2203.13654 
+      DOI:https://doi.org/10.48550/ARXIV.2203.13654
 
     :param population: population to be ranked
     :param parents: optional parents population to be included with the ranking
@@ -129,13 +129,13 @@ def rank_ordinal_sort(population: list, parents: list = None) -> list:
     """
     if parents is not None:
         population += parents
-    
+
     # De-duplicate indentical fitness values, using the returned fitnesses for the sorting
     unique_fitnesses, orig_inv_idx = np.unique([
         ind.fitness * ind.problem.maximize
         for ind in population
     ], return_inverse=True, axis=0)
-    
+
     # Determine the per-objective ordering of the population
     # Proper permutation ordering is the transposed and reversed argsort
     permutations = np.argsort(unique_fitnesses, axis=0, kind="stable").T[:, ::-1]
@@ -166,7 +166,7 @@ def rank_ordinal_sort(population: list, parents: list = None) -> list:
     # Use the inverse idx from deduplicating fitnesses to assign rankings
     for ind, rank in zip(population, ranks[orig_inv_idx]):
         ind.rank = rank
-    
+
     return population
 
 ##############################
@@ -174,31 +174,26 @@ def rank_ordinal_sort(population: list, parents: list = None) -> list:
 ##############################
 @curry
 @listlist_op
-def crowding_distance_calc(population: list, parents: list = None) -> list:
+def crowding_distance_calc(population: list) -> list:
     """ This implements the NSGA-II crowding-distance-assignment()
+
+    Note that this assumes that all the individuals have had their ranks
+    computed since we do crowding distance calculations within ranks.
 
     - Deb, Kalyanmoy, Amrit Pratap, Sameer Agarwal, and T. A. M. T. Meyarivan.
       "A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II." IEEE
       transactions on evolutionary computation 6, no. 2 (2002): 182-197.
 
     :param population: population to calculate crowding distances
-    :param parents: optional parents population to be included
     :returns: individuals with crowding distance calculated
     """
     # Ensure that we're dealing with a multi-objective Problem.
     assert isinstance(population[0].problem, MultiObjectiveProblem)
 
-    # Bring over a copy of everyone, parents possibly included, because we're
-    # going to be sorting them for each objective.
-    if not parents:
-        entire_pop = population
-    else:
-        entire_pop = population + parents
-
     # Presuming this is a population with homogeneous objectives, then we can
     # arbitrarily peep at the first individual's fitness values to determine
     # how many objectives we have.
-    num_objectives = entire_pop[0].fitness.shape[0]
+    num_objectives = population[0].fitness.shape[0]
 
     # Check if we're maximizing or minimizing; we arbitrarily check the first
     # individual.
@@ -208,7 +203,7 @@ def crowding_distance_calc(population: list, parents: list = None) -> list:
     # Note that MultiObjectiveProblem.maximize is a numpy array where a -1 or 1
     # signifies whether we're dealing with maximizing or minimizing. A -1
     # means we're maximizing for that corresponding objective.
-    is_maximizing = entire_pop[0].problem.maximize
+    is_maximizing = population[0].problem.maximize
 
     # minimum and maximum fitnesses by objective, so we initialize to the
     # infinities. At first we assume maximization for all of the objectives,
@@ -222,7 +217,7 @@ def crowding_distance_calc(population: list, parents: list = None) -> list:
             f_max[objective] = np.inf
 
     # Find ranges of fitness per objective
-    for i in entire_pop:
+    for i in population:
         i.distance = 0 # init distances to zero to start
         for objective in range(num_objectives): # update fitness ranges
             if is_maximizing[objective] == -1:
