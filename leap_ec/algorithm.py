@@ -324,7 +324,7 @@ def random_search(evaluations, problem, representation, pipeline=(),
     >>> from leap_ec.decoder import IdentityDecoder
     >>> from leap_ec.representation import Representation
     >>> from leap_ec.individual import Individual
-    >>> ea = random_search(evaluations=100,
+    >>> result = random_search(evaluations=100,
     ...                    problem=MaxOnes(),      # Solve a MaxOnes Boolean optimization problem
     ...
     ...                    representation=Representation(
@@ -332,20 +332,11 @@ def random_search(evaluations, problem, representation, pipeline=(),
     ...                        decoder=IdentityDecoder(),     # Genotype and phenotype are the same for this task
     ...                        initialize=create_binary_sequence(length=10)  # Initial genomes are random binary sequences
     ...                    ))
-    >>> ea # doctest:+ELLIPSIS
-    <generator ...>
 
-    The algorithm evaluates lazily when you query the generator:
+    The algorithm outputs a list containing just the best-found individual:
 
-    >>> print(*list(ea), sep='\\n') # doctest:+ELLIPSIS
-    (1, Individual(...))
-    (2, Individual(...))
-    ...
-    (100, Individual(...))
-
-    The best individual reported from the initial population  is reported at
-    generation 0) followed by the best-so-far individual at each subsequent
-    generation.
+    >>> result # doctest:+ELLIPSIS
+    [Individual(...)]
     """
     # Set up an evaluation counter that records the current generation to
     # context
@@ -368,8 +359,8 @@ def random_search(evaluations, problem, representation, pipeline=(),
 
         evaluation_counter()  # Increment to the next evaluation
 
-        # Output the best-so-far individual for each generation
-        yield (evaluation_counter.generation(), bsf)
+    # Output a list containing just the best-found solution
+    return [ bsf ]
 
 
 ##############################

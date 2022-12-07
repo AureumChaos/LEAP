@@ -123,18 +123,16 @@ def cgp_cmd(gens):
 @click.option('--evals', default=5000)
 def random(evals):
     """Use random search over a CGP representation to solve the XOR function."""
-    ea = random_search(evals,
-            representation=cgp_representation,
+    best_found = random_search(evals,
+                representation=cgp_representation,
 
-            # Our fitness function will be to solve the XOR problem
-            problem=xor_problem,
+                # Our fitness function will be to solve the XOR problem
+                problem=xor_problem,
 
-            pipeline=[
-                probe.FitnessStatsCSVProbe(stream=sys.stdout)
-            ] + cgp_visual_probes(modulo=10)
-    )
-
-    list(ea)
+                pipeline=[
+                    probe.FitnessStatsCSVProbe(stream=sys.stdout)
+                ] + cgp_visual_probes(modulo=10)
+        )
 
 
 ##############################
