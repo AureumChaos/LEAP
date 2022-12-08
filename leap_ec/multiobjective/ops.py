@@ -12,6 +12,8 @@
 from typing import Iterator
 import random
 from itertools import chain
+
+import toolz
 from toolz import curry
 from math import inf
 
@@ -187,6 +189,70 @@ def crowding_distance_calc(population: list) -> list:
     :param population: population to calculate crowding distances
     :returns: individuals with crowding distance calculated
     """
+    def per_rank_calc(ranked_population: list) -> list:
+        """ Calculate crowding distance within rank
+        :param ranked_population: A population of entirely one rank
+        :returns: population with crowding distance calculate for one rank
+        """
+        # minimum and maximum fitnesses by objective, so we initialize to the
+        # infinities. At first we assume maximization for all of the objectives,
+        # but then we fine-tune for minimization in the next step.
+        f_min = np.full(num_objectives, np.inf)
+        f_max = np.full(num_objectives, np.NINF)
+
+        for objective in range(num_objectives):
+            if is_maximizing[objective] == -1:
+                f_min[objective] = np.NINF
+                f_max[objective] = np.inf
+
+        # Find ranges of fitness per objective
+        for i in ranked_population:
+            i.distance = 0  # init distances to zero to start
+            for objective in range(num_objectives):  # update fitness ranges
+                if is_maximizing[objective] == -1:
+                    # We are *maximizing* for this specific objective
+                    f_min[objective] = max(f_min[objective],
+                                           i.fitness[objective])
+                    f_max[objective] = min(f_max[objective],
+                                           i.fitness[objective])
+                else:
+                    # We are *minimizing* for this specific objective
+                    f_min[objective] = min(f_min[objective],
+                                           i.fitness[objective])
+                    f_max[objective] = max(f_max[objective],
+                                           i.fitness[objective])
+
+        objective_ranges = f_max - f_min
+
+        sorted_pop = []
+
+        for objective in range(num_objectives):
+            # sort by objective being mindful that maximization vs. minimization may
+            # be different for each objective
+            if is_maximizing[objective] == -1:
+                # If we're maximizing in ascending order, that actually means we
+                # want descending order since the larger values are fitter.
+                sorted_pop = sorted(ranked_population,
+                                    key=lambda ind: - ind.fitness[objective])
+            else:
+                sorted_pop = sorted(ranked_population,
+                                    key=lambda ind: ind.fitness[objective])
+
+            # set first and last elements to infinity
+            sorted_pop[0].distance = sorted_pop[-1].distance = inf
+
+            # update the distance per individuals with a sliding window of
+            # three fitnesses for the current objective starting from the second to
+            # the second to last individual's
+            for i in range(1, len(sorted_pop) - 1):
+                sorted_pop[i].distance = sorted_pop[i].distance + \
+                                         (sorted_pop[i + 1].fitness[objective] -
+                                          sorted_pop[i - 1].fitness[
+                                              objective]) / objective_ranges[
+                                             objective]
+
+        return sorted_pop
+
     # Ensure that we're dealing with a multi-objective Problem.
     assert isinstance(population[0].problem, MultiObjectiveProblem)
 
@@ -205,54 +271,13 @@ def crowding_distance_calc(population: list) -> list:
     # means we're maximizing for that corresponding objective.
     is_maximizing = population[0].problem.maximize
 
-    # minimum and maximum fitnesses by objective, so we initialize to the
-    # infinities. At first we assume maximization for all of the objectives,
-    # but then we fine-tune for minimization in the next step.
-    f_min = np.full(num_objectives, np.inf)
-    f_max = np.full(num_objectives, np.NINF)
+    # First, divide up the population into sub-populations by rank
+    pop_by_ranks = toolz.groupby(lambda x: x.rank, population)
 
-    for objective in range(num_objectives):
-        if is_maximizing[objective] == -1:
-            f_min[objective] = np.NINF
-            f_max[objective] = np.inf
+    # Eventually the entire population after crowding distance calculated for
+    # all the sub-populations by rank.
+    all_crowd_dist_pop = []
+    for rank in pop_by_ranks.keys():
+        all_crowd_dist_pop.append(per_rank_calc(pop_by_ranks[rank]))
 
-    # Find ranges of fitness per objective
-    for i in population:
-        i.distance = 0 # init distances to zero to start
-        for objective in range(num_objectives): # update fitness ranges
-            if is_maximizing[objective] == -1:
-                # We are *maximizing* for this specific objective
-                f_min[objective] = max(f_min[objective],
-                                          i.fitness[objective])
-                f_max[objective] = min(f_max[objective], i.fitness[objective])
-            else:
-                # We are *minimizing* for this specific objective
-                f_min[objective] = min(f_min[objective], i.fitness[objective])
-                f_max[objective] = max(f_max[objective], i.fitness[objective])
-
-    objective_ranges = f_max - f_min
-
-    sorted_pop = []
-
-    for objective in range(num_objectives):
-        # sort by objective being mindful that maximization vs. minimization may
-        # be different for each objective
-        if is_maximizing[objective] == -1:
-            # If we're maximizing in ascending order, that actually means we
-            # want descending order since the larger values are fitter.
-            sorted_pop = sorted(population, key=lambda ind: - ind.fitness[objective])
-        else:
-            sorted_pop = sorted(population, key=lambda ind: ind.fitness[objective])
-
-        # set first and last elements to infinity
-        sorted_pop[0].distance = sorted_pop[-1].distance = inf
-
-        # update the distance per individuals with a sliding window of
-        # three fitnesses for the current objective starting from the second to
-        # the second to last individual's
-        for i in range(1,len(sorted_pop) - 1):
-            sorted_pop[i].distance = sorted_pop[i].distance + \
-                                  (sorted_pop[i+1].fitness[objective] -
-                                   sorted_pop[i-1].fitness[objective]) / objective_ranges[objective]
-
-    return sorted_pop
+    return all_crowd_dist_pop
