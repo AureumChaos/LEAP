@@ -329,31 +329,36 @@ class FitnessStatsCSVProbe(op.Operator):
         assert ('leap' in self.context)
         assert ('generation' in self.context['leap'])
 
-        generation = self.context['leap']['generation']
-        if generation % self.modulo != 0:
-            return population
-
-        if self.job is not None:
-            self.stream.write(str(self.job) + ', ')
-        for _, v in self.notes.items():
-            self.stream.write(str(v) + ', ')
-
-        self.stream.write(str(generation) + ', ')
-
+        # Always update the best-so-far variable
         best_ind = best_of_gen(population)
         if self.bsf_ind is None or (best_ind > self.bsf_ind):
             self.bsf_ind = best_ind
-        self.stream.write(str(self.bsf_ind.fitness) + ', ')
 
-        fitnesses = [x.fitness for x in population]
-        self.stream.write(str(np.mean(fitnesses)) + ', ')
-        self.stream.write(str(np.std(fitnesses)) + ', ')
-        self.stream.write(str(np.min(fitnesses)) + ', ')
-        self.stream.write(str(np.max(fitnesses)))
-        for _, f in self.extra_metrics.items():
-            self.stream.write(', ' + str(f(population)))
-        self.stream.write('\n')
-        return population
+        # Check if we've reached a measurement interval
+        generation = self.context['leap']['generation']
+        if generation % self.modulo != 0:
+            # If not, don't write fitness info
+            return population
+        else:
+            # Do write fitness info
+            if self.job is not None:
+                self.stream.write(str(self.job) + ', ')
+            for _, v in self.notes.items():
+                self.stream.write(str(v) + ', ')
+
+            self.stream.write(str(generation) + ', ')
+
+            self.stream.write(str(self.bsf_ind.fitness) + ', ')
+
+            fitnesses = [x.fitness for x in population]
+            self.stream.write(str(np.mean(fitnesses)) + ', ')
+            self.stream.write(str(np.std(fitnesses)) + ', ')
+            self.stream.write(str(np.min(fitnesses)) + ', ')
+            self.stream.write(str(np.max(fitnesses)))
+            for _, f in self.extra_metrics.items():
+                self.stream.write(', ' + str(f(population)))
+            self.stream.write('\n')
+            return population
 
 
 ##############################
@@ -982,6 +987,75 @@ class CartesianPhenotypePlotProbe:
 
 
 ##############################
+# Class ParetoPlotProbe
+##############################
+class ParetoPlotProbe:
+    """
+    Plot a 2D Pareto front of a population that has
+    been assigned multi-objective fitness values.
+
+    If the fitness space has more than two dimensions,
+    only the first two are plotted.
+
+    :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
+        be created).
+    :param xlim: Bounds of the horizontal axis.
+    :type xlim: (float, float)
+    :param ylim: Bounds of the vertical axis.
+    :type ylim: (float, float)
+    :param int modulo: take and plot a measurement every `modulo` steps (
+        default 1).
+    :param title: title to print on the plot
+    :param context: set a context object to query for the current generation.
+        Defaults to the standard `leap_ec.context` object.
+
+    """
+    def __init__(self, ax=None, xlim=(-5.12, 5.12), ylim=(-5.12, 5.12),
+                 title='Pareto Front',
+                 modulo=1, context=context):
+        if ax is None:
+            _, ax = plt.subplots()
+
+        self.sc = ax.scatter([], [])
+
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        self.ax = ax
+        self.left, self.right = xlim
+        self.bottom, self.top = ylim
+        self.x = np.array([])
+        self.y = np.array([])
+        plt.title(title)
+        self.modulo = modulo
+        self.context = context
+
+    def __call__(self, population):
+        assert (population is not None)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
+        step = self.context['leap']['generation']
+
+        if step % self.modulo == 0:
+            self.x = np.array([ind.fitness[0] for ind in population])
+            self.y = np.array([ind.fitness[1] for ind in population])
+            self.sc.set_offsets(np.c_[self.x, self.y])
+            self.__rescale_ax()
+            self.ax.figure.canvas.draw()
+            plt.pause(0.000001)
+        return population
+
+    def __rescale_ax(self):
+        if np.min(self.x) < self.left:
+            self.ax.set_xlim(left=np.min(self.x))
+        if np.max(self.x) > self.right:
+            self.ax.set_xlim(right=np.max(self.x))
+        if np.min(self.y) < self.bottom:
+            self.ax.set_ylim(bottom=np.min(self.y))
+        if np.max(self.y) > self.top:
+            self.ax.set_ylim(top=np.max(self.y))
+
+
+##############################
 # Class HistPhenotypePlotProbe
 ##############################
 class HistPhenotypePlotProbe():
@@ -1056,7 +1130,7 @@ class HeatMapPhenotypeProbe():
 
 
 ##############################
-# Class CartesianPhenotypePlotProbe
+# Class SumPhenotypePlotProbe
 ##############################
 class SumPhenotypePlotProbe:
     """
