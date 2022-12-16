@@ -36,45 +36,43 @@ if __name__ == '__main__':
 
     l = 2
     pop_size = 10
-    ea = generational_ea(max_generations=generations,pop_size=pop_size,
-                             problem=problem,  # Fitness function
+    generational_ea(max_generations=generations,pop_size=pop_size,
+                    problem=problem,  # Fitness function
 
-                             # Representation
-                             representation=Representation(
-                                 # Initialize a population of integer-vector genomes
-                                 initialize=create_real_vector(
-                                     bounds=[problem.bounds] * l)
-                             ),
+                    # Representation
+                    representation=Representation(
+                        # Initialize a population of integer-vector genomes
+                        initialize=create_real_vector(
+                            bounds=[problem.bounds] * l)
+                    ),
 
-                             # Operator pipeline
-                             pipeline=[
-                                 ops.tournament_selection(k=2),
-                                 ops.clone,
+                    # Operator pipeline
+                    pipeline=[
+                        ops.tournament_selection(k=2),
+                        ops.clone,
 
-                                 # Apply Gaussian mutation
-                                 mutate_gaussian(std=1.5, hard_bounds=[problem.bounds]*l,
-                                                 expected_num_mutations=1),
-                                 ops.evaluate,
-                                 ops.pool(size=pop_size),
+                        # Apply Gaussian mutation
+                        mutate_gaussian(std=1.5, hard_bounds=[problem.bounds]*l,
+                                        expected_num_mutations=1),
+                        ops.evaluate,
+                        ops.pool(size=pop_size),
 
-                                 # Some visualization probes so we can watch what happens
-                                 probe.CartesianPhenotypePlotProbe(
-                                        xlim=problem.bounds,
-                                        ylim=problem.bounds,
-                                        contours=problem),
-                                 probe.FitnessPlotProbe(),
+                        # Some visualization probes so we can watch what happens
+                        probe.CartesianPhenotypePlotProbe(
+                            xlim=problem.bounds,
+                            ylim=problem.bounds,
+                            contours=problem),
+                        probe.FitnessPlotProbe(),
 
-                                 # Collect diversity metrics along with the standard CSV columns
-                                 probe.FitnessStatsCSVProbe(stream=sys.stdout,
-                                    extra_metrics={
-                                        'diversity_pairwise_dist': probe.pairwise_squared_distance_metric,
-                                        'diversity_sum_variance': probe.sum_of_variances_metric,
-                                        'diversity_num_fixated': probe.num_fixated_metric
-                                        })
-                             ]
-                        )
-
-    list(ea)
+                        # Collect diversity metrics along with the standard CSV columns
+                        probe.FitnessStatsCSVProbe(stream=sys.stdout,
+                        extra_metrics={
+                            'diversity_pairwise_dist': probe.pairwise_squared_distance_metric,
+                            'diversity_sum_variance': probe.sum_of_variances_metric,
+                            'diversity_num_fixated': probe.num_fixated_metric
+                            })
+                    ]
+            )
 
     # If we're not in test-harness mode, block until the user closes the app
     if os.environ.get(test_env_var, False) != 'True':

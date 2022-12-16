@@ -2,19 +2,20 @@
     Provides a very high-level convenience function for a very general EA,
     ea_solve().
 """
-from matplotlib import pyplot as plt
+import sys
 
+from matplotlib import pyplot as plt
 from multiprocessing import cpu_count
 
 from leap_ec import Representation
 from leap_ec import ops, probe
 from leap_ec.algorithm import generational_ea
+from leap_ec.distrib import DistributedIndividual
+from leap_ec.distrib import synchronous
+from leap_ec.probe import BestSoFarProbe
 from leap_ec.problem import FunctionProblem
 from leap_ec.real_rep import create_real_vector
 from leap_ec.real_rep.ops import mutate_gaussian
-
-from leap_ec.distrib import DistributedIndividual
-from leap_ec.distrib import synchronous
 
 
 ##############################
@@ -22,8 +23,7 @@ from leap_ec.distrib import synchronous
 ##############################
 def ea_solve(function, bounds, generations=100, pop_size=cpu_count(),
              mutation_std=1.0, maximize=False, viz=False, viz_ylim=(0, 1),
-             hard_bounds=True,
-             dask_client=None):
+             hard_bounds=True, dask_client=None, stream=sys.stdout):
     """Provides a simple, top-level interfact that optimizes a real-valued
     function using a simple generational EA.
 
@@ -40,32 +40,33 @@ def ea_solve(function, bounds, generations=100, pop_size=cpu_count(),
     :param bool viz: whether to display a live best-of-generation plot
     :param bool hard_bounds: if True, bounds are enforced at all times during
         evolution; otherwise they are only used to initialize the population.
-
     :param (float, float) viz_ylim: initial bounds to use of the plots
         vertical axis
-
     :param dask_client: is optional dask Client to enable parallel evaluations
+    :param stream: a stream to write best-so-far values to (defaults to stdout)
 
     The basic call includes instrumentation that prints the best-so-far fitness
     value of each generation to stdout:
 
+    >>> import io
     >>> from leap_ec.simple import ea_solve
-    >>> ea_solve(sum, bounds=[(0, 1)]*5) # doctest:+ELLIPSIS
-    generation, bsf
-    0, ...
-    1, ...
-    ...
-    100, ...
+    >>> stream = io.StringIO()
+    >>> ea_solve(sum, bounds=[(0, 1)]*5, stream=stream) # doctest:+ELLIPSIS
     array([..., ..., ..., ..., ...])
+
+    The stream captures the best-so-far individual at each iteration of the algorithm:
+    >>> print(stream.getvalue())  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    step,bsf
+    0,...
+    1,...
+    2,...
+    ...
+    99,...
+    <BLANKLINE>
 
     When `viz=True`, a live BSF plot will also display:
 
     >>> ea_solve(sum, bounds=[(0, 1)]*5, viz=True) # doctest:+ELLIPSIS
-    generation, bsf
-    0, ...
-    1, ...
-    ...
-    100, ...
     array([..., ..., ..., ..., ...])
 
     .. plot::
@@ -75,6 +76,17 @@ def ea_solve(function, bounds, generations=100, pop_size=cpu_count(),
 
     """
 
+    ########## Parallelization ##########
+    # If a dask client is given, then use the synchronous (map/reduce) parallel
+    # evaluation of individuals; else, revert to serial evaluations.
+    if dask_client:
+        eval_ops = [ synchronous.eval_pool(client=dask_client, size=pop_size) ]
+    else:
+        eval_ops = [ops.evaluate,
+                    ops.pool(size=pop_size)]
+
+    ########## Operators ##########
+    # Isotropic Gaussian mutation operator
     if hard_bounds:
         mutation_op = mutate_gaussian(std=mutation_std, hard_bounds=bounds,
                                       expected_num_mutations='isotropic')
@@ -82,27 +94,24 @@ def ea_solve(function, bounds, generations=100, pop_size=cpu_count(),
         mutation_op = mutate_gaussian(std=mutation_std,
                                       expected_num_mutations='isotropic')
 
+    bsf_probe = BestSoFarProbe(stream=stream)  # Bind this probe to a varaible so we can access it after the run
     pipeline = [
         ops.tournament_selection,
         ops.clone,
         mutation_op,
         ops.uniform_crossover(p_swap=0.2),
+        *eval_ops,
+        bsf_probe
     ]
 
-    # If a dask client is given, then use the synchronous (map/reduce) parallel
-    # evaluation of individuals; else, revert to serial evaluations.
-    if dask_client:
-        pipeline.append(synchronous.eval_pool(client=dask_client,
-                                              size=pop_size))
-    else:
-        pipeline.extend([ops.evaluate,
-                         ops.pool(size=pop_size)])
-
+    ########## Visualization ##########
     if viz:
         plot_probe = probe.FitnessPlotProbe(ylim=viz_ylim, ax=plt.gca())
         pipeline.append(plot_probe)
 
-    ea = generational_ea(max_generations=generations,
+
+    ########## Run! ##########
+    final_pop = generational_ea(max_generations=generations,
                          pop_size=pop_size,
                          problem=FunctionProblem(function, maximize),
 
@@ -113,10 +122,5 @@ def ea_solve(function, bounds, generations=100, pop_size=cpu_count(),
 
                          pipeline=pipeline)
 
-    best_genome = None
-    print('generation, bsf')
-    for g, ind in ea:
-        print(f"{g}, {ind.fitness}")
-        best_genome = ind.genome
-
-    return best_genome
+    # Return the genome of the best-found individual
+    return bsf_probe.bsf.genome

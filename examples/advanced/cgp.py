@@ -65,7 +65,7 @@ def cgp_visual_probes(modulo):
 def do_cgp(gens):
     pop_size = 5
 
-    ea = generational_ea(gens, pop_size,
+    final_pop = generational_ea(gens, pop_size,
 
             representation=cgp_representation,
 
@@ -87,7 +87,6 @@ def do_cgp(gens):
             ] + cgp_visual_probes(modulo=10)
     )
 
-    list(ea)
 
 ##############################
 # cli entry point

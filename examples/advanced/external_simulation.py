@@ -89,35 +89,33 @@ for phenome_str in sys.stdin:
     ##############################
     # The Evolutionarly Algorithm
     ##############################
-    ea = generational_ea(max_generations=generations, pop_size=pop_size,
-                            problem=problem,  # Fitness function
-                            
-                            # By default, the initial population would be evaluated one-at-a-time.
-                            # Passing group_evaluate into init_evaluate evaluates the population in batches.
-                            init_evaluate=ops.grouped_evaluate(max_individuals_per_chunk=max_individuals_per_chunk),
+    generational_ea(max_generations=generations, pop_size=pop_size,
+                    problem=problem,  # Fitness function
+                    
+                    # By default, the initial population would be evaluated one-at-a-time.
+                    # Passing group_evaluate into init_evaluate evaluates the population in batches.
+                    init_evaluate=ops.grouped_evaluate(max_individuals_per_chunk=max_individuals_per_chunk),
 
-                            # Representation
-                            representation=Representation(
-                                # Initialize a population of integer-vector genomes
-                                initialize=create_real_vector(
-                                    bounds=[problem.bounds] * num_genes)
-                            ),
+                    # Representation
+                    representation=Representation(
+                        # Initialize a population of integer-vector genomes
+                        initialize=create_real_vector(
+                            bounds=[problem.bounds] * num_genes)
+                    ),
 
-                            # Operator pipeline
-                            pipeline=[
-                                ops.tournament_selection(k=2),
-                                ops.clone,  # Copying individuals before we change them, just to be safe
-                                mutate_gaussian(std=0.2, hard_bounds=[problem.bounds]*num_genes,
-                                                expected_num_mutations=1),
-                                ops.pool(size=pop_size),
-                                # Here again, we use grouped_evaluate to send chunks of individuals to the ExternalProcessProblem.
-                                ops.grouped_evaluate(max_individuals_per_chunk=max_individuals_per_chunk),
-                                # Print fitness statistics to stdout at each genration
-                                probe.FitnessStatsCSVProbe(stream=sys.stdout)
-                            ] + (viz_probes if plots else [])
-                        )
-
-    best_inds = list(ea)
+                    # Operator pipeline
+                    pipeline=[
+                        ops.tournament_selection(k=2),
+                        ops.clone,  # Copying individuals before we change them, just to be safe
+                        mutate_gaussian(std=0.2, hard_bounds=[problem.bounds]*num_genes,
+                                        expected_num_mutations=1),
+                        ops.pool(size=pop_size),
+                        # Here again, we use grouped_evaluate to send chunks of individuals to the ExternalProcessProblem.
+                        ops.grouped_evaluate(max_individuals_per_chunk=max_individuals_per_chunk),
+                        # Print fitness statistics to stdout at each genration
+                        probe.FitnessStatsCSVProbe(stream=sys.stdout)
+                    ] + (viz_probes if plots else [])
+                )
 
     if plots:
         # If we're not in test-harness mode, block until the user closes the app

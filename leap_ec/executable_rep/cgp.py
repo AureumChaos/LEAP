@@ -445,10 +445,12 @@ class CGPWithParametersDecoder(CGPDecoder):
         initializer.
         """
         def create():
-            return create_segmented_sequence(2, [
-                create_cgp_vector(self),
-                parameters_initializer
-            ])
+            genome = [
+                create_cgp_vector(self)(),
+                parameters_initializer()
+            ]
+            return genome
+
         return create
 
 
@@ -501,10 +503,7 @@ def cgp_genome_mutate(cgp_decoder,
 def create_cgp_vector(cgp_decoder):
     assert(cgp_decoder is not None)
 
-    def create():
-        return create_int_vector(cgp_decoder.bounds())()
-
-    return create
+    return create_int_vector(cgp_decoder.bounds())
 
 
 
