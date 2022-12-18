@@ -850,3 +850,25 @@ def test_migrate2():
     pop1 = op(pop1)
     assert(len(pop1) == 5), f"The population's size shouldnt' change after migration, but got {len(pop1)} instead of 5."
     #assert(pop1[0].genome == 'A'), "The first element of pop1 should be replaced by the first element of pop0"
+
+
+##############################
+# Test random_bernoulli_vector()
+##############################
+def test_random_bernoulli_vector_shape():
+    """ Checks if shape parameters can be int and a tuple and that probability and mean are close """
+    shape = (100, 2)
+    p = 0.5
+    x = ops.random_bernoulli_vector(shape, p)
+    assert(pytest.approx(np.mean(x), abs=1e-1) == p)
+
+    shape = 100
+    x = ops.random_bernoulli_vector(shape, p)
+    assert(pytest.approx(np.mean(x), abs=1e-1) == p)
+
+def test_random_bernoulli_vector_p():
+    """ Checks if error is thrown when p is out of range """
+    shape = 10
+    p = 2
+    with pytest.raises(AssertionError):
+        x = ops.random_bernoulli_vector(shape, p)

@@ -5,6 +5,8 @@
 import numpy as np
 
 from leap_ec.individual import Individual
+from leap_ec.ops import random_bernoulli_vector
+
 
 ##############################
 # Closure create_binary_sequence
@@ -29,6 +31,6 @@ def create_binary_sequence(length):
     """
 
     def create():
-        return np.random.choice([0, 1], size=(length,))
+        return random_bernoulli_vector(length)
 
     return create
