@@ -15,6 +15,7 @@ import leap_ec.statistical_helpers as stat
 # Tests for uniform_crossover()
 ##############################
 def test_uniform_crossover():
+    """Ensure that crossover with 100% swap probability completely swaps the two genomes."""
     pop = [Individual(np.array([0, 0])),
            Individual(np.array([1, 1]))]
 
@@ -98,35 +99,6 @@ def test_n_ary_crossover_probability2():
 
     # Use a χ-squared test to see if our experiment matches what we expect
     assert(stat.stochastic_equals(expected_dist, observed_dist, p=p))
-
-
-
-# These tests are now moot given the advent of variable length segments.
-
-# def test_uniform_crossover_bad_len():
-#     """ Test assertion for mis-matched genome lengths
-#     """
-#     pop = [Individual(np.array([0, 0, 1])),
-#            Individual(np.array([1, 1])])
-#
-#     i = ops.naive_cyclic_selection(pop)
-#
-#     with pytest.raises(RuntimeError):
-#         new_pop = list(itertools.islice(ops.uniform_crossover(i), 2))
-#
-#
-# def test_n_ary_crossover_bad_lengths():
-#     """ Genomes should be the same length for crossover
-#
-#     (Separate tests for variable length crossover.)
-#     """
-#     pop = [Individual(np.array([0, 0, 1])),
-#            Individual(np.array([1, 1])])
-#
-#     i = ops.naive_cyclic_selection(pop)
-#
-#     with pytest.raises(RuntimeError):
-#         new_pop = list(itertools.islice(ops.n_ary_crossover(i), 2))
 
 
 ##############################
