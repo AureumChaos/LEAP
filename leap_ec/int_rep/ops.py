@@ -6,7 +6,7 @@ from typing import Iterator
 import numpy as np
 from toolz import curry
 
-from leap_ec.ops import compute_expected_probability, iteriter_op
+from leap_ec.ops import compute_expected_probability, iteriter_op, random_bernoulli_vector
 from leap_ec.real_rep.ops import apply_hard_bounds
 
 
@@ -93,9 +93,7 @@ def individual_mutate_randint(genome,
     else:
         p = probability
 
-    selector = np.random.choice([0, 1], size=genome.shape,
-                                p=(1 - p, p))
-    indices_to_mutate = np.nonzero(selector)[0]
+    indices_to_mutate = random_bernoulli_vector(shape=genome.shape, p=p)
 
     bounds = np.array(bounds, dtype=int)
     selected_bounds = bounds[indices_to_mutate]
@@ -275,16 +273,14 @@ def genome_mutate_binomial(std,
         else:
             prob = probability
 
-        selector = np.random.choice([0, 1], size=genome.shape,
-                                    p=(1 - prob, prob))
-        indices_to_mutate = np.nonzero(selector)[0]
+        indices_to_mutate = random_bernoulli_vector(shape=genome.shape, p=prob)
 
         # Compute binomial parameters for each gene
         selected_p_values = p if not isinstance(p, Iterable) else p[indices_to_mutate]
         binom_mean = n*selected_p_values  # this will do elementwise multiplication if p is a vector
 
         # Apply binomial perturbations
-        additive = np.random.binomial(n, selected_p_values, size=len(indices_to_mutate)) - np.floor(binom_mean)
+        additive = np.random.binomial(n, selected_p_values, size=sum(indices_to_mutate)) - np.floor(binom_mean)
         mutated = genome[indices_to_mutate] + additive
         genome[indices_to_mutate] = mutated
 
