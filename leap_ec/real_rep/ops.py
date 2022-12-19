@@ -128,7 +128,7 @@ def genome_mutate_gaussian(genome,
 
     # Apply additive Gaussian noise to the selected genes
     new_gene_values = transform_slope * (genome[indices_to_mutate] \
-                                                    + np.random.normal(size=indices_to_mutate.shape[0]) \
+                                                    + np.random.normal(size=sum(indices_to_mutate)) \
                                                     # scalar multiply if scalar; element-wise if std is an ndarray
                                                     * std_selected) \
                                 + transform_intercept
