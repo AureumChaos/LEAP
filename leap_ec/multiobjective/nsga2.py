@@ -49,8 +49,8 @@ def generalized_nsga_2(max_generations: int,
     >>> from leap_ec.real_rep.ops import mutate_gaussian
     >>> from leap_ec.multiobjective.nsga2 import generalized_nsga_2
     >>> from leap_ec.multiobjective.problems import SCHProblem
-    >>> pop_size = 100
-    >>> max_generations = 250
+    >>> pop_size = 10
+    >>> max_generations = 5
     >>> final_pop = generalized_nsga_2(
     ...     max_generations=max_generations, pop_size=pop_size,
     ...
