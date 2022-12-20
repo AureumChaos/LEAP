@@ -1,6 +1,6 @@
 **LEAP: Evolutionary Algorithms in Python**
 
-*Written by Dr. Jeffrey K. Bassett, Dr. Mark Coletti, and Eric Scott*
+*Written by Dr. Jeffrey K. Bassett, Dr. Mark Coletti, and Dr. Eric Scott*
 
 ![Build Status](https://travis-ci.org/AureumChaos/LEAP.svg?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/AureumChaos/LEAP/badge.svg?branch=master)](https://coveralls.io/github/AureumChaos/LEAP?branch=master)
