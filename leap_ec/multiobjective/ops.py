@@ -278,6 +278,6 @@ def crowding_distance_calc(population: list) -> list:
     # all the sub-populations by rank.
     all_crowd_dist_pop = []
     for rank in pop_by_ranks.keys():
-        all_crowd_dist_pop.append(per_rank_calc(pop_by_ranks[rank]))
+        all_crowd_dist_pop += per_rank_calc(pop_by_ranks[rank])
 
     return all_crowd_dist_pop
