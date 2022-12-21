@@ -525,7 +525,11 @@ class CGPWithParametersDecoder(CGPDecoder):
         """
         Decode a genome containing both a CGP graph and a list of auxiliary parameters.
 
-        >>> primitives = [ sum, lambda x: x[0] - x[1], lambda x: x[0] * x[1] ]
+        >>> primitives=[
+        ...                lambda x, y, z: sum([x, y, z]),
+        ...                lambda x, y, z: (x - y)*z,
+        ...                lambda x, y, z: (x*y)*z
+        ...            ]
         >>> decoder = CGPWithParametersDecoder(primitives, num_inputs=2, num_outputs=2, num_layers=2, nodes_per_layer=2, max_arity=2, num_parameters_per_node=1)
         >>> genome = [ [ 0, 0, 1, 1, 0, 1, 2, 2, 3, 0, 2, 3, 4, 5 ], [ 0.5, 15, 2.7, 0.0 ] ]
         >>> executable = decoder.decode(genome)

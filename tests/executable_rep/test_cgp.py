@@ -178,7 +178,8 @@ def test_call1(test_2layer_circuit, tt_inputs):
 def test_call2(tt_inputs):
     """A circuit with an element that takes two inputs from the same input
     source should execute with no issues (this checks to make sure we support
-    multiple edges between the same two nodes)."""
+    multiple edges between the same two nodes).
+    """
     genome = [0, 1, 1, 1, 0, 0, 1]
 
     cgp_decoder = cgp.CGPDecoder(
@@ -196,6 +197,60 @@ def test_call2(tt_inputs):
     phenome = cgp_decoder.decode(genome)
 
     result = [ phenome(in_vals) for in_vals in tt_inputs ]
+
+
+def test_call3(tt_inputs):
+    """
+    A circuit decoded by CGPWithParametersDecoder with 4 nodes that each take a tunable parameter and apply
+    arithemtic operations should compute the function we expect it to compute.
+    """
+    genome = [  # Graph connections
+                [ 0, 0, 1,
+                 1, 0, 1,
+                 2, 2, 3,
+                 0, 2, 3,
+                 4, 5 ], 
+                 # Parameters
+               [ 0.5, 15, 2.7, 0.0 ]
+            ]
+
+    cgp_decoder = cgp.CGPWithParametersDecoder(
+                        primitives=[
+                            lambda x, y, z: sum([x, y, z]),
+                            lambda x, y, z: (x - y)*z,
+                            lambda x, y, z: (x*y)*z
+                        ],
+                        num_inputs = 2,
+                        num_outputs = 2,
+                        num_layers=1,
+                        nodes_per_layer=4,
+                        max_arity=2,
+                        num_parameters_per_node=1
+                    )
+
+
+    def expected_function(x, y):
+        """This is the function we expect the circuit defined by the above genome to compute."""
+        i0, i1 = x, y
+        n2 = sum([i0, i1, 0.5])
+        n3 = (i0 - i1)*15
+        n4 = (n2*n3)*2.7
+        n5 = sum([n2, n3, 0.0])
+        o6 = n4
+        o7 = n5
+        return o6, o7
+
+    phenome = cgp_decoder.decode(genome)
+
+    inputs = [
+        [1, 1],
+        [0, 10],
+        [36.5, 0],
+        [15, 16]
+    ]
+
+    for input in inputs:
+        assert(expected_function(*input) == pytest.approx(phenome(input)))
 
 
 
