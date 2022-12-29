@@ -179,15 +179,11 @@ class ZDT1Problem(MultiObjectiveProblem):
       algorithms: Empirical results." *Evolutionary computation* 8.2 (2000): 173-195.
 
     """
-    def __init__(self, n = 30, maximize = None):
+    def __init__(self, n = 30):
         """
         :param n: number of dimensions
-        :param maximize: boolean vector for each objective where True means
-            corresponding objective function is maximized
         """
-        if maximize is None:
-            maximize = (False,) * n
-        super().__init__(maximize=maximize)
+        super().__init__(maximize=(False, False))
         self.n = n
 
     def evaluate(self, phenome, *args, **kwargs):
@@ -195,12 +191,20 @@ class ZDT1Problem(MultiObjectiveProblem):
         :param phenome: contains x
         :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
         """
+        assert ((phenome >= 0) & (phenome <= 1)).all(),\
+            f"All elements of phenome must be between 0.0 and 1.0: {phenome}"
+        
         def g(x):
             """:param x: phenome[1..n]"""
-            return 1.0 + 9.0 * (x.sum()) / (self.n - 1.0)
+            return 1 + 9 * (x.sum()) / (self.n - 1)
+        
         fitness = np.zeros(2)
         fitness[0] = phenome[0]
-        fitness[1] = g(phenome[1:]) * (1 - np.sqrt(phenome[0]/g(phenome[1:])))
+        
+        g_x = g(phenome[1:]) 
+        h = 1 - np.sqrt(phenome[0] / g_x)
+            
+        fitness[1] = g_x * h
 
         return fitness
 
@@ -233,15 +237,11 @@ class ZDT2Problem(MultiObjectiveProblem):
       algorithms: Empirical results." *Evolutionary computation* 8.2 (2000): 173-195.
 
     """
-    def __init__(self, n = 30, maximize = None):
+    def __init__(self, n = 30):
         """
          :param n: number of dimensions
-         :param maximize: boolean vector for each objective where True means
-             corresponding objective function is maximized
          """
-        if maximize is None:
-            maximize = (False,) * n
-        super().__init__(maximize=maximize)
+        super().__init__(maximize=(False, False))
         self.n = n
 
 
@@ -250,11 +250,276 @@ class ZDT2Problem(MultiObjectiveProblem):
         :param phenome: contains x
         :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
         """
+        assert ((phenome >= 0) & (phenome <= 1)).all(),\
+            f"All elements of phenome must be between 0.0 and 1.0: {phenome}"
+        
         def g(x):
             """:param x: phenome[1..n]"""
-            return 1.0 + 9.0 * (x.sum()) / (self.n - 1.0)
+            return 1 + 9 * (x.sum()) / (self.n - 1)
+        
         fitness = np.zeros(2)
         fitness[0] = phenome[0]
-        fitness[1] = g(phenome[1:]) * (1 - (phenome[0] / g(phenome[1:])) ** 2)
+        
+        g_x = g(phenome[1:]) 
+        h = 1 - (phenome[0] / g_x) ** 2
+            
+        fitness[1] = g_x * h
+
+        return fitness
+
+
+##############################
+# Class ZTD3Problem
+##############################
+class ZDT3Problem(MultiObjectiveProblem):
+    """
+    The third problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
+    suite.  This function differs from :py:class:`leap_ec.problem.ZDT1Problem` and
+    :py:class:`leap_ec.problem.ZDT1Problem` in that the pareto-optimal front has
+    discontinuity.
+
+    This function is defined via the :py:class:`leap_ec.problem.ZDTBenchmarkProblem`
+    with the following parameters:
+
+    .. math::
+        TODO: Change math
+
+        \\begin{align}
+        f_1(x) &= x_1 \\\\
+        f_2(x) &= g(x)[1-(x_1/g(x))^2] \\\\
+        g(x) &= 1 + 9\\frac{\sum_{i=2}^n x_i}{n - 1} \\\\
+        0 \\le x_i &\\le 1, \mbox{ } i = 1, \dots, n
+        \\end{align}
+
+    Traditionally the problem is used with :math:`|x| = 10` dimensions in the solution space.
+
+    - Zitzler, Eckart, Kalyanmoy Deb, and Lothar Thiele. "Comparison of multiobjective evolutionary
+      algorithms: Empirical results." *Evolutionary computation* 8.2 (2000): 173-195.
+
+    """
+    def __init__(self, n = 10):
+        """
+         :param n: number of dimensions
+         """
+        super().__init__(maximize=(False, False))
+        self.n = n
+
+
+    def evaluate(self, phenome, *args, **kwargs):
+        """
+        :param phenome: contains x
+        :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
+        """
+        assert ((phenome >= 0) & (phenome <= 1)).all(),\
+            f"All elements of phenome must be between 0.0 and 1.0: {phenome}"
+        
+        def g(x):
+            """:param x: phenome[1..n]"""
+            return 1 + 9 * (x.sum()) / (self.n - 1)
+        
+        fitness = np.zeros(2)
+        fitness[0] = phenome[0]
+        
+        g_x = g(phenome[1:]) 
+        h = 1 - np.sqrt(phenome[0] / g_x)\
+            - (phenome[0] / g_x) * np.sin(10 * np.pi * phenome[0])
+            
+        fitness[1] = g_x * h
+
+        return fitness
+
+
+##############################
+# Class ZTD4Problem
+##############################
+class ZDT4Problem(MultiObjectiveProblem):
+    """
+    The fourth problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
+    suite.  ZDT4 contains 21^9 local pareto-optimal front, allowing it to test
+    for the EA's ability to handle multimodality.
+
+    This function is defined via the :py:class:`leap_ec.problem.ZDTBenchmarkProblem`
+    with the following parameters:
+
+    .. math::
+        TODO: Change math
+
+        \\begin{align}
+        f_1(x) &= x_1 \\\\
+        f_2(x) &= g(x)[1-(x_1/g(x))^2] \\\\
+        g(x) &= 1 + 9\\frac{\sum_{i=2}^n x_i}{n - 1} \\\\
+        0 \\le x_i &\\le 1, \mbox{ } i = 1, \dots, n
+        \\end{align}
+
+    Traditionally the problem is used with :math:`|x| = 30` dimensions in the solution space.
+
+    - Zitzler, Eckart, Kalyanmoy Deb, and Lothar Thiele. "Comparison of multiobjective evolutionary
+      algorithms: Empirical results." *Evolutionary computation* 8.2 (2000): 173-195.
+
+    """
+    def __init__(self, n = 30):
+        """
+         :param n: number of dimensions
+         """
+        super().__init__(maximize=(False, False))
+        self.n = n
+
+
+    def evaluate(self, phenome, *args, **kwargs):
+        """
+        :param phenome: contains x
+        :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
+        """
+        assert ((phenome[0] >= 0) and (phenome[0] <= 1)),\
+            f"Element 0 of phenome must be between 0.0 and 1.0: {phenome}"
+        assert ((phenome[1:] >= -5) & (phenome[1:] <= 5)).all(),\
+            f"Elements 1 onward of phenome must be between -5.0 and 5.0: {phenome}"
+        
+        def g(x):
+            """:param x: phenome[1..n]"""
+            return 1 + 10 * (self.n - 1) + np.sum(x ** 2 - 10 * np.cos(4 * np.pi * x))
+        
+        fitness = np.zeros(2)
+        fitness[0] = phenome[0]
+        
+        g_x = g(phenome[1:])
+        h = 1 - np.sqrt(phenome[0] / g_x)
+            
+        fitness[1] = g_x * h
+
+        return fitness
+
+
+##############################
+# Class ZTD5Problem
+##############################
+class ZDT5Problem(MultiObjectiveProblem):
+    """
+    The fifth problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
+    suite.  In contrast to the other ZTD problems, ZTD5 takes a binary
+
+    This function is defined via the :py:class:`leap_ec.problem.ZDTBenchmarkProblem`
+    with the following parameters:
+
+    .. math::
+        TODO: Change math
+
+        \\begin{align}
+        f_1(x) &= x_1 \\\\
+        f_2(x) &= g(x)[1-(x_1/g(x))^2] \\\\
+        g(x) &= 1 + 9\\frac{\sum_{i=2}^n x_i}{n - 1} \\\\
+        0 \\le x_i &\\le 1, \mbox{ } i = 1, \dots, n
+        \\end{align}
+
+    Traditionally the problem is used with :math:`|x| = 11` dimensions in the solution space.
+
+    - Zitzler, Eckart, Kalyanmoy Deb, and Lothar Thiele. "Comparison of multiobjective evolutionary
+      algorithms: Empirical results." *Evolutionary computation* 8.2 (2000): 173-195.
+
+    """
+    def __init__(self, n = 11):
+        """
+         :param n: number of dimensions
+         """
+        super().__init__(maximize=(False, False))
+        self.n = n
+        self.phenome_length = 30 + (self.n - 1) * 5
+
+    def evaluate(self, phenome, *args, **kwargs):
+        """
+        :param phenome: contains x
+        :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
+        """
+        
+        assert len(phenome) == self.phenome_length,\
+            f"Phenome must be length 30 + (n - 1) * 5, real length: {len(phenome)}"
+        assert set(phenome) == {0, 1},\
+            f"Phenome must be a bit string: {phenome}"
+        
+        # Separate bit string into elements
+        phenome = [
+            phenome[:30],
+            *(
+                phenome[i:i+5] for i in range(30, len(phenome), 5)
+            )
+        ]
+        
+        def v(x_i):
+            """:param x_i: phenome[i]"""
+            u = np.sum(x_i)
+            if u < 5:
+                return 2 + u
+            return 1
+        
+        def g(x):
+            """:param x: phenome[1..n]"""
+            return np.sum([v(x_i) for x_i in x])
+        
+        fitness = np.zeros(2)
+        fitness[0] = 1 + np.sum(phenome[0])
+        
+        g_x = g(phenome[1:])
+        h = 1 / fitness[0]
+            
+        fitness[1] = g_x * h
+
+        return fitness
+
+
+##############################
+# Class ZTD6Problem
+##############################
+class ZDT6Problem(MultiObjectiveProblem):
+    """
+    The sixth problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
+    suite. This function exhibits a nonuniformly distributed pareto front, as well as
+    a lower density of solutions nearer to the pareto front.
+
+    This function is defined via the :py:class:`leap_ec.problem.ZDTBenchmarkProblem`
+    with the following parameters:
+
+    .. math::
+        TODO: Change math
+
+        \\begin{align}
+        f_1(x) &= x_1 \\\\
+        f_2(x) &= g(x)[1-(x_1/g(x))^2] \\\\
+        g(x) &= 1 + 9\\frac{\sum_{i=2}^n x_i}{n - 1} \\\\
+        0 \\le x_i &\\le 1, \mbox{ } i = 1, \dots, n
+        \\end{align}
+
+    Traditionally the problem is used with :math:`|x| = 10` dimensions in the solution space.
+
+    - Zitzler, Eckart, Kalyanmoy Deb, and Lothar Thiele. "Comparison of multiobjective evolutionary
+      algorithms: Empirical results." *Evolutionary computation* 8.2 (2000): 173-195.
+
+    """
+    def __init__(self, n = 10):
+        """
+         :param n: number of dimensions
+         """
+        super().__init__(maximize=(False, False))
+        self.n = n
+
+
+    def evaluate(self, phenome, *args, **kwargs):
+        """
+        :param phenome: contains x
+        :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
+        """
+        assert ((phenome >= 0) & (phenome <= 1)).all(),\
+            f"All elements of phenome must be between 0.0 and 1.0: {phenome}"
+        
+        def g(x):
+            """:param x: phenome[1..n]"""
+            return 1 + 9 * ((x.sum()) / (self.n - 1)) ** 0.25
+        
+        fitness = np.zeros(2)
+        fitness[0] = 1 - np.exp(-4 * phenome[0]) * np.sin(6 * np.pi * phenome[0]) ** 6
+        
+        g_x = g(phenome[1:])
+        h = 1 - (fitness[0] / g_x) ** 2
+            
+        fitness[1] = g_x * h
 
         return fitness
