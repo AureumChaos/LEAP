@@ -185,6 +185,9 @@ class ZDT1Problem(MultiObjectiveProblem):
         """
         super().__init__(maximize=(False, False))
         self.n = n
+    
+    def bounds(self):
+        return [(0, 1)] * self.n
 
     def evaluate(self, phenome, *args, **kwargs):
         """
@@ -244,6 +247,8 @@ class ZDT2Problem(MultiObjectiveProblem):
         super().__init__(maximize=(False, False))
         self.n = n
 
+    def bounds(self):
+        return [(0, 1)] * self.n
 
     def evaluate(self, phenome, *args, **kwargs):
         """
@@ -304,6 +309,8 @@ class ZDT3Problem(MultiObjectiveProblem):
         super().__init__(maximize=(False, False))
         self.n = n
 
+    def bounds(self):
+        return [(0, 1)] * self.n
 
     def evaluate(self, phenome, *args, **kwargs):
         """
@@ -364,6 +371,8 @@ class ZDT4Problem(MultiObjectiveProblem):
         super().__init__(maximize=(False, False))
         self.n = n
 
+    def bounds(self):
+        return [(0, 1)] + [(-5, 5)] * (self.n - 1)
 
     def evaluate(self, phenome, *args, **kwargs):
         """
@@ -396,7 +405,7 @@ class ZDT4Problem(MultiObjectiveProblem):
 class ZDT5Problem(MultiObjectiveProblem):
     """
     The fifth problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
-    suite.  In contrast to the other ZTD problems, ZTD5 takes a binary
+    suite.  In contrast to the other ZTD problems, ZTD5 takes a binary string as input.
 
     This function is defined via the :py:class:`leap_ec.problem.ZDTBenchmarkProblem`
     with the following parameters:
@@ -425,6 +434,9 @@ class ZDT5Problem(MultiObjectiveProblem):
         self.n = n
         self.phenome_length = 30 + (self.n - 1) * 5
 
+    def bounds(self):
+        return [(0, 1)] * self.phenome_length
+    
     def evaluate(self, phenome, *args, **kwargs):
         """
         :param phenome: contains x
@@ -433,7 +445,7 @@ class ZDT5Problem(MultiObjectiveProblem):
         
         assert len(phenome) == self.phenome_length,\
             f"Phenome must be length 30 + (n - 1) * 5, real length: {len(phenome)}"
-        assert set(phenome) == {0, 1},\
+        assert set(phenome).issubset({0, 1}),\
             f"Phenome must be a bit string: {phenome}"
         
         # Separate bit string into elements
@@ -501,6 +513,8 @@ class ZDT6Problem(MultiObjectiveProblem):
         super().__init__(maximize=(False, False))
         self.n = n
 
+    def bounds(self):
+        return [(0, 1)] * self.n
 
     def evaluate(self, phenome, *args, **kwargs):
         """
