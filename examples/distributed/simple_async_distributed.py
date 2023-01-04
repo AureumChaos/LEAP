@@ -50,9 +50,6 @@ import logging
 import os
 from pprint import pformat
 
-# Python 3.9 workaround for Dask.
-# See https://github.com/dask/distributed/issues/4168
-import multiprocessing.popen_spawn_posix
 from distributed import Client, LocalCluster
 
 from leap_ec import Representation, test_env_var
