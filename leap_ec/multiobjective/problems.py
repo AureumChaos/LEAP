@@ -163,7 +163,7 @@ class ZDTBenchmarkProblem(MultiObjectiveProblem):
         pass
 
 ##############################
-# Class ZTD1Problem
+# Class ZDT1Problem
 ##############################
 class ZDT1Problem(ZDTBenchmarkProblem):
     """
@@ -224,7 +224,7 @@ class ZDT1Problem(ZDTBenchmarkProblem):
 
 
 ##############################
-# Class ZTD2Problem
+# Class ZDT2Problem
 ##############################
 class ZDT2Problem(ZDTBenchmarkProblem):
     """
@@ -284,7 +284,7 @@ class ZDT2Problem(ZDTBenchmarkProblem):
 
 
 ##############################
-# Class ZTD3Problem
+# Class ZDT3Problem
 ##############################
 class ZDT3Problem(ZDTBenchmarkProblem):
     """
@@ -347,7 +347,7 @@ class ZDT3Problem(ZDTBenchmarkProblem):
 
 
 ##############################
-# Class ZTD4Problem
+# Class ZDT4Problem
 ##############################
 class ZDT4Problem(ZDTBenchmarkProblem):
     """
@@ -410,12 +410,12 @@ class ZDT4Problem(ZDTBenchmarkProblem):
 
 
 ##############################
-# Class ZTD5Problem
+# Class ZDT5Problem
 ##############################
 class ZDT5Problem(ZDTBenchmarkProblem):
     """
     The fifth problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
-    suite.  In contrast to the other ZTD problems, ZTD5 takes a binary string as input.
+    suite.  In contrast to the other ZDT problems, ZDT5 takes a binary string as input.
 
     This function is defined via the :py:class:`leap_ec.problem.ZDTBenchmarkProblem`
     with the following parameters:
@@ -489,7 +489,7 @@ class ZDT5Problem(ZDTBenchmarkProblem):
 
 
 ##############################
-# Class ZTD6Problem
+# Class ZDT6Problem
 ##############################
 class ZDT6Problem(ZDTBenchmarkProblem):
     """
