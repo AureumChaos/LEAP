@@ -3,7 +3,7 @@
     LEAP Problem classes for multiobjective optimization.
 """
 from typing import Sequence
-
+from abc import abstractmethod
 import numpy as np
 
 from ..problem import Problem
@@ -151,11 +151,21 @@ class SCHProblem(MultiObjectiveProblem):
         fitness[1] = (phenome - 2.0) ** 2
         return fitness
 
+class ZDTBenchmarkProblem(MultiObjectiveProblem):
+    
+    def __init__(self, n, check_phenome=True):
+        super().__init__(maximize=(False, False))
+        self.n = n
+        self.check_phenome = check_phenome
+        
+    @abstractmethod
+    def bounds(self):
+        pass
 
 ##############################
 # Class ZTD1Problem
 ##############################
-class ZDT1Problem(MultiObjectiveProblem):
+class ZDT1Problem(ZDTBenchmarkProblem):
     """
     The first problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
     suite.  It's meant to provide a simple multi-objective problem with a *convex*
@@ -179,12 +189,11 @@ class ZDT1Problem(MultiObjectiveProblem):
       algorithms: Empirical results." *Evolutionary computation* 8.2 (2000): 173-195.
 
     """
-    def __init__(self, n = 30):
+    def __init__(self, n=30, check_phenome=True):
         """
         :param n: number of dimensions
         """
-        super().__init__(maximize=(False, False))
-        self.n = n
+        super().__init__(n, check_phenome)
     
     def bounds(self):
         return [(0, 1)] * self.n
@@ -194,8 +203,9 @@ class ZDT1Problem(MultiObjectiveProblem):
         :param phenome: contains x
         :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
         """
-        assert ((phenome >= 0) & (phenome <= 1)).all(),\
-            f"All elements of phenome must be between 0.0 and 1.0: {phenome}"
+        if self.check_phenome:
+            assert ((phenome >= 0) & (phenome <= 1)).all(),\
+                f"All elements of phenome must be in [0.0, 1.0]: {phenome}"
         
         def g(x):
             """:param x: phenome[1..n]"""
@@ -216,7 +226,7 @@ class ZDT1Problem(MultiObjectiveProblem):
 ##############################
 # Class ZTD2Problem
 ##############################
-class ZDT2Problem(MultiObjectiveProblem):
+class ZDT2Problem(ZDTBenchmarkProblem):
     """
     The second problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
     suite.  This is similar to :py:class:`leap_ec.problem.ZDT1Problem`, except that
@@ -240,12 +250,11 @@ class ZDT2Problem(MultiObjectiveProblem):
       algorithms: Empirical results." *Evolutionary computation* 8.2 (2000): 173-195.
 
     """
-    def __init__(self, n = 30):
+    def __init__(self, n=30, check_phenome=True):
         """
          :param n: number of dimensions
          """
-        super().__init__(maximize=(False, False))
-        self.n = n
+        super().__init__(n, check_phenome)
 
     def bounds(self):
         return [(0, 1)] * self.n
@@ -255,8 +264,9 @@ class ZDT2Problem(MultiObjectiveProblem):
         :param phenome: contains x
         :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
         """
-        assert ((phenome >= 0) & (phenome <= 1)).all(),\
-            f"All elements of phenome must be between 0.0 and 1.0: {phenome}"
+        if self.check_phenome:
+            assert ((phenome >= 0) & (phenome <= 1)).all(),\
+                f"All elements of phenome must be in [0.0, 1.0]: {phenome}"
         
         def g(x):
             """:param x: phenome[1..n]"""
@@ -276,7 +286,7 @@ class ZDT2Problem(MultiObjectiveProblem):
 ##############################
 # Class ZTD3Problem
 ##############################
-class ZDT3Problem(MultiObjectiveProblem):
+class ZDT3Problem(ZDTBenchmarkProblem):
     """
     The third problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
     suite.  This function differs from :py:class:`leap_ec.problem.ZDT1Problem` and
@@ -302,12 +312,11 @@ class ZDT3Problem(MultiObjectiveProblem):
       algorithms: Empirical results." *Evolutionary computation* 8.2 (2000): 173-195.
 
     """
-    def __init__(self, n = 10):
+    def __init__(self, n=10, check_phenome=True):
         """
          :param n: number of dimensions
-         """
-        super().__init__(maximize=(False, False))
-        self.n = n
+        """
+        super().__init__(n, check_phenome)
 
     def bounds(self):
         return [(0, 1)] * self.n
@@ -317,8 +326,9 @@ class ZDT3Problem(MultiObjectiveProblem):
         :param phenome: contains x
         :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
         """
-        assert ((phenome >= 0) & (phenome <= 1)).all(),\
-            f"All elements of phenome must be between 0.0 and 1.0: {phenome}"
+        if self.check_phenome:
+            assert ((phenome >= 0) & (phenome <= 1)).all(),\
+                f"All elements of phenome must be in [0.0, 1.0]: {phenome}"
         
         def g(x):
             """:param x: phenome[1..n]"""
@@ -339,11 +349,11 @@ class ZDT3Problem(MultiObjectiveProblem):
 ##############################
 # Class ZTD4Problem
 ##############################
-class ZDT4Problem(MultiObjectiveProblem):
+class ZDT4Problem(ZDTBenchmarkProblem):
     """
     The fourth problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
-    suite.  ZDT4 contains 21^9 local pareto-optimal front, allowing it to test
-    for the EA's ability to handle multimodality.
+    suite.  ZDT4 contains 21^9 local pareto-optimal front for the default parameters,
+    allowing it to test for the EA's ability to handle multimodality.
 
     This function is defined via the :py:class:`leap_ec.problem.ZDTBenchmarkProblem`
     with the following parameters:
@@ -364,12 +374,11 @@ class ZDT4Problem(MultiObjectiveProblem):
       algorithms: Empirical results." *Evolutionary computation* 8.2 (2000): 173-195.
 
     """
-    def __init__(self, n = 30):
+    def __init__(self, n=30, check_phenome=True):
         """
          :param n: number of dimensions
-         """
-        super().__init__(maximize=(False, False))
-        self.n = n
+        """
+        super().__init__(n, check_phenome)
 
     def bounds(self):
         return [(0, 1)] + [(-5, 5)] * (self.n - 1)
@@ -379,10 +388,11 @@ class ZDT4Problem(MultiObjectiveProblem):
         :param phenome: contains x
         :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
         """
-        assert ((phenome[0] >= 0) and (phenome[0] <= 1)),\
-            f"Element 0 of phenome must be between 0.0 and 1.0: {phenome}"
-        assert ((phenome[1:] >= -5) & (phenome[1:] <= 5)).all(),\
-            f"Elements 1 onward of phenome must be between -5.0 and 5.0: {phenome}"
+        if self.check_phenome:
+            assert ((phenome[0] >= 0) and (phenome[0] <= 1)),\
+                f"Element 0 of phenome must be in [0.0, 1.0]: {phenome}"
+            assert ((phenome[1:] >= -5) & (phenome[1:] <= 5)).all(),\
+                f"Elements 1 onward of phenome must be in [-5.0, 5.0]: {phenome}"
         
         def g(x):
             """:param x: phenome[1..n]"""
@@ -402,7 +412,7 @@ class ZDT4Problem(MultiObjectiveProblem):
 ##############################
 # Class ZTD5Problem
 ##############################
-class ZDT5Problem(MultiObjectiveProblem):
+class ZDT5Problem(ZDTBenchmarkProblem):
     """
     The fifth problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
     suite.  In contrast to the other ZTD problems, ZTD5 takes a binary string as input.
@@ -426,12 +436,11 @@ class ZDT5Problem(MultiObjectiveProblem):
       algorithms: Empirical results." *Evolutionary computation* 8.2 (2000): 173-195.
 
     """
-    def __init__(self, n = 11):
+    def __init__(self, n=11, check_phenome=True):
         """
          :param n: number of dimensions
          """
-        super().__init__(maximize=(False, False))
-        self.n = n
+        super().__init__(n, check_phenome)
         self.phenome_length = 30 + (self.n - 1) * 5
 
     def bounds(self):
@@ -443,10 +452,11 @@ class ZDT5Problem(MultiObjectiveProblem):
         :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
         """
         
-        assert len(phenome) == self.phenome_length,\
-            f"Phenome must be length 30 + (n - 1) * 5, real length: {len(phenome)}"
-        assert set(phenome).issubset({0, 1}),\
-            f"Phenome must be a bit string: {phenome}"
+        if self.check_phenome:
+            assert len(phenome) == self.phenome_length,\
+                f"Phenome must be length {self.phenome_length}, actual length: {len(phenome)}"
+            assert set(phenome).issubset({0, 1}),\
+                f"Phenome must be a bit string: {phenome}"
         
         # Separate bit string into elements
         phenome = [
@@ -481,7 +491,7 @@ class ZDT5Problem(MultiObjectiveProblem):
 ##############################
 # Class ZTD6Problem
 ##############################
-class ZDT6Problem(MultiObjectiveProblem):
+class ZDT6Problem(ZDTBenchmarkProblem):
     """
     The sixth problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
     suite. This function exhibits a nonuniformly distributed pareto front, as well as
@@ -506,12 +516,11 @@ class ZDT6Problem(MultiObjectiveProblem):
       algorithms: Empirical results." *Evolutionary computation* 8.2 (2000): 173-195.
 
     """
-    def __init__(self, n = 10):
+    def __init__(self, n=10, check_phenome=True):
         """
          :param n: number of dimensions
-         """
-        super().__init__(maximize=(False, False))
-        self.n = n
+        """
+        super().__init__(n, check_phenome)
 
     def bounds(self):
         return [(0, 1)] * self.n
@@ -521,8 +530,9 @@ class ZDT6Problem(MultiObjectiveProblem):
         :param phenome: contains x
         :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
         """
-        assert ((phenome >= 0) & (phenome <= 1)).all(),\
-            f"All elements of phenome must be between 0.0 and 1.0: {phenome}"
+        if self.check_phenome:
+            assert ((phenome >= 0) & (phenome <= 1)).all(),\
+                f"All elements of phenome must be in [0.0, 1.0]: {phenome}"
         
         def g(x):
             """:param x: phenome[1..n]"""
