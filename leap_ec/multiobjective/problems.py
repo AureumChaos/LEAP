@@ -372,9 +372,6 @@ class ZDT4Problem(ZDTBenchmarkProblem):
     suite.  ZDT4 contains 21^9 local pareto-optimal front for the default parameters,
     allowing it to test for the EA's ability to handle multimodality.
 
-    This function is defined via the :py:class:`leap_ec.problem.ZDTBenchmarkProblem`
-    with the following parameters:
-
     .. math::
 
         \\begin{align}
