@@ -62,9 +62,7 @@ class MultiObjectiveProblem(Problem):
         # converting objectives to maximization objectives as needed.
         # E.g., for l = [True, False, True, True]
         # Fix for maximize bug courtesy of Luke McCombs; he suggested using np.where()
-        ones = np.ones(len(maximize))
-        interim = np.where(maximize, 1, -1)
-        self.maximize = interim
+        self.maximize = np.where(maximize, 1, -1)
 
     def worse_than(self, first_fitnesses, second_fitnesses):
         """Return true if first_fitnesses is Pareto-dominated by second_fitnesses.
@@ -141,7 +139,7 @@ class SCHProblem(MultiObjectiveProblem):
     def __init__(self):
         super().__init__(maximize=(False, False))
 
-    def evaluate(self, phenome, *args, **kwargs):
+    def evaluate(self, phenome):
         """
         :param phenome: argument for objective functions
         :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
@@ -152,14 +150,43 @@ class SCHProblem(MultiObjectiveProblem):
         return fitness
 
 class ZDTBenchmarkProblem(MultiObjectiveProblem):
+    """
+    The base class for problems from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
+    suite.
+    
+    Each problem is of the form:
+    
+    .. math::
+
+        \\begin{align}
+        \\textrm{Minimize} \\quad& \\mathcal{T}(x) &=&\\quad (f_1(x_1), f_2(x)) \\\\
+        \\textrm{subject to} \\quad& f_2(x) &=&\\quad g(x_2, \\ldots, x_n)h(f_1(x_1), g(x_2, \\ldots, x_n))\\\\
+        \\textrm{where} \\quad& x &=&\\quad (x_1,\\ldots,x_m)\\\\
+        \\end{align}
+        
+    For reliability when testing, each problem has been provided with a `check_phenome`
+    parameter to ensure that phenomes match the expected form and bounds of the problem.
+
+    - Zitzler, Eckart, Kalyanmoy Deb, and Lothar Thiele. "Comparison of multiobjective evolutionary
+      algorithms: Empirical results." *Evolutionary computation* 8.2 (2000): 173-195.
+
+    """
     
     def __init__(self, n, check_phenome=True):
+        """
+        :param n: number of dimensions
+        :param check_phenome: whether phenome bounds checking should be performed
+        """
         super().__init__(maximize=(False, False))
         self.n = n
         self.check_phenome = check_phenome
-        
+    
+    @property
     @abstractmethod
     def bounds(self):
+        """
+        :returns: the bounds of the phenome
+        """
         pass
 
 ##############################
@@ -170,17 +197,16 @@ class ZDT1Problem(ZDTBenchmarkProblem):
     The first problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
     suite.  It's meant to provide a simple multi-objective problem with a *convex*
     Pareto-optimal front.
-
-    This function is defined via the :py:class:`leap_ec.problem.ZDTBenchmarkProblem`
-    with the following parameters:
-
+    
     .. math::
 
         \\begin{align}
-        f_1(x) &= x_1 \\\\
-        f_2(x) &= g(x)[1-\sqrt{x_1/g(x)}] \\\\
-        g(x) &= 1 + 9\\frac{\sum_{i=2}^n x_i}{n - 1} \\\\
-        0 \\le x_i &\\le 1, \mbox{ } i = 1, \dots, n
+        f_1(x_1) &= x_1 \\\\
+        g(x_2, \\ldots, x_n) &= 1 + 9\\cdot {\\sum_{i=2}^n x_i} / (n - 1) \\\\
+        h(f_1, g) &= 1 - \\sqrt{f_1/g}\\\\
+        f_2(x) &= g(x_2, \\ldots, x_n)h(f_1(x_1), g(x_2, \\ldots, x_n))\\\\
+        \\\\\\\\
+        x_i &\\in [0,1]
         \\end{align}
 
     Traditionally the problem is used with :math:`|x| = 30` dimensions in the solution space.
@@ -190,15 +216,13 @@ class ZDT1Problem(ZDTBenchmarkProblem):
 
     """
     def __init__(self, n=30, check_phenome=True):
-        """
-        :param n: number of dimensions
-        """
         super().__init__(n, check_phenome)
     
+    @property
     def bounds(self):
         return [(0, 1)] * self.n
 
-    def evaluate(self, phenome, *args, **kwargs):
+    def evaluate(self, phenome):
         """
         :param phenome: contains x
         :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
@@ -232,16 +256,15 @@ class ZDT2Problem(ZDTBenchmarkProblem):
     suite.  This is similar to :py:class:`leap_ec.problem.ZDT1Problem`, except that
     it has a *non-convex* Pareto front.
 
-    This function is defined via the :py:class:`leap_ec.problem.ZDTBenchmarkProblem`
-    with the following parameters:
-
     .. math::
 
         \\begin{align}
-        f_1(x) &= x_1 \\\\
-        f_2(x) &= g(x)[1-(x_1/g(x))^2] \\\\
-        g(x) &= 1 + 9\\frac{\sum_{i=2}^n x_i}{n - 1} \\\\
-        0 \\le x_i &\\le 1, \mbox{ } i = 1, \dots, n
+        f_1(x_1) &= x_1 \\\\
+        g(x_2, \\ldots, x_n) &= 1 + 9\\cdot {\\sum_{i=2}^n x_i} / (n - 1) \\\\
+        h(f_1, g) &= 1 - (f_1/g)^2\\\\
+        f_2(x) &= g(x_2, \\ldots, x_n)h(f_1(x_1), g(x_2, \\ldots, x_n))\\\\
+        \\\\\\\\
+        x_i &\\in [0,1]
         \\end{align}
 
     Traditionally the problem is used with :math:`|x| = 30` dimensions in the solution space.
@@ -251,15 +274,13 @@ class ZDT2Problem(ZDTBenchmarkProblem):
 
     """
     def __init__(self, n=30, check_phenome=True):
-        """
-         :param n: number of dimensions
-         """
         super().__init__(n, check_phenome)
 
+    @property
     def bounds(self):
         return [(0, 1)] * self.n
 
-    def evaluate(self, phenome, *args, **kwargs):
+    def evaluate(self, phenome):
         """
         :param phenome: contains x
         :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
@@ -293,17 +314,15 @@ class ZDT3Problem(ZDTBenchmarkProblem):
     :py:class:`leap_ec.problem.ZDT1Problem` in that the pareto-optimal front has
     discontinuity.
 
-    This function is defined via the :py:class:`leap_ec.problem.ZDTBenchmarkProblem`
-    with the following parameters:
-
     .. math::
-        TODO: Change math
 
         \\begin{align}
-        f_1(x) &= x_1 \\\\
-        f_2(x) &= g(x)[1-(x_1/g(x))^2] \\\\
-        g(x) &= 1 + 9\\frac{\sum_{i=2}^n x_i}{n - 1} \\\\
-        0 \\le x_i &\\le 1, \mbox{ } i = 1, \dots, n
+        f_1(x_1) &= x_1 \\\\
+        g(x_2, \\ldots, x_n) &= 1 + 9\\cdot {\\sum_{i=2}^n x_i} / (n - 1) \\\\
+        h(f_1, g) &= 1 - \\sqrt{f_1/g} - (f_1/g)\\sin(10\\pi f_1)\\\\
+        f_2(x) &= g(x_2, \\ldots, x_n)h(f_1(x_1), g(x_2, \\ldots, x_n))\\\\
+        \\\\\\\\
+        x_i &\\in [0,1]
         \\end{align}
 
     Traditionally the problem is used with :math:`|x| = 10` dimensions in the solution space.
@@ -313,15 +332,13 @@ class ZDT3Problem(ZDTBenchmarkProblem):
 
     """
     def __init__(self, n=10, check_phenome=True):
-        """
-         :param n: number of dimensions
-        """
         super().__init__(n, check_phenome)
 
+    @property
     def bounds(self):
         return [(0, 1)] * self.n
 
-    def evaluate(self, phenome, *args, **kwargs):
+    def evaluate(self, phenome):
         """
         :param phenome: contains x
         :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
@@ -359,13 +376,14 @@ class ZDT4Problem(ZDTBenchmarkProblem):
     with the following parameters:
 
     .. math::
-        TODO: Change math
 
         \\begin{align}
-        f_1(x) &= x_1 \\\\
-        f_2(x) &= g(x)[1-(x_1/g(x))^2] \\\\
-        g(x) &= 1 + 9\\frac{\sum_{i=2}^n x_i}{n - 1} \\\\
-        0 \\le x_i &\\le 1, \mbox{ } i = 1, \dots, n
+        f_1(x_1) &= x_1 \\\\
+        g(x_2, \\ldots, x_n) &= 1 + 10(n-1) + \\sum_{i=2}^n (x_i^2 - 10\\cos(4\\pi x_i)) \\\\
+        h(f_1, g) &= 1 - \\sqrt{f_1/g}\\\\
+        f_2(x) &= g(x_2, \\ldots, x_n)h(f_1(x_1), g(x_2, \\ldots, x_n))\\\\
+        \\\\\\\\
+        x_1 &\\in [0,1] \\quad x_2, \\ldots, x_n \\in [-5,5]
         \\end{align}
 
     Traditionally the problem is used with :math:`|x| = 30` dimensions in the solution space.
@@ -375,15 +393,13 @@ class ZDT4Problem(ZDTBenchmarkProblem):
 
     """
     def __init__(self, n=30, check_phenome=True):
-        """
-         :param n: number of dimensions
-        """
         super().__init__(n, check_phenome)
 
+    @property
     def bounds(self):
         return [(0, 1)] + [(-5, 5)] * (self.n - 1)
 
-    def evaluate(self, phenome, *args, **kwargs):
+    def evaluate(self, phenome):
         """
         :param phenome: contains x
         :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
@@ -416,45 +432,62 @@ class ZDT5Problem(ZDTBenchmarkProblem):
     """
     The fifth problem from the classic Zitzler, Deb, and Thiele (ZDT) benchmark
     suite.  In contrast to the other ZDT problems, ZDT5 takes a binary string as input.
-
-    This function is defined via the :py:class:`leap_ec.problem.ZDTBenchmarkProblem`
-    with the following parameters:
+    
+    Unlike the other ZDT problems, `ZDT5Problem` additionally provides a `phenome_length`
+    property, denoting the length of the flattened binary sequence `x`. This property is
+    intended to ease the creation of binary sequence phenomes for input into the problem.
 
     .. math::
-        TODO: Change math
 
         \\begin{align}
-        f_1(x) &= x_1 \\\\
-        f_2(x) &= g(x)[1-(x_1/g(x))^2] \\\\
-        g(x) &= 1 + 9\\frac{\sum_{i=2}^n x_i}{n - 1} \\\\
-        0 \\le x_i &\\le 1, \mbox{ } i = 1, \dots, n
+        u(x_i) &= \\textrm{unitation}(x_i)\\\\
+        v(u(x_i)) &= 
+        \\left\\{
+            \\begin{array}{lc}
+                2+u(x_i) & if u(x_i) < 5 \\\\
+                1 & if u(x_i) = 5 \\\\
+            \\end{array}
+        \\right\\}\\\\
+        \\\\\\\\
+        f_1(x_1) &= 1 + u(x_1) \\\\
+        g(x_2, \\ldots, x_n) &= \\sum_{i=2}^n v(u(x_i)) \\\\
+        h(f_1, g) &= 1 / f_1\\\\
+        f_2(x) &= g(x_2, \\ldots, x_n)h(f_1(x_1), g(x_2, \\ldots, x_n))\\\\
+        \\\\\\\\
+        x_1 &\\in \\{0,1\\}^30 \\quad x_2, \\ldots, x_n \\in \\{0,1\\}^5
         \\end{align}
 
     Traditionally the problem is used with :math:`|x| = 11` dimensions in the solution space.
+    This translates to a flattened binary sequence of :math:`|phenome_x| = 80`.
 
     - Zitzler, Eckart, Kalyanmoy Deb, and Lothar Thiele. "Comparison of multiobjective evolutionary
       algorithms: Empirical results." *Evolutionary computation* 8.2 (2000): 173-195.
 
     """
     def __init__(self, n=11, check_phenome=True):
-        """
-         :param n: number of dimensions
-         """
         super().__init__(n, check_phenome)
-        self.phenome_length = 30 + (self.n - 1) * 5
+        self._phenome_length = 30 + (self.n - 1) * 5
 
-    def bounds(self):
-        return [(0, 1)] * self.phenome_length
-    
-    def evaluate(self, phenome, *args, **kwargs):
+    @property
+    def phenome_length(self):
         """
-        :param phenome: contains x
+        :returns: the length of the flattened binary sequence x
+        """
+        return self._phenome_length
+    
+    @property
+    def bounds(self):
+        return [(0, 1)] * self._phenome_length
+    
+    def evaluate(self, phenome):
+        """
+        :param phenome: the flattened binary sequence x
         :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
         """
         
         if self.check_phenome:
-            assert len(phenome) == self.phenome_length,\
-                f"Phenome must be length {self.phenome_length}, actual length: {len(phenome)}"
+            assert len(phenome) == self._phenome_length,\
+                f"Phenome must be length {self._phenome_length}, actual length: {len(phenome)}"
             assert set(phenome).issubset({0, 1}),\
                 f"Phenome must be a bit string: {phenome}"
         
@@ -497,17 +530,15 @@ class ZDT6Problem(ZDTBenchmarkProblem):
     suite. This function exhibits a nonuniformly distributed pareto front, as well as
     a lower density of solutions nearer to the pareto front.
 
-    This function is defined via the :py:class:`leap_ec.problem.ZDTBenchmarkProblem`
-    with the following parameters:
-
     .. math::
-        TODO: Change math
 
         \\begin{align}
-        f_1(x) &= x_1 \\\\
-        f_2(x) &= g(x)[1-(x_1/g(x))^2] \\\\
-        g(x) &= 1 + 9\\frac{\sum_{i=2}^n x_i}{n - 1} \\\\
-        0 \\le x_i &\\le 1, \mbox{ } i = 1, \dots, n
+        f_1(x_1) &= 1-\\textrm{exp}(-4x_1)\\sin^6(6\\pi x_1) \\\\
+        g(x_2, \\ldots, x_n) &= 1 + 9\\cdot (({\\sum_{i=2}^n x_i}) / (n - 1))^{0.25} \\\\
+        h(f_1, g) &= 1 - (f_1/g)^2\\\\
+        f_2(x) &= g(x_2, \\ldots, x_n)h(f_1(x_1), g(x_2, \\ldots, x_n))\\\\
+        \\\\\\\\
+        x_i &\\in [0,1]
         \\end{align}
 
     Traditionally the problem is used with :math:`|x| = 10` dimensions in the solution space.
@@ -517,15 +548,13 @@ class ZDT6Problem(ZDTBenchmarkProblem):
 
     """
     def __init__(self, n=10, check_phenome=True):
-        """
-         :param n: number of dimensions
-        """
         super().__init__(n, check_phenome)
 
+    @property
     def bounds(self):
         return [(0, 1)] * self.n
 
-    def evaluate(self, phenome, *args, **kwargs):
+    def evaluate(self, phenome):
         """
         :param phenome: contains x
         :returns: two fitnesses, one for :math:`f_1(x)` and :math:`f_2(x)`
