@@ -194,12 +194,16 @@ def steady_state(client, births, init_pop_size, pop_size,
         logger.debug('%d evaluated: %s %s', i, str(evaluated.genome),
                      str(evaluated.fitness))
 
-        if not count_nonviable and not is_viable(evaluated):
-            # If we don't want non-viable individuals to count towards the
-            # birth budget, then we need to decrement the birth count that was
-            # incremented when it was created for this individual since it
-            # was broken in some way.
+        if is_viable(evaluated):
             birth_counter()
+        elif count_nonviable:
+            # Even if the individual is not-viable, we want to count it towards
+            # the birth budget
+            birth_counter()
+        else:
+            # The individual is not viable and we don't want to count it towards
+            # the birth budget.
+            pass
 
         inserter(evaluated, pop, pop_size)
 
