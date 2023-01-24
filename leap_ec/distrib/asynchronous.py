@@ -177,8 +177,9 @@ def steady_state(client, births, init_pop_size, pop_size,
     # This is where we'll be putting evaluated individuals
     pop = []
 
-    # Bookkeeping for tracking the number of births
-    birth_counter = util.inc_births(context)
+    # Bookkeeping for tracking the number of births. We also want to include
+    # the initial population towards our birth budget.
+    birth_counter = util.inc_births(context, start=len(initial_population))
 
     for i, evaluated_future in enumerate(as_completed_iter):
 
@@ -194,16 +195,12 @@ def steady_state(client, births, init_pop_size, pop_size,
         logger.debug('%d evaluated: %s %s', i, str(evaluated.genome),
                      str(evaluated.fitness))
 
-        if is_viable(evaluated):
-            birth_counter.do_increment()
-        elif count_nonviable:
-            # Even if the individual is not-viable, we want to count it towards
-            # the birth budget
-            birth_counter.do_increment()
-        else:
-            # The individual is not viable and we don't want to count it towards
-            # the birth budget.
-            pass
+        if not is_viable(evaluated):
+            if not count_nonviable:
+                # if we want the non-viables to not count towards the budget
+                # then we need to decrement the birth counter to ensure that
+                # a new individual is spawned to replace it.
+                birth_counter.do_decrement()
 
         inserter(evaluated, pop, pop_size)
 
@@ -222,5 +219,8 @@ def steady_state(client, births, init_pop_size, pop_size,
                 future = client.submit(evaluate(context=context), child,
                                        pure=False)
                 as_completed_iter.add(future)
+
+            # Be sure to count the new kids against the birth budget
+            birth_counter.do_increment(len(offspring))
 
     return pop
