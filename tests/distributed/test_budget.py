@@ -27,15 +27,9 @@ def accumulate():
     def individuals():
         return inds
 
-    def _accumulate(next_individual: Iterator):
+    def _accumulate(individual):
         nonlocal inds
-
-        while True:
-            individual = next(next_individual)
-
-            inds.append(individual)
-
-            yield individual
+        inds.append(individual)
 
     # convenient accessor for individuals
     _accumulate.individuals = individuals
@@ -48,7 +42,8 @@ representation = Representation(create_binary_sequence(3))
 def test_meet_budget():
     """ This test is to ensure that we meet our birth budget exactly """
     with Client() as client:
-
+        # We accumulate all the evaluated individuals the number of
+        # which should be equal to our birth budget of four.
         my_accumulate = accumulate()
 
         pop = steady_state(client=client,
@@ -57,16 +52,16 @@ def test_meet_budget():
                            pop_size=2,
                            representation=representation,
                            problem=MaxOnes(),
+                           evaluated_probe=my_accumulate,
                            offspring_pipeline=[
                                ops.random_selection,
                                ops.clone,
-                               my_accumulate,
                                ops.pool(size=1)]
                            )
 
     inds = my_accumulate.individuals()
 
-    assert len(pop) == 2
+    assert len(inds) == 4
 
 
 def test_meet_budget_count_nonviable():
