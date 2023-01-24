@@ -122,6 +122,7 @@ def test_meet_budget_count_nonviable():
                            representation=representation,
                            problem=BrokenProblem(3, counter),
                            evaluated_probe=my_accumulate,
+                           count_nonviable=False,
                            offspring_pipeline=[
                                ops.random_selection,
                                ops.clone,
