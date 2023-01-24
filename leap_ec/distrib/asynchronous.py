@@ -178,7 +178,7 @@ def steady_state(client, births, init_pop_size, pop_size,
     pop = []
 
     # Bookkeeping for tracking the number of births
-    birth_counter = util.inc_births(context, start=len(initial_population))
+    birth_counter = util.inc_births(context)
 
     for i, evaluated_future in enumerate(as_completed_iter):
 
@@ -195,11 +195,11 @@ def steady_state(client, births, init_pop_size, pop_size,
                      str(evaluated.fitness))
 
         if is_viable(evaluated):
-            birth_counter()
+            birth_counter.do_increment()
         elif count_nonviable:
             # Even if the individual is not-viable, we want to count it towards
             # the birth budget
-            birth_counter()
+            birth_counter.do_increment()
         else:
             # The individual is not viable and we don't want to count it towards
             # the birth budget.
@@ -222,7 +222,5 @@ def steady_state(client, births, init_pop_size, pop_size,
                 future = client.submit(evaluate(context=context), child,
                                        pure=False)
                 as_completed_iter.add(future)
-
-            birth_counter(len(offspring))
 
     return pop
