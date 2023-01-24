@@ -1,22 +1,16 @@
 """
     Tests for leap_ec.distrib.async for handling birth budgets
 """
-import numpy as np
-from distributed import Client, Variable
-from math import nan
+from distributed import Client
 
 import leap_ec.ops as ops
-from typing import Iterator
-from leap_ec.binary_rep.problems import MaxOnes
-from leap_ec.distrib.evaluate import evaluate, is_viable
-from leap_ec.distrib.individual import DistributedIndividual
-from leap_ec.distrib.asynchronous import steady_state
-from leap_ec.global_vars import context
-from leap_ec.individual import Individual
 from leap_ec.binary_rep.initializers import create_binary_sequence
-from leap_ec.binary_rep.ops import mutate_bitflip
-from leap_ec.representation import Representation
+from leap_ec.binary_rep.problems import MaxOnes
+from leap_ec.distrib.asynchronous import steady_state
+from leap_ec.distrib.individual import DistributedIndividual
 from leap_ec.problem import ScalarProblem
+from leap_ec.representation import Representation
+
 
 def accumulate():
     """ This pipeline operator accumulates individuals as they move
@@ -100,10 +94,14 @@ class BrokenProblem(ScalarProblem):
         self.n = n
         self.counter = counter
     def evaluate(self, phenome, *args, **kwargs):
-        self.counter.increment()
+        saved_count = self.counter.n
         if self.counter.n == self.n:
+            # Still do the increment before signaling this is a
+            # "bad" eval
+            self.counter.increment()
             raise RuntimeError('Dummy Exception')
-        return self.counter.n
+        self.counter.increment()
+        return saved_count
 
 
 def test_meet_budget_count_nonviable():
@@ -137,4 +135,30 @@ def test_meet_budget_count_nonviable():
 
 def test_meet_budget_do_not_count_nonviable():
     """ Birth budget without counting non-viable individuals """
-    pass
+    with Client() as client:
+        # Create a Counter on a worker
+        future = client.submit(Counter, actor=True)
+        counter = future.result()  # Get back a pointer to that object
+
+        # We accumulate all the evaluated individuals the number of
+        # which should be equal to our birth budget of four.
+        my_accumulate = accumulate()
+
+        pop = steady_state(client=client,
+                           births=4,
+                           init_pop_size=2,
+                           pop_size=2,
+                           representation=representation,
+                           problem=BrokenProblem(3, counter),
+                           evaluated_probe=my_accumulate,
+                           count_nonviable=True, # NOTE THIS CHANGE
+                           offspring_pipeline=[
+                               ops.random_selection,
+                               ops.clone,
+                               ops.evaluate,
+                               ops.pool(size=1)]
+                           )
+
+    inds = my_accumulate.individuals()
+
+    assert len(inds) == 4
