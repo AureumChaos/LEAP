@@ -1,7 +1,10 @@
 """
     Tests for leap_ec.distrib.async for handling birth budgets
 """
-from distributed import Client
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+from distributed import Client, LocalCluster
 
 import leap_ec.ops as ops
 from leap_ec.binary_rep.initializers import create_binary_sequence
@@ -53,7 +56,6 @@ def test_meet_budget():
                            offspring_pipeline=[
                                ops.random_selection,
                                ops.clone,
-                               ops.evaluate,
                                ops.pool(size=1)]
                            )
 
@@ -88,25 +90,29 @@ class BrokenProblem(ScalarProblem):
         individuals caused by throwing an exception during
         evaluations at a predetermined interval.
     """
-    def __init__(self, n, counter):
+    def __init__(self, n, counter_agent):
         """ :param n: throw an exception at the `n`th eval """
         super().__init__(True)
         self.n = n
-        self.counter = counter
+        self.counter_agent = counter_agent
     def evaluate(self, phenome, *args, **kwargs):
-        saved_count = self.counter.n
-        if self.counter.n == self.n:
+        # Should lock the Actor to prevent race conditions on getting
+        # a unique count.
+        # counter_future = self.counter_agent.result()
+        counter_future = self.counter_agent.increment()
+        count = counter_future.result()
+        if count == self.n:
             # Still do the increment before signaling this is a
             # "bad" eval
-            self.counter.increment()
             raise RuntimeError('Dummy Exception')
-        self.counter.increment()
-        return saved_count
+        return count
 
 
 def test_meet_budget_count_nonviable():
     """ Birth budget counting non-viable individuals """
-    with Client() as client:
+    with Client(LocalCluster(processes=False,
+                             threads_per_worker=1,
+                             n_workers=1)) as client:
         # Create a Counter on a worker
         future = client.submit(Counter, actor=True)
         counter = future.result()  # Get back a pointer to that object
@@ -120,13 +126,12 @@ def test_meet_budget_count_nonviable():
                            init_pop_size=2,
                            pop_size=2,
                            representation=representation,
-                           problem=BrokenProblem(3, counter),
+                           problem=BrokenProblem(1, counter),
                            evaluated_probe=my_accumulate,
                            count_nonviable=False,
                            offspring_pipeline=[
                                ops.random_selection,
                                ops.clone,
-                               ops.evaluate,
                                ops.pool(size=1)]
                            )
 
@@ -136,7 +141,7 @@ def test_meet_budget_count_nonviable():
 
 def test_meet_budget_do_not_count_nonviable():
     """ Birth budget without counting non-viable individuals """
-    with Client() as client:
+    with Client(direct_to_workers=True) as client:
         # Create a Counter on a worker
         future = client.submit(Counter, actor=True)
         counter = future.result()  # Get back a pointer to that object
@@ -156,7 +161,6 @@ def test_meet_budget_do_not_count_nonviable():
                            offspring_pipeline=[
                                ops.random_selection,
                                ops.clone,
-                               ops.evaluate,
                                ops.pool(size=1)]
                            )
 
