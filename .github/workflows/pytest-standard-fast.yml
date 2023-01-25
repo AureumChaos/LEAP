@@ -1,9 +1,10 @@
 name: Python Package using Conda
 
 on:
-  push:
-    branches:
-    - develop
+  [push]
+#   push:
+#     branches:
+#     - develop
 
 jobs:
   test_suite:
