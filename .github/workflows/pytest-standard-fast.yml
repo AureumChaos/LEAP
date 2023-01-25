@@ -8,7 +8,7 @@ on:
 
 jobs:
   test_suite:
-    name: Run standard, fast pytest suite on ${{ matrix.os }} using Python ${{ matrix.python_version }}.
+    name: Run non-jupyter, non-stochastic, fast pytest suite on ${{ matrix.os }} using Python ${{ matrix.python_version }}.
     runs-on: ${{ matrix.os }}
     strategy:
       max-parallel: 5
@@ -33,4 +33,4 @@ jobs:
         pip install -r test_requirements.txt
     - name: Test not jupyter, fast pytest suite using pytest
       run: |
-        python -m pytest -m "not slow and not jupyter"
+        python -m pytest -m "not slow and not stochastic and not jupyter"
