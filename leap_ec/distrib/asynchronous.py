@@ -200,7 +200,10 @@ def steady_state(client, births, init_pop_size, pop_size,
                 # if we want the non-viables to not count towards the budget
                 # then we need to decrement the birth counter to ensure that
                 # a new individual is spawned to replace it.
+                logger.debug(f'Non-viable individual, decrementing birth'
+                             f'count.  Was {birth_counter.births()}')
                 birth_counter.do_decrement()
+                logger.debug(f'Birth count now {birth_counter.births()}')
 
         inserter(evaluated, pop, pop_size)
 
