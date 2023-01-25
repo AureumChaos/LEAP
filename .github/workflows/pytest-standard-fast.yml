@@ -22,10 +22,10 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python_version }}
-    - name: Install package dependencies
-      run: |
-        pip install -r requirements_freeze.txt
-        python -m ipykernel install --user --name='LEAP_venv'
+    # - name: Install package dependencies
+    #   run: |
+    #     pip install -r requirements_freeze.txt
+    #     python -m ipykernel install --user --name='LEAP_venv'
     - name: Install package
       run: |
         pip install .
