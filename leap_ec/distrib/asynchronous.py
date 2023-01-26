@@ -211,6 +211,8 @@ def steady_state(client, births, init_pop_size, pop_size,
             pop_probe(pop)
 
         if birth_counter.births() < births:
+            logger.debug(f'Creating offspring because birth count is'
+                         f'{birth_counter.births()}')
             # Only create offspring if we have the budget for one
             offspring = toolz.pipe(pop, *offspring_pipeline)
 
@@ -225,5 +227,8 @@ def steady_state(client, births, init_pop_size, pop_size,
 
             # Be sure to count the new kids against the birth budget
             birth_counter.do_increment(len(offspring))
+        else:
+            logger.debug(f'Not creating offspring because birth count is'
+                         f'{birth_counter.births()}')
 
     return pop
