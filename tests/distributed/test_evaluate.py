@@ -2,6 +2,7 @@
     Tests for leap_ec.distrib.evaluate.
 """
 import numpy as np
+import pytest
 from distributed import Client
 
 from leap_ec.binary_rep.problems import MaxOnes

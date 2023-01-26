@@ -47,7 +47,7 @@ def test_meet_budget():
         my_accumulate = accumulate()
 
         pop = steady_state(client=client,
-                           births=4,
+                           max_births=4,
                            init_pop_size=2,
                            pop_size=2,
                            representation=representation,
@@ -122,7 +122,7 @@ def test_meet_budget_count_nonviable():
         my_accumulate = accumulate()
 
         pop = steady_state(client=client,
-                           births=4,
+                           max_births=4,
                            init_pop_size=2,
                            pop_size=2,
                            representation=representation,
@@ -151,7 +151,7 @@ def test_meet_budget_do_not_count_nonviable():
         my_accumulate = accumulate()
 
         pop = steady_state(client=client,
-                           births=4,
+                           max_births=4,
                            init_pop_size=2,
                            pop_size=2,
                            representation=representation,

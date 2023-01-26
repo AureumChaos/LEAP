@@ -137,7 +137,7 @@ def greedy_insert_into_pop(individual, pop, max_size):
 ##############################
 # function steady_state
 ##############################
-def steady_state(client, births, init_pop_size, pop_size,
+def steady_state(client, max_births, init_pop_size, pop_size,
                  representation,
                  problem, offspring_pipeline,
                  inserter=greedy_insert_into_pop,
@@ -148,7 +148,7 @@ def steady_state(client, births, init_pop_size, pop_size,
     """ Implements an asynchronous steady-state EA
 
     :param client: Dask client that should already be set-up
-    :param births: how many births are we allowing?
+    :param max_births: how many births are we allowing?
     :param init_pop_size: size of initial population sent directly to workers
            at start
     :param pop_size: how large should the population be?
@@ -177,9 +177,9 @@ def steady_state(client, births, init_pop_size, pop_size,
     # This is where we'll be putting evaluated individuals
     pop = []
 
-    # Bookkeeping for tracking the number of births. We also want to include
-    # the initial population towards our birth budget.
-    birth_counter = util.inc_births(context, start=len(initial_population))
+    # Bookkeeping for tracking the number of max_births towards are fixed
+    # birth budget.
+    birth_counter = util.inc_births(context, start=0)
 
     for i, evaluated_future in enumerate(as_completed_iter):
 
@@ -202,15 +202,20 @@ def steady_state(client, births, init_pop_size, pop_size,
                 # a new individual is spawned to replace it.
                 logger.debug(f'Non-viable individual, decrementing birth'
                              f'count.  Was {birth_counter.births()}')
-                birth_counter.do_decrement()
-                logger.debug(f'Birth count now {birth_counter.births()}')
+                births = birth_counter.do_decrement()
+                logger.debug(f'Birth count now {births}')
+        else:
+            # is viable, so bump that birth count er
+            births = birth_counter.do_increment()
+            logger.debug(f'Counting a birth.  '
+                         f'Births at: {births}')
 
         inserter(evaluated, pop, pop_size)
 
         if pop_probe is not None:
             pop_probe(pop)
 
-        if birth_counter.births() < births:
+        if birth_counter.births() < max_births:
             logger.debug(f'Creating offspring because birth count is'
                          f'{birth_counter.births()}')
             # Only create offspring if we have the budget for one
