@@ -3,7 +3,7 @@ tune the weights of a neural network."""
 import os
 import sys
 
-import gym
+import gymnasium as gym
 from gym import spaces
 from matplotlib import pyplot as plt
 import numpy as np
