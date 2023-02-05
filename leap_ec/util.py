@@ -86,7 +86,7 @@ def is_iterable(obj):
 ###############################
 # Function inc_generation
 ###############################
-def inc_generation(context=context, callbacks=()):
+def inc_generation(start_generation: int=0, context=context, callbacks=()):
     """ This tracks the current generation
 
     The `context` is used to report the current generation, though that
@@ -105,9 +105,9 @@ def inc_generation(context=context, callbacks=()):
         generation is incremented
     :return: function for incrementing generations
     """
-    curr_generation = 0
+    curr_generation = start_generation
     context = context
-    context['leap']['generation'] = 0
+    context['leap']['generation'] = start_generation
     callbacks = callbacks
 
     def generation():
@@ -214,6 +214,7 @@ def inc_births(context=context, start=0, callbacks=()):
         return curr_births
 
     do_increment.births = births
+    do_increment.do_increment = do_increment
     do_increment.do_decrement = do_decrement
 
     return do_increment

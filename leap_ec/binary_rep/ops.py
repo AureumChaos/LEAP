@@ -2,13 +2,13 @@
 """
     Binary representation specific pipeline operators.
 """
+from random import random
 from typing import Iterator
-import random
 from toolz import curry
 
 import numpy as np
 
-from leap_ec.ops import compute_expected_probability, iteriter_op
+from leap_ec.ops import compute_expected_probability, iteriter_op, random_bernoulli_vector
 
 
 ##############################
@@ -90,9 +90,7 @@ def genome_mutate_bitflip(genome: np.ndarray,
     else:
         p = probability
 
-    selector = np.random.choice([0, 1], size=genome.shape,
-                                p=(1-p, p))
-    indices_to_flip = np.nonzero(selector)[0]
+    indices_to_flip = random_bernoulli_vector(shape=genome.shape, p=p)
     genome[indices_to_flip] = (genome[indices_to_flip] + 1) % 2
 
     return genome

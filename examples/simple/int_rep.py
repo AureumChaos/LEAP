@@ -36,41 +36,45 @@ if __name__ == '__main__':
     
     l = 2
     pop_size = 10
-    ea = generational_ea(max_generations=generations,pop_size=pop_size,
-                             problem=problem,  # Fitness function
+    final_pop = generational_ea(max_generations=generations,pop_size=pop_size,
+                                problem=problem,  # Fitness function
 
-                             # Representation
-                             representation=Representation(
-                                 # Initialize a population of integer-vector genomes
-                                 initialize=create_int_vector(
-                                     bounds=[problem.bounds] * l)
-                             ),
+                                # Representation
+                                representation=Representation(
+                                    # Initialize a population of integer-vector genomes
+                                    initialize=create_int_vector(
+                                        bounds=[problem.bounds] * l)
+                                ),
 
-                             # Operator pipeline
-                             pipeline=[
-                                 ops.tournament_selection(k=2),
-                                 ops.clone,
-                                 # Apply binomial mutation: this is a lot like
-                                 # additive Gaussian mutation, but adds an integer
-                                 # value to each gene
-                                 mutate_binomial(std=1.5, bounds=[problem.bounds]*l,
-                                                 expected_num_mutations=1),
-                                 ops.evaluate,
-                                 ops.pool(size=pop_size),
+                                # Operator pipeline
+                                pipeline=[
+                                    ops.tournament_selection(k=2),
+                                    ops.clone,
+                                    # Apply binomial mutation: this is a lot like
+                                    # additive Gaussian mutation, but adds an integer
+                                    # value to each gene
+                                    mutate_binomial(std=1.5, bounds=[problem.bounds]*l,
+                                                    expected_num_mutations=1),
+                                    ops.evaluate,
+                                    ops.pool(size=pop_size),
 
-                                 # Some visualization probes so we can watch what happens
-                                 probe.CartesianPhenotypePlotProbe(
-                                        xlim=problem.bounds,
-                                        ylim=problem.bounds,
-                                        contours=problem),
-                                 probe.FitnessPlotProbe(),
+                                    # Some visualization probes so we can watch what happens
+                                    probe.CartesianPhenotypePlotProbe(
+                                            xlim=problem.bounds,
+                                            ylim=problem.bounds,
+                                            contours=problem),
+                                    probe.FitnessPlotProbe(),
 
-                                 probe.PopulationMetricsPlotProbe(
-                                     metrics=[ probe.pairwise_squared_distance_metric ],
-                                     title='Population Diversity'),
+                                    probe.PopulationMetricsPlotProbe(
+                                        metrics=[ probe.pairwise_squared_distance_metric ],
+                                        title='Population Diversity'),
 
-                                 probe.FitnessStatsCSVProbe(stream=sys.stdout)
-                             ]
-                        )
+                                    probe.FitnessStatsCSVProbe(stream=sys.stdout)
+                                ]
+                            )
 
-    list(ea)
+    # If we're not in test-harness mode, block until the user closes the app
+    if os.environ.get(test_env_var, False) != 'True':
+        plt.show()
+        
+    plt.close('all')

@@ -1,10 +1,10 @@
 """Unit tests for the leap_ec.problem module."""
-from leap_ec import problem
-from leap_ec.real_rep import problems as real_prob
-
 import numpy as np
 import pytest
 from scipy.stats import norm
+
+from leap_ec import Individual, problem
+from leap_ec.real_rep import problems as real_prob
 
 
 ##############################

@@ -9,8 +9,11 @@ import warnings
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+from numpy.lib.twodim_base import diag
+from numpy.random import random
 
-from leap_ec.problem import ScalarProblem
+from leap_ec.problem import FitnessOffsetProblem, ScalarProblem
+from leap_ec import Individual
 
 
 ##############################
@@ -852,7 +855,7 @@ class LunacekProblem(ScalarProblem):
 class SchwefelProblem(ScalarProblem):
     """
     Schwefel's function is another traditional multimodal test function whose
-    local optima are distrib in a slightly irregular way, and whose
+    local optima are distributed in a slightly irregular way, and whose
     global optimum is out at the edge of the search space (with no gently
     sloping macrostructure to guide the algorithm toward it).
 
@@ -885,7 +888,7 @@ class SchwefelProblem(ScalarProblem):
         """
         Computes the function value from a real-valued phenome.
 
-        :param phenome: real-valued vector to be evaluated
+        :param phenome: phenome with a real-valued phenome to be evaluated
         :returns: its fitness.
         """
         assert(phenome is not None)
@@ -968,7 +971,7 @@ class CosineFamilyProblem(ScalarProblem):
     .. math::
 
        f_{\\cos}(\\mathbf{x}) = \\frac{\\sum_{i=1}^n -\\cos((G_i - 1)2 \\pi x_i)
-                                - \\alpha \\cdot \\cos((G_i - 1)2 \\pi L-i x_y)}{2n}
+                                - \\alpha \\cdot \\cos((G_i - 1)2 \\pi L_i x_i)}{2n}
 
     where :math:`G_i` and :math:`L_i` are parameters that indicate the number
     of global and local optima, respectively, in the ith dimension.
@@ -1015,7 +1018,7 @@ class CosineFamilyProblem(ScalarProblem):
         """
         Computes the function value from a real-valued phenome.
 
-        :param phenome: real-valued vector to be evaluated
+        :param phenome: phenome with a real-valued phenome vector to be evaluated
         :returns: its fitness.
         """
         if not isinstance(phenome, np.ndarray):
@@ -1026,10 +1029,7 @@ class CosineFamilyProblem(ScalarProblem):
             np.cos((self.global_optima_counts - 1) * 2 *
                    np.pi * self.local_optima_counts * phenome)
         value = np.sum(term1 + term2) / (2 * self.dimensions)
-        # We modify the original function to make it a maximization problem
-        # and so that the global optima are scaled to always have a fitness of
-        # 1
-        return -2 / (self.alpha + 1) * value
+        return value
 
     def __str__(self):
         """Returns the name of the class.
@@ -1038,6 +1038,205 @@ class CosineFamilyProblem(ScalarProblem):
         'CosineFamilyProblem'
         """
         return CosineFamilyProblem.__name__
+
+
+
+##############################
+# Class QuadraticFamilyProblem
+##############################
+class QuadraticFamilyProblem(ScalarProblem):
+    """
+    A configurable multi-modal function based on combinations of
+    spheroids or parabaloids.  Taken from the problem generators
+    proposed in
+
+    .. [Jani2008] "A Generator for Multimodal Test Functions with Multiple Global Optima,"
+         Jani Rönkkönen et al., *Asia-Pacific Conference on Simulated Evolution and Learning*. Springer, Berlin, Heidelberg, 2008.
+
+    [Jani2008]_
+
+    The function is given by
+
+    .. math::
+
+       f(\\mathbf{x}) = \\min_{i=1,2,\\dots,q} \\left( (\\mathbf{x} - \\mathbf{p}_i)^\\top \\mathbf{B}_i^{-1} (\\mathbf{x} - \\mathbf{p}_i) + v_i \\right)
+
+    where the :math:`\\mathbf{p}_i` gives the center of each quadratic (i.e. the location
+    of each local minimum), the :math:`v_i` give their fitness values, and the
+    :math:`\\mathbf{B}_i^{-1}` are symmetric matrices.
+
+    The easiest way to create one of these problems is to use the random generator:
+
+    .. plot::
+       :include-source:
+
+        from leap_ec.real_rep.problems import QuadraticFamilyProblem, plot_2d_problem
+        from matplotlib import pyplot as plt
+
+        problem = QuadraticFamilyProblem.generate(dimensions=2, num_basins=30)
+        plot_2d_problem(problem, xlim=(-10, 10), ylim=(-10, 10), granularity=0.5)
+        plt.show()
+
+    You can also specify the problem structure directly by providing two matrices for each
+    parabaloid along with an offset vector (for translation) and a scalar offset (to define the minimum
+    fitness value for the basin):
+
+    .. plot::
+       :include-source:
+
+        from leap_ec.real_rep.problems import QuadraticFamilyProblem, plot_2d_problem, random_orthonormal_matrix
+        from matplotlib import pyplot as plt
+        import numpy as np
+
+        # Define the parameters for each parabaloid
+
+        diag1 = np.diag([2, 4])     # Diagonal matrix defining the widths (eigenvalues) of the basin for each dimension
+        rot1 = np.identity(2)       # Rotation matrix, in this case the identity (no rotation)
+        offset1 = np.array([-1, -1])  # Offset used to translate the basin location
+        fitness1 = 0                # Fitness value of the local optimum
+
+        diag2 = np.diag([5, 1])
+        rot2 = random_orthonormal_matrix(dimensions=2)  # Apply a random rotation to the second basin
+        offset2 = np.array([3, 4])
+        fitness2 = 100.0
+
+        # Build the problem
+        problem = QuadraticFamilyProblem(
+            diagonal_matrices = [ diag1, diag2 ],
+            rotation_matrices = [ rot1, rot2 ],
+            offset_vectors = [ offset1, offset2 ],
+            fitness_offsets = [ fitness1, fitness2 ]
+        )
+
+        # Visualize
+        plot_2d_problem(problem, xlim=(-10, 10), ylim=(-10, 10), granularity=0.5)
+        plt.show()
+
+    """
+    def __init__(self, diagonal_matrices: list, rotation_matrices: list, offset_vectors: list, fitness_offsets: list, maximize=False):
+        super().__init__(maximize)
+        assert(diagonal_matrices is not None)
+        assert(rotation_matrices is not None)
+        assert(offset_vectors is not None)
+        assert(fitness_offsets is not None)
+        assert(len(diagonal_matrices) == len(rotation_matrices))
+        assert(len(offset_vectors) == len(rotation_matrices))
+        assert(len(fitness_offsets) == len(rotation_matrices))
+
+        # Store all of the input parameters in case the user wants to see them
+        self.diagonal_matrices = diagonal_matrices
+        self.rotation_matrices = rotation_matrices
+        self.offset_vectors = offset_vectors
+        self.fitness_offsets = fitness_offsets
+
+        parabaloids = [ ParabaloidProblem(d, r) for d, r in zip(diagonal_matrices, rotation_matrices) ]
+        parabaloids = [ TranslatedProblem(p, o) for p, o in zip(parabaloids, offset_vectors) ]
+        self.parabaloids = [ FitnessOffsetProblem(p, v) for p, v in zip(parabaloids, fitness_offsets) ]
+
+    @property
+    def num_basins(self):
+        return len(self.diagonal_matrices)
+
+    @property
+    def dimensions(self):
+        return len(self.offset_vectors[0])
+
+    def evaluate(self, phenome):
+        basin_values = [ p.evaluate(phenome) for p in self.parabaloids ]
+        return np.min(basin_values)
+
+    @classmethod
+    def generate(self, dimensions: int, num_basins: int, num_global_optima: int = 1, width_bounds: tuple = (1, 5), offset_bounds: tuple = (-10, 10), fitness_offset_bounds: tuple = (10, 100)):
+        """
+        Convenient method to generate a QuadraticFamilyProblem by randomly sampling the matrices that define it.
+
+        >>> problem = QuadraticFamilyProblem.generate(10, 20, num_global_optima = 2)
+        >>> x = problem.evaluate(np.array([0.0, 0.5, 0.0, 0.6, 0.0, 0.7, 0.6, 0.8, 4.3, 0.2]))
+        """
+        assert(num_basins >= 0)
+        assert(len(width_bounds) == 2)
+        assert(width_bounds[1] >= width_bounds[0])
+        assert(len(offset_bounds) == 2)
+        assert(offset_bounds[1] >= offset_bounds[0])
+        assert(len(fitness_offset_bounds) == 2)
+        assert(num_global_optima <= num_basins)
+
+        diagonal_matrices = [ np.diag(np.random.uniform(*width_bounds, dimensions)) for _ in range(num_basins) ]
+        rotation_matrices = [ random_orthonormal_matrix(dimensions) for _ in range(num_basins) ]
+        offset_vectors = [ np.random.uniform(*offset_bounds, dimensions) for _ in range(num_basins) ]
+        fitness_offsets = np.append(np.zeros(num_global_optima), np.random.uniform(*fitness_offset_bounds, num_basins - num_global_optima))
+
+        p = QuadraticFamilyProblem(diagonal_matrices, rotation_matrices, offset_vectors, fitness_offsets)
+        p.bounds = (-2*width_bounds[1], 2*width_bounds[1])
+
+        # Record a global optimum for convenience
+        if num_global_optima > 0:
+            p.global_optimum = offset_vectors[0]
+
+        return p
+
+
+##############################
+# ParabaloidProblem
+##############################
+class ParabaloidProblem(ScalarProblem):
+    """
+    A generalization of the `SpheroidProblem` into parabaloids (including elliptic and hyperbolic parabaloids).
+
+    We construct the parabaloid by combining a diagonal matrix (which defines an axis-aligned parabaloid)
+    with an orthornormal rotation.  Together, these make up the eigenvalues and
+    eigenbasis, respectively, of an arbitrary parabaloid:
+
+    .. math::
+       \\mathbf{A} = \\mathbf{R}^\\top \\mathbf{D} \\mathbf{R}
+
+    We then compute fitness by interpretting :math:`A` as a quadratic form:
+
+    .. math::
+       f(x) = x^\\top \\mathbf{A} x
+
+    When the eigenvalues are all positive, then the result is an elliptic parabaloid
+
+    .. plot::
+       :include-source:
+
+       from leap_ec.real_rep .problems import ParabaloidProblem, plot_2d_problem
+       from matplotlib import pyplot as plt
+       import numpy as np
+
+       p = ParabaloidProblem(diagonal_matrix=np.diag([1, 5]), rotation_matrix=np.identity(2))
+       plot_2d_problem(p, xlim=(-10, 10), ylim=(-10, 10), granularity=0.5)
+       plt.show()
+
+    If one or more eigenvalues are negative, then a hyperbolic parabloid results,
+    which has a saddle shape:
+
+    .. plot::
+       :include-source:
+
+       from leap_ec.real_rep .problems import ParabaloidProblem, plot_2d_problem
+       from matplotlib import pyplot as plt
+       import numpy as np
+
+       p = ParabaloidProblem(diagonal_matrix=np.diag([-3, 5]), rotation_matrix=np.identity(2))
+       plot_2d_problem(p, xlim=(-10, 10), ylim=(-10, 10), granularity=0.5)
+       plt.show()
+
+    """
+    def __init__(self, diagonal_matrix: np.ndarray, rotation_matrix: np.ndarray, maximize=False):
+        super().__init__(maximize)
+        assert(diagonal_matrix is not None)
+        assert(rotation_matrix is not None)
+        # Trick to check for diagonality: np.diagonal() extracts the diagonal, np.diag() builds a diagonal matrix from it.
+        # This should equal the original matrix.
+        assert(np.allclose(diagonal_matrix, np.diag(np.diagonal(diagonal_matrix)))), f"Expected a diagonal matrix, but received {diagonal_matrix}."
+        R = rotation_matrix
+        D = diagonal_matrix
+        # Construct the matrix for the quadratic form
+        self.matrix = R.T @ D @ R
+
+    def evaluate(self, phenome):
+        return phenome.T @ self.matrix @ phenome
 
 
 ##############################
@@ -1180,6 +1379,51 @@ class ScaledProblem(ScalarProblem):
 
 
 ################################
+# Function random_orthonormal_matrix()
+################################
+def random_orthonormal_matrix(dimensions: int):
+    """Generate a random orthornomal matrix using the Gramm-Schmidt
+    process.
+
+    Orthonormal matrices represent rotations (and flips) of a space.
+
+    The defining property of an orthonormal matrix is that its
+    transpose is its inverse:
+
+    >>> Q = random_orthonormal_matrix(10)
+    >>> np.allclose( Q.dot(Q.T), np.identity(10) )
+    True
+
+    """
+    matrix = np.random.normal(size=[dimensions, dimensions])
+    for i, row in enumerate(matrix):
+        previous_rows = matrix[0:i, :]
+        row = row - \
+            sum([np.dot(row, prev) * prev for prev in previous_rows])
+        matrix[i, :] = row / np.linalg.norm(row)
+
+    # Any vector in the resulting matrix will be of unit length
+    assert (
+            round(
+                np.linalg.norm(
+                    matrix[0]),
+                5) == 1.0), f"A column in the transformation matrix has a " \
+                            f"norm of {np.linalg.norm(matrix[0])}, " \
+                            f"but it should always be approximately 1.0. "
+    # Any pair of vectors will be linearly independent
+    assert (abs(round(np.dot(matrix[0], matrix[1]), 5)) ==
+            0.0), f"A pair of columns in the transformation matrix has " \
+                    f"dot product of {round(np.dot(matrix[0], matrix[1]),5)},"\
+                    f" but it should always be approximately 0.0. "
+    # The matrix's transpose will be its inverse
+    assert(np.allclose(matrix.dot(matrix.T), np.identity(len(matrix)))), \
+        f"Any orthornormal matrix should satisfy Q^(-1) = Q^T, but we got " \
+        f"QQ^T = {matrix.dot(matrix.T)} instead of {np.identity(len(matrix))}."
+
+    return matrix
+
+
+################################
 # Class MatrixTransformedProblem
 ################################
 class MatrixTransformedProblem(ScalarProblem):
@@ -1276,28 +1520,7 @@ class MatrixTransformedProblem(ScalarProblem):
            plt.subplot(224)
            plot_2d_problem(transformed_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
         """
-        matrix = np.random.normal(size=[dimensions, dimensions])
-        for i, row in enumerate(matrix):
-            previous_rows = matrix[0:i, :]
-            matrix[i, :] = row - \
-                sum([np.dot(row, prev) * prev for prev in previous_rows])
-            # FIXME Wait, doesn't this overwrite the previous line?
-            matrix[i, :] = row / np.linalg.norm(row)
-
-        # Any vector in the resulting matrix will be of unit length
-        assert (
-                round(
-                    np.linalg.norm(
-                        matrix[0]),
-                    5) == 1.0), f"A column in the transformation matrix has a " \
-                                f"norm of {np.linalg.norm(matrix[0])}, " \
-                                f"but it should always be approximately 1.0. "
-        # Any pair of vectors will be linearly independent
-        assert (abs(round(np.dot(matrix[0], matrix[1]), 5)) ==
-                0.0), f"A pair of columns in the transformation matrix has " \
-                      f"dot product of {round(np.dot(matrix[0], matrix[1]),5)},"\
-                      f" but it should always be approximately 0.0. "
-
+        matrix = random_orthonormal_matrix(dimensions)
         return cls(problem, matrix, maximize)
 
     def evaluate(self, phenome):
@@ -1352,7 +1575,7 @@ class MatrixTransformedProblem(ScalarProblem):
 # Function plot_2d_problem
 ##############################
 def plot_2d_problem(problem, xlim=None, ylim=None, kind='surface',
-                    ax=None, granularity=None, title=None, pad=()):
+                    ax=None, granularity=None, title=None, pad=None, **kwargs):
     """
     Convenience function for plotting a :class:`~leap.problem.Problem` that
     accepts 2-D real-valued phenomes and produces a 1-D scalar fitness output.
@@ -1368,12 +1591,12 @@ def plot_2d_problem(problem, xlim=None, ylim=None, kind='surface',
     :type kind: str
     :param pad: An array of extra gene values, used to fill in the hidden
         dimensions with contants while drawing fitness contours.
-
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
         be created).
     :param float granularity: Spacing of the grid to sample points along. If
         none is given, then the granularity will default to 1/50th of the range
         of the function's `bounds` attribute.
+    :param kwargs: additional keyword arguments to pass along to plot_surface()
 
 
     The difference between this and :meth:`plot_2d_function` is that this
@@ -1427,9 +1650,9 @@ def plot_2d_problem(problem, xlim=None, ylim=None, kind='surface',
                              "granularity to plot the problem.")
 
     if kind == 'surface':
-        return plot_2d_function(call, xlim, ylim, granularity, ax, title, pad)
+        return plot_2d_function(call, xlim, ylim, granularity, ax, title, pad, **kwargs)
     elif kind == 'contour':
-        return plot_2d_contour(call, xlim, ylim, granularity, ax, title, pad)
+        return plot_2d_contour(call, xlim, ylim, granularity, ax, title, pad, **kwargs)
     else:
         raise ValueError(f'Unrecognized plot kind: "{kind}".')
 
@@ -1437,7 +1660,7 @@ def plot_2d_problem(problem, xlim=None, ylim=None, kind='surface',
 ##############################
 # Function plot_2d_function
 ##############################
-def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=()):
+def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=None, **kwargs):
     """
     Convenience method for plotting a function that accepts 2-D real-valued
     imputs and produces a 1-D scalar output.
@@ -1451,6 +1674,7 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=
     :param float granularity: Spacing of the grid to sample points along.
     :param pad: An array of extra gene values, used to fill in the hidden
         dimensions with contants while drawing fitness contours.
+    :param kwargs: additional keyword arguments to pass along to plot_surface() or contour()
 
     The difference between this and :meth:`plot_2d_problem` is that this
     takes a raw function (instead of a :class:`~leap.problem.Problem` object).
@@ -1471,6 +1695,8 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=
     """
     assert(len(xlim) == 2)
     assert(len(ylim) == 2)
+    if pad is None:
+        pad = np.array([])
     assert(isinstance(pad, np.ndarray)), f"Expected pad to be a numpy array.  Got {type(pad)}."
 
     if ax is None:
@@ -1488,13 +1714,13 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=
     if title:
         ax.set_title(title)
 
-    return ax.plot_surface(xx, yy, v_fun(xx, yy))
+    return ax.plot_surface(xx, yy, v_fun(xx, yy), **kwargs)
 
 
 ##############################
 # Function plot_2d_contour
 ##############################
-def plot_2d_contour(fun, xlim, ylim, granularity, ax=None, title=None, pad=()):
+def plot_2d_contour(fun, xlim, ylim, granularity, ax=None, title=None, pad=None):
     """
     Convenience method for plotting contours for a function that accepts 2-D
     real-valued inputs and produces a 1-D scalar output.
@@ -1531,6 +1757,8 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None, title=None, pad=()):
     """
     assert (len(xlim) == 2)
     assert (len(ylim) == 2)
+    if pad is None:
+        pad = np.array([])
     assert(isinstance(pad, np.ndarray)), f"Expected pad to be a numpy array.  Got {type(pad)}."
 
     if ax is None:

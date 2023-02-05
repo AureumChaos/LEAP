@@ -4,6 +4,31 @@ Being a terse compilation by version of changes.
 
 ## 0.8.0dev  (current develop branch)
 
+ * New Features
+   * Added `FitnessOffsetProblem` convenience wrapper to the `problem` module
+   * Added `ParabaloidProblem` and `QuadraticFamilyProblem` to the `real_rep.problems` module
+   * CGP now supports auxiliary constant parameters on each node via `CGPWithParametersDecoder`
+   * Added `ImageXYProblem` to `executable_rep.problems`, and a `cgp_images.py` example demonstrating it
+   * Added experimental parameters to `mutate_gaussian()` to allow transforming genes by a linear function
+   * Added a `check_constraints()` operator to the `CGPDecoder` class, to help verify custom algorithms
+   * Added `LeadingOnes`, `DeceptiveTrap`, and `TwoMax` problems to `binary_rep.problems` module
+   * Added `SumPhenotypePlotProbe`, and a new example using it to visualizing MaxOnes-style problems
+   * Added `multiobjective` sub-package that provides support for NSGA-II
+     * `multiobjective.nsga2.nsga2()` top-level monolithic function
+     * `multiobjective.problems.MultiObjectiveProblem` is new abstract base class for multiobjective problems
+     * `multiobjective.ops` contains supporting pipeline operators, though most users will not see those if they use `nsga()`
+
+ * API changes
+   * `Individual` now has a `phenome` property
+   * Mutation operators (`mutate_gaussian()` and `mutate_binomial()`) can now be passed a list of `std` values to adjust the mutation width by gene.
+   * Removed an undocumented normalization term from `real_rep.problems.CosineFamilyProblem`
+   * Expose a `reset` method on `PopulationMetricsPlotProbe`
+   * `util.inc_generation()` now takes a `start_generation` argument
+   * `genome_mutate_gaussian()` is now a curried function instead of a closure
+   * `plot_2d_problem()` and `plot_2d_function()` now accept extra `kwargs` to forward to Matplotlib
+   * `MaxOnes` now takes an optional `target_string` to generalize it to other target patterns
+
+
 ## 0.7.0, 8/5/2021
 
 * New features

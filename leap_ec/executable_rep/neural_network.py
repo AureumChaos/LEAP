@@ -245,5 +245,5 @@ class GraphPhenotypeProbe():
                 nx.draw_shell(graph,
                         with_labels=True,
                         ax=self.ax)
-
+            plt.pause(0.0000000001)
         return population

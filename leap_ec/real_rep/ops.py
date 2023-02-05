@@ -3,7 +3,6 @@
     Pipeline operators for real-valued representations
 """
 import math
-import random
 from collections.abc import Iterable
 from typing import Iterator, List, Tuple, Union
 
@@ -11,8 +10,7 @@ import numpy as np
 
 from toolz import curry
 
-from leap_ec import util
-from leap_ec.ops import compute_expected_probability, iteriter_op
+from leap_ec.ops import compute_expected_probability, iteriter_op, random_bernoulli_vector
 
 
 ##############################
@@ -21,17 +19,32 @@ from leap_ec.ops import compute_expected_probability, iteriter_op
 @curry
 @iteriter_op
 def mutate_gaussian(next_individual: Iterator,
-                    std: float,
+                    std,
                     expected_num_mutations: Union[int, str] = None,
-                    hard_bounds=(-math.inf, math.inf)) -> Iterator:
-    """Mutate and return an individual with a real-valued representation.
+                    hard_bounds=(-math.inf, math.inf),
+                    transform_slope: float = 1.0,
+                    transform_intercept: float = 0.0) -> Iterator:
+    """Mutate and return an Individual with a real-valued representation.
+
+    This operators on an iterator of Individuals:
 
     >>> from leap_ec.individual import Individual
     >>> from leap_ec.real_rep.ops import mutate_gaussian
     >>> import numpy as np
+    >>> pop = iter([Individual(np.array([1.0, 0.0]))])
+
+    Mutation can either use the same parameters for all genes:
+
+    >>> op = mutate_gaussian(std=1.0, expected_num_mutations='isotropic', hard_bounds=(-5, 5))
+    >>> mutated = next(op(pop))
+
+    Or we can specify the `std` and `hard_bounds` independently for each gene:
 
     >>> pop = iter([Individual(np.array([1.0, 0.0]))])
-    >>> op = mutate_gaussian(std=1.0, expected_num_mutations='isotropic')
+    >>> op = mutate_gaussian(std=[0.5, 1.0],
+    ...                      expected_num_mutations='isotropic',
+    ...                      hard_bounds=[(-1, 1), (-10, 10)]
+    ... )
     >>> mutated = next(op(pop))
 
     :param next_individual: to be mutated
@@ -44,26 +57,36 @@ def mutate_gaussian(next_individual: Iterator,
     """
     if expected_num_mutations is None:
         raise ValueError("No value given for expected_num_mutations.  Must be either a float or the string 'isotropic'.")
+    
+    genome_mutator = genome_mutate_gaussian(std=std,
+                                expected_num_mutations=expected_num_mutations,
+                                hard_bounds=hard_bounds,
+                                transform_slope=transform_slope,
+                                transform_intercept=transform_intercept)
+
     while True:
         individual = next(next_individual)
 
-        individual.genome = genome_mutate_gaussian(individual.genome,
-                                                   std,
-                                                   expected_num_mutations,
-                                                   hard_bounds)
+        individual.genome = genome_mutator(individual.genome)
         # invalidate fitness since we have new genome
         individual.fitness = None
 
         yield individual
 
 
+##############################
+# Function genome_mutate_gaussian
+##############################
 @curry
 def genome_mutate_gaussian(genome,
                            std: float,
                            expected_num_mutations,
                            hard_bounds: Tuple[float, float] =
-                             (-math.inf, math.inf)):
-    """ Perform actual Gaussian mutation on real-valued genes
+                             (-math.inf, math.inf),
+                           transform_slope: float = 1.0,
+                           transform_intercept: float = 0.0):
+    """Perform Gaussian mutation directly on real-valued genes (rather than
+    on an Individual).
 
     This used to be inside `mutate_gaussian`, but was moved outside it so that
     `leap_ec.segmented.ops.apply_mutation` could directly use this function,
@@ -71,17 +94,26 @@ def genome_mutate_gaussian(genome,
     sub-package.
 
     :param genome: of real-valued numbers that will potentially be mutated
+    :param std: the mutation width—either a single float that will be used for
+        all genes, or a list of floats specifying the mutation width for
+        each gene individually.
     :param expected_num_mutations: on average how many mutations are expected
     :return: mutated genome
     """
+    assert(std is not None)
+    assert(isinstance(std, Iterable) or (std >= 0.0))
     assert(expected_num_mutations is not None)
 
-    if not isinstance(genome, np.ndarray):
-        raise ValueError(("Expected genome to be a numpy array. "
-                          f"Got {type(genome)}."))
+    if isinstance(std, Iterable):
+        std = np.array(std)
 
     # compute actual probability of mutation based on expected number of
     # mutations and the genome length
+
+    if not isinstance(genome, np.ndarray):
+        raise ValueError(("Expected genome to be a numpy array. "
+                        f"Got {type(genome)}."))
+
     if expected_num_mutations == 'isotropic':
         # Default to isotropic Gaussian mutation
         p = 1.0
@@ -89,11 +121,18 @@ def genome_mutate_gaussian(genome,
         p = compute_expected_probability(expected_num_mutations, genome)
 
     # select which indices to mutate at random
-    selector = np.random.choice([0, 1], size=genome.shape, p=(1 - p, p))
-    indices_to_mutate = np.nonzero(selector)[0]
+    indices_to_mutate = random_bernoulli_vector(shape=genome.shape, p=p)
 
-    genome[indices_to_mutate] = np.random.normal(genome[indices_to_mutate], std,
-                                                 size=indices_to_mutate.shape[0])
+    # Pick out just the std values we need for the mutated genes
+    std_selected = std if not isinstance(std, Iterable) else std[indices_to_mutate]
+
+    # Apply additive Gaussian noise to the selected genes
+    new_gene_values = transform_slope * (genome[indices_to_mutate] \
+                                                    + np.random.normal(size=sum(indices_to_mutate)) \
+                                                    # scalar multiply if scalar; element-wise if std is an ndarray
+                                                    * std_selected) \
+                                + transform_intercept
+    genome[indices_to_mutate] = new_gene_values
 
     # Implement hard bounds
     genome = apply_hard_bounds(genome, hard_bounds)

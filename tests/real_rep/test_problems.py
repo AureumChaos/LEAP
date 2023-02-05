@@ -2,6 +2,7 @@
 import numpy as np
 from pytest import approx
 
+from leap_ec import Individual
 from leap_ec.real_rep import problems
 
 

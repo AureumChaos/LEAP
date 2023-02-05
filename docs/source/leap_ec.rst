@@ -13,6 +13,7 @@ Subpackages
    leap_ec.executable_rep
    leap_ec.int_rep
    leap_ec.landscape_features
+   leap_ec.multiobjective
    leap_ec.real_rep
    leap_ec.segmented_rep
 
@@ -119,14 +120,6 @@ leap\_ec.util module
 --------------------
 
 .. automodule:: leap_ec.util
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: leap_ec
    :members:
    :undoc-members:
    :show-inheritance:

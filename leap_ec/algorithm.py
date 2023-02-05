@@ -9,6 +9,7 @@
 
 from leap_ec import ops, util
 from toolz import pipe
+from typing import Iterable
 
 from leap_ec.global_vars import context
 from leap_ec.individual import Individual
@@ -17,11 +18,12 @@ from leap_ec.individual import Individual
 ##############################
 # Function generational_ea
 ##############################
-def generational_ea(max_generations, pop_size, problem, representation,
+def generational_ea(max_generations: int, pop_size: int, problem, representation,
                     pipeline,
                     stop=lambda x: False,
                     init_evaluate=Individual.evaluate_population,
-                    k_elites=1,
+                    k_elites: int=1,
+                    start_generation: int=0,
                     context=context):
     """
     This function provides an evolutionary algorithm with a generational
@@ -56,9 +58,11 @@ def generational_ea(max_generations, pop_size, problem, representation,
         may wish to pass a different operator in for distributed evaluation
         or other purposes.
     :param k_elites: keep k elites
+    :param start_generation: index of the first generation to count from (defaults to 0).
+        You might want to change this, for example, in experiments that involve stopping
+        and restarting an algorithm.
 
-    :return: a generator of `(int, individual_cls)` pairs representing the
-        best individual at each generation.
+    :return: the final population
 
     The intent behind this kind of EA interface is to allow the complete
     configuration of a basic evolutionary algorithm to be defined in a clean
@@ -75,12 +79,11 @@ def generational_ea(max_generations, pop_size, problem, representation,
     >>> from leap_ec.binary_rep.ops import mutate_bitflip
     >>> import leap_ec.ops as ops
     >>> pop_size = 5
-    >>> ea = generational_ea(max_generations=100, pop_size=pop_size,
+    >>> final_pop = generational_ea(max_generations=100, pop_size=pop_size,
     ...
     ...                      problem=MaxOnes(),      # Solve a MaxOnes Boolean optimization problem
     ...
     ...                      representation=Representation(
-    ...                          individual_cls=Individual,     # Use the standard Individual as the prototype for the population
     ...                          initialize=create_binary_sequence(length=10)  # Initial genomes are random binary sequences
     ...                      ),
     ...
@@ -93,21 +96,21 @@ def generational_ea(max_generations, pop_size, problem, representation,
     ...                          ops.evaluate,                       # Evaluate fitness
     ...                          ops.pool(size=pop_size)             # Collect offspring into a new population
     ...                      ])
-    >>> ea # doctest:+ELLIPSIS
-    <generator ...>
 
-    The algorithm evaluates lazily when you query the generator:
+    The algorithm runs immediately and returns the final population:
 
-    >>> print(*list(ea), sep='\\n') # doctest:+ELLIPSIS
-    (0, Individual(...))
-    (1, Individual(...))
-    (2, Individual(...))
+    >>> print(*final_pop, sep='\\n') # doctest:+ELLIPSIS
+    [...] ...
+    [...] ...
+    [...] ...
     ...
-    (100, Individual(...))
+    [...] ...
 
-    The best individual reported from the initial population  is reported at
-    generation 0) followed by the best-so-far individual at each subsequent
-    generation.
+    You can get the best individual by using `max` (since comparison on individuals is based on the `Problem` associated with
+    them, this will return the best individaul even on minimization problems)):
+    >>> max(final_pop)
+    Individual(...)
+
     """
     # Initialize a population of pop_size individuals of the same type as
     # individual_cls
@@ -115,14 +118,10 @@ def generational_ea(max_generations, pop_size, problem, representation,
 
     # Set up a generation counter that records the current generation to
     # context
-    generation_counter = util.inc_generation(context=context)
+    generation_counter = util.inc_generation(start_generation=start_generation, context=context)
 
     # Evaluate initial population
     parents = init_evaluate(parents)
-
-    # Output the best individual in the initial population
-    bsf = max(parents)
-    yield (0, bsf)
 
     while (generation_counter.generation() < max_generations) and not stop(
             parents):
@@ -131,14 +130,10 @@ def generational_ea(max_generations, pop_size, problem, representation,
                          ops.elitist_survival(parents=parents,
                                               k=k_elites))
 
-        if max(offspring) > bsf:  # Update the best-so-far individual
-            bsf = max(offspring)
-
         parents = offspring  # Replace parents with offspring
         generation_counter()  # Increment to the next generation
 
-        # Output the best-so-far individual for each generation
-        yield (generation_counter.generation(), bsf)
+    return parents
 
 
 ##############################
@@ -162,13 +157,15 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
     :param int max_generations: The max number of generations to run the algorithm for.
         Can pass in float('Inf') to run forever or until the `stop` condition is reached.
     :param int num_populations: The number of separate populations to maintain.
-    :param int pop_size: Size of the initial population
+    :param int pop_size: Size of each initial subpopulation
     :param int stop: A function that accepts a list of populations and
         returns True iff it's time to stop evolving.
     :param `Problem` problem: the Problem that should be used to evaluate
         individuals' fitness
-    :param representation: the Decoder that should be used to convert
-        individual genomes into phenomes
+    :param representation: the `Representation` that governs the creation and decoding 
+        of individuals.  If a list of `Representation` objects is given, then
+        different representations will be used for different subpopulations; else
+        the same representation will be used for all subpopulations.
     :param list shared_pipeline: a list of operators that every population
         will uses to create the offspring population at each generation
     :param list subpop_pipelines: a list of population-specific operator
@@ -255,18 +252,22 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
 
     """
 
-    if not hasattr(problem, '__len__'):
-        problem = [problem for _ in range(num_populations)]
+    # If we are given a single problem, create a list assigning it to each subpop
+    if not hasattr(problem, '__len__'): # XXX Is 'isinstance(representation, Iterable):' better?
+        problem = [ problem for _ in range(num_populations) ]
+    # If we are given a single representation, create a list assigning it to each subpop
+    if not hasattr(representation, '__len__'):
+        representation = [ representation for _ in range(num_populations) ]
 
-    # Initialize populations of pop_size individuals of the same type as
-    # individual_cls
-    pops = [representation.create_population(pop_size, problem=problem[i])
-            for i in range(num_populations)]
+    assert(len(representation) == len(problem))
+
+    # Initialize & evaluate the initial subpopulations
+    pops = [ r.create_population(pop_size, problem=p) for r, p in zip(representation, problem) ]
+    pops = [init_evaluate(p) for p in pops]
+
     # Include a reference to the populations in the context object.
     # This allows operators to see all of the subpopulations.
     context['leap']['subpopulations'] = pops
-    # Evaluate initial population
-    pops = [init_evaluate(p) for p in pops]
 
     # Set up a generation counter that records the current generation to the
     # context
@@ -323,7 +324,7 @@ def random_search(evaluations, problem, representation, pipeline=(),
     >>> from leap_ec.decoder import IdentityDecoder
     >>> from leap_ec.representation import Representation
     >>> from leap_ec.individual import Individual
-    >>> ea = random_search(evaluations=100,
+    >>> result = random_search(evaluations=100,
     ...                    problem=MaxOnes(),      # Solve a MaxOnes Boolean optimization problem
     ...
     ...                    representation=Representation(
@@ -331,20 +332,11 @@ def random_search(evaluations, problem, representation, pipeline=(),
     ...                        decoder=IdentityDecoder(),     # Genotype and phenotype are the same for this task
     ...                        initialize=create_binary_sequence(length=10)  # Initial genomes are random binary sequences
     ...                    ))
-    >>> ea # doctest:+ELLIPSIS
-    <generator ...>
 
-    The algorithm evaluates lazily when you query the generator:
+    The algorithm outputs a list containing just the best-found individual:
 
-    >>> print(*list(ea), sep='\\n') # doctest:+ELLIPSIS
-    (1, Individual(...))
-    (2, Individual(...))
-    ...
-    (100, Individual(...))
-
-    The best individual reported from the initial population  is reported at
-    generation 0) followed by the best-so-far individual at each subsequent
-    generation.
+    >>> result # doctest:+ELLIPSIS
+    [Individual(...)]
     """
     # Set up an evaluation counter that records the current generation to
     # context
@@ -367,8 +359,8 @@ def random_search(evaluations, problem, representation, pipeline=(),
 
         evaluation_counter()  # Increment to the next evaluation
 
-        # Output the best-so-far individual for each generation
-        yield (evaluation_counter.generation(), bsf)
+    # Output a list containing just the best-found solution
+    return [ bsf ]
 
 
 ##############################
