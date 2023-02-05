@@ -55,7 +55,7 @@ class RandomExecutable(Executable):
 
         For example, if we use a space from OpenAI Gym that defines a 2-D box of continuous values:
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> import numpy as np
         >>> output_space = spaces.Box(low=np.array([0, 0]), high=np.array([10, 10]), dtype=np.float32)
 

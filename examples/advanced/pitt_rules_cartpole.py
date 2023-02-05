@@ -3,7 +3,7 @@ import os
 import sys
 
 import gymnasium as gym
-from gym import spaces
+from gymnasium import spaces
 from matplotlib import pyplot as plt
 import numpy as np
 

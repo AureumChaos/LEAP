@@ -65,7 +65,7 @@ class EnvironmentProblem(ScalarProblem):
         
         The point of this helper is that it works on simple spaces:
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> discrete = spaces.Discrete(8)
         >>> EnvironmentProblem.space_dimensions(discrete)
         1

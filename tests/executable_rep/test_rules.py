@@ -1,5 +1,5 @@
 """Unit tests for the rules package."""
-from gym import spaces
+from gymnasium import spaces
 import numpy as np
 import pytest
 
