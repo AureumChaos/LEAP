@@ -309,7 +309,7 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
 ##############################
 # Function random_search
 ##############################
-def random_search(evaluations, problem, representation, pipeline=(),
+def random_search(evaluations, problem, representation, pipeline,
                   context=context):
     """This function performs random search of a solution space using the
     given representation and problem.
@@ -319,53 +319,76 @@ def random_search(evaluations, problem, representation, pipeline=(),
     that you've barked up the wrong tree!
 
     This implementation also allows you to pass in an operator pipeline, which will
-    be applied to each individual.  You'd usually use this to pass in probes, for
-    example, to take measurements of the population.  But you could also use it to
-    hybridize random search with, say, a local refinement procedure.
+    be applied to each individual.  The pipeline must have the following types
+    of operators:
 
+    - a selection operator, probably cyclic_selection since there will be only
+        one individual from which to choose
+    - clone operator to ensure we don't overwrite the previous individual
+    - a pertubation operator, likely a simple mutation pipeline operator
+    - evaluate operator so we know where the new individual is in the space
+    - pool(size=1) to act as a pipeline sink to pull the new individuals through
+
+    :param evaluations: how many evaluations to perform
+    :param problem: the Problem instance to use for evaluating individuals
+    :param representation: the Representation describing individuals
+    :param pipeline: reproductive operator pipeline
+    :param context: optional context for storing state as algorithm progresses
+    :returns: the series of individuals that describe a random walk
 
     >>> from leap_ec.binary_rep.problems import MaxOnes
     >>> from leap_ec.binary_rep.initializers import create_binary_sequence
+    >>> from leap_ec.binary_rep.ops import mutate_bitflip
     >>> from leap_ec.decoder import IdentityDecoder
     >>> from leap_ec.representation import Representation
     >>> from leap_ec.individual import Individual
-    >>> result = random_search(evaluations=100,
+    >>> from leap_ec.ops import evaluate, clone, cyclic_selection, pool
+    >>> result = random_search(evaluations=5,
     ...                    problem=MaxOnes(),      # Solve a MaxOnes Boolean optimization problem
     ...
     ...                    representation=Representation(
     ...                        individual_cls=Individual,     # Use the standard Individual as the prototype for the population
     ...                        decoder=IdentityDecoder(),     # Genotype and phenotype are the same for this task
-    ...                        initialize=create_binary_sequence(length=10)  # Initial genomes are random binary sequences
-    ...                    ))
+    ...                        initialize=create_binary_sequence(length=3)  # Initial genomes are random binary sequences
+    ...                    ),
+    ...                     pipeline=[cyclic_selection,
+    ...                               clone,
+    ...                               mutate_bitflip(expected_num_mutations=3),
+    ...                               evaluate,
+    ...                               pool(size=1)])
+    >>> assert(len(result) == 5)
 
-    The algorithm outputs a list containing just the best-found individual:
-
-    >>> result # doctest:+ELLIPSIS
-    [Individual(...)]
+    The algorithm outputs a list containing all the generated individuals.
     """
+    # Use the representation to sample a new individual to start us off
+    individual = representation.create_individual(problem=problem)
+
+    individual.evaluate() # Figure out where they are in solution space
+
+    trajectory = [individual] # start with this guy as step 0 in random walk
+
     # Set up an evaluation counter that records the current generation to
-    # context
-    evaluation_counter = util.inc_generation(context=context)
-    bsf = None
+    # context; start at 1 to account for individual we already created.
+    evaluation_counter = util.inc_generation(start_generation=1)
 
     while evaluation_counter.generation() < evaluations:
-        # Use the representation to sample a new individual
-        population = representation.create_population(1, problem=problem)
+        # Apply the provided reproductive operators to create a new individual.
+        # This is also an opportunity for probes embedded in the pipeline to
+        # report on pipeline behavior; e.g., how multiple pertubation operators
+        # change the new individual as it progresses through the pipeline.
+        individual = pipe([individual], *pipeline)
 
-        # Fitness evaluation
-        population = Individual.evaluate_population(population)
+        trajectory.extend(individual)
 
-        # Apply some operators to the new individual.
-        # For example, we'd put probes here.
-        population = pipe(population, *pipeline)
-
-        if max(population) > bsf:  # Update the best-so-far individual
-            bsf = max(population)
+        # Because the pipeline returned a list of one individual, we need to
+        # unpack it because the pipe() is going to expect `individual` to not
+        # be in a list.
+        individual = individual[0]
 
         evaluation_counter()  # Increment to the next evaluation
 
-    # Output a list containing just the best-found solution
-    return [ bsf ]
+    # Return the list of all individuals that were created
+    return trajectory
 
 
 ##############################
