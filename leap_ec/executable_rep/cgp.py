@@ -1,4 +1,5 @@
 """Cartesian genetic programming (CGP) representation."""
+from abc import ABC, abstractmethod
 from typing import Iterator
 
 import networkx as nx
@@ -8,15 +9,94 @@ from leap_ec import ops
 from leap_ec.decoder import Decoder
 from leap_ec.int_rep.initializers import create_int_vector
 from leap_ec.int_rep.ops import mutate_randint, individual_mutate_randint
-from leap_ec.segmented_rep.initializers import create_segmented_sequence
 from .executable import Executable
+
+
+##############################
+# Primitives
+##############################
+class Primitive(ABC):
+    """Abstract class that primitive functions inherit from for CGP.
+
+    You don't need to use this class to define primitive for CGP.
+    But if you do, it allows CGP to know the arity of each function—
+    which CGPDecoder can use to prune un-needed edges in the resulting
+    graph. This sometimes leads better performance or simpler graphs.
+    """
+    @property
+    @abstractmethod
+    def arity(self) -> int:
+        """How many args are used inside the __call__ function"""
+        return 0
+
+    @abstractmethod
+    def __call__(self, *args):
+        pass
+
+class FunctionPrimitive(Primitive):
+    """A convenience wrapper that defines a generic primitive function
+    for CGP from a function (ex. a lambda).  Basically this lets us
+    define a function that we can also query the arity of.
+    
+    >>> f = FunctionPrimitive(lambda x, y: x ^ y, 2)
+    >>> f(True, False)
+    True
+    >>> f.arity
+    2
+    """
+    def __init__(self, func, f_arity: int):
+        assert(func is not None)
+        assert(f_arity >= 0)
+        self.func = func
+        self.f_arity = f_arity
+
+    @property
+    def arity(self):
+        return self.f_arity
+
+    def __call__(self, *args):
+        return self.func(*args)
+
+class NAND(Primitive):
+    """Primitive NAND function for use in genetic programming.
+    
+    >>> f = NAND()
+    >>> f(True, True)
+    False
+    >>> f(True, False)
+    True
+    """
+
+    @property
+    def arity(self):
+        return 2
+
+    def __call__(self, *args):
+        return not (args[0] and args[1])
+
+
+class NotX(Primitive):
+    """Primitive NOT function for use in genetic programming.
+    
+    >>> f = NotX()
+    >>> f(True)
+    False
+    >>> f(False)
+    True
+    """
+    @property
+    def arity(self):
+        return 1
+
+    def __call__(self, *args):
+        return not args[0]
 
 
 ##############################
 # Class CGPExecutable
 ##############################
 class CGPExecutable(Executable):
-    """Represented a decoded CGP circuit, which can be executed on inputs."""
+    """Represents a decoded CGP circuit, which can be executed on inputs."""
 
     def __init__(self, primitives, num_inputs, num_outputs, graph):
         assert(primitives is not None)
@@ -93,7 +173,7 @@ class CGPDecoder(Decoder):
     (as an index of the `primitives` list) and takes its inputs from nodes 2 and 3, respectively.
     """
 
-    def __init__(self, primitives, num_inputs, num_outputs, num_layers, nodes_per_layer, max_arity, levels_back=None):
+    def __init__(self, primitives, num_inputs, num_outputs, num_layers, nodes_per_layer, max_arity, prune: bool=True, levels_back=None):
         assert(primitives is not None)
         assert(len(primitives) > 0)
         assert(num_inputs > 0)
@@ -107,6 +187,7 @@ class CGPDecoder(Decoder):
         self.num_layers = num_layers
         self.nodes_per_layer = nodes_per_layer
         self.max_arity = max_arity
+        self.prune = prune
         self.levels_back = levels_back if levels_back is not None else num_layers
 
     def num_genes(self):
@@ -359,8 +440,14 @@ class CGPDecoder(Decoder):
             for node in range(self.nodes_per_layer):
                 # TODO Consider using Miller's pre-processing algorithm here to omit nodes that are disconnected from the circuit (making execution more efficient)
                 node_id = self.num_inputs + layer*self.nodes_per_layer + node
-                graph.nodes[node_id]['function'] = self.get_primitive(genome, layer, node)
+                function = self.get_primitive(genome, layer, node)
+                graph.nodes[node_id]['function'] = function                
                 inputs = self.get_input_sources(genome, layer, node)
+                
+                # If we know the arity of the function, we don't need to connect all the input nodes to the graph.
+                if hasattr(function, 'arity'):
+                    inputs = inputs[:function.arity]
+                    
                 # Mark each edge with an 'order' attribute so we know which port they feed into on the target node
                 graph.add_edges_from([(i, node_id, {'order': o}) for o, i in enumerate(inputs)])
 
@@ -369,7 +456,38 @@ class CGPDecoder(Decoder):
         output_nodes = all_node_ids[-self.num_outputs:]
         graph.add_edges_from(zip(output_sources, output_nodes))
 
+        if self.prune:
+            graph = self.prune_graph(graph, self.num_inputs, self.num_outputs)
+
         return CGPExecutable(self.primitives, self.num_inputs, self.num_outputs, graph)
+
+    @staticmethod
+    def prune_graph(graph, num_inputs: int, num_outputs: int):
+        """Prune parts of the graph that do not feed into any of the output nodes."""
+
+        # Get the IDs of the output nodes
+        output_nodes = list(graph.nodes())[-num_outputs:]
+
+        # Omit nodes that are disconnected from the circuit (making execution more efficient).
+        # We will do this by inducing a subgraph whose necessary nodes are the input nodes, the output nodes,
+        # and the "ancestors" of the output nodes.
+        necessary_nodes = set(list(range(num_inputs)) + output_nodes)
+
+        # XXX: This for-loop could be a single call if we augment the graph with a new node
+        # that is connected to all of the output nodes. Then we would only call ancestors once
+        # on the augmented node. However, this node would have to be removed or ignored later.
+        for output_node in output_nodes:
+            necessary_nodes.update(nx.ancestors(graph, output_node))
+
+        # Induce a subgraph based on nodes.
+        graph = nx.subgraph(graph, list(necessary_nodes))
+        # The subgraph likely has fewer nodes than before, so we want to reindex them.
+        #   This is required, for instance, because when we execute a graph, we assume
+        #   that the nodes are labeled consecutively.
+        graph = nx.relabel.convert_node_labels_to_integers(graph, ordering="sorted")
+
+        return graph
+
 
 
 ##############################
@@ -386,7 +504,7 @@ class CGPWithParametersDecoder(CGPDecoder):
     primitive function.
     
     """
-    def __init__(self, primitives, num_inputs: int, num_outputs: int, num_layers: int, nodes_per_layer: int, max_arity: int, num_parameters_per_node: int, levels_back=None):
+    def __init__(self, primitives, num_inputs: int, num_outputs: int, num_layers: int, nodes_per_layer: int, max_arity: int, num_parameters_per_node: int, prune: bool=True, levels_back=None):
         assert(primitives is not None)
         assert(len(primitives) > 0)
         assert(num_inputs > 0)
@@ -394,14 +512,24 @@ class CGPWithParametersDecoder(CGPDecoder):
         assert(num_layers > 0)
         assert(nodes_per_layer > 0)
         assert(max_arity > 0)
-        super().__init__(primitives, num_inputs, num_outputs, num_layers, nodes_per_layer, max_arity, levels_back)
+
+        # Tell the superclass *not* to prune the graph of disconnected nodes & edges
+        #    because we will want to add the parameters to the graph first ourselves
+        #    before we prune.
+        prune_super = False
+        super().__init__(primitives, num_inputs, num_outputs, num_layers, nodes_per_layer, max_arity, prune_super, levels_back)
+        self.prune_later = prune
         self.num_parameters_per_node = num_parameters_per_node
 
     def decode(self, genome, *args, **kwargs):
         """
         Decode a genome containing both a CGP graph and a list of auxiliary parameters.
 
-        >>> primitives = [ sum, lambda x: x[0] - x[1], lambda x: x[0] * x[1] ]
+        >>> primitives=[
+        ...                lambda x, y, z: sum([x, y, z]),
+        ...                lambda x, y, z: (x - y)*z,
+        ...                lambda x, y, z: (x*y)*z
+        ...            ]
         >>> decoder = CGPWithParametersDecoder(primitives, num_inputs=2, num_outputs=2, num_layers=2, nodes_per_layer=2, max_arity=2, num_parameters_per_node=1)
         >>> genome = [ [ 0, 0, 1, 1, 0, 1, 2, 2, 3, 0, 2, 3, 4, 5 ], [ 0.5, 15, 2.7, 0.0 ] ]
         >>> executable = decoder.decode(genome)
@@ -433,6 +561,9 @@ class CGPWithParametersDecoder(CGPDecoder):
                 computational_node_id = layer*self.nodes_per_layer + node
                 params = parameters_genome[computational_node_id*self.num_parameters_per_node:computational_node_id*self.num_parameters_per_node + self.num_parameters_per_node]
                 executable.graph.nodes[self.num_inputs + computational_node_id]['parameters'] = params
+
+        if self.prune_later:
+            executable.graph = CGPDecoder.prune_graph(executable.graph, self.num_inputs, self.num_outputs)
 
         return executable
 

@@ -214,6 +214,7 @@ def inc_births(context=context, start=0, callbacks=()):
         return curr_births
 
     do_increment.births = births
+    do_increment.do_increment = do_increment
     do_increment.do_decrement = do_decrement
 
     return do_increment

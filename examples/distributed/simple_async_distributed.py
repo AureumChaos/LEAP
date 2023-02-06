@@ -50,9 +50,6 @@ import logging
 import os
 from pprint import pformat
 
-# Python 3.9 workaround for Dask.
-# See https://github.com/dask/distributed/issues/4168
-import multiprocessing.popen_spawn_posix
 from distributed import Client, LocalCluster
 
 from leap_ec import Representation, test_env_var
@@ -171,7 +168,7 @@ if __name__ == '__main__':
             track_pop_func = log_pop(args.update_interval, track_pop_stream)
 
         final_pop = asynchronous.steady_state(client,
-                                              births=args.max_births,
+                                              max_births=args.max_births,
                                               init_pop_size=args.init_pop_size,
                                               pop_size=args.pop_size,
 

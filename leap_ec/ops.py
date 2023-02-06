@@ -18,7 +18,7 @@ from functools import wraps
 import logging
 import random
 from statistics import mean
-from typing import Iterator, List
+from typing import Iterator, List, Union, Tuple
 
 import numpy as np
 import toolz
@@ -411,9 +411,7 @@ def uniform_crossover(next_individual: Iterator,
 
         # generate which indices we should swap
         min_length = min(ind1.genome.shape[0], ind2.genome.shape[0])
-        selector = np.random.choice([0, 1], size=(min_length,),
-                                    p=(1-p_swap, p_swap))
-        indices_to_swap = np.nonzero(selector)[0]
+        indices_to_swap = random_bernoulli_vector(min_length, p_swap)
 
         # perform swap
         tmp = ind1.genome[indices_to_swap]
@@ -1418,3 +1416,26 @@ def compute_population_values(population: List, offset=0, exponent: int = 1,
     if offset == 'pop-min':
         offset = -values.min(axis=0)
     return (values + offset) ** exponent
+
+
+##############################
+# function bernoulli_process
+##############################
+def random_bernoulli_vector(shape: Union[int, Tuple], p: float = 0.5) -> np.ndarray:
+    """Generates a random vector of Boolean balues from a Bernoulli process—that is, from a 
+    sequence of weighted coin flips.
+
+    We use this function throughout LEAP because its implementation was found to
+    be much faster than, say, just calling `np.random.choice([0, 1])`.
+
+    >>> from leap_ec.ops import random_bernoulli_vector
+    >>> random_bernoulli_vector(5, p=0.4)
+    array([..., ..., ..., ..., ...])
+
+    :param shape: shape of the random vector—can be an integer or a tuple.
+    :param p: success probability of the bernoulli trials.
+    :return: boolean numpy array 
+    """
+    assert(p >= 0 and p <= 1)
+    shape = (shape,) if isinstance(shape, int) else shape
+    return np.random.rand(*shape) < p

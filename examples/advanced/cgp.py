@@ -24,10 +24,10 @@ from leap_ec.executable_rep import cgp, neural_network, problems
 # We'll set it up first because it's needed as a parameter
 # to a few different components.
 cgp_decoder = cgp.CGPDecoder(
-                    primitives=[
-                        lambda x, y: not (x and y),  # NAND
-                        lambda x, y: not x,  # NOT (ignoring y)
-                    ],
+                    # Primitives may either be plain lambdas or FunctionPrimitive objects.
+                    #   Here we use FunctinPrimitives, because it allows additional edges to
+                    #   be pruned from the graph for cleanliness.
+                    primitives=[ cgp.NAND(), cgp.NotX()],
                     num_inputs = 2,
                     num_outputs = 1,
                     num_layers=50,
@@ -123,18 +123,16 @@ def cgp_cmd(gens):
 @click.option('--evals', default=5000)
 def random(evals):
     """Use random search over a CGP representation to solve the XOR function."""
-    ea = random_search(evals,
-            representation=cgp_representation,
+    best_found = random_search(evals,
+                representation=cgp_representation,
 
-            # Our fitness function will be to solve the XOR problem
-            problem=xor_problem,
+                # Our fitness function will be to solve the XOR problem
+                problem=xor_problem,
 
-            pipeline=[
-                probe.FitnessStatsCSVProbe(stream=sys.stdout)
-            ] + cgp_visual_probes(modulo=10)
-    )
-
-    list(ea)
+                pipeline=[
+                    probe.FitnessStatsCSVProbe(stream=sys.stdout)
+                ] + cgp_visual_probes(modulo=10)
+        )
 
 
 ##############################
