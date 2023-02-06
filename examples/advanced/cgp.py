@@ -12,6 +12,7 @@ from matplotlib import pyplot as plt
 
 from leap_ec.algorithm import generational_ea, random_search
 from leap_ec import ops, probe, test_env_var
+from leap_ec.ops import cyclic_selection, clone, evaluate, pool
 from leap_ec.representation import Representation
 from leap_ec.executable_rep import cgp, neural_network, problems
 
@@ -120,7 +121,7 @@ def cgp_cmd(gens):
 # random command
 ##############################
 @cli.command('random')
-@click.option('--evals', default=5000)
+@click.option('--evals', default=500)
 def random(evals):
     """Use random search over a CGP representation to solve the XOR function."""
     _ = random_search(evals,
@@ -131,12 +132,11 @@ def random(evals):
 
                       pipeline=[cyclic_selection,
                                 clone,
-                                mutation,
+                                cgp.cgp_mutate(cgp_decoder, probability=1.0),
                                 evaluate,
+                                pool(size=1),
                                 probe.FitnessStatsCSVProbe(stream=sys.stdout),
-                                cgp_visual_probes(modulo=10),
-                                pool(size=1)
-                                ]
+                                ] + cgp_visual_probes(modulo=10)
                       )
 
 
