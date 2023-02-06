@@ -18,7 +18,8 @@ from leap_ec.individual import Individual
 ##############################
 # Function generational_ea
 ##############################
-def generational_ea(max_generations: int, pop_size: int, problem, representation,
+def generational_ea(max_generations: int,
+                    pop_size: int, problem, representation,
                     pipeline,
                     stop=lambda x: False,
                     init_evaluate=Individual.evaluate_population,
@@ -29,21 +30,23 @@ def generational_ea(max_generations: int, pop_size: int, problem, representation
     This function provides an evolutionary algorithm with a generational
     population model.
 
-    When called, this initializes and evaluates a population of size
-    `pop_size` using the  and then pipes it through an operator `pipeline` (
-    i.e. a list of operators) to obtain offspring.  Wash, rinse, repeat.
+    When called this initializes and evaluates a population of size
+    `pop_size` using the `init_evaluate` function and then pipes it through
+    an operator `pipeline` (i.e. a list of operators) to obtain offspring.
+    Wash, rinse, repeat.
 
-    The algorithm is provided  here at the "metaheuristic" level: in order to
+    The algorithm is provided here at the "metaheuristic" level: in order to
     apply it to a particular problem, you must parameterize it with
-    implementations of its various components: you must decide the population
+    implementations of its various components. You must decide the population
     size, how individuals are represented and initialized, the pipeline of
     reproductive operators, etc. A metaheuristic template of this kind can be
     used to implement genetic algorithms, genetic programming, certain
     evolution strategies, and all manner of other (novel) algorithms by
     passing in appropriate components as parameters.
 
-    :param int max_generations: The max number of generations to run the algorithm for.
-        Can pass in float('Inf') to run forever or until the `stop` condition is reached.
+    :param int max_generations: The max number of generations to run the
+        algorithm for. Can pass in float('Inf') to run forever or until
+        the `stop` condition is reached.
     :param int pop_size: Size of the initial population
     :param int stop: A function that accepts a population and
         returns True iff it's time to stop evolving.
@@ -58,9 +61,9 @@ def generational_ea(max_generations: int, pop_size: int, problem, representation
         may wish to pass a different operator in for distributed evaluation
         or other purposes.
     :param k_elites: keep k elites
-    :param start_generation: index of the first generation to count from (defaults to 0).
-        You might want to change this, for example, in experiments that involve stopping
-        and restarting an algorithm.
+    :param start_generation: index of the first generation to count from
+        (defaults to 0). You might want to change this, for example, in
+        experiments that involve stopping and restarting an algorithm.
 
     :return: the final population
 
@@ -106,8 +109,10 @@ def generational_ea(max_generations: int, pop_size: int, problem, representation
     ...
     [...] ...
 
-    You can get the best individual by using `max` (since comparison on individuals is based on the `Problem` associated with
-    them, this will return the best individaul even on minimization problems)):
+    You can get the best individual by using `max` (since comparison on
+    individuals is based on the `Problem` associated with them, this will
+    return the best individaul even on minimization problems)):
+
     >>> max(final_pop)
     Individual(...)
 
@@ -162,7 +167,7 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
         returns True iff it's time to stop evolving.
     :param `Problem` problem: the Problem that should be used to evaluate
         individuals' fitness
-    :param representation: the `Representation` that governs the creation and decoding 
+    :param representation: the `Representation` that governs the creation and decoding
         of individuals.  If a list of `Representation` objects is given, then
         different representations will be used for different subpopulations; else
         the same representation will be used for all subpopulations.
