@@ -123,16 +123,21 @@ def cgp_cmd(gens):
 @click.option('--evals', default=5000)
 def random(evals):
     """Use random search over a CGP representation to solve the XOR function."""
-    best_found = random_search(evals,
-                representation=cgp_representation,
+    _ = random_search(evals,
+                      representation=cgp_representation,
 
-                # Our fitness function will be to solve the XOR problem
-                problem=xor_problem,
+                      # Our fitness function will be to solve the XOR problem
+                      problem=xor_problem,
 
-                pipeline=[
-                    probe.FitnessStatsCSVProbe(stream=sys.stdout)
-                ] + cgp_visual_probes(modulo=10)
-        )
+                      pipeline=[cyclic_selection,
+                                clone,
+                                mutation,
+                                evaluate,
+                                probe.FitnessStatsCSVProbe(stream=sys.stdout),
+                                cgp_visual_probes(modulo=10),
+                                pool(size=1)
+                                ]
+                      )
 
 
 ##############################
@@ -144,5 +149,5 @@ if __name__ == '__main__':
     # If we're not in test-harness mode, block until the user closes the app
     if os.environ.get(test_env_var, False) != 'True':
         plt.show()
-        
+
     plt.close('all')
