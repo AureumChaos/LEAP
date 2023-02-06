@@ -48,7 +48,7 @@ class PittRulesDecoder(Decoder):
     inputs and 4 mutually exclusive actions to choose from, we might use a Box and Discrete
     space, respectively, from `gym.spaces`:
 
-    >>> from gym import spaces
+    >>> from gymnasium import spaces
     >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 3), dtype=np.float32)
     >>> out_ = spaces.Discrete(4)
     >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -67,7 +67,7 @@ class PittRulesDecoder(Decoder):
 
         For example, the following `decoder`
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 12), dtype=np.float32)
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -86,7 +86,7 @@ class PittRulesDecoder(Decoder):
 
         For example, the following `decoder`
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 12), dtype=np.float32)
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -112,7 +112,7 @@ class PittRulesDecoder(Decoder):
 
         For example, the following `decoder`
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 3), dtype=np.float32)
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -135,7 +135,7 @@ class PittRulesDecoder(Decoder):
         
         For example, the following `decoder`
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=0, high=1.5, shape=(1, 3), dtype=np.float32)
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -164,7 +164,7 @@ class PittRulesDecoder(Decoder):
 
         For example, the following `decoder`
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=0, high=1.5, shape=(1, 3), dtype=np.float32)
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -183,7 +183,7 @@ class PittRulesDecoder(Decoder):
     def bounds(self, num_rules):
         """Return the (low, high) bounds that it makes sense for each gene to vary within.
         
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 3), dtype=np.float32)
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -205,7 +205,7 @@ class PittRulesDecoder(Decoder):
         
         For instance, if we have the following decoder:
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 3), dtype=np.float32)
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -254,7 +254,7 @@ class PittRulesDecoder(Decoder):
 
         For example, given a `decoder`
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 2), dtype=np.float32)
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -308,7 +308,7 @@ class PittRulesDecoder(Decoder):
         For example, often we'll apply a rule system to a real-valued observation space and an
         integer-valued action space.
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 3), dtype=np.float32)
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -366,7 +366,7 @@ class PittRulesDecoder(Decoder):
         Usage example:
 
         >>> import numpy as np
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
         >>> out_ = spaces.Discrete(2)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -406,7 +406,7 @@ class PittRulesDecoder(Decoder):
         two discrete actions:
 
         >>> import numpy as np
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
         >>> out_ = spaces.Discrete(2)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -466,7 +466,7 @@ class PittRulesExecutable(Executable):
     and outputs discrete values in `{0, 1}`:
 
     >>> import numpy as np
-    >>> from gym import spaces
+    >>> from gymnasium import spaces
     >>> input_space = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
     >>> output_space = spaces.Discrete(2)
     >>> rules = PittRulesExecutable(input_space, output_space, rules,
@@ -524,7 +524,7 @@ class PittRulesExecutable(Executable):
         And we build a rule system out of it like so:
 
         >>> import numpy as np
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> input_space = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
         >>> output_space = spaces.Discrete(2)
         >>> rules = PittRulesExecutable(input_space, output_space, rules,
@@ -597,7 +597,7 @@ class PittRulesExecutable(Executable):
         For example, given the following rule system:
 
         >>> import numpy as np
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> input_space = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
         >>> output_space = spaces.Discrete(2)
         >>> rules = [ Rule(conditions=[(0.0, 0.6), (0.0, 0.4)], actions=[0]),
@@ -638,7 +638,7 @@ class PittRulesExecutable(Executable):
         We build an executable around it like so:
 
         >>> import numpy as np
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> input_space = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
         >>> output_space = spaces.Discrete(2)
         >>> rule_system = PittRulesExecutable(input_space, output_space, rules,
@@ -725,7 +725,7 @@ class PlotPittRuleProbe:
     This probe requires a `decoder`, which it uses to parse individual genomes into sets of rules that it can visualize:
 
     >>> import numpy as np
-    >>> from gym import spaces
+    >>> from gymnasium import spaces
     >>> in_ = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
     >>> out_ = spaces.Discrete(2)
     >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -753,7 +753,7 @@ class PlotPittRuleProbe:
     .. plot::
 
         import numpy as np
-        from gym import spaces
+        from gymnasium import spaces
 
         from leap_ec.executable_rep.rules import PittRulesDecoder, PlotPittRuleProbe
         from leap_ec.individual import Individual

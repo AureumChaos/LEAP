@@ -2,8 +2,8 @@
 import os
 import sys
 
-import gym
-from gym import spaces
+import gymnasium as gym
+from gymnasium import spaces
 from matplotlib import pyplot as plt
 import numpy as np
 

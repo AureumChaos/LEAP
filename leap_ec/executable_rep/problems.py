@@ -65,7 +65,7 @@ class EnvironmentProblem(ScalarProblem):
         
         The point of this helper is that it works on simple spaces:
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> discrete = spaces.Discrete(8)
         >>> EnvironmentProblem.space_dimensions(discrete)
         1
@@ -96,14 +96,15 @@ class EnvironmentProblem(ScalarProblem):
         observations = []
         rewards = []
         for r in range(self.runs):
-            observation = self.environment.reset()
+            observation, info = self.environment.reset()
             run_observations = [observation]
             run_rewards = []
             for t in range(self.steps):
                 if self.gui:
                     self.environment.render()
                 action = executable(observation)
-                observation, reward, done, info = self.environment.step(action)
+                observation, reward, terminated, truncated, info = self.environment.step(action)
+                done = terminated or truncated
                 run_observations.append(observation)
                 run_rewards.append(reward)
                 if self.stop_on_done and done:
