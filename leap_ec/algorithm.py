@@ -172,7 +172,7 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
         different representations will be used for different subpopulations; else
         the same representation will be used for all subpopulations.
     :param list shared_pipeline: a list of operators that every population
-        will uses to create the offspring population at each generation
+        will use to create the offspring population at each generation
     :param list subpop_pipelines: a list of population-specific operator
         lists, the ith of which will only be applied to the ith population (after
         the `shared_pipeline`).  Ignored if `None`.
@@ -182,8 +182,7 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
         may wish to pass a different operator in for distributed evaluation
         or other purposes.
 
-    :return: a generator of `(int, [individual_cls])` pairs representing the
-        best individual in each population at each generation.
+    :return: a list of lists of each of the subpopulations.
 
     To turn a multi-population EA into an island model, use the
     :py:func:`leap_ec.ops.migrate` operator in the shared pipeline.  This
@@ -209,45 +208,36 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
     ...
     >>> l = 2  # Length of the genome
     >>> pop_size = 10
-    >>> ea = multi_population_ea(max_generations=1000,
-    ...                         num_populations=topology.number_of_nodes(),
-    ...                         pop_size=pop_size,
+    >>> pops = multi_population_ea(max_generations=10,
+    ...                            num_populations=topology.number_of_nodes(),
+    ...                            pop_size=pop_size,
     ...
-    ...                         problem=problem,
+    ...                            problem=problem,
     ...
-    ...                         representation=Representation(
-    ...                             individual_cls=Individual,
-    ...                             decoder=IdentityDecoder(),
-    ...                             initialize=create_real_vector(bounds=[problem.bounds] * l)
-    ...                             ),
+    ...                            representation=Representation(
+    ...                                individual_cls=Individual,
+    ...                                decoder=IdentityDecoder(),
+    ...                                initialize=create_real_vector(bounds=[problem.bounds] * l)
+    ...                                ),
     ...
-    ...                         shared_pipeline=[
-    ...                             ops.tournament_selection,
-    ...                             ops.clone,
-    ...                             mutate_gaussian(std=30,
-    ...                                             expected_num_mutations='isotropic',
-    ...                                             hard_bounds=problem.bounds),
-    ...                             ops.evaluate,
-    ...                             ops.pool(size=pop_size),
-    ...                             ops.migrate(topology=topology,
-    ...                                         emigrant_selector=ops.tournament_selection,
-    ...                                         replacement_selector=ops.random_selection,
-    ...                                         migration_gap=50)
-    ...                         ])
-    >>> ea # doctest:+ELLIPSIS
+    ...                            shared_pipeline=[
+    ...                                ops.tournament_selection,
+    ...                                ops.clone,
+    ...                                mutate_gaussian(std=30,
+    ...                                                expected_num_mutations='isotropic',
+    ...                                                hard_bounds=problem.bounds),
+    ...                                ops.evaluate,
+    ...                                ops.pool(size=pop_size),
+    ...                                ops.migrate(topology=topology,
+    ...                                            emigrant_selector=ops.tournament_selection,
+    ...                                            replacement_selector=ops.random_selection,
+    ...                                            migration_gap=5)
+    ...                            ])
+    >>> pops # doctest:+ELLIPSIS
     <generator ...>
 
     We can now run the algorithm by pulling output from its generator,
     which gives us the best individual in each population at each generation:
-
-    >>> from itertools import islice
-    >>> result = list(islice(ea, 5))  # Run the first 5 generations by pulsing the generator
-    >>> print(*result, sep='\\n')
-    (0, [Individual(...), Individual(...), Individual(...), Individual(...)])
-    (1, [Individual(...), Individual(...), Individual(...), Individual(...)])
-    (2, [Individual(...), Individual(...), Individual(...), Individual(...)])
-    (3, [Individual(...), Individual(...), Individual(...), Individual(...)])
-    (4, [Individual(...), Individual(...), Individual(...), Individual(...)])
 
     While each population is executing, `multi_population_ea` writes the
     index of the current subpopulation to `context['leap'][
@@ -255,32 +245,31 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
     :py:func:`leap.ops.migrate`) have the option of accessing the share
     context to learn which subpopulation they are currently working with.
 
+    TODO find a way to use Dask to parallelize populations, likely by having a
+    Dask worker for each sub-poplulation.
     """
 
     # If we are given a single problem, create a list assigning it to each subpop
-    if not hasattr(problem, '__len__'): # XXX Is 'isinstance(representation, Iterable):' better?
-        problem = [ problem for _ in range(num_populations) ]
+    if not isinstance(problem, Iterable):
+        problem = [problem for _ in range(num_populations)]
     # If we are given a single representation, create a list assigning it to each subpop
-    if not hasattr(representation, '__len__'):
-        representation = [ representation for _ in range(num_populations) ]
+    if not isinstance(representation, Iterable):
+        representation = [representation for _ in range(num_populations)]
 
-    assert(len(representation) == len(problem))
+    assert (len(representation) == len(problem))
 
     # Initialize & evaluate the initial subpopulations
-    pops = [ r.create_population(pop_size, problem=p) for r, p in zip(representation, problem) ]
+    pops = [r.create_population(pop_size, problem=p) for r, p in
+            zip(representation, problem)]
     pops = [init_evaluate(p) for p in pops]
 
     # Include a reference to the populations in the context object.
-    # This allows operators to see all of the subpopulations.
+    # This allows operators to see all the subpopulations.
     context['leap']['subpopulations'] = pops
 
     # Set up a generation counter that records the current generation to the
     # context
     generation_counter = util.inc_generation(context=context)
-
-    # Output the best individual in the initial population
-    bsf = [max(p) for p in pops]
-    yield (0, bsf)
 
     while (generation_counter.generation() < max_generations) and not stop(
             pops):
@@ -295,15 +284,12 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
                         (list(subpop_pipelines[i]) if subpop_pipelines else [])
             offspring = pipe(parents, *operators)
 
-            if max(offspring) > bsf[i]:  # Update the best-so-far individual
-                bsf[i] = max(offspring)
-
             pops[i] = offspring  # Replace parents with offspring
 
         generation_counter()  # Increment to the next generation
 
-        # Output the best-of-gen individuals for each generation
-        yield (generation_counter.generation(), bsf)
+
+    return pops
 
 
 ##############################
