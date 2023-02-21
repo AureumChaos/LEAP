@@ -2,6 +2,9 @@
 """
     Defines miscellaneous utility functions.
 
+    TODO we have two almost identical counters that could be consolidated
+    into a single class.
+
     print_list : for pretty printing a list when pprint isn't sufficient.
 """
 import collections

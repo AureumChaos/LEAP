@@ -18,7 +18,8 @@ from leap_ec.individual import Individual
 ##############################
 # Function generational_ea
 ##############################
-def generational_ea(max_generations: int, pop_size: int, problem, representation,
+def generational_ea(max_generations: int,
+                    pop_size: int, problem, representation,
                     pipeline,
                     stop=lambda x: False,
                     init_evaluate=Individual.evaluate_population,
@@ -29,21 +30,23 @@ def generational_ea(max_generations: int, pop_size: int, problem, representation
     This function provides an evolutionary algorithm with a generational
     population model.
 
-    When called, this initializes and evaluates a population of size
-    `pop_size` using the  and then pipes it through an operator `pipeline` (
-    i.e. a list of operators) to obtain offspring.  Wash, rinse, repeat.
+    When called this initializes and evaluates a population of size
+    `pop_size` using the `init_evaluate` function and then pipes it through
+    an operator `pipeline` (i.e. a list of operators) to obtain offspring.
+    Wash, rinse, repeat.
 
-    The algorithm is provided  here at the "metaheuristic" level: in order to
+    The algorithm is provided here at the "metaheuristic" level: in order to
     apply it to a particular problem, you must parameterize it with
-    implementations of its various components: you must decide the population
+    implementations of its various components. You must decide the population
     size, how individuals are represented and initialized, the pipeline of
     reproductive operators, etc. A metaheuristic template of this kind can be
     used to implement genetic algorithms, genetic programming, certain
     evolution strategies, and all manner of other (novel) algorithms by
     passing in appropriate components as parameters.
 
-    :param int max_generations: The max number of generations to run the algorithm for.
-        Can pass in float('Inf') to run forever or until the `stop` condition is reached.
+    :param int max_generations: The max number of generations to run the
+        algorithm for. Can pass in float('Inf') to run forever or until
+        the `stop` condition is reached.
     :param int pop_size: Size of the initial population
     :param int stop: A function that accepts a population and
         returns True iff it's time to stop evolving.
@@ -58,9 +61,9 @@ def generational_ea(max_generations: int, pop_size: int, problem, representation
         may wish to pass a different operator in for distributed evaluation
         or other purposes.
     :param k_elites: keep k elites
-    :param start_generation: index of the first generation to count from (defaults to 0).
-        You might want to change this, for example, in experiments that involve stopping
-        and restarting an algorithm.
+    :param start_generation: index of the first generation to count from
+        (defaults to 0). You might want to change this, for example, in
+        experiments that involve stopping and restarting an algorithm.
 
     :return: the final population
 
@@ -106,8 +109,10 @@ def generational_ea(max_generations: int, pop_size: int, problem, representation
     ...
     [...] ...
 
-    You can get the best individual by using `max` (since comparison on individuals is based on the `Problem` associated with
-    them, this will return the best individaul even on minimization problems)):
+    You can get the best individual by using `max` (since comparison on
+    individuals is based on the `Problem` associated with them, this will
+    return the best individaul even on minimization problems)):
+
     >>> max(final_pop)
     Individual(...)
 
@@ -162,12 +167,12 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
         returns True iff it's time to stop evolving.
     :param `Problem` problem: the Problem that should be used to evaluate
         individuals' fitness
-    :param representation: the `Representation` that governs the creation and decoding 
+    :param representation: the `Representation` that governs the creation and decoding
         of individuals.  If a list of `Representation` objects is given, then
         different representations will be used for different subpopulations; else
         the same representation will be used for all subpopulations.
     :param list shared_pipeline: a list of operators that every population
-        will uses to create the offspring population at each generation
+        will use to create the offspring population at each generation
     :param list subpop_pipelines: a list of population-specific operator
         lists, the ith of which will only be applied to the ith population (after
         the `shared_pipeline`).  Ignored if `None`.
@@ -177,8 +182,7 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
         may wish to pass a different operator in for distributed evaluation
         or other purposes.
 
-    :return: a generator of `(int, [individual_cls])` pairs representing the
-        best individual in each population at each generation.
+    :return: a list of lists of each of the subpopulations.
 
     To turn a multi-population EA into an island model, use the
     :py:func:`leap_ec.ops.migrate` operator in the shared pipeline.  This
@@ -204,45 +208,36 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
     ...
     >>> l = 2  # Length of the genome
     >>> pop_size = 10
-    >>> ea = multi_population_ea(max_generations=1000,
-    ...                         num_populations=topology.number_of_nodes(),
-    ...                         pop_size=pop_size,
+    >>> pops = multi_population_ea(max_generations=10,
+    ...                            num_populations=topology.number_of_nodes(),
+    ...                            pop_size=pop_size,
     ...
-    ...                         problem=problem,
+    ...                            problem=problem,
     ...
-    ...                         representation=Representation(
-    ...                             individual_cls=Individual,
-    ...                             decoder=IdentityDecoder(),
-    ...                             initialize=create_real_vector(bounds=[problem.bounds] * l)
-    ...                             ),
+    ...                            representation=Representation(
+    ...                                individual_cls=Individual,
+    ...                                decoder=IdentityDecoder(),
+    ...                                initialize=create_real_vector(bounds=[problem.bounds] * l)
+    ...                                ),
     ...
-    ...                         shared_pipeline=[
-    ...                             ops.tournament_selection,
-    ...                             ops.clone,
-    ...                             mutate_gaussian(std=30,
-    ...                                             expected_num_mutations='isotropic',
-    ...                                             hard_bounds=problem.bounds),
-    ...                             ops.evaluate,
-    ...                             ops.pool(size=pop_size),
-    ...                             ops.migrate(topology=topology,
-    ...                                         emigrant_selector=ops.tournament_selection,
-    ...                                         replacement_selector=ops.random_selection,
-    ...                                         migration_gap=50)
-    ...                         ])
-    >>> ea # doctest:+ELLIPSIS
+    ...                            shared_pipeline=[
+    ...                                ops.tournament_selection,
+    ...                                ops.clone,
+    ...                                mutate_gaussian(std=30,
+    ...                                                expected_num_mutations='isotropic',
+    ...                                                hard_bounds=problem.bounds),
+    ...                                ops.evaluate,
+    ...                                ops.pool(size=pop_size),
+    ...                                ops.migrate(topology=topology,
+    ...                                            emigrant_selector=ops.tournament_selection,
+    ...                                            replacement_selector=ops.random_selection,
+    ...                                            migration_gap=5)
+    ...                            ])
+    >>> pops # doctest:+ELLIPSIS
     <generator ...>
 
     We can now run the algorithm by pulling output from its generator,
     which gives us the best individual in each population at each generation:
-
-    >>> from itertools import islice
-    >>> result = list(islice(ea, 5))  # Run the first 5 generations by pulsing the generator
-    >>> print(*result, sep='\\n')
-    (0, [Individual(...), Individual(...), Individual(...), Individual(...)])
-    (1, [Individual(...), Individual(...), Individual(...), Individual(...)])
-    (2, [Individual(...), Individual(...), Individual(...), Individual(...)])
-    (3, [Individual(...), Individual(...), Individual(...), Individual(...)])
-    (4, [Individual(...), Individual(...), Individual(...), Individual(...)])
 
     While each population is executing, `multi_population_ea` writes the
     index of the current subpopulation to `context['leap'][
@@ -250,32 +245,31 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
     :py:func:`leap.ops.migrate`) have the option of accessing the share
     context to learn which subpopulation they are currently working with.
 
+    TODO find a way to use Dask to parallelize populations, likely by having a
+    Dask worker for each sub-poplulation.
     """
 
     # If we are given a single problem, create a list assigning it to each subpop
-    if not hasattr(problem, '__len__'): # XXX Is 'isinstance(representation, Iterable):' better?
-        problem = [ problem for _ in range(num_populations) ]
+    if not isinstance(problem, Iterable):
+        problem = [problem for _ in range(num_populations)]
     # If we are given a single representation, create a list assigning it to each subpop
-    if not hasattr(representation, '__len__'):
-        representation = [ representation for _ in range(num_populations) ]
+    if not isinstance(representation, Iterable):
+        representation = [representation for _ in range(num_populations)]
 
-    assert(len(representation) == len(problem))
+    assert (len(representation) == len(problem))
 
     # Initialize & evaluate the initial subpopulations
-    pops = [ r.create_population(pop_size, problem=p) for r, p in zip(representation, problem) ]
+    pops = [r.create_population(pop_size, problem=p) for r, p in
+            zip(representation, problem)]
     pops = [init_evaluate(p) for p in pops]
 
     # Include a reference to the populations in the context object.
-    # This allows operators to see all of the subpopulations.
+    # This allows operators to see all the subpopulations.
     context['leap']['subpopulations'] = pops
 
     # Set up a generation counter that records the current generation to the
     # context
     generation_counter = util.inc_generation(context=context)
-
-    # Output the best individual in the initial population
-    bsf = [max(p) for p in pops]
-    yield (0, bsf)
 
     while (generation_counter.generation() < max_generations) and not stop(
             pops):
@@ -283,28 +277,25 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
         for i, parents in enumerate(pops):
             # Indicate the subpopulation we are currently executing in the
             # context object. This allows operators to know which
-            # subpopulation the are working with.
+            # subpopulation they are working with.
             context['leap']['current_subpopulation'] = i
             # Execute the operators to create a new offspring population
             operators = list(shared_pipeline) + \
                         (list(subpop_pipelines[i]) if subpop_pipelines else [])
             offspring = pipe(parents, *operators)
 
-            if max(offspring) > bsf[i]:  # Update the best-so-far individual
-                bsf[i] = max(offspring)
-
             pops[i] = offspring  # Replace parents with offspring
 
         generation_counter()  # Increment to the next generation
 
-        # Output the best-of-gen individuals for each generation
-        yield (generation_counter.generation(), bsf)
+
+    return pops
 
 
 ##############################
 # Function random_search
 ##############################
-def random_search(evaluations, problem, representation, pipeline=(),
+def random_search(evaluations, problem, representation, pipeline,
                   context=context):
     """This function performs random search of a solution space using the
     given representation and problem.
@@ -314,53 +305,76 @@ def random_search(evaluations, problem, representation, pipeline=(),
     that you've barked up the wrong tree!
 
     This implementation also allows you to pass in an operator pipeline, which will
-    be applied to each individual.  You'd usually use this to pass in probes, for
-    example, to take measurements of the population.  But you could also use it to
-    hybridize random search with, say, a local refinement procedure.
+    be applied to each individual.  The pipeline must have the following types
+    of operators:
 
+    - a selection operator, probably cyclic_selection since there will be only
+        one individual from which to choose
+    - clone operator to ensure we don't overwrite the previous individual
+    - a pertubation operator, likely a simple mutation pipeline operator
+    - evaluate operator so we know where the new individual is in the space
+    - pool(size=1) to act as a pipeline sink to pull the new individuals through
+
+    :param evaluations: how many evaluations to perform
+    :param problem: the Problem instance to use for evaluating individuals
+    :param representation: the Representation describing individuals
+    :param pipeline: reproductive operator pipeline
+    :param context: optional context for storing state as algorithm progresses
+    :returns: the series of individuals that describe a random walk
 
     >>> from leap_ec.binary_rep.problems import MaxOnes
     >>> from leap_ec.binary_rep.initializers import create_binary_sequence
+    >>> from leap_ec.binary_rep.ops import mutate_bitflip
     >>> from leap_ec.decoder import IdentityDecoder
     >>> from leap_ec.representation import Representation
     >>> from leap_ec.individual import Individual
-    >>> result = random_search(evaluations=100,
+    >>> from leap_ec.ops import evaluate, clone, cyclic_selection, pool
+    >>> result = random_search(evaluations=5,
     ...                    problem=MaxOnes(),      # Solve a MaxOnes Boolean optimization problem
     ...
     ...                    representation=Representation(
     ...                        individual_cls=Individual,     # Use the standard Individual as the prototype for the population
     ...                        decoder=IdentityDecoder(),     # Genotype and phenotype are the same for this task
-    ...                        initialize=create_binary_sequence(length=10)  # Initial genomes are random binary sequences
-    ...                    ))
+    ...                        initialize=create_binary_sequence(length=3)  # Initial genomes are random binary sequences
+    ...                    ),
+    ...                     pipeline=[cyclic_selection,
+    ...                               clone,
+    ...                               mutate_bitflip(expected_num_mutations=3),
+    ...                               evaluate,
+    ...                               pool(size=1)])
+    >>> assert(len(result) == 5)
 
-    The algorithm outputs a list containing just the best-found individual:
-
-    >>> result # doctest:+ELLIPSIS
-    [Individual(...)]
+    The algorithm outputs a list containing all the generated individuals.
     """
+    # Use the representation to sample a new individual to start us off
+    individual = representation.create_individual(problem=problem)
+
+    individual.evaluate() # Figure out where they are in solution space
+
+    trajectory = [individual] # start with this guy as step 0 in random walk
+
     # Set up an evaluation counter that records the current generation to
-    # context
-    evaluation_counter = util.inc_generation(context=context)
-    bsf = None
+    # context; start at 1 to account for individual we already created.
+    evaluation_counter = util.inc_generation(start_generation=1)
 
     while evaluation_counter.generation() < evaluations:
-        # Use the representation to sample a new individual
-        population = representation.create_population(1, problem=problem)
+        # Apply the provided reproductive operators to create a new individual.
+        # This is also an opportunity for probes embedded in the pipeline to
+        # report on pipeline behavior; e.g., how multiple pertubation operators
+        # change the new individual as it progresses through the pipeline.
+        individual = pipe([individual], *pipeline)
 
-        # Fitness evaluation
-        population = Individual.evaluate_population(population)
+        trajectory.extend(individual)
 
-        # Apply some operators to the new individual.
-        # For example, we'd put probes here.
-        population = pipe(population, *pipeline)
-
-        if max(population) > bsf:  # Update the best-so-far individual
-            bsf = max(population)
+        # Because the pipeline returned a list of one individual, we need to
+        # unpack it because the pipe() is going to expect `individual` to not
+        # be in a list.
+        individual = individual[0]
 
         evaluation_counter()  # Increment to the next evaluation
 
-    # Output a list containing just the best-found solution
-    return [ bsf ]
+    # Return the list of all individuals that were created
+    return trajectory
 
 
 ##############################

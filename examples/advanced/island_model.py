@@ -6,10 +6,13 @@ import math
 import os
 import sys
 
+from rich import print
+
 from matplotlib import pyplot as plt
 import networkx as nx
 
-from leap_ec import Individual, Representation, context, test_env_var, leap_logger_name
+from leap_ec import Individual, Representation, context, test_env_var, \
+    leap_logger_name
 from leap_ec import ops, probe
 from leap_ec.algorithm import multi_population_ea
 from leap_ec.real_rep.problems import SchwefelProblem
@@ -77,11 +80,11 @@ if __name__ == '__main__':
         generations = 2
     else:
         generations = 1000
-    
+
     # Uncomment these lines to see logs of what genomes and fitness values are sent to your external process.
     # This is useful for debugging a simulation.
-    #logging.getLogger().addHandler(logging.StreamHandler())  # Log to stderr
-    #logging.getLogger(leap_logger_name).setLevel(logging.DEBUG) # Log debug messages
+    # logging.getLogger().addHandler(logging.StreamHandler())  # Log to stderr
+    # logging.getLogger(leap_logger_name).setLevel(logging.DEBUG) # Log debug messages
 
     #########################
     # Topology and Problem
@@ -98,54 +101,58 @@ if __name__ == '__main__':
         [problem] * topology.number_of_nodes(), modulo=10)
     subpop_probes = list(zip(genotype_probes, fitness_probes))
 
+
     def get_island(context):
         """Closure that returns a callback for retrieving the current island
         ID during logging."""
         return lambda _: context['leap']['current_subpopulation']
+
 
     #########################
     # Algorithm
     #########################
     with open('./example_migration_data.csv', 'w') as migration_file:
         ea = multi_population_ea(max_generations=generations,
-                                num_populations=topology.number_of_nodes(),
-                                pop_size=pop_size,
-                                problem=problem,  # Fitness function
+                                 num_populations=topology.number_of_nodes(),
+                                 pop_size=pop_size,
+                                 problem=problem,  # Fitness function
 
-                                # Representation
-                                representation=Representation(
-                                    individual_cls=Individual,
-                                    initialize=create_real_vector(
-                                        bounds=[problem.bounds] * l)
-                                ),
+                                 # Representation
+                                 representation=Representation(
+                                     individual_cls=Individual,
+                                     initialize=create_real_vector(
+                                         bounds=[problem.bounds] * l)
+                                 ),
 
-                                # Operator pipeline
-                                shared_pipeline=[
-                                    ops.tournament_selection,
-                                    ops.clone,
-                                    mutate_gaussian(
-                                        std=30,
-                                        expected_num_mutations=1,
-                                        hard_bounds=problem.bounds),
-                                    ops.evaluate,
-                                    ops.pool(size=pop_size),
-                                    ops.migrate(topology=topology,
-                                                emigrant_selector=ops.tournament_selection,
-                                                replacement_selector=ops.random_selection,
-                                                migration_gap=50,
-                                                metric=ops.migration_metric(
-                                                    stream=migration_file,
-                                                    header=True
-                                                )),
-                                    probe.FitnessStatsCSVProbe(stream=sys.stdout,
-                                            extra_metrics={ 'island': get_island(context) })
-                                ],
-                                subpop_pipelines=subpop_probes)
+                                 # Operator pipeline
+                                 shared_pipeline=[
+                                     ops.tournament_selection,
+                                     ops.clone,
+                                     mutate_gaussian(
+                                         std=30,
+                                         expected_num_mutations=1,
+                                         hard_bounds=problem.bounds),
+                                     ops.evaluate,
+                                     ops.pool(size=pop_size),
+                                     ops.migrate(topology=topology,
+                                                 emigrant_selector=ops.tournament_selection,
+                                                 replacement_selector=ops.random_selection,
+                                                 migration_gap=50,
+                                                 metric=ops.migration_metric(
+                                                     stream=migration_file,
+                                                     header=True
+                                                 )),
+                                     probe.FitnessStatsCSVProbe(
+                                         stream=sys.stdout,
+                                         extra_metrics={
+                                             'island': get_island(context)})
+                                 ],
+                                 subpop_pipelines=subpop_probes)
 
-        list(ea)
+        print(ea)
 
     # If we're not in test-harness mode, block until the user closes the app
     if os.environ.get(test_env_var, False) != 'True':
         plt.show()
-        
+
     plt.close('all')

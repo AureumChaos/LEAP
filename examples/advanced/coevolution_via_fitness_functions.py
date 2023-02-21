@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     # Fixed parameters
     num_populations = 4
-    genes_per_subpopulation = [ 3, 4, 5, 8]  # The number of genes in each subpopulation's individuals
+    genes_per_subpopulation = [3, 4, 5, 8]  # The number of genes in each subpopulation's individuals
 
     # When running the test harness, just run for two generations
     # (we use this to quickly ensure our examples don't get bitrot)
@@ -60,7 +60,7 @@ if __name__ == '__main__':
         generations = 2
 
     # Initialize a representation for each subpopulation
-    representations = [ get_representation(l) for l in genes_per_subpopulation]
+    representations = [get_representation(l) for l in genes_per_subpopulation]
 
     with open('./coop_stats.csv', 'w') as log_stream:
         ea = multi_population_ea(max_generations=generations, pop_size=pop_size,
@@ -71,7 +71,7 @@ if __name__ == '__main__':
                                      wrapped_problem=MaxOnes(),
                                      num_trials=3,
                                      collaborator_selector = ops.random_selection
-                                 ), 
+                                 ),
 
                                  # Assign a poor initial fitness to individuals
                                  init_evaluate=ops.const_evaluate(value=-100),
@@ -89,6 +89,8 @@ if __name__ == '__main__':
                                      ops.grouped_evaluate(max_individuals_per_chunk=chunk_size),
                                  ])
 
-        print('generation, subpop_bsf')
-        for g, x in ea:
-            print(f"{g}, {[ind.fitness for ind in x]}")
+        # Dump out the sub-populations
+        for i, pop in enumerate(ea):
+            print(f'Population {i}:')
+            for ind in pop:
+                print(ind)

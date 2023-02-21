@@ -12,6 +12,7 @@ from matplotlib import pyplot as plt
 
 from leap_ec.algorithm import generational_ea, random_search
 from leap_ec import ops, probe, test_env_var
+from leap_ec.ops import cyclic_selection, clone, evaluate, pool
 from leap_ec.representation import Representation
 from leap_ec.executable_rep import cgp, neural_network, problems
 
@@ -120,19 +121,23 @@ def cgp_cmd(gens):
 # random command
 ##############################
 @cli.command('random')
-@click.option('--evals', default=5000)
+@click.option('--evals', default=500)
 def random(evals):
     """Use random search over a CGP representation to solve the XOR function."""
-    best_found = random_search(evals,
-                representation=cgp_representation,
+    _ = random_search(evals,
+                      representation=cgp_representation,
 
-                # Our fitness function will be to solve the XOR problem
-                problem=xor_problem,
+                      # Our fitness function will be to solve the XOR problem
+                      problem=xor_problem,
 
-                pipeline=[
-                    probe.FitnessStatsCSVProbe(stream=sys.stdout)
-                ] + cgp_visual_probes(modulo=10)
-        )
+                      pipeline=[cyclic_selection,
+                                clone,
+                                cgp.cgp_mutate(cgp_decoder, probability=1.0),
+                                evaluate,
+                                pool(size=1),
+                                probe.FitnessStatsCSVProbe(stream=sys.stdout),
+                                ] + cgp_visual_probes(modulo=10)
+                      )
 
 
 ##############################
@@ -144,5 +149,5 @@ if __name__ == '__main__':
     # If we're not in test-harness mode, block until the user closes the app
     if os.environ.get(test_env_var, False) != 'True':
         plt.show()
-        
+
     plt.close('all')
