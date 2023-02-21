@@ -76,7 +76,7 @@ def problem_stamp(problems):
         return ind
 
     return stamp
-    
+
 
 ##############################
 # main
@@ -98,7 +98,7 @@ if __name__ == '__main__':
                  transform(RastriginProblem(maximize=False)),
                  transform(AckleyProblem(maximize=False))
                ]
-    
+
     # Probes and visualization
     genotype_probes, fitness_probes = viz_plots(problems, modulo=10)
     subpop_probes = list(zip(genotype_probes, fitness_probes))
@@ -143,10 +143,14 @@ if __name__ == '__main__':
                              ],
                              subpop_pipelines=subpop_probes)
 
-    list(ea)
+    # Dump out the sub-populations
+    for i, pop in enumerate(ea):
+        print(f'Population {i}:')
+        for ind in pop:
+            print(ind)
 
     # If we're not in test-harness mode, block until the user closes the app
     if os.environ.get(test_env_var, False) != 'True':
         plt.show()
-        
+
     plt.close('all')
