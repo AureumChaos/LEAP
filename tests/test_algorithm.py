@@ -66,7 +66,6 @@ def multi_pop_fixture():
     return ea
 
 
-@pytest.mark.xfail
 def test_multi_population_ea(multi_pop_fixture):
     """
     Ensure that at the end of a run, the final best-so-far individual that
