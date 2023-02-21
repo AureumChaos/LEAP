@@ -277,7 +277,7 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
         for i, parents in enumerate(pops):
             # Indicate the subpopulation we are currently executing in the
             # context object. This allows operators to know which
-            # subpopulation the are working with.
+            # subpopulation they are working with.
             context['leap']['current_subpopulation'] = i
             # Execute the operators to create a new offspring population
             operators = list(shared_pipeline) + \
