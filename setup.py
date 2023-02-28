@@ -25,14 +25,15 @@ setup(
     ],
     python_requires='>=3.7',
     install_requires=[
-        'dask[complete]',  # Used for parallel and distributed algorithms
-        'distributed',     # Used for parallel and distributed algorithms
-        'docopt',          # Elegant command-line interfaces
-        'matplotlib',      # Used in visualizations
-        'networkx',        # Used to specify island model topologies
-        'numpy',           # Used for vector math
-        'pandas',          # Used to process CSV output for probes
+        'dask[complete]',   # Used for parallel and distributed algorithms
+        'distributed',      # Used for parallel and distributed algorithms
+        'docopt',           # Elegant command-line interfaces
+        'matplotlib',       # Used in visualizations
+        'networkx',         # Used to specify island model topologies
+        'numpy',            # Used for vector math
+        'pandas',           # Used to process CSV output for probes
+        'rich',             # Used for pretty printing logs etc.
         'scipy',
-        'toolz'            # Used for functional pipelines of operators
+        'toolz'             # Used for functional pipelines of operators
     ]
 )
