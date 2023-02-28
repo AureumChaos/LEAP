@@ -79,7 +79,7 @@ class BestSoFarProbe(op.Operator):
         individual for each __call__ invocation to a given stream in CSV
         format.
 
-        Like many operators, this operator checks the context object to 
+        Like many operators, this operator checks the context object to
         retrieve the current generation number for output purposes.
 
         >>> from leap_ec import context, data
@@ -147,7 +147,7 @@ class BestSoFarIterProbe(op.Operator):
         individual for each __call__ invocation to a given stream in CSV
         format.
 
-        Like many operators, this operator checks the context object to 
+        Like many operators, this operator checks the context object to
         retrieve the current generation number for output purposes.
 
         >>> from leap_ec import context, data
@@ -552,8 +552,22 @@ class PopulationMetricsPlotProbe:
 
     def __init__(self, ax=None,
                  metrics=None,
-                 xlim=(0, 100), ylim=(0, 1), modulo=1, title='Population Metrics',
+                 xlim=(0, 100), ylim=(0, 1), modulo=1,
+                 title='Population Metrics',
                  x_axis_value=None, context=context):
+        """
+
+        FIXME s/modulo/update_interval/
+
+        :param ax: matplotlib ax
+        :param metrics: ???
+        :param xlim: x axis bounds
+        :param ylim: y axis bounds
+        :param modulo: update interval
+        :param title: for the plot
+        :param x_axis_value: ???
+        :param context: for accessing current generation
+        """
 
         if ax is None:
             _, ax = plt.subplots()
@@ -1188,7 +1202,7 @@ class SumPhenotypePlotProbe:
                 assert(num_ones <= max_number_of_ones)
                 return np.array([1]*num_ones + [0]*(max_number_of_ones - num_ones))
             x = np.arange(int(xlim[0]), max_number_of_ones + 1, int(granularity))
-            
+
             # Now plot the function over them
             y = np.array([ problem.evaluate(bitstring_with_ones(i)) for i in x ])
             ax.plot(x, y, color='black', linewidth=3)
