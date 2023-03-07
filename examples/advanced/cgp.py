@@ -79,7 +79,7 @@ def do_cgp(gens):
                 cgp.cgp_mutate(cgp_decoder, expected_num_mutations=1),
                 # The check_constraints() operator is optional, but can
                 # be useful if you are, say, writing your own operators and
-                # just want to verify you aren't creating invalilid CGP
+                # just want to verify you aren't creating invalid CGP
                 # individuals:
                 cgp_decoder.check_constraints,
                 ops.evaluate,
