@@ -562,7 +562,7 @@ class PopulationMetricsPlotProbe:
                  x_axis_value=None, context=context):
         """
 
-        FIXME s/modulo/update_interval/
+        FIXME s/modulo/step/
 
         :param ax: matplotlib ax
         :param metrics: ???
@@ -610,7 +610,7 @@ class PopulationMetricsPlotProbe:
                 line.set_xdata(self.x)
                 line.set_ydata(self.y[i])
 
-            self.__rescale_ax()
+            self._rescale_ax()
             self.ax.figure.canvas.draw()
             plt.pause(0.000001)
             #plt.ion()  # XXX Not sure this is needed
@@ -623,7 +623,7 @@ class PopulationMetricsPlotProbe:
         for _ in range(len(self.metrics)):
             self.ax.plot([], [])
 
-    def __rescale_ax(self):
+    def _rescale_ax(self):
         if np.min(self.x) < self.left:
             self.ax.set_xlim(left=np.min(self.x))
         if np.max(self.x) > self.right:
