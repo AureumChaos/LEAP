@@ -11,7 +11,7 @@ from leap_ec.global_vars import context
 
 
 ##############################
-# Class ParetoPlotProbe
+# Class ParetoPlotProbe2D
 ##############################
 class ParetoPlotProbe2D(PopulationMetricsPlotProbe):
     """
@@ -41,7 +41,7 @@ class ParetoPlotProbe2D(PopulationMetricsPlotProbe):
                          title=title, modulo=step,
                          context=context)
 
-        self.sc = ax.scatter([], []) # scatterplot for fitnesses
+        self.scatterplot = ax.scatter([], []) # scatterplot for fitnesses
 
     def __call__(self, population):
         assert (population is not None)
@@ -52,7 +52,7 @@ class ParetoPlotProbe2D(PopulationMetricsPlotProbe):
         if step % self.modulo == 0:
             self.x = np.array([ind.fitness[0] for ind in population])
             self.y = np.array([ind.fitness[1] for ind in population])
-            self.sc.set_offsets(np.c_[self.x, self.y])
+            self.scatterplot.set_offsets(np.c_[self.x, self.y])
             self._rescale_ax()
             self.ax.figure.canvas.draw()
             plt.pause(0.000001)
