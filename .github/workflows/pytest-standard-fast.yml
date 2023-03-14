@@ -1,9 +1,14 @@
 name: Python Package using Conda
 
-on: 
-  push:
-    branches:
-      - develop
+
+on:
+  [push]
+#   push:
+#     branches:
+#     - develop
+env:
+  MPLBACKEND: agg
+
 
 jobs:
   test_suite:
