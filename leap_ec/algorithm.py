@@ -234,7 +234,7 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
     ...                                            migration_gap=5)
     ...                            ])
     >>> pops # doctest:+ELLIPSIS
-    <generator ...>
+    [[Individual(...), ..., Individual(...)], ..., [Individual(...), ..., Individual(...)]]
 
     We can now run the algorithm by pulling output from its generator,
     which gives us the best individual in each population at each generation:

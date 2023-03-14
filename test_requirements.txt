@@ -2,3 +2,4 @@ nbconvert
 pytest
 pytest-cov
 python-coveralls
+rich

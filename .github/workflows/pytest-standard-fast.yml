@@ -5,6 +5,8 @@ on:
 #   push:
 #     branches:
 #     - develop
+env:
+  MPLBACKEND: agg
 
 jobs:
   test_suite:
