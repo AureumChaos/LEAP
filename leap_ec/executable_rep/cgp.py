@@ -37,7 +37,7 @@ class FunctionPrimitive(Primitive):
     """A convenience wrapper that defines a generic primitive function
     for CGP from a function (ex. a lambda).  Basically this lets us
     define a function that we can also query the arity of.
-    
+
     >>> f = FunctionPrimitive(lambda x, y: x ^ y, 2)
     >>> f(True, False)
     True
@@ -59,7 +59,7 @@ class FunctionPrimitive(Primitive):
 
 class NAND(Primitive):
     """Primitive NAND function for use in genetic programming.
-    
+
     >>> f = NAND()
     >>> f(True, True)
     False
@@ -77,7 +77,7 @@ class NAND(Primitive):
 
 class NotX(Primitive):
     """Primitive NOT function for use in genetic programming.
-    
+
     >>> f = NotX()
     >>> f(True)
     False
@@ -129,7 +129,7 @@ class CGPExecutable(Executable):
         # Compute the values of hidden nodes, going in order so preprequisites are computed first
         num_hidden = len(self.graph.nodes) - self.num_inputs - self.num_outputs
         for i in range(self.num_inputs, self.num_inputs + num_hidden):
-            
+
             # Collect all of the inputs into this node from other nodes
             in_nodes = get_sorted_input_nodes(i)
             node_inputs = [ n['output'] for n in in_nodes ]
@@ -347,9 +347,9 @@ class CGPDecoder(Decoder):
 
     def check_constraints(self, next_individual: Iterator):
         """An operator that checks whether individual's genomes satisfy the CGP constraints.
-        
+
         For example, say we have the following population:
-        
+
         >>> from leap_ec import Individual
         >>> genome0 = np.array([ 0, 0, 1, 1, 0, 1, 2, 2, 3, 0, 2, 3, 4, 5 ])
         >>> genome1 = np.array([ 0, 0, 1, 1, 0, 1, 2, 2, 3, 0, 2, 1, 4, 5 ])
@@ -374,12 +374,12 @@ class CGPDecoder(Decoder):
         Individual(...)
 
         The next fails (genome1), however, because it violates the levels_back constraint:
-        
+
         >>> next(op(population))
         Traceback (most recent call last):
         ...
         ValueError: CGP constraints violated by individual: expected gene at locus 11 to be between the values of (2, 3) (inclusive), but found a value of 1.
-        
+
         Then genome2 fails because it contains a cycle:
 
         >>> next(op(population))
@@ -388,7 +388,7 @@ class CGPDecoder(Decoder):
         ValueError: CGP constraints violated by individual: expected gene at locus 3 to be between the values of (0, 2) (inclusive), but found a value of 4.
 
         The new (genome3) fails because it has the incorrect genome length:
-        
+
         >>> next(op(population))
         Traceback (most recent call last):
         ...
@@ -412,21 +412,21 @@ class CGPDecoder(Decoder):
             for i, (g, (_min, _max)) in enumerate(zip(ind, bounds)):
                 if not isinstance(g, int) and not isinstance(g, np.integer):
                     raise ValueError(f"CGP constraints violated by individual: genome must contain only integers, but the gene at locus {i} has a non-integral value of {g}.")
-                
+
                 if g < _min or g > _max:
                     raise ValueError(f"CGP constraints violated by individual: expected gene at locus {i} to be between the values of ({_min}, {_max}) (inclusive), but found a value of {g}.")
-            
+
             yield ind
 
     def decode(self, genome, *args, **kwargs):
         """Decode a linear CGP genome into an executable circuit.
-        
+
         >>> primitives = [ sum, lambda x: x[0] - x[1], lambda x: x[0] * x[1] ]
         >>> decoder = CGPDecoder(primitives, num_inputs=2, num_outputs=2, num_layers=2, nodes_per_layer=2, max_arity=2)
         >>> genome = [ 0, 0, 1, 1, 0, 1, 2, 2, 3, 0, 2, 3, 4, 5 ]
         >>> decoder.decode(genome)
         <leap_ec.executable_rep.cgp.CGPExecutable object at ...>
-        
+
         """
         assert(genome is not None)
         assert(len(genome) == self.num_genes()), f"Expected a genome of length {self.num_genes()}, but was given one of length {len(genome)}."
@@ -441,13 +441,13 @@ class CGPDecoder(Decoder):
                 # TODO Consider using Miller's pre-processing algorithm here to omit nodes that are disconnected from the circuit (making execution more efficient)
                 node_id = self.num_inputs + layer*self.nodes_per_layer + node
                 function = self.get_primitive(genome, layer, node)
-                graph.nodes[node_id]['function'] = function                
+                graph.nodes[node_id]['function'] = function
                 inputs = self.get_input_sources(genome, layer, node)
-                
+
                 # If we know the arity of the function, we don't need to connect all the input nodes to the graph.
                 if hasattr(function, 'arity'):
                     inputs = inputs[:function.arity]
-                    
+
                 # Mark each edge with an 'order' attribute so we know which port they feed into on the target node
                 graph.add_edges_from([(i, node_id, {'order': o}) for o, i in enumerate(inputs)])
 
@@ -499,10 +499,10 @@ class CGPWithParametersDecoder(CGPDecoder):
     the usual CGP genome (functions and connectivity), and an auxiliary vector
     defining additional constant parameters to be fed into each node's function.
 
-    Much like bias weights in a neural network, these paramaters allow a slightly
+    Much like bias weights in a neural network, these parameters allow a slightly
     different computation to be performed at different nodes that use the same
     primitive function.
-    
+
     """
     def __init__(self, primitives, num_inputs: int, num_outputs: int, num_layers: int, nodes_per_layer: int, max_arity: int, num_parameters_per_node: int, prune: bool=True, levels_back=None):
         assert(primitives is not None)
@@ -570,9 +570,9 @@ class CGPWithParametersDecoder(CGPDecoder):
     def initialize(self, parameters_initializer):
         """Return an initializer for creating the two-segment
         genomes that this decoder expects as input.
-        
+
         The first segment will be initialized with our standard
-        CGP initializer.  The second will use the provided 
+        CGP initializer.  The second will use the provided
         initializer.
         """
         def create():
@@ -624,7 +624,7 @@ def cgp_genome_mutate(cgp_decoder,
                                 bounds=cgp_decoder.bounds(),
                                 expected_num_mutations=expected_num_mutations,
                                 probability=probability)
-    
+
     return mutate
 
 

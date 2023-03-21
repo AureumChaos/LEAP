@@ -79,7 +79,7 @@ class BestSoFarProbe(op.Operator):
         individual for each __call__ invocation to a given stream in CSV
         format.
 
-        Like many operators, this operator checks the context object to 
+        Like many operators, this operator checks the context object to
         retrieve the current generation number for output purposes.
 
         >>> from leap_ec import context, data
@@ -147,7 +147,7 @@ class BestSoFarIterProbe(op.Operator):
         individual for each __call__ invocation to a given stream in CSV
         format.
 
-        Like many operators, this operator checks the context object to 
+        Like many operators, this operator checks the context object to
         retrieve the current generation number for output purposes.
 
         >>> from leap_ec import context, data
@@ -329,31 +329,36 @@ class FitnessStatsCSVProbe(op.Operator):
         assert ('leap' in self.context)
         assert ('generation' in self.context['leap'])
 
-        generation = self.context['leap']['generation']
-        if generation % self.modulo != 0:
-            return population
-
-        if self.job is not None:
-            self.stream.write(str(self.job) + ', ')
-        for _, v in self.notes.items():
-            self.stream.write(str(v) + ', ')
-
-        self.stream.write(str(generation) + ', ')
-
+        # Always update the best-so-far variable
         best_ind = best_of_gen(population)
         if self.bsf_ind is None or (best_ind > self.bsf_ind):
             self.bsf_ind = best_ind
-        self.stream.write(str(self.bsf_ind.fitness) + ', ')
 
-        fitnesses = [x.fitness for x in population]
-        self.stream.write(str(np.mean(fitnesses)) + ', ')
-        self.stream.write(str(np.std(fitnesses)) + ', ')
-        self.stream.write(str(np.min(fitnesses)) + ', ')
-        self.stream.write(str(np.max(fitnesses)))
-        for _, f in self.extra_metrics.items():
-            self.stream.write(', ' + str(f(population)))
-        self.stream.write('\n')
-        return population
+        # Check if we've reached a measurement interval
+        generation = self.context['leap']['generation']
+        if generation % self.modulo != 0:
+            # If not, don't write fitness info
+            return population
+        else:
+            # Do write fitness info
+            if self.job is not None:
+                self.stream.write(str(self.job) + ', ')
+            for _, v in self.notes.items():
+                self.stream.write(str(v) + ', ')
+
+            self.stream.write(str(generation) + ', ')
+
+            self.stream.write(str(self.bsf_ind.fitness) + ', ')
+
+            fitnesses = [x.fitness for x in population]
+            self.stream.write(str(np.mean(fitnesses)) + ', ')
+            self.stream.write(str(np.std(fitnesses)) + ', ')
+            self.stream.write(str(np.min(fitnesses)) + ', ')
+            self.stream.write(str(np.max(fitnesses)))
+            for _, f in self.extra_metrics.items():
+                self.stream.write(', ' + str(f(population)))
+            self.stream.write('\n')
+            return population
 
 
 ##############################
@@ -552,8 +557,22 @@ class PopulationMetricsPlotProbe:
 
     def __init__(self, ax=None,
                  metrics=None,
-                 xlim=(0, 100), ylim=(0, 1), modulo=1, title='Population Metrics',
+                 xlim=(0, 100), ylim=(0, 1), modulo=1,
+                 title='Population Metrics',
                  x_axis_value=None, context=context):
+        """
+
+        FIXME s/modulo/step/
+
+        :param ax: matplotlib ax
+        :param metrics: ???
+        :param xlim: x axis bounds
+        :param ylim: y axis bounds
+        :param modulo: update interval
+        :param title: for the plot
+        :param x_axis_value: ???
+        :param context: for accessing current generation
+        """
 
         if ax is None:
             _, ax = plt.subplots()
@@ -591,7 +610,7 @@ class PopulationMetricsPlotProbe:
                 line.set_xdata(self.x)
                 line.set_ydata(self.y[i])
 
-            self.__rescale_ax()
+            self._rescale_ax()
             self.ax.figure.canvas.draw()
             plt.pause(0.000001)
             #plt.ion()  # XXX Not sure this is needed
@@ -604,7 +623,7 @@ class PopulationMetricsPlotProbe:
         for _ in range(len(self.metrics)):
             self.ax.plot([], [])
 
-    def __rescale_ax(self):
+    def _rescale_ax(self):
         if np.min(self.x) < self.left:
             self.ax.set_xlim(left=np.min(self.x))
         if np.max(self.x) > self.right:
@@ -1056,7 +1075,7 @@ class HeatMapPhenotypeProbe():
 
 
 ##############################
-# Class CartesianPhenotypePlotProbe
+# Class SumPhenotypePlotProbe
 ##############################
 class SumPhenotypePlotProbe:
     """
@@ -1188,7 +1207,7 @@ class SumPhenotypePlotProbe:
                 assert(num_ones <= max_number_of_ones)
                 return np.array([1]*num_ones + [0]*(max_number_of_ones - num_ones))
             x = np.arange(int(xlim[0]), max_number_of_ones + 1, int(granularity))
-            
+
             # Now plot the function over them
             y = np.array([ problem.evaluate(bitstring_with_ones(i)) for i in x ])
             ax.plot(x, y, color='black', linewidth=3)

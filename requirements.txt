@@ -23,6 +23,7 @@ Pillow
 pytest
 pytest-cov
 python-coveralls
+rich
 seaborn
 sphinx
 sphinx_rtd_theme
