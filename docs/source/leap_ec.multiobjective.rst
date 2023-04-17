@@ -4,6 +4,16 @@ leap\_ec.multiobjective package
 Submodules
 ----------
 
+
+leap\_ec.multiobjective.nsga2 module
+----------------------------------
+
+.. automodule:: leap_ec.multiobjective.nsga2
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 leap\_ec.multiobjective.ops module
 ----------------------------------
 

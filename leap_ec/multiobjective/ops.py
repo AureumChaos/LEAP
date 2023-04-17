@@ -4,10 +4,6 @@
 
     For now this just implements NSGA-II, but other multiobjective approaches
     will eventually be included.
-
-    TODO Should we prepend 'nsgaii' in anticipation of adding other functions
-    for other MO methods?  Or have an 'nsgaii' sub-sub-package? We have to be
-    mindful of backward compatability.
 """
 from typing import Iterator
 import random

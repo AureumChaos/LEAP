@@ -71,9 +71,9 @@ def generalized_nsga_2(max_generations: int,
 
     [Individual(...), Individual(...), Individual(...), ... Individual(...)]
 
-    :note: You will need a selection as first operator in `pipeline`, which we
-    recommend to be ops.tournament_selection. This will use Deb's multiobjective
-    criteria for comparing individuals as dictated in `MultiobjectiveProblem`.
+    :note: You will need a selection as first operator in `pipeline`. This will use
+        Deb's multiobjective criteria for comparing individuals as dictated in
+        `MultiobjectiveProblem`.
 
     :param int max_generations: The max number of generations to run the algorithm for.
         Can pass in float('Inf') to run forever or until the `stop` condition is reached.
@@ -96,8 +96,7 @@ def generalized_nsga_2(max_generations: int,
         You might want to change this, for example, in experiments that involve stopping
         and restarting an algorithm.
 
-    :return: a generator of `(int, individual_cls)` pairs representing the
-        best individual at each generation.
+    :return: a list of the final population
     """
     # Ensure that we're dealing with a multi-objective Problem.
     assert isinstance(problem, MultiObjectiveProblem)
