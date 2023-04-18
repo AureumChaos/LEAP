@@ -1,14 +1,15 @@
 """
     Tests for leap_ec.distrib.evaluate.
 """
+import numpy as np
+import pytest
 from distributed import Client
 
-import numpy as np
-
-from leap_ec.individual import Individual
 from leap_ec.binary_rep.problems import MaxOnes
-from leap_ec.distrib.evaluate import evaluate
+from leap_ec.distrib.evaluate import evaluate, is_viable
+from leap_ec.distrib.individual import DistributedIndividual
 from leap_ec.global_vars import context
+from leap_ec.individual import Individual
 
 
 def test_good_eval():
@@ -39,11 +40,15 @@ def test_broken_individual_eval():
         TODO implement this
     """
     # set up a basic dask local cluster
+    with Client() as client:
+        # hand craft an individual that will intentionally fail by not
+        # assigning it a Problem class
+        individual = DistributedIndividual(np.array([1, 1]),
+                                           problem=None)
 
-    # hand craft an individual that should throw an exception on evaluation
+        future = client.submit(evaluate(context=context),
+                               individual)
 
-    # evaluate that individual
+        evaluated_individual = future.result()
 
-    # check that the individual state is sane given it is non-viable
-
-    pass
+        assert not is_viable(evaluated_individual)

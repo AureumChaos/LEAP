@@ -39,7 +39,7 @@ class BrokenProblem(leap_ec.problem.ScalarProblem):
     def __init__(self, maximize):
         super().__init__(maximize)
 
-    def evaluate(self, phenome):
+    def evaluate(self, individual):
         raise RuntimeError('Simulated exception')
 
 

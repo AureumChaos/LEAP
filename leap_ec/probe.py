@@ -1,5 +1,6 @@
-"""Probes are pipeline operators to instrument state that passes through the
-pipeline such as populations or individuals. """
+""" Probes are pipeline operators to instrument state that passes through the
+pipeline such as populations or individuals.
+"""
 import csv
 import sys
 
@@ -10,22 +11,32 @@ import numpy as np
 import pandas as pd
 from toolz import curry
 
+from leap_ec import Individual
 from leap_ec.global_vars import context
 from leap_ec import ops as op
-from leap_ec.ops import iteriter_op
+from leap_ec.ops import iteriter_op, listlist_op
 
 
 ##############################
 # print_probe
 ##############################
 @curry
+@listlist_op
 def print_probe(population, probe, stream=sys.stdout, prefix=''):
     """ pipeline operator for printing the given population
 
-    :param population:
-    :param probe:
-    :param stream:
-    :param prefix:
+    This is really a wrapper around `probe` that, itself, gets passed te
+    entire population.
+
+    The optional prefix is used to tag the output.  For example, you may want
+    to print 'before' to indicate that the population is before an operator
+    is applied.
+
+    :param population: to be printed
+    :param probe: secondary probe that gets the poplation as input and for
+        which the output is passed to `stream`
+    :param stream: to write output
+    :param prefix: optional string prefix to prepend to output
     :return: population
     """
     val = prefix + str(probe(population))
@@ -57,28 +68,142 @@ def print_individual(next_individual: Iterator, prefix='',
 
 
 ##############################
-# BestSoFar probe
+# Class BestSoFarProbe
 ##############################
 class BestSoFarProbe(op.Operator):
+    """  This probe takes an list of individuals as input and will track the
+         best-so-far (BSF) individual across all the population it has seen.
+
+        Insert an object of this class into a pipeline to have it track the
+        the best individual it sees so far.  It will write the current best
+        individual for each __call__ invocation to a given stream in CSV
+        format.
+
+        Like many operators, this operator checks the context object to
+        retrieve the current generation number for output purposes.
+
+        >>> from leap_ec import context, data
+        >>> from leap_ec import probe
+        >>> pop = data.test_population
+        >>> context['leap']['generation'] = 12
+
+        The probe will write its output to the provided stream (default is stdout,
+        but we illustrate here with a StringIO stream):
+
+        >>> import io
+        >>> stream = io.StringIO()
+        >>> probe = BestSoFarProbe(stream=stream)
+        >>> new_pop = probe(pop)
+        >>> print(stream.getvalue()) # doctest: +NORMALIZE_WHITESPACE
+        step,bsf
+        12,4
+        <BLANKLINE>
+
+        This operator does not change the state of the population:
+        >>> new_pop == pop
+        True
+
+    """
     def __init__(self, stream=sys.stdout, header=True, context=context):
+        """
+
+        :param stream: to which to write best-so-far individuals
+        :param header: True if want CSV header
+        :param context: from which we get current generation (step)
+        """
         self.bsf = None
         self.context = context
         self.writer = csv.DictWriter(stream, fieldnames=['step', 'bsf'])
+
+        if header:
+            self.writer.writeheader()
+
+    def __call__(self, population):
+        assert (population is not None)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
+
+        ind = max(population)
+        assert(ind.fitness is not None), f"Probe expects individuals to have fitness values, but found one that doesn't."
+        if self.bsf is None or (ind > self.bsf):
+            self.bsf = ind
+
+        self.writer.writerow({'step': self.context['leap']['generation'],
+                            'bsf' : self.bsf.fitness
+                            })
+
+        return population
+
+
+##############################
+# Class BestSoFarIterProbe
+##############################
+class BestSoFarIterProbe(op.Operator):
+    """  This probe takes an iterator as input and will track the
+         best-so-far (BSF) individual in the all the individuals it sees.
+
+        Insert an object of this class into a pipeline to have it track the
+        the best individual it sees so far.  It will write the current best
+        individual for each __call__ invocation to a given stream in CSV
+        format.
+
+        Like many operators, this operator checks the context object to
+        retrieve the current generation number for output purposes.
+
+        >>> from leap_ec import context, data
+        >>> from leap_ec import probe
+        >>> pop = data.test_population
+        >>> context['leap']['generation'] = 12
+
+
+        The probe will write its output to the provided stream (default is stdout,
+        but we illustrate here with a StringIO stream):
+
+        >>> import io
+        >>> stream = io.StringIO()
+        >>> probe = BestSoFarIterProbe(stream=stream)
+        >>> bsf_output_iter = probe(iter(pop))
+        >>> x = next(bsf_output_iter)
+        >>> x = next(bsf_output_iter)
+        >>> x = next(bsf_output_iter)
+        >>> print(stream.getvalue()) # doctest: +NORMALIZE_WHITESPACE
+        step,bsf
+        12,...
+        12,...
+        12,...
+        <BLANKLINE>
+
+    """
+    def __init__(self, stream=sys.stdout, header=True, context=context):
+        """
+
+        :param stream: to which to write best-so-far individuals
+        :param header: True if want CSV header
+        :param context: from which we get current generation (step)
+        """
+        self.bsf = None
+        self.context = context
+        self.writer = csv.DictWriter(stream, fieldnames=['step', 'bsf'])
+
+        if header:
+            self.writer.writeheader()
 
     def __call__(self, next_individual):
         assert (next_individual is not None)
         assert ('leap' in self.context)
         assert ('generation' in self.context['leap'])
 
-        ind = next(next_individual)
-        if self.bsf is None or (ind > self.bsf):
-            self.bsf = ind
+        while True:
+            ind = next(next_individual)
+            assert(ind.fitness is not None), f"Probe expects individuals to have fitness values, but found one that doesn't."
+            if self.bsf is None or (ind > self.bsf):
+                self.bsf = ind
 
-        self.writer.writerow({'step': self.context['leap']['generation'],
-                              'bsf' : self.bsf.fitness
-                              })
+            self.writer.writerow({'step': self.context['leap']['generation'],
+                                'bsf' : self.bsf.fitness
+                                })
 
-        yield ind
+            yield ind
 
 
 ##############################
@@ -154,7 +279,7 @@ class FitnessStatsCSVProbe(op.Operator):
 
     """
     comment_character = '#'
-     
+
     time_col='step'
     default_metric_cols=('bsf', 'mean_fitness', 'std_fitness', 'min_fitness', 'max_fitness')
 
@@ -204,31 +329,36 @@ class FitnessStatsCSVProbe(op.Operator):
         assert ('leap' in self.context)
         assert ('generation' in self.context['leap'])
 
-        generation = self.context['leap']['generation']
-        if generation % self.modulo != 0:
-            return population
-
-        if self.job is not None:
-            self.stream.write(str(self.job) + ', ')
-        for _, v in self.notes.items():
-            self.stream.write(str(v) + ', ')
-
-        self.stream.write(str(generation) + ', ')
-
+        # Always update the best-so-far variable
         best_ind = best_of_gen(population)
         if self.bsf_ind is None or (best_ind > self.bsf_ind):
             self.bsf_ind = best_ind
-        self.stream.write(str(self.bsf_ind.fitness) + ', ')
 
-        fitnesses = [x.fitness for x in population]
-        self.stream.write(str(np.mean(fitnesses)) + ', ')
-        self.stream.write(str(np.std(fitnesses)) + ', ')
-        self.stream.write(str(np.min(fitnesses)) + ', ')
-        self.stream.write(str(np.max(fitnesses)))
-        for _, f in self.extra_metrics.items():
-            self.stream.write(', ' + str(f(population)))
-        self.stream.write('\n')
-        return population
+        # Check if we've reached a measurement interval
+        generation = self.context['leap']['generation']
+        if generation % self.modulo != 0:
+            # If not, don't write fitness info
+            return population
+        else:
+            # Do write fitness info
+            if self.job is not None:
+                self.stream.write(str(self.job) + ', ')
+            for _, v in self.notes.items():
+                self.stream.write(str(v) + ', ')
+
+            self.stream.write(str(generation) + ', ')
+
+            self.stream.write(str(self.bsf_ind.fitness) + ', ')
+
+            fitnesses = [x.fitness for x in population]
+            self.stream.write(str(np.mean(fitnesses)) + ', ')
+            self.stream.write(str(np.std(fitnesses)) + ', ')
+            self.stream.write(str(np.min(fitnesses)) + ', ')
+            self.stream.write(str(np.max(fitnesses)))
+            for _, f in self.extra_metrics.items():
+                self.stream.write(', ' + str(f(population)))
+            self.stream.write('\n')
+            return population
 
 
 ##############################
@@ -288,8 +418,8 @@ class AttributesCSVProbe(op.Operator):
     You can retrieve the result programatically from the `dataframe` property:
 
     >>> probe.dataframe
-       step  fitness       genome
-    0   100        4  [0 1 1 1 1]
+       step  fitness           genome
+    0   100        4  [0, 1, 1, 1, 1]
 
     By default, the results are also written to `sys.stdout`.  You can pass
     any file object you like into the `stream` parameter.
@@ -413,7 +543,7 @@ class AttributesCSVProbe(op.Operator):
         if self.do_fitness:
             row['fitness'] = ind.fitness
         if self.do_genome:
-            row['genome'] = str(ind.genome)
+            row['genome'] = ind.genome
         for k, f in self.extra_metrics.items():
             row[k] = f(row)
 
@@ -427,8 +557,22 @@ class PopulationMetricsPlotProbe:
 
     def __init__(self, ax=None,
                  metrics=None,
-                 xlim=(0, 100), ylim=(0, 1), modulo=1, title='Population Metrics',
+                 xlim=(0, 100), ylim=(0, 1), modulo=1,
+                 title='Population Metrics',
                  x_axis_value=None, context=context):
+        """
+
+        FIXME s/modulo/step/
+
+        :param ax: matplotlib ax
+        :param metrics: ???
+        :param xlim: x axis bounds
+        :param ylim: y axis bounds
+        :param modulo: update interval
+        :param title: for the plot
+        :param x_axis_value: ???
+        :param context: for accessing current generation
+        """
 
         if ax is None:
             _, ax = plt.subplots()
@@ -440,12 +584,6 @@ class PopulationMetricsPlotProbe:
             x_axis_value = lambda: context['leap']['generation']
         self.x_axis_value = x_axis_value
         self.context = context
-        
-        # Create an empty line for each metric
-        self.x = np.array([])
-        self.y = [ np.array([]) for _ in range(len(metrics)) ]
-        for _ in range(len(metrics)):
-            ax.plot([], [])
 
         # Set axis limits, and some variables we'll use for real-time scaling
         ax.set_ylim(ylim)
@@ -455,6 +593,7 @@ class PopulationMetricsPlotProbe:
         self.bottom, self.top = ylim
         plt.title(title)
 
+        self.reset()
 
     def __call__(self, population):
         assert (population is not None)
@@ -471,13 +610,20 @@ class PopulationMetricsPlotProbe:
                 line.set_xdata(self.x)
                 line.set_ydata(self.y[i])
 
-            self.__rescale_ax()
+            self._rescale_ax()
             self.ax.figure.canvas.draw()
             plt.pause(0.000001)
             #plt.ion()  # XXX Not sure this is needed
         return population
 
-    def __rescale_ax(self):
+    def reset(self):
+        # Create an empty line for each metric
+        self.x = np.array([])
+        self.y = [ np.array([]) for _ in range(len(self.metrics)) ]
+        for _ in range(len(self.metrics)):
+            self.ax.plot([], [])
+
+    def _rescale_ax(self):
         if np.min(self.x) < self.left:
             self.ax.set_xlim(left=np.min(self.x))
         if np.max(self.x) > self.right:
@@ -644,7 +790,7 @@ class FitnessPlotProbe(PopulationMetricsPlotProbe):
 
         l = 10
         pop_size = 10
-        ea = generational_ea(generations=100, pop_size=pop_size,
+        ea = generational_ea(max_generations=100, pop_size=pop_size,
                              problem=SpheroidProblem(maximize=False),
 
                              representation=Representation(
@@ -699,11 +845,11 @@ class CartesianPhenotypePlotProbe:
         `bounds` attribute.
     :param int modulo: take and plot a measurement every `modulo` steps (
         default 1).
-    :param pad: A list of extra gene values, used to fill in the hidden 
+    :param pad: A list of extra gene values, used to fill in the hidden
         dimensions with contants while drawing fitness contours.
 
     Attach this probe to matplotlib :class:`Axes` and then insert it into an
-    EA's operator pipeline to get a live fitness plot that updates every
+    EA's operator pipeline to get a live phenotype plot that updates every
     `modulo` steps.
 
     >>> import matplotlib.pyplot as plt
@@ -775,7 +921,7 @@ class CartesianPhenotypePlotProbe:
         # Create an algorithm that contains the probe in the operator pipeline
 
         pop_size = 100
-        ea = generational_ea(generations=20, pop_size=pop_size,
+        ea = generational_ea(max_generations=20, pop_size=pop_size,
                              problem=problem,
 
                              representation=Representation(
@@ -868,7 +1014,7 @@ class HistPhenotypePlotProbe():
         if ax is None:
             _, ax = plt.subplots()
         self.ax = ax
-        
+
         ax.set_title(title)
         self.title = title
         self.modulo = modulo
@@ -901,7 +1047,7 @@ class HeatMapPhenotypeProbe():
         if ax is None:
             _, ax = plt.subplots()
         self.ax = ax
-        
+
         ax.set_title(title)
         self.title = title
         self.modulo = modulo
@@ -925,6 +1071,184 @@ class HeatMapPhenotypeProbe():
             #self.ax.figure.canvas.draw()
             plt.pause(0.000001)
         return population
+
+
+
+##############################
+# Class SumPhenotypePlotProbe
+##############################
+class SumPhenotypePlotProbe:
+    """
+    Plot the population's location on a fitness landscape that is defined
+    over the sum of a vector phenotype's elements.  This is useful for visualizing
+    OneMax functions and similar functions that can be understood in
+    terms of a graph with "the number of ones" along the x axis.
+
+    :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
+        be created).
+    :param xlim: Bounds of the horizontal axis.
+    :type xlim: (float, float)
+    :param ylim: Bounds of the vertical axis.
+    :type ylim: (float, float)
+    :param ~leap.problem.Problem problem: a problem that will be used to draw
+        a fitness curve.
+    :param float granularity: (Optional) spacing of the grid to sample points
+        along while drawing the fitness contours. If none is given, then the
+        granularity will default to 1.0.
+    :param int modulo: take and plot a measurement every `modulo` steps (
+        default 1).
+
+    Attach this probe to matplotlib :class:`Axes` and then insert it into an
+    EA's operator pipeline to get a live phenotype plot that updates every
+    `modulo` steps.
+
+    >>> import matplotlib.pyplot as plt
+    >>> from leap_ec.probe import SumPhenotypePlotProbe
+    >>> from leap_ec.representation import Representation
+
+    >>> from leap_ec.individual import Individual
+    >>> from leap_ec.algorithm import generational_ea
+
+    >>> from leap_ec import ops
+    >>> from leap_ec.binary_rep.problems import DeceptiveTrap
+    >>> from leap_ec.binary_rep.initializers import create_binary_sequence
+    >>> from leap_ec.binary_rep.ops import mutate_bitflip
+
+    >>> # The fitness landscape
+    >>> problem = DeceptiveTrap()
+
+    >>> # If no axis is provided, a new figure will be created for the probe to write to
+    >>> dimensions = 20
+    >>> trajectory_probe = SumPhenotypePlotProbe(problem=problem,
+    ...                                        xlim=(0, dimensions), ylim=(0, dimensions))
+
+    >>> # Create an algorithm that contains the probe in the operator pipeline
+
+    >>> pop_size = 100
+    >>> ea = generational_ea(max_generations=20, pop_size=pop_size,
+    ...                      problem=problem,
+    ...
+    ...                      representation=Representation(
+    ...                         individual_cls=Individual,
+    ...                         initialize=create_binary_sequence(length=dimensions)
+    ...                      ),
+    ...
+    ...                      pipeline=[
+    ...                         trajectory_probe,  # Insert the probe into the pipeline like so
+    ...                         ops.tournament_selection,
+    ...                         ops.clone,
+    ...                         mutate_bitflip(expected_num_mutations=1),
+    ...                         ops.evaluate,
+    ...                         ops.pool(size=pop_size)
+    ...                      ])
+    >>> result = list(ea);
+
+    .. plot::
+
+        import matplotlib.pyplot as plt
+        from leap_ec.probe import SumPhenotypePlotProbe
+        from leap_ec.representation import Representation
+
+        from leap_ec.individual import Individual
+        from leap_ec.algorithm import generational_ea
+
+        from leap_ec import ops
+        from leap_ec.binary_rep.problems import Deceptive
+        from leap_ec.binary_rep.initializers import creat
+        from leap_ec.binary_rep.ops import mutate_bitflip
+
+        # The fitness landscape
+        problem = DeceptiveTrapProblem()
+
+        # If no axis is provided, a new figure will be created for the probe to write to
+        trajectory_probe = SumPhenotypePlotProbe(problem=problem,
+                                                    xlim=(0, 1), ylim=(0, 1))
+
+        # Create an algorithm that contains the probe in the operator pipeline
+
+        pop_size = 100
+        dimensions = 20
+        ea = generational_ea(max_generations=20, pop_size=pop_size,
+                             problem=problem,
+
+                             representation=Representation(
+                                individual_cls=Individual,
+                                initialize=create_binary_sequence(length=dimensions)
+                             ),
+
+                             pipeline=[
+                                 trajectory_probe,  # Insert the probe into the pipeline like so
+                                 ops.tournament_selection,
+                                 ops.clone,
+                                 mutate_bitflip(expected_num_mutations=1),
+                                 ops.evaluate,
+                                 ops.pool(size=pop_size)
+                             ])
+        result = list(ea);
+
+
+    """
+
+    def __init__(self, ax=None, xlim=(-5.12, 5.12), ylim=(-5.12, 5.12),
+                 problem=None, granularity=1, title='Sum Phenotypes',
+                 modulo=1, context=context):
+        if ax is None:
+            _, ax = plt.subplots()
+
+        if problem:
+            # If a problem is provided, plot the fitness function
+
+            # First we need to generate a series of genomes to
+            # feed into the fitnes function
+            max_number_of_ones = int(xlim[1])
+            def bitstring_with_ones(num_ones):
+                """Generate a bitstring with n initial ones, and
+                otherwise filled with zeroes."""
+                assert(num_ones <= max_number_of_ones)
+                return np.array([1]*num_ones + [0]*(max_number_of_ones - num_ones))
+            x = np.arange(int(xlim[0]), max_number_of_ones + 1, int(granularity))
+
+            # Now plot the function over them
+            y = np.array([ problem.evaluate(bitstring_with_ones(i)) for i in x ])
+            ax.plot(x, y, color='black', linewidth=3)
+
+        self.sc = ax.scatter([], [])
+
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        self.ax = ax
+        self.left, self.right = xlim
+        self.bottom, self.top = ylim
+        self.x = np.array([])
+        self.y = np.array([])
+        plt.title(title)
+        self.modulo = modulo
+        self.context = context
+
+    def __call__(self, population):
+        assert (population is not None)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
+        step = self.context['leap']['generation']
+
+        if step % self.modulo == 0:
+            self.x = np.array([np.sum(ind.decode()) for ind in population])
+            self.y = np.array([ind.fitness for ind in population])
+            self.sc.set_offsets(np.c_[self.x, self.y])
+            self.__rescale_ax()
+            self.ax.figure.canvas.draw()
+            plt.pause(0.000001)
+        return population
+
+    def __rescale_ax(self):
+        if np.min(self.x) < self.left:
+            self.ax.set_xlim(left=np.min(self.x))
+        if np.max(self.x) > self.right:
+            self.ax.set_xlim(right=np.max(self.x))
+        if np.min(self.y) < self.bottom:
+            self.ax.set_ylim(bottom=np.min(self.y))
+        if np.max(self.y) > self.top:
+            self.ax.set_ylim(top=np.max(self.y))
 
 
 ##############################

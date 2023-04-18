@@ -4,7 +4,6 @@
 """
 import os
 
-import multiprocessing.popen_spawn_posix  # Python 3.9 workaround for Dask.  See https://github.com/dask/distributed/issues/4168
 from distributed import Client
 import toolz
 

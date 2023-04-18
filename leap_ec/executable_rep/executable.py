@@ -15,8 +15,8 @@ import time
 
 import numpy as np
 
-from leap_ec.problem import ScalarProblem
 from leap_ec.decoder import Decoder
+
 
 ##############################
 # Abstract Class Executable
@@ -55,7 +55,7 @@ class RandomExecutable(Executable):
 
         For example, if we use a space from OpenAI Gym that defines a 2-D box of continuous values:
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> import numpy as np
         >>> output_space = spaces.Box(low=np.array([0, 0]), high=np.array([10, 10]), dtype=np.float32)
 
@@ -149,6 +149,9 @@ class ArgmaxExecutable(Executable):
     def __getattr__(self, attr):
         """If somebody tries to access an attribute we don't have, pass the
         request on to the wrapped object."""
+        # Use the regular __getattr__ for wrapped executable, to avoid an infinite loop
+        if attr == 'wrapped_executable':
+            return super().__getattr__(attr)
         return getattr(self.wrapped_executable, attr)
 
 

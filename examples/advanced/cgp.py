@@ -12,6 +12,7 @@ from matplotlib import pyplot as plt
 
 from leap_ec.algorithm import generational_ea, random_search
 from leap_ec import ops, probe, test_env_var
+from leap_ec.ops import cyclic_selection, clone, evaluate, pool
 from leap_ec.representation import Representation
 from leap_ec.executable_rep import cgp, neural_network, problems
 
@@ -24,10 +25,10 @@ from leap_ec.executable_rep import cgp, neural_network, problems
 # We'll set it up first because it's needed as a parameter
 # to a few different components.
 cgp_decoder = cgp.CGPDecoder(
-                    primitives=[
-                        lambda x, y: not (x and y),  # NAND
-                        lambda x, y: not x,  # NOT (ignoring y)
-                    ],
+                    # Primitives may either be plain lambdas or FunctionPrimitive objects.
+                    #   Here we use FunctinPrimitives, because it allows additional edges to
+                    #   be pruned from the graph for cleanliness.
+                    primitives=[ cgp.NAND(), cgp.NotX()],
                     num_inputs = 2,
                     num_outputs = 1,
                     num_layers=50,
@@ -65,7 +66,7 @@ def cgp_visual_probes(modulo):
 def do_cgp(gens):
     pop_size = 5
 
-    ea = generational_ea(gens, pop_size,
+    final_pop = generational_ea(gens, pop_size,
 
             representation=cgp_representation,
 
@@ -76,13 +77,17 @@ def do_cgp(gens):
                 ops.tournament_selection,
                 ops.clone,
                 cgp.cgp_mutate(cgp_decoder, expected_num_mutations=1),
+                # The check_constraints() operator is optional, but can
+                # be useful if you are, say, writing your own operators and
+                # just want to verify you aren't creating invalid CGP
+                # individuals:
+                cgp_decoder.check_constraints,
                 ops.evaluate,
                 ops.pool(size=pop_size),
                 probe.FitnessStatsCSVProbe(stream=sys.stdout)
             ] + cgp_visual_probes(modulo=10)
     )
 
-    list(ea)
 
 ##############################
 # cli entry point
@@ -116,21 +121,23 @@ def cgp_cmd(gens):
 # random command
 ##############################
 @cli.command('random')
-@click.option('--evals', default=5000)
+@click.option('--evals', default=500)
 def random(evals):
     """Use random search over a CGP representation to solve the XOR function."""
-    ea = random_search(evals,
-            representation=cgp_representation,
+    _ = random_search(evals,
+                      representation=cgp_representation,
 
-            # Our fitness function will be to solve the XOR problem
-            problem=xor_problem,
+                      # Our fitness function will be to solve the XOR problem
+                      problem=xor_problem,
 
-            pipeline=[
-                probe.FitnessStatsCSVProbe(stream=sys.stdout)
-            ] + cgp_visual_probes(modulo=10)
-    )
-
-    list(ea)
+                      pipeline=[cyclic_selection,
+                                clone,
+                                cgp.cgp_mutate(cgp_decoder, probability=1.0),
+                                evaluate,
+                                pool(size=1),
+                                probe.FitnessStatsCSVProbe(stream=sys.stdout),
+                                ] + cgp_visual_probes(modulo=10)
+                      )
 
 
 ##############################
@@ -138,3 +145,9 @@ def random(evals):
 ##############################
 if __name__ == '__main__':
     cli()
+
+    # If we're not in test-harness mode, block until the user closes the app
+    if os.environ.get(test_env_var, False) != 'True':
+        plt.show()
+
+    plt.close('all')

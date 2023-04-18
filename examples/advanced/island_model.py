@@ -1,14 +1,18 @@
 """
     Provides an island model example.
 """
+import logging
 import math
 import os
 import sys
 
+from rich import print
+
 from matplotlib import pyplot as plt
 import networkx as nx
 
-from leap_ec import Individual, Representation, context, test_env_var
+from leap_ec import Individual, Representation, context, test_env_var, \
+    leap_logger_name
 from leap_ec import ops, probe
 from leap_ec.algorithm import multi_population_ea
 from leap_ec.real_rep.problems import SchwefelProblem
@@ -30,7 +34,7 @@ def viz_plots(problems, modulo):
 
     num_rows = min(4, len(problems))
     num_columns = math.ceil(len(problems) / num_rows)
-    true_rows = len(problems) / num_columns
+    true_rows = int(len(problems) / num_columns)
     fig = plt.figure(figsize=(6 * num_columns, 2.5 * true_rows))
     fig.tight_layout()
     genotype_probes = []
@@ -64,20 +68,12 @@ def viz_plots(problems, modulo):
 # Entry point
 ##############################
 if __name__ == '__main__':
-    # Set up up the network of connections between islands
-    topology = nx.complete_graph(3)
-    nx.draw(topology)
-    problem = SchwefelProblem(maximize=False)
+    #########################
+    # Parameters and Logging
+    #########################
+    l = 2
+    pop_size = 10
 
-    genotype_probes, fitness_probes = viz_plots(
-        [problem] * topology.number_of_nodes(), modulo=10)
-    subpop_probes = list(zip(genotype_probes, fitness_probes))
-
-    def get_island(context):
-        """Closure that returns a callback for retrieving the current island
-        ID during logging."""
-        return lambda _: context['leap']['current_subpopulation']
-    
     # When running the test harness, just run for two generations
     # (we use this to quickly ensure our examples don't get bitrot)
     if os.environ.get(test_env_var, False) == 'True':
@@ -85,38 +81,78 @@ if __name__ == '__main__':
     else:
         generations = 1000
 
-    
-    l = 2
-    pop_size = 10
-    ea = multi_population_ea(max_generations=generations,
-                             num_populations=topology.number_of_nodes(),
-                             pop_size=pop_size,
-                             problem=problem,  # Fitness function
+    # Uncomment these lines to see logs of what genomes and fitness values are sent to your external process.
+    # This is useful for debugging a simulation.
+    # logging.getLogger().addHandler(logging.StreamHandler())  # Log to stderr
+    # logging.getLogger(leap_logger_name).setLevel(logging.DEBUG) # Log debug messages
 
-                             # Representation
-                             representation=Representation(
-                                 individual_cls=Individual,
-                                 initialize=create_real_vector(
-                                     bounds=[problem.bounds] * l)
-                             ),
+    #########################
+    # Topology and Problem
+    #########################
+    # Set up up the network of connections between islands
+    topology = nx.complete_graph(3)
+    nx.draw(topology)
+    problem = SchwefelProblem(maximize=False)
 
-                             # Operator pipeline
-                             shared_pipeline=[
-                                 ops.tournament_selection,
-                                 ops.clone,
-                                 mutate_gaussian(
-                                     std=30,
-                                     expected_num_mutations=1,
-                                     hard_bounds=problem.bounds),
-                                 ops.evaluate,
-                                 ops.pool(size=pop_size),
-                                 ops.migrate(topology=topology,
-                                             emigrant_selector=ops.tournament_selection,
-                                             replacement_selector=ops.random_selection,
-                                             migration_gap=50),
-                                 probe.FitnessStatsCSVProbe(stream=sys.stdout,
-                                        extra_metrics={ 'island': get_island(context) })
-                             ],
-                             subpop_pipelines=subpop_probes)
+    #########################
+    # Visualization probes
+    #########################
+    genotype_probes, fitness_probes = viz_plots(
+        [problem] * topology.number_of_nodes(), modulo=10)
+    subpop_probes = list(zip(genotype_probes, fitness_probes))
 
-    list(ea)
+
+    def get_island(context):
+        """Closure that returns a callback for retrieving the current island
+        ID during logging."""
+        return lambda _: context['leap']['current_subpopulation']
+
+
+    #########################
+    # Algorithm
+    #########################
+    with open('./example_migration_data.csv', 'w') as migration_file:
+        ea = multi_population_ea(max_generations=generations,
+                                 num_populations=topology.number_of_nodes(),
+                                 pop_size=pop_size,
+                                 problem=problem,  # Fitness function
+
+                                 # Representation
+                                 representation=Representation(
+                                     individual_cls=Individual,
+                                     initialize=create_real_vector(
+                                         bounds=[problem.bounds] * l)
+                                 ),
+
+                                 # Operator pipeline
+                                 shared_pipeline=[
+                                     ops.tournament_selection,
+                                     ops.clone,
+                                     mutate_gaussian(
+                                         std=30,
+                                         expected_num_mutations=1,
+                                         hard_bounds=problem.bounds),
+                                     ops.evaluate,
+                                     ops.pool(size=pop_size),
+                                     ops.migrate(topology=topology,
+                                                 emigrant_selector=ops.tournament_selection,
+                                                 replacement_selector=ops.random_selection,
+                                                 migration_gap=50,
+                                                 metric=ops.migration_metric(
+                                                     stream=migration_file,
+                                                     header=True
+                                                 )),
+                                     probe.FitnessStatsCSVProbe(
+                                         stream=sys.stdout,
+                                         extra_metrics={
+                                             'island': get_island(context)})
+                                 ],
+                                 subpop_pipelines=subpop_probes)
+
+        print(ea)
+
+    # If we're not in test-harness mode, block until the user closes the app
+    if os.environ.get(test_env_var, False) != 'True':
+        plt.show()
+
+    plt.close('all')

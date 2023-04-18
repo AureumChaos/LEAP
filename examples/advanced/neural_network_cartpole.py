@@ -3,8 +3,8 @@ tune the weights of a neural network."""
 import os
 import sys
 
-import gym
-from gym import spaces
+import gymnasium as gym
+from gymnasium import spaces
 from matplotlib import pyplot as plt
 import numpy as np
 
@@ -91,23 +91,28 @@ if __name__ == '__main__':
 
     with open('./genomes.csv', 'w') as genomes_file:
 
-        ea = generational_ea(max_generations=generations, pop_size=pop_size,
-                            # Solve a problem that executes agents in the
-                            # environment and obtains fitness from it
-                            problem=problems.EnvironmentProblem(
-                                runs_per_fitness_eval, simulation_steps, environment, 'reward', gui=gui),
+        generational_ea(max_generations=generations, pop_size=pop_size,
+                        # Solve a problem that executes agents in the
+                        # environment and obtains fitness from it
+                        problem=problems.EnvironmentProblem(
+                            runs_per_fitness_eval, simulation_steps, environment, 'reward', gui=gui),
 
-                            representation=Representation(
-                                initialize=create_real_vector(bounds=([[-1, 1]]*decoder.wrapped_decoder.length)),
-                                decoder=decoder),
+                        representation=Representation(
+                            initialize=create_real_vector(bounds=([[-1, 1]]*decoder.wrapped_decoder.length)),
+                            decoder=decoder),
 
-                            # The operator pipeline.
-                            pipeline=[
-                                ops.tournament_selection,
-                                ops.clone,
-                                mutate_gaussian(std=mutate_std, hard_bounds=(-1, 1), expected_num_mutations=1),
-                                ops.evaluate,
-                                ops.pool(size=pop_size),
-                                *build_probes(genomes_file)  # Inserting all the probes at the end
-                            ])
-        list(ea)
+                        # The operator pipeline.
+                        pipeline=[
+                            ops.tournament_selection,
+                            ops.clone,
+                            mutate_gaussian(std=mutate_std, hard_bounds=(-1, 1), expected_num_mutations=1),
+                            ops.evaluate,
+                            ops.pool(size=pop_size),
+                            *build_probes(genomes_file)  # Inserting all the probes at the end
+                        ])
+
+    # If we're not in test-harness mode, block until the user closes the app
+    if os.environ.get(test_env_var, False) != 'True':
+        plt.show()
+        
+    plt.close('all')

@@ -1,31 +1,34 @@
-"""Unit tests for pipeline operators in the segmented representation package."""
-import pytest
-import random
+""" Unit tests for pipeline operators in the segmented representation package. """
 import functools
-from collections import Counter
-
 import numpy as np
-
-from leap_ec.individual import Individual
-
-from leap_ec import statistical_helpers as stat
-from leap_ec.ops import n_ary_crossover
+import pytest
 from leap_ec.binary_rep.ops import genome_mutate_bitflip
-from leap_ec.segmented_rep.initializers import create_segmented_sequence
-from leap_ec.segmented_rep.ops import apply_mutation, remove_segment, add_segment, copy_segment
-
+from leap_ec.int_rep.ops import genome_mutate_binomial, individual_mutate_randint
+from leap_ec.individual import Individual
+from leap_ec.ops import n_ary_crossover
+from leap_ec.segmented_rep.ops import apply_mutation, remove_segment, \
+    add_segment, copy_segment
 
 ##############################
 # Test Fixtures
 ##############################
-test_sequence = [12345]  # just an arbitrary sequence for testing
+test_sequence = np.array(
+    [2, 2])  # just an arbitrary sequence of twos for testing
+
 
 @pytest.fixture
 def gen_sequence():
     """Return a function that returns an arbitrary static test_sequence."""
+
     def f():
         return test_sequence
+
     return f
+
+
+def in_possible_outcomes(test_seq, possible_outcomes):
+    """ :returns: true if test_seq in possible_outcomes """
+    return any([np.array_equiv(test_seq, x) for x in possible_outcomes])
 
 
 ##############################
@@ -34,20 +37,53 @@ def gen_sequence():
 def test_apply_mutation():
     """Applying segment-wise mutation operators with expected_num_mutations=len(genome) should
     result in every gene of every segment being mutated."""
-    mutation_op = apply_mutation(mutator=genome_mutate_bitflip, expected_num_mutations=4)
-    original = Individual([np.array([0,0]),np.array([1,1])])
+    mutation_op = apply_mutation(mutator=genome_mutate_bitflip,
+                                 expected_num_mutations=4)
+    original = Individual([np.array([0, 0]), np.array([1, 1])])
     mutated = next(mutation_op(iter([original])))
 
     assert np.all(mutated.genome[0] == [1, 1]) \
-        and np.all(mutated.genome[1] == [0, 0])
+           and np.all(mutated.genome[1] == [0, 0])
+
+
+def test_apply_mutation_uniform_int():
+    """ Same test, but with integer mutation """
+    mutator = individual_mutate_randint(bounds=[(0, 10), (100, 110)])
+
+    mutation_op = apply_mutation(mutator=mutator,
+                                 expected_num_mutations=2)
+    original = Individual([np.array([0, 100]), np.array([1, 101])])
+    mutated = next(mutation_op(iter([original])))
+
+    # TODO add checks (didn't add at this time because we wanted to ensure
+    # that this would even generate valid behavior w/o an exception.
+
+    pass
+
+
+def test_apply_mutation_binomial_int():
+    """ Same test, but with integer mutation """
+    mutator = genome_mutate_binomial(
+        std=1.0,
+        bounds=[(0, 10), (100, 110)],
+        probability=1)
+    mutation_op = functools.partial(apply_mutation,
+                                    mutator=mutator)
+    original = Individual([np.array([0, 100]), np.array([1, 101])])
+    mutated = next(mutation_op(iter([original])))
+
+    pass
+
 
 ##############################
 # Tests for remove_segment()
 ##############################
+
+
 def test_segmented_remove():
-    original = Individual([[0, 0], [1, 1]])
+    original = Individual([np.array([0, 0]), np.array([1, 1])])
     mutated = next(remove_segment(iter([original]), probability=1.0))
-    assert mutated.genome == [[0, 0]] or mutated.genome == [[1, 1]]
+    assert (mutated.genome[0] == [np.array([0, 0]), np.array([1, 1])]).any()
 
 
 ##############################
@@ -55,58 +91,59 @@ def test_segmented_remove():
 ##############################
 def test_segmented_add(gen_sequence):
     # Test with append first
-    original = Individual([[0, 0], [1, 1]])
+    original = Individual([np.array([0, 0]), np.array([1, 1])])
     mutated = next(add_segment(iter([original]),
                                seq_initializer=gen_sequence,
                                probability=1.0,
                                append=True))
-    assert mutated.genome == [[0, 0], [1, 1], test_sequence]
-
+    target = [np.array([0, 0]), np.array([1, 1]), test_sequence]
+    assert np.array_equiv(mutated.genome, target)
 
     # Test without append, so segment can inserted in one of three locations
-    possible_outcomes = [[test_sequence, [0, 0], [1, 1]],
-                         [[0, 0], test_sequence, [1, 1]],
-                         [[0, 0], [1, 1], test_sequence]]
+    possible_outcomes = [[test_sequence, np.array([0, 0]), np.array([1, 1])],
+                         [np.array([0, 0]), test_sequence, np.array([1, 1])],
+                         [np.array([0, 0]), np.array([1, 1]), test_sequence]]
 
     for i in range(20):
-        original = Individual([[0, 0], [1, 1]])
+        original = Individual([np.array([0, 0]), np.array([1, 1])])
         mutated = next(add_segment(iter([original]),
                                    seq_initializer=gen_sequence,
                                    probability=1.0,
                                    append=False))
-        assert mutated.genome in possible_outcomes
+
+        assert in_possible_outcomes(mutated.genome, possible_outcomes)
 
 
 ##############################
 # Tests for copy_segment()
 ##############################
 def test_segmented_copy():
-    original = Individual([[0, 0], [1, 1]])
+    original = Individual([np.array([0, 0]), np.array([1, 1])])
     mutated = next(copy_segment(iter([original]),
                                 probability=1.0,
                                 append=True))
 
-    possible_outcomes = [[[0, 0], [1, 1], [0, 0]],
-                         [[0, 0], [1, 1], [1, 1]],
+    possible_outcomes = [[np.array([0, 0]), np.array([1, 1]), np.array([0, 0])],
+                         [np.array([0, 0]), np.array([1, 1]), np.array([1, 1])],
                          ]
 
-    assert mutated.genome in possible_outcomes
+    assert in_possible_outcomes(mutated.genome, possible_outcomes)
 
-    possible_outcomes = [[[0, 0], [0, 0], [1, 1]],
-                         [[0, 0], [1, 1], [0, 0]],
-                         [[1, 1], [0, 0], [1, 1]],
-                         [[0, 0], [1, 1], [1, 1]],
+    possible_outcomes = [[np.array([0, 0]), np.array([0, 0]), np.array([1, 1])],
+                         [np.array([0, 0]), np.array([1, 1]), np.array([0, 0])],
+                         [np.array([1, 1]), np.array([0, 0]), np.array([1, 1])],
+                         [np.array([0, 0]), np.array([1, 1]), np.array([1, 1])],
                          ]
 
     # TODO: it would be better to build a histogram of expected outcomes and
     # do the chi square test
     for i in range(20):
-        original = Individual([[0, 0], [1, 1]])
+        original = Individual([np.array([0, 0]), np.array([1, 1])])
         mutated = next(copy_segment(iter([original]),
                                     probability=1.0,
                                     append=False))
 
-        assert mutated.genome in possible_outcomes
+        assert in_possible_outcomes(mutated.genome, possible_outcomes)
 
 
 ##############################
@@ -116,41 +153,42 @@ def test_segmented_crossover():
     """ test that n-ary crossover works as expected for fixed and variable
         length segments
     """
-    a = Individual([[0, 0], [1, 1]])
-    b = Individual([[1, 1], [0, 0]])
+    a = Individual([np.array([0, 0]), np.array([1, 1])])
+    b = Individual([np.array([1, 1]), np.array([0, 0])])
 
-    result = n_ary_crossover(iter([a,b]))
+    result = n_ary_crossover(iter([a, b]))
     c = next(result)
     d = next(result)
 
-    possible_outcomes = [[[0, 0], [1, 1]],
-                         [[1, 1], [0, 0]],
-                         [[0, 0], [0, 0]],
-                         [[1, 1], [1, 1]]]
+    possible_outcomes = [(np.array([0, 0]), np.array([1, 1])),
+                         (np.array([1, 1]), np.array([0, 0])),
+                         (np.array([0, 0]), np.array([0, 0])),
+                         (np.array([1, 1]), np.array([1, 1]))]
 
-    assert c.genome in possible_outcomes and d.genome in possible_outcomes
+    assert in_possible_outcomes(c.genome, possible_outcomes) and \
+           in_possible_outcomes(d.genome, possible_outcomes)
 
     # Now for genomes of different lengths
     # TODO I need to *carefully* review the possible crossover possibilities
     possible_outcomes = [[],
-                         [[0, 0]],
-                         [[1, 1]],
-                         [[2, 2]],
-                         [[0, 0], [1, 1]],
-                         [[1, 1], [2, 2]],
-                         [[2, 2], [1, 1]],
-                         [[2, 2], [0, 0], [1, 1]],
-                         [[0, 0], [2, 2], [1, 1]],
-                         [[0, 0], [1, 1], [2, 2]],
+                         [np.array([0, 0])],
+                         [np.array([1, 1])],
+                         [np.array([2, 2])],
+                         [np.array([0, 0]), np.array([1, 1])],
+                         [np.array([1, 1]), np.array([2, 2])],
+                         [np.array([2, 2]), np.array([1, 1])],
+                         [np.array([2, 2]), np.array([0, 0]), np.array([1, 1])],
+                         [np.array([0, 0]), np.array([2, 2]), np.array([1, 1])],
+                         [np.array([0, 0]), np.array([1, 1]), np.array([2, 2])],
                          ]
 
     for _ in range(20):
-        a = Individual([[0, 0], [1, 1]])
+        a = Individual([np.array([0, 0]), np.array([1, 1])])
         b = Individual([[2, 2]])
 
         result = n_ary_crossover(iter([a, b]), num_points=1)
         c = next(result)
         d = next(result)
 
-        assert c.genome in possible_outcomes
-        assert d.genome in possible_outcomes
+        assert in_possible_outcomes(c.genome, possible_outcomes)
+        assert in_possible_outcomes(d.genome, possible_outcomes)

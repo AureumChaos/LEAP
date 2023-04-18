@@ -108,6 +108,7 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 
+numfig = True
 
 # -- Options for HTMLHelp output ---------------------------------------------
 

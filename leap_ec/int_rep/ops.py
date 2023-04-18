@@ -1,10 +1,12 @@
+"""Evolutionary operators for maniuplating integer-vector genomes."""
+from collections.abc import Iterable
 import random
 from typing import Iterator
 
 import numpy as np
 from toolz import curry
 
-from leap_ec.ops import compute_expected_probability, iteriter_op
+from leap_ec.ops import compute_expected_probability, iteriter_op, random_bernoulli_vector
 from leap_ec.real_rep.ops import apply_hard_bounds
 
 
@@ -91,9 +93,7 @@ def individual_mutate_randint(genome,
     else:
         p = probability
 
-    selector = np.random.choice([0, 1], size=genome.shape,
-                                p=(1 - p, p))
-    indices_to_mutate = np.nonzero(selector)[0]
+    indices_to_mutate = random_bernoulli_vector(shape=genome.shape, p=p)
 
     bounds = np.array(bounds, dtype=int)
     selected_bounds = bounds[indices_to_mutate]
@@ -118,7 +118,7 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
                     expected_num_mutations: float = None,
                     probability: float = None,
                     n: int = 10000) -> Iterator:
-    """Mutate genes by adding an integer offset sampled from a binomial distribution
+    """ Mutate genes by adding an integer offset sampled from a binomial distribution
     centered on the current gene value.
 
     This is very similar to applying additive Gaussian mutation and then rounding to
@@ -143,15 +143,24 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
     ...                            expected_num_mutations=1)
     >>> mutated = next(operator(population))
 
+    The `std` parameter can also be given as a list with a value
+    to use for each gene locus:
+
+    >>> population = iter([Individual(np.array([1, 1]))])
+    >>> operator = mutate_binomial(std=[2.5, 3.0],
+    ...                            bounds=[(0, 10), (0, 10)],
+    ...                            expected_num_mutations=1)
+    >>> mutated = next(operator(population))
+
     .. note::
-        The binomial distribution is defined by two parameters, `n` and `p`.  Here we 
+        The binomial distribution is defined by two parameters, `n` and `p`.  Here we
         simplify the interface by asking instead for an `std` parameter, and fixing
         a high value of `n` by default.  The value of `p` needed to obtain the
         given `std` is computed for you internally.
 
         As the plots below illustrate, the binomial distribution is approximated by a
         Gaussian.  For high `n` and large standard deviations, the two are effectively
-        equivalent.  But when the standard deviation (and thus binomial `p` parameter) 
+        equivalent.  But when the standard deviation (and thus binomial `p` parameter)
         is relatively small, the approximation becomes less accurate, and the binomial
         differs somewhat from a Gaussian.
 
@@ -199,15 +208,17 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
     if (probability is not None) and ((probability < 0) or (probability > 1)):
         raise ValueError(f"The value of 'probability' is {probability}, but must be >= 0 and <= 1.")
 
+    genome_mutator = genome_mutate_binomial(std, bounds,
+                                            expected_num_mutations=expected_num_mutations,
+                                            probability=probability)
+
     while True:
         try:
             individual = next(next_individual)
         except StopIteration:
             return
 
-        individual.genome = individual_mutate_binomial(individual.genome, std, bounds,
-                                                      expected_num_mutations=expected_num_mutations,
-                                                      probability=probability)
+        individual.genome = genome_mutator(individual.genome)
 
         individual.fitness = None  # invalidate fitness since we have new genome
 
@@ -216,59 +227,80 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
 
 
 ##############################
-# Function individual_mutate_binomial
+# Function genome_mutate_binomial
 ##############################
-def individual_mutate_binomial(genome,
-                               std: float,
-                               bounds: list,
-                               expected_num_mutations: float = None,
-                               probability: float = None,
-                               n: int = 10000,):
+@curry
+def genome_mutate_binomial(std,
+                        bounds: list,
+                        expected_num_mutations: float = None,
+                        probability: float = None,
+                        n: int = 10000):
     """
     Perform additive binomial mutation of a particular genome.
 
     >>> import numpy as np
     >>> genome = np.array([42, 12])
     >>> bounds = [(0,50), (-10,20)]
-    >>> new_genome = individual_mutate_binomial(genome, std=0.5, bounds=bounds,
+    >>> genome_op = genome_mutate_binomial(std=0.5, bounds=bounds,
     ...                                         expected_num_mutations=1)
+    >>> new_genome = genome_op(genome)
 
     """
     assert(bool(expected_num_mutations is not None) ^ bool(probability is not None)), f"Got expected_num_mutations={expected_num_mutations} and probability={probability}.  One must be specified, but not both."
     assert((probability is None) or (probability >= 0))
     assert((probability is None) or (probability <= 1))
 
-    if not isinstance(genome, np.ndarray):
-        raise ValueError(("Expected genome to be a numpy array. "
-                          f"Got {type(genome)}."))
-
-    datatype = genome.dtype
-    if probability is None:
-        probability = compute_expected_probability(expected_num_mutations, genome)
+    # Is the only reason we're making this a closure is to save from having to
+    # do this calculation with each mutation? -- Mark
+    if isinstance(std, Iterable):
+        p = np.array([_binomial_p_from_std(n, s) for s in std])
     else:
-        probability = probability
+        p = _binomial_p_from_std(n, std)
 
-    selector = np.random.choice([0, 1], size=genome.shape,
-                                p=(1 - probability, probability))
-    indices_to_mutate = np.nonzero(selector)[0]
-    p = _binomial_p_from_std(n, std)
-    binom_mean = n*p
-    additive = np.random.binomial(n, p, size=len(indices_to_mutate)) - int(binom_mean)
-    mutated = genome[indices_to_mutate] + additive
-    genome[indices_to_mutate] = mutated
-    genome = apply_hard_bounds(genome, bounds).astype(datatype)
+    def mutator(genome,
+                expected_num_mutations: float = expected_num_mutations,
+                probability: float = probability):
+        """Function to return as a closure."""
+        # Make this check here, too, since this is called within the pipeline
+        # and may be invoked dynamically with different parameters.
+        if not isinstance(genome, np.ndarray):
+            raise ValueError(("Expected genome to be a numpy array. "
+                            f"Got {type(genome)}."))
 
-    # consistency check on data type
-    assert datatype == genome.dtype
+        datatype = genome.dtype
+        if probability is None:
+            prob = compute_expected_probability(expected_num_mutations, genome)
+        else:
+            prob = probability
 
-    return genome
+        indices_to_mutate = random_bernoulli_vector(shape=genome.shape, p=prob)
+
+        # Compute binomial parameters for each gene
+        selected_p_values = p if not isinstance(p, Iterable) else p[indices_to_mutate]
+        binom_mean = n*selected_p_values  # this will do elementwise multiplication if p is a vector
+
+        # Apply binomial perturbations
+        additive = np.random.binomial(n, selected_p_values, size=sum(indices_to_mutate)) - np.floor(binom_mean)
+        mutated = genome[indices_to_mutate] + additive
+        genome[indices_to_mutate] = mutated
+
+        genome = apply_hard_bounds(genome, bounds).astype(datatype)
+
+        # consistency check on data type
+        assert datatype == genome.dtype
+
+        return genome
+    return mutator
 
 
 def _binomial_p_from_std(n, std):
     """Given a number of 'coin flips' n, compute the value of p that is
     needed to achieve a desired standard deviation."""
-    if (4*std**2/n > 1):
-        raise ValueError(f"The provided value of n ({n}) is too low to support a Binomial distribution with a standard deviation of {std}.  Choose a higher value of n, or reduce the std.")
+    if 4 * std ** 2 / n > 1:
+        raise ValueError(f"The provided value of n ({n}) is too low to "
+                         f"support a Binomial distribution with a stand"
+                         f"ard deviation of {std}.  Choose a higher value of "
+                         f"n, or reduce the std.")
     # We arrived at this expression by noting that σ^2 = np(1-p)
     # and solving for p via the quadratic formula
-    return (1 - np.sqrt(1-4*std**2/n))/2
+    return (1 - np.sqrt(1 - 4 * std ** 2 / n)) / 2

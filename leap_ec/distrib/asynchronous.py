@@ -137,7 +137,7 @@ def greedy_insert_into_pop(individual, pop, max_size):
 ##############################
 # function steady_state
 ##############################
-def steady_state(client, births, init_pop_size, pop_size,
+def steady_state(client, max_births, init_pop_size, pop_size,
                  representation,
                  problem, offspring_pipeline,
                  inserter=greedy_insert_into_pop,
@@ -148,7 +148,7 @@ def steady_state(client, births, init_pop_size, pop_size,
     """ Implements an asynchronous steady-state EA
 
     :param client: Dask client that should already be set-up
-    :param births: how many births are we allowing?
+    :param max_births: how many births are we allowing?
     :param init_pop_size: size of initial population sent directly to workers
            at start
     :param pop_size: how large should the population be?
@@ -177,8 +177,9 @@ def steady_state(client, births, init_pop_size, pop_size,
     # This is where we'll be putting evaluated individuals
     pop = []
 
-    # Bookkeeping for tracking the number of births
-    birth_counter = util.inc_births(context, start=len(initial_population))
+    # Bookkeeping for tracking the number of max_births towards are fixed
+    # birth budget.
+    birth_counter = util.inc_births(context, start=0)
 
     for i, evaluated_future in enumerate(as_completed_iter):
 
@@ -194,19 +195,29 @@ def steady_state(client, births, init_pop_size, pop_size,
         logger.debug('%d evaluated: %s %s', i, str(evaluated.genome),
                      str(evaluated.fitness))
 
-        if not count_nonviable and not is_viable(evaluated):
-            # If we don't want non-viable individuals to count towards the
-            # birth budget, then we need to decrement the birth count that was
-            # incremented when it was created for this individual since it
-            # was broken in some way.
-            birth_counter()
+        if not is_viable(evaluated):
+            if not count_nonviable:
+                # if we want the non-viables to not count towards the budget
+                # then we need to decrement the birth counter to ensure that
+                # a new individual is spawned to replace it.
+                logger.debug(f'Non-viable individual, decrementing birth'
+                             f'count.  Was {birth_counter.births()}')
+                births = birth_counter.do_decrement()
+                logger.debug(f'Birth count now {births}')
+        else:
+            # is viable, so bump that birth count er
+            births = birth_counter.do_increment()
+            logger.debug(f'Counting a birth.  '
+                         f'Births at: {births}')
 
         inserter(evaluated, pop, pop_size)
 
         if pop_probe is not None:
             pop_probe(pop)
 
-        if birth_counter.births() < births:
+        if birth_counter.births() < max_births:
+            logger.debug(f'Creating offspring because birth count is'
+                         f'{birth_counter.births()}')
             # Only create offspring if we have the budget for one
             offspring = toolz.pipe(pop, *offspring_pipeline)
 
@@ -219,6 +230,10 @@ def steady_state(client, births, init_pop_size, pop_size,
                                        pure=False)
                 as_completed_iter.add(future)
 
-            birth_counter(len(offspring))
+            # Be sure to count the new kids against the birth budget
+            birth_counter.do_increment(len(offspring))
+        else:
+            logger.debug(f'Not creating offspring because birth count is'
+                         f'{birth_counter.births()}')
 
     return pop
