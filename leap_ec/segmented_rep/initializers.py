@@ -31,12 +31,14 @@ def create_segmented_sequence(length, seq_initializer):
     :return: function that returns a list of segmented
     :rtype: Callable
     """
-    if callable(length):
-        num_segments = length()
-    else:
-        num_segments = length
+    length = length
 
     def segmented():
+        nonlocal length
+        if callable(length):
+            num_segments = length()
+        else:
+            num_segments = length
         segments = [seq_initializer() for _ in range(num_segments)]
         return segments
 
