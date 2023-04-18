@@ -1,9 +1,8 @@
 Multiobjective Optimization
 ===========================
 
-LEAP supports multi-objective optimization via an implementation of [NSGA-II]_.
-There are two ways of using this functionality -- using a single function,
-`leap_ec.mulitobjective.nsga2.generalized_nsga_2`, or by assembling a bespoke NSGA-II using pipeline
+LEAP supports multi-objective optimization via an implementation of [NSGA-II]_. There are two ways of using this
+functionality -- using a single function, `leap_ec.mulitobjective.nsga2.generalized_nsga_2` , or by assembling a bespoke NSGA-II using pipeline
 operators.  We will cover both approaches here.
 
 Using `generalized_nsga_2`
@@ -75,11 +74,87 @@ Example
 .. code-block:: Python
     :linenos:
 
+    # represenations have a convenience function for creating
+    # initial random population
+    parents = representation.create_population(int(config.ea.pop_size),
+                                               problem=problem)
 
+    generation_counter = util.inc_generation(context=context)
+
+    # Scatter the initial parents to dask workers for evaluation
+    parents = synchronous.eval_population(parents, client=client)
+
+    context['std'] = np.array([0.001,  # start_lr
+                               0.0001, # stop_lr
+                               0.0625, # rcut
+                               0.0625, # rcut smth
+                               0.0625, # training batch
+                               0.0625, # valid. batch
+                               0.0625, # scale by worker
+                               0.0625, # des activ func
+                               0.0625, # fitting activ func
+                               ])
+
+    try:
+        while generation_counter.generation() < max_generations:
+            generation_counter()  # Increment to the next generation
+
+            offspring = pipe(parents,
+                             ops.random_selection,
+                             ops.clone,
+                             mutate_gaussian(
+                                 std=context['std'],
+                                 expected_num_mutations='isotropic', # zap all genes
+                                 hard_bounds=DeepMDRepresentation.bounds),
+                             eval_pool(client=client, size=len(parents)),
+                             rank_ordinal_sort(parents=parents),
+                             crowding_distance_calc,
+                             ops.truncation_selection(size=len(parents),
+                                                      key=lambda x: (-x.rank,
+                                                                     x.distance)),
+                             )
+
+            parents = offspring  # Make offspring new parents for next generation
+
+            context['std'] *= .85
+
+The above code demonstrates how to use the NSGA operators, `rank_ordinal_sort` and `crowding_distance_calc`, in a
+LEAP reproductive operator pipeline to do the rank sorting and crowding distance calculation on newly formed
+offspring.  The truncation selection operator uses the rank and distances that are added as attributes to individuals
+as they pass through the pipeline by those operators.
+
+Also shown is how to use Dask to perform parallel fitness evaluations.  On line 9 the initial random population
+is scattered to preassigned Dask workers for evaluation.  Line 33 performs a similar operation with newly
+created offspring.
+
+And, finally, this shows how to add some ancillary computation, in this case updating a vector of
+standard deviations to be used with the Gaussian mutation operator.  The vector is assigned to the LEAP
+global dictionary, `context`, on line 11, and is updated every generation on line 43.  The mutation operator, itself,
+is on line 29.  Although a special pipeline operator could have been made to do this same update to enable use of `generalized_nsga_2` ,
+it was cleaner to separate out this update outside the pipeline.
+
+
+Representing multiple fitnesses
+-------------------------------
+
+Normally a fitness is a real-valued scalar, but in the case of multiple objectives, LEAP uses a numpy
+array of floats for fitnesses, with each element of the array corresponding to one objective.  Be mindful to
+*not* use a python tuple or list to hold fitnesses.
+
+Another caveat if using `DistributedIndividual` is that class will assign NaNs as fitnesses if something should go
+wrong while evaluating an individual's fitness.  E.g., if optimizing a neural network architecture and exception is
+thrown during model training due to a hardware failure. This poses a problem for rank sorting since sorting floating
+point values with NaNs leads to undefined behavior.  In which case it's advisable to create a`DistributedIndividual`
+subclass that overrides this behavior and assigns, say, MAXINT or -MAXINT (as appropriate for maximizing or
+minimizing objectives) for fitnesses where there was a problem in performing the fitness evaluation.
+
+
+References
+----------
 
 .. [NSGA-II] Deb, Kalyanmoy, Amrit Pratap, Sameer Agarwal, and T. A. M. T. Meyarivan.
             "A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II." IEEE
             transactions on evolutionary computation 6, no. 2 (2002): 182-197.
 
-.. [Burlacu] Bogdan Burlacu. 2022. Rank-based Non-dominated Sorting. arXiv.
+.. [Burlacu] Bogdan Burlacu. 2022. "Rank-based Non-dominated Sorting". arXiv.
       DOI:https://doi.org/10.48550/ARXIV.2203.13654
