@@ -2,7 +2,7 @@
 
 Being a terse compilation by version of changes.
 
-## 0.8.0dev  (current develop branch)
+## 0.8.0, 4/14/2023
 
  * New Features
    * Added `FitnessOffsetProblem` convenience wrapper to the `problem` module

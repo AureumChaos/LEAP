@@ -4,16 +4,17 @@ Please see the CHANGELOG.md for a history of feature implementations.
 
 Future features, in no particular order of priority:
 
-    * multi-objective optimization
-    * minimally complete documentation
-        * fleshed out ReadTheDocs documentation
+    * Documentation
+        * add write-up on probes
+        * more recipes for common use cases in "cookbook"
         * technical report
-    * checkpoint / restart support
-    * hall of fame
+    * Checkpoint / restart support
+    * Asynchronous multiobjective optimization
+    * Hall of fame
     * Rule systems
         * Mich Approach
         * Pitt Approach
-    * Genetic Programming (GP)
+    * Koza-style Genetic Programming (GP)
     * Estimation of Distribution Algorithms (EDA)
         * Covariance Matrix Adaptation Evolution Strategy (CMA-ES)
         * Population-based Incremental Learning (PBIL)
