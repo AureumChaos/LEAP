@@ -10,7 +10,7 @@ with open("README.md", "r") as f:
 setup(
     name='leap_ec',
     version=__version__,
-    packages=find_packages(),
+    packages=find_packages(exclude=["*tests*"]),
     license='Academic',
     author='Mark Coletti, Eric Scott, Jeff Bassett',
     author_email='mcoletti@gmail.com',
