@@ -3,3 +3,5 @@ pytest
 pytest-cov
 python-coveralls
 rich
+gymnasium
+seaborn
