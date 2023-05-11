@@ -37,6 +37,8 @@ cgp_decoder = cgp.CGPDecoder(
                 )
 
 
+# Our fitness function will compare our circuits to the
+# full truth table for XOR
 xor_problem = problems.TruthTableProblem(
                     boolean_function=lambda x: [ x[0] ^ x[1] ],  # XOR
                     num_inputs = 2,
@@ -47,7 +49,7 @@ xor_problem = problems.TruthTableProblem(
 cgp_representation = Representation(
                         decoder=cgp_decoder,
                         # We use a sepecial initializer that obeys the CGP constraints
-                        initialize=cgp.create_cgp_vector(cgp_decoder)
+                        initialize=cgp_decoder.initializer()
                     )
 
 
