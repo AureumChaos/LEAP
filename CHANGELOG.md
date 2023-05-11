@@ -4,6 +4,9 @@ Being a terse compilation by version of changes.
 
 ## 0.9.dev, in progress
 
+ * API changes
+   * `CGPDecoder` now has an `initialize()` method for convenience, offering a default genome initializer
+
 ## 0.8.0, 4/14/2023
 
  * New Features

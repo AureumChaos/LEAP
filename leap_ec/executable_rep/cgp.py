@@ -1,11 +1,16 @@
-"""Cartesian genetic programming (CGP) representation."""
+"""Cartesian genetic programming (CGP) representation.
+
+The CGPDecoder does most of the work here: it converts a linear genome
+into a graph structure, and wraps the latter in a CGPExecutable (which 
+knows how to execute the graph)."""
+
 from abc import ABC, abstractmethod
-from typing import Iterator
+from typing import Iterator, List
 
 import networkx as nx
 import numpy as np
 
-from leap_ec import ops
+from leap_ec import ops, context
 from leap_ec.decoder import Decoder
 from leap_ec.int_rep.initializers import create_int_vector
 from leap_ec.int_rep.ops import mutate_randint, individual_mutate_randint
@@ -189,6 +194,15 @@ class CGPDecoder(Decoder):
         self.max_arity = max_arity
         self.prune = prune
         self.levels_back = levels_back if levels_back is not None else num_layers
+
+    def initializer(self):
+        """Convenience method that returns an initialization function for creating
+        integer-vector genomes that obey this CGP representation's constraints."""
+
+        def create():
+            return create_int_vector(self.bounds())()
+
+        return create
 
     def num_genes(self):
         """The number of genes we expect to find in each genome.  This will equal the number of outputs plus the total number
