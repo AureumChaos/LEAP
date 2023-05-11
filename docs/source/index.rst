@@ -7,18 +7,19 @@ Welcome to LEAP: Library for Evolutionary Algorithms in Python's documentation!
 ===============================================================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
    Quickstart Guide <readme>
-   Prebuilt Algorithms <prebuilt>
    LEAP Concepts <concepts>
-   Distributed LEAP <distributed>
-   LEAP Metaheuristics <metaheuristics>
+   Prebuilt Algorithms <prebuilt>
    Building New Algorithms <building>
+   Distributed LEAP <distributed>
+   Multiobjective Optimization <multiobjective>
    Cookbook <cookbook>
    Roadmap <roadmap>
    API <leap_ec>
+   References <bibliography>
 
 
 Indices and tables

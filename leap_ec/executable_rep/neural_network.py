@@ -1,9 +1,12 @@
 """Tools for decoding and executing a neural network from its genetic representation."""
 from typing import Tuple
 
+from matplotlib import pyplot as plt
+import networkx as nx
 import numpy as np
 
 from .executable import Executable
+from leap_ec.global_vars import context
 
 
 ##############################
@@ -125,6 +128,64 @@ class SimpleNeuralNetworkExecutable(Executable):
         self.weight_matrices = weight_matrices
         self.activation = activation
 
+    @property
+    def num_hidden_layers(self):
+        """The number of hidden layers in this network."""
+        return len(self.weight_matrices) - 1
+
+    @property
+    def num_inputs(self):
+        """The number of inputs the network receives."""
+        first_matrix = self.weight_matrices[0]
+        num_rows = np.shape(first_matrix)[0]
+        return num_rows - 1  # Exclude the bias input
+
+    @property
+    def num_outputs(self):
+        """The number of outputs the network produces."""
+        last_matrix = self.weight_matrices[-1]
+        num_columns = np.shape(last_matrix)[1]
+        return num_columns
+
+
+    @property
+    def graph(self):
+        """Create a graph representation of this neural network (ex., for visualization)."""
+        graph = nx.MultiDiGraph()
+        graph.add_node('bias')
+
+        input_ids = [ f"i{i}" for i in range(self.num_inputs) ]
+        graph.add_nodes_from(input_ids)
+        previous_ids = input_ids + ['bias']
+
+        for l in range(self.num_hidden_layers):
+            matrix = self.weight_matrices[l]
+            assert(np.shape(matrix)[0] == len(previous_ids)), f"Expected {len(previous_ids)} inputs to hidden layer {l}, but got {np.shape(matrix)[0]}."
+            num_hidden_nodes = np.shape(matrix)[1]  # Num columns
+            hidden_ids = [ f"h{l}_{i}" for i in range(num_hidden_nodes)]
+            graph.add_nodes_from(hidden_ids)
+
+            for r, row in enumerate(matrix):
+                source_id = previous_ids[r]
+                edges = [(source_id, hidden_ids[i], w) for i, w in enumerate(row)]
+                graph.add_weighted_edges_from(edges)
+
+            previous_ids = hidden_ids + ['bias']
+
+
+        output_ids = [ f"o{i}" for i in range(self.num_outputs) ]
+        graph.add_nodes_from(output_ids)
+
+        matrix = self.weight_matrices[self.num_hidden_layers]  # Matrix for last layer
+        assert(np.shape(matrix)[1] == self.num_outputs)
+        for r, row in enumerate(matrix):
+            source_id = previous_ids[r]
+            edges = [(source_id, output_ids[i], w) for i, w in enumerate(row)]
+            graph.add_weighted_edges_from(edges)
+
+        return graph
+
+
     def __call__(self, input_):
         assert(input_ is not None)
         signal = np.array(input_)
@@ -137,3 +198,52 @@ class SimpleNeuralNetworkExecutable(Executable):
             #print(f"\n\n\nOUTPUT\n{signal.tolist()}")
 
         return signal
+
+
+##############################
+# Class GraphPhenotypeProbe
+##############################
+class GraphPhenotypeProbe():
+    """Visualize the graph for the best individual in the population.
+    
+    This requires that the phenotypes of the individuals in the population
+    have a `graph` attribute that provides a `networkx` graph object.
+    """
+
+    def __init__(self, modulo=1, ax=None, weights: bool=False, weight_multiplier: float=1.0, context=context):
+        assert(modulo > 0)
+        assert(context is not None)
+        self.modulo = modulo
+        self.weights = weights
+        self.weight_multiplier = weight_multiplier
+        if ax is None:
+            _, ax = plt.subplots()
+        self.ax = ax
+        self.context = context
+
+    def __call__(self, population: list) -> list:
+        """Take a population, plot the best individual (if `step % modulo == 0`),
+        and return the population unmodified.
+        """
+        assert(population is not None)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
+        step = self.context['leap']['generation']
+
+        if step % self.modulo == 0:
+            best = max(population)
+            graph = best.decode().graph
+            self.ax.clear()
+            if self.weights:
+                weights = list(nx.get_edge_attributes(graph,'weight').values())
+                weights = [ self.weight_multiplier*w for w in weights ]
+                nx.draw_shell(graph,
+                        width=weights,
+                        with_labels=True,
+                        ax=self.ax)
+            else:
+                nx.draw_shell(graph,
+                        with_labels=True,
+                        ax=self.ax)
+            plt.pause(0.0000000001)
+        return population

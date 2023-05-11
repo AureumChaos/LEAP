@@ -1,0 +1,40 @@
+name: Python Package using Conda
+
+
+on:
+  [push]
+#   push:
+#     branches:
+#     - develop
+env:
+  MPLBACKEND: agg
+
+
+jobs:
+  test_suite:
+    name: Run non-jupyter, non-stochastic, fast pytest suite on ${{ matrix.os }} using Python ${{ matrix.python_version }}.
+    runs-on: ${{ matrix.os }}
+    strategy:
+      max-parallel: 5
+      matrix:
+        python_version: [ '3.8', '3.9', '3.10' ]
+        os: [ ubuntu-latest, windows-latest, macOS-latest ]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python_version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python_version }}
+    - name: Install package dependencies
+      run: |
+        pip install -r requirements.txt
+    - name: Install package
+      run: |
+        pip install .
+    - name: Install test dependencies
+      run: |
+        pip install -r test_requirements.txt
+    - name: Test not jupyter, fast pytest suite using pytest
+      run: |
+        python -m pytest -m "not slow and not stochastic and not jupyter"

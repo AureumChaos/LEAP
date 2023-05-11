@@ -2,9 +2,11 @@
 """
     Used to initialize binary sequences
 """
-import random
+import numpy as np
 
 from leap_ec.individual import Individual
+from leap_ec.ops import random_bernoulli_vector
+
 
 ##############################
 # Closure create_binary_sequence
@@ -29,6 +31,6 @@ def create_binary_sequence(length):
     """
 
     def create():
-        return [random.choice([0, 1]) for _ in range(length)]
+        return random_bernoulli_vector(length)
 
     return create

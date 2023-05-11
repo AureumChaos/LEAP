@@ -31,13 +31,15 @@ venv:
 .PHONY: doc setup test test-fast test-slow kernel test-jupyter clean
 
 doc:
+	pip install -r docs/requirements.txt
         # The apidoc call is long because we need to tell it to
         # use the venv's version of sphinx-build
 	sphinx-apidoc -f -o docs/source/ leap_ec/ SPHINXBUILD='python $(shell which sphinx-build)'
 	cd docs && make html
 
 setup:
-	python setup.py develop
+	pip install -e .
+	pip install -r test_requirements.txt
 
 depend:
 	pip install -r requirements_freeze.txt
@@ -52,10 +54,10 @@ test:
 	python -m pytest -m "not jupyter"
 
 test-fast:
-	python -m pytest -m "not system and not jupyter"
+	python -m pytest -m "not slow and not jupyter"
 
 test-slow:
-	python -m pytest -m system
+	python -m pytest -m slow
 
 kernel:
 	# Setup a kernel for Jupyter with the name test-jupyter uses to find it
@@ -71,3 +73,7 @@ pep8:
 
 clean:
 	cd docs && make clean
+	find . -name *.pyc -delete
+	find . -name __pycache__ -type d -exec rm -rf {} +
+	find . -name *.egg-info -type d -exec rm -rf {} +
+

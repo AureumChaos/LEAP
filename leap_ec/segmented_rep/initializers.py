@@ -19,7 +19,8 @@ def create_segmented_sequence(length, seq_initializer):
     to calculate the number of segments to generate.
 
     >>> from leap_ec.binary_rep.initializers import create_binary_sequence
-    >>> segments = create_segmented_sequence(3, create_binary_sequence(3))
+    >>> segmented_initializer = create_segmented_sequence(3, create_binary_sequence(3))
+    >>> segments = segmented_initializer()
     >>> assert len(segments) == 3
 
 
@@ -27,15 +28,19 @@ def create_segmented_sequence(length, seq_initializer):
     :type length: int or Callable
     :param seq_initializer: initializer for creating individual sequences
     :type seq_initializer: Callable
-    :return: test_sequence of segments
-    :rtype: list
+    :return: function that returns a list of segmented
+    :rtype: Callable
     """
-    if callable(length):
-        num_segments = length()
-    else:
-        num_segments = length
+    length = length
 
-    segments = [seq_initializer() for _ in range(num_segments)]
+    def segmented():
+        nonlocal length
+        if callable(length):
+            num_segments = length()
+        else:
+            num_segments = length
+        segments = [seq_initializer() for _ in range(num_segments)]
+        return segments
 
-    return segments
+    return segmented
 

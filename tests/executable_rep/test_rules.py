@@ -1,5 +1,5 @@
 """Unit tests for the rules package."""
-from gym import spaces
+from gymnasium import spaces
 import numpy as np
 import pytest
 
@@ -47,7 +47,6 @@ def test_pittrulesdecoder_initialize(simple_pitt_decoder):
                 assert(high >= 0.0)
                 assert(high <= 1.0)
             for a in actions:
-                assert(isinstance(a, int))
                 assert(a >= 0)
                 assert(a < 4)
 

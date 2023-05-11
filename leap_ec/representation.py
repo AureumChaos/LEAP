@@ -25,6 +25,10 @@ class Representation():
         self.initialize = initialize
         self.individual_cls = individual_cls
 
+    def create_individual(self, problem):
+        """Make a single individual."""
+        return self.create_population(1, problem)[0]
+
     def create_population(self, pop_size, problem):
         """ make a new population
 

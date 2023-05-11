@@ -6,7 +6,7 @@ from toolz import pipe
 
 from leap_ec.individual import Individual
 from leap_ec.decoder import IdentityDecoder
-from leap_ec.context import context
+from leap_ec.global_vars import context
 
 import leap_ec.ops as ops
 from leap_ec.binary_rep.problems import MaxOnes
@@ -32,7 +32,7 @@ while generation_counter.generation() < 6:
     offspring = pipe(parents,
                      ops.tournament_selection,
                      ops.clone,
-                     mutate_bitflip,
+                     mutate_bitflip(expected_num_mutations=1),
                      ops.uniform_crossover(p_swap=0.2),
                      ops.evaluate,
                      ops.pool(size=len(parents)))  # accumulate offspring

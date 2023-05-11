@@ -11,7 +11,7 @@ coveralls
 dask
 distributed
 flake8
-gym
+gymnasium
 jupyter
 matplotlib
 nbconvert
@@ -23,6 +23,8 @@ Pillow
 pytest
 pytest-cov
 python-coveralls
+rich
+seaborn
 sphinx
 sphinx_rtd_theme
 toolz

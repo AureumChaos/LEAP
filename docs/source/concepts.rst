@@ -7,16 +7,17 @@ them.
 Core Classes
 ------------
 
+.. _class-diagram:
 .. figure:: _static/top-level-class-diagram.svg
     :align: center
 
-    **Figure 1: The core classes**  `Individual`, `Problem`, and
+    **The core classes**  `Individual`, `Problem`, and
     `Decoder` are the three classes upon which the rest of the
     toolkit rests.
 
 Three classes work in tandem to represent and evaluate solutions: `Individual`,
 `Problem`, and `Decoder`.  The relationship between these classes is depicted
-in Figure 1, and shows that the `Individual` is the design's keystone, and encapsulates
+in :numref:`class-diagram`, and shows that the `Individual` is the design's keystone, and encapsulates
 posed solutions to a `Problem`.  `Problem` implements the semantics for a given
 problem to be solved, and which `Individual` uses to compute its fitness.
 `Problem` also implements how any two given `Individuals` are "better than" or
@@ -26,12 +27,14 @@ evaluation; for example, a `Decoder` may translate a bit sequence into a vector
 of real-values that are then passed to the `Problem` as parameters during
 evaluation.
 
+.. _operator-pipeline:
+
 Operator Pipeline
 -----------------
 
 If the above classes are the "nouns" of LEAP, the pipeline operators are the
 "verbs" that work on those "nouns."  The overarching concept of the pipeline is
-similar to *nix style text processing command lines, where a sequence
+similar to \*nix style text processing command lines, where a sequence
 of operators pipe output of one text processing utility into the next one with
 the last one returning the final results.  For example::
 
@@ -79,9 +82,10 @@ representations; i.e., `binary_rep/ops.py`.  And, since `ops` is already used,
 we just directly import `mutate_bitflip`, which is why it does not have the
 `ops` qualifier.)
 
+.. _pipeline-figure:
 .. figure:: _static/Pipeline.png
 
-    **Figure 2: LEAP operator pipeline.** This figure depicts a typical
+    **LEAP operator pipeline.** This figure depicts a typical
     LEAP operator pipeline.  First is a parent population from which the
     next operator selects individuals, which are then cloned by the next
     operator to be followed by operators for mutating and evaluating the
@@ -93,7 +97,7 @@ we just directly import `mutate_bitflip`, which is why it does not have the
     another selection operator returns the final set of individuals based
     on the offspring pool and optionally the parents.
 
-Fig. 2 depicts a general pattern of LEAP pipeline operators. Typically, the
+:numref:`pipeline-figure` depicts a general pattern of LEAP pipeline operators. Typically, the
 first pipeline element is a source for individuals followed by some form of
 selection operator and then a clone operator to create an offspring that is
 initially just a copy of the selected parent.  Following that there are one
@@ -121,4 +125,5 @@ sections.
     Operators <ops>
     Contexts <context>
     Probes <probes>
+    Parsimony <parsimony>
     Visualizations <visualization>

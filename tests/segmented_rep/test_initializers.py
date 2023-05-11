@@ -2,13 +2,14 @@
 import pytest
 import random
 import functools
+import numpy as np
 from collections import Counter
 
 from leap_ec import statistical_helpers as stat
 from leap_ec.segmented_rep.initializers import create_segmented_sequence
 
 
-test_sequence = [12345] # just an arbitrary sequence for testing
+test_sequence = np.zeros(5) # just an arbitrary sequence of zeroes for testing
 
 def gen_sequence():
     """ return an arbitrary static test_sequence """
@@ -18,13 +19,16 @@ def gen_sequence():
 def test_segmented_initializer_fixed_length():
     """ created fixed length segments """
 
-    segments = create_segmented_sequence(1, gen_sequence)
+    segments_init = create_segmented_sequence(1, gen_sequence)
+    segments = segments_init()
     assert segments == [test_sequence]
 
-    segments = create_segmented_sequence(2, gen_sequence)
+    segments_init = create_segmented_sequence(2, gen_sequence)
+    segments = segments_init()
     assert segments == [test_sequence, test_sequence]
 
-    segments = create_segmented_sequence(3, gen_sequence)
+    segments_init = create_segmented_sequence(3, gen_sequence)
+    segments = segments_init()
     assert segments == [test_sequence, test_sequence, test_sequence]
 
 
@@ -46,8 +50,9 @@ def test_segmented_initializer_variable_length():
     for i in range(N):
         # randomly generate a sequence of segments with the number of segments
         # drawn from a uniform distribution
-        segments.append(create_segmented_sequence(distribution_func,
-                                                  gen_sequence))
+        initializer = create_segmented_sequence(distribution_func,
+                                                gen_sequence)
+        segments.append(initializer())
 
         # track the lengths of those segments
         segment_lengths.append(len(segments[-1]))
@@ -55,8 +60,7 @@ def test_segmented_initializer_variable_length():
     distribution = Counter(segment_lengths)
 
     # TODO have a stat helper that can generate this conveniently
-    # We expect the values to be evenly distributed in [1,5]
+    # We expect the values to be evenly distrib in [1,5]
     expected_distribution = {1: N/5, 2: N/5, 3: N/5, 4: N/5, 5: N/5}
 
     assert stat.stochastic_equals(distribution, expected_distribution, p=0.001)
-

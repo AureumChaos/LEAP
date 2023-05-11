@@ -1,5 +1,3 @@
-# Just copied of .gitignore that covers All The Things.  (Hopefully.)
-#
 /tmp.*
 /local
 *.log
@@ -11,46 +9,46 @@ docker-nom/build/
 venv/
 *.egg-info/
 docs/build/
-.coverage
+.coverage*
 htmlcov/
 .ipynb_checkpoints/
 .pytest_cache
 build/
 dist/
 
-#Subversion
+# Subversion
 .svn
 
 
-#Vim (and some others)
+# Vim (and some others)
 *~
 *.swp
 
-#Eclipse
+# Eclipse
 .cache
 .classpath
 .project
 .settings
 build-eclipse
 
-#Gradle
+# Gradle
 .gradle
 gradle-app.setting
 
-#Sublime Text
+# Sublime Text
 *.sublime-workspace
 
-#NetBeans
+# NetBeans
 .netbeans
 catalog.xml
 generated
 nb-configuration.xml
 
-#Mac OS
+# Mac OS
 .DS_Store
 __MACOSX
 
-#Intellij
+# Intellij
 .idea/
 .idea/workspace.xml
 .idea/libraries
@@ -75,10 +73,11 @@ __MACOSX
 .idea/misc.xml
 .idea/modules.xml
 
-
-#vscode
+# vscode
 .vscode
 
 # dask
 dask-worker-space/
 
+# Generated data
+*.csv

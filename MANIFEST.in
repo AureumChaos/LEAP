@@ -1,0 +1,4 @@
+include *.txt
+recursive-include _static *png *gif *svg *uxf
+recursive-include examples *.py *ipynb
+prune examples/.ipynb_checkpoints

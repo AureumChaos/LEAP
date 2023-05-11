@@ -9,7 +9,7 @@ pattern recognition (i.e. supervised learning).
 This module provides a basic Pitt-approach system that uses the `spaces` API from OpenAI Gym to 
 define input and output spaces for rule conditions and actions, respectively.
 """
-from dataclasses import dataclass
+from collections import namedtuple
 from enum import Enum
 import logging
 import numpy as np
@@ -19,7 +19,7 @@ import uuid
 from matplotlib import pyplot as plt
 from matplotlib import patches
 
-from leap_ec import context
+from leap_ec.global_vars import context
 from leap_ec.decoder import Decoder
 from leap_ec.executable_rep.executable import Executable
 from leap_ec.executable_rep.problems import EnvironmentProblem
@@ -48,7 +48,7 @@ class PittRulesDecoder(Decoder):
     inputs and 4 mutually exclusive actions to choose from, we might use a Box and Discrete
     space, respectively, from `gym.spaces`:
 
-    >>> from gym import spaces
+    >>> from gymnasium import spaces
     >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 3), dtype=np.float32)
     >>> out_ = spaces.Discrete(4)
     >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -67,7 +67,7 @@ class PittRulesDecoder(Decoder):
 
         For example, the following `decoder`
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 12), dtype=np.float32)
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -86,7 +86,7 @@ class PittRulesDecoder(Decoder):
 
         For example, the following `decoder`
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 12), dtype=np.float32)
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -112,7 +112,7 @@ class PittRulesDecoder(Decoder):
 
         For example, the following `decoder`
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 3), dtype=np.float32)
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -135,7 +135,7 @@ class PittRulesDecoder(Decoder):
         
         For example, the following `decoder`
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=0, high=1.5, shape=(1, 3), dtype=np.float32)
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -164,7 +164,7 @@ class PittRulesDecoder(Decoder):
 
         For example, the following `decoder`
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=0, high=1.5, shape=(1, 3), dtype=np.float32)
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -183,7 +183,7 @@ class PittRulesDecoder(Decoder):
     def bounds(self, num_rules):
         """Return the (low, high) bounds that it makes sense for each gene to vary within.
         
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 3), dtype=np.float32)
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -205,7 +205,7 @@ class PittRulesDecoder(Decoder):
         
         For instance, if we have the following decoder:
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 3), dtype=np.float32)
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -215,7 +215,7 @@ class PittRulesDecoder(Decoder):
 
         >>> initialize = decoder.initializer(num_rules=4)
         >>> initialize()
-        [[..., ..., ..., ..., ..., ..., ...], [..., ..., ..., ..., ..., ..., ...], [..., ..., ..., ..., ..., ..., ...], [..., ..., ..., ..., ..., ..., ...]]
+        [array(...), array(...), array(...), array(...)]
         
         Notice that it creates four top-level segments (one for each rule), and that the condition bounds for 
         each input within a rule are wrapped in tuple sub-segments.
@@ -227,10 +227,10 @@ class PittRulesDecoder(Decoder):
             def create_rule():
                 "Initialize a rule by sampling all its conditions and actions."
                 # Sample values uniformly within each variable's range
-                low = self.input_space.sample().flatten()
-                high = self.input_space.sample().flatten()
+                low = self.input_space.sample()
+                high = self.input_space.sample()
                 condition_pairs = list(zip(low, high))
-                condition_genes = list(np.array(condition_pairs).flatten())
+                condition_genes = np.array(condition_pairs).flatten()
 
 
                 # TODO do the same for memory registers
@@ -238,22 +238,23 @@ class PittRulesDecoder(Decoder):
                 if self.num_memory_registers > 0:
                     raise ValueError("Memory registers on Pitt rules are not fully support.")
 
-                action_genes = [ self.output_space.sample() ]
-                segment = condition_genes + action_genes #+ memory_genes
+                action_genes = np.array([ self.output_space.sample() ])
+                segment = np.concatenate((condition_genes, action_genes)) #+ memory_genes
                 assert(len(segment) == self.num_genes_per_rule)
 
                 return segment
-            
-            return create_segmented_sequence(num_rules, create_rule)
+
+            rule_set = create_segmented_sequence(num_rules, create_rule)
+            return rule_set()
 
         return create_rule_set
 
     def _split_rule(self, rule_segment):
         """Split a segment into its condition, action, and memory register sections.
-        
+
         For example, given a `decoder`
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 2), dtype=np.float32)
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -286,7 +287,7 @@ class PittRulesDecoder(Decoder):
 
         if self.num_memory_registers == 0:
             action_genes = rule_segment[-self.num_outputs:]
-            memory_genes = []
+            memory_genes = np.array([])
         else:
             action_genes = rule_segment[-self.num_outputs - self.num_memory_registers:len(rule_segment)-self.num_memory_registers]
             memory_genes = rule_segment[-self.num_memory_registers:]
@@ -307,7 +308,7 @@ class PittRulesDecoder(Decoder):
         For example, often we'll apply a rule system to a real-valued observation space and an
         integer-valued action space.
 
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=0, high=1.0, shape=(1, 3), dtype=np.float32)
         >>> out_ = spaces.Discrete(4)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -336,15 +337,21 @@ class PittRulesDecoder(Decoder):
             assert((None not in c_mutated) and (None not in a_mutated)), f"Null values found in newly created rule genome segment: {c_mutated + a_mutated}.\nParent segment was: {segment}."
 
             # Concatenate the results back together
-            return c_mutated + a_mutated
+            return np.concatenate((c_mutated, a_mutated))
 
         def _rulset_mutate(next_individual):
             """Take a full ruleset individual and mutate its rules."""
             while True:
                 individual = next(next_individual)
+                mutated_genome = [_single_rule_mutator(segment)
+                                  for segment in individual.genome]
 
-                mutated_genome = [ _single_rule_mutator(segment) for segment in individual.genome ]
-                individual.genome = mutated_genome
+                # need to keep types consistent and allow for
+                # list genomes
+                if isinstance(individual.genome, np.ndarray):
+                    individual.genome = np.array(mutated_genome)
+                else:
+                    individual.genome = mutated_genome
 
                 # invalidate the fitness since we have a modified genome
                 individual.fitness = None
@@ -355,11 +362,11 @@ class PittRulesDecoder(Decoder):
 
     def genome_to_rules(self, genome):
         """Convert a genome into a list of Rules.
-        
+
         Usage example:
 
         >>> import numpy as np
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
         >>> out_ = spaces.Discrete(2)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -389,17 +396,17 @@ class PittRulesDecoder(Decoder):
 
             rule = Rule(conditions=conditions, actions=action_genes)
             rules.append(rule)
-        
+
         return rules
 
     def decode(self, genome, *args, **kwargs):
         """Decodes a real-valued genome into a PittRulesExecutable.
-        
+
         For example, say we have a Decoder that takes continuous inputs from a 2-D box and selects between
         two discrete actions:
 
         >>> import numpy as np
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> in_ = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
         >>> out_ = spaces.Discrete(2)
         >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -420,14 +427,9 @@ class PittRulesDecoder(Decoder):
 
 
 ##############################
-# Class Rule
+# Tuple Rule
 ##############################
-@dataclass
-class Rule():
-    """A dataclass for storing rules.  Serves as a named tuple for getting at the parts of a rule."""
-    conditions: list
-    actions: list
-    # TODO memory actions
+Rule = namedtuple('Rule', 'conditions actions') # TODO memory actions
 
 
 ##############################
@@ -464,7 +466,7 @@ class PittRulesExecutable(Executable):
     and outputs discrete values in `{0, 1}`:
 
     >>> import numpy as np
-    >>> from gym import spaces
+    >>> from gymnasium import spaces
     >>> input_space = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
     >>> output_space = spaces.Discrete(2)
     >>> rules = PittRulesExecutable(input_space, output_space, rules,
@@ -522,7 +524,7 @@ class PittRulesExecutable(Executable):
         And we build a rule system out of it like so:
 
         >>> import numpy as np
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> input_space = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
         >>> output_space = spaces.Discrete(2)
         >>> rules = PittRulesExecutable(input_space, output_space, rules,
@@ -595,7 +597,7 @@ class PittRulesExecutable(Executable):
         For example, given the following rule system:
 
         >>> import numpy as np
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> input_space = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
         >>> output_space = spaces.Discrete(2)
         >>> rules = [ Rule(conditions=[(0.0, 0.6), (0.0, 0.4)], actions=[0]),
@@ -636,7 +638,7 @@ class PittRulesExecutable(Executable):
         We build an executable around it like so:
 
         >>> import numpy as np
-        >>> from gym import spaces
+        >>> from gymnasium import spaces
         >>> input_space = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
         >>> output_space = spaces.Discrete(2)
         >>> rule_system = PittRulesExecutable(input_space, output_space, rules,
@@ -723,7 +725,7 @@ class PlotPittRuleProbe:
     This probe requires a `decoder`, which it uses to parse individual genomes into sets of rules that it can visualize:
 
     >>> import numpy as np
-    >>> from gym import spaces
+    >>> from gymnasium import spaces
     >>> in_ = spaces.Box(low=np.array((0, 0)), high=np.array((1.0, 1.0)), dtype=np.float32)
     >>> out_ = spaces.Discrete(2)
     >>> decoder = PittRulesDecoder(input_space=in_, output_space=out_)
@@ -736,19 +738,22 @@ class PlotPittRuleProbe:
     returns the population unmodified.  This allows the probe to be inserted into an EA's operator pipeline.
 
     >>> from leap_ec.individual import Individual
-    >>> ruleset = [ [ 0.0,0.6, 0.0,0.5, 0 ],
-    ...             [ 0.4,1.0, 0.3,1.0, 1 ],
-    ...             [ 0.1,0.2, 0.1,0.2, 0 ],
-    ...             [ 0.5,0.6, 0.8,1.0, 1 ] ]
-    >>> pop = [ Individual(genome=ruleset) ]
+    >>> ruleset = np.array([[0.0, 0.6, 0.0, 0.5, 0],
+    ...                     [0.4, 1.0, 0.3, 1.0, 1],
+    ...                     [0.1, 0.2, 0.1, 0.2, 0],
+    ...                     [0.5, 0.6, 0.8, 1.0, 1]])
+    >>> pop = [Individual(genome=ruleset)]
     >>> probe(pop)
-    [Individual([[0.0, 0.6, 0.0, 0.5, 0], [0.4, 1.0, 0.3, 1.0, 1], [0.1, 0.2, 0.1, 0.2, 0], [0.5, 0.6, 0.8, 1.0, 1]], None, None)]
+    [Individual(array([[0. , 0.6, 0. , 0.5, 0. ],
+           [0.4, 1. , 0.3, 1. , 1. ],
+           [0.1, 0.2, 0.1, 0.2, 0. ],
+           [0.5, 0.6, 0.8, 1. , 1. ]]), IdentityDecoder(), None)]
 
 
     .. plot::
 
         import numpy as np
-        from gym import spaces
+        from gymnasium import spaces
 
         from leap_ec.executable_rep.rules import PittRulesDecoder, PlotPittRuleProbe
         from leap_ec.individual import Individual
@@ -769,7 +774,7 @@ class PlotPittRuleProbe:
 
     """
 
-    def __init__(self, decoder, plot_dimensions: (int, int) = (0, 1), ax=None, xlim=(0, 1), ylim=(0, 1), modulo=1, context=context.context):
+    def __init__(self, decoder, plot_dimensions: (int, int) = (0, 1), ax=None, xlim=(0, 1), ylim=(0, 1), modulo=1, context=context):
         assert(context is not None)
         assert(decoder is not None)
         assert(plot_dimensions is not None)

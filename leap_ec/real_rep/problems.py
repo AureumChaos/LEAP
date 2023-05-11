@@ -9,8 +9,11 @@ import warnings
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+from numpy.lib.twodim_base import diag
+from numpy.random import random
 
-from leap_ec.problem import ScalarProblem
+from leap_ec.problem import FitnessOffsetProblem, ScalarProblem
+from leap_ec import Individual
 
 
 ##############################
@@ -55,6 +58,8 @@ class SpheroidProblem(ScalarProblem):
         :param phenome: real-valued vector to be evaluated
         :return: it's fitness, `sum(phenome**2)`
         """
+        if isinstance(phenome, np.ndarray):
+            return np.sum(phenome ** 2)
         return sum([x ** 2 for x in phenome])
 
     def worse_than(self, first_fitness, second_fitness):
@@ -120,12 +125,15 @@ class RastriginProblem(ScalarProblem):
         Computes the function value from a real-valued list phenome:
 
         >>> phenome = [1.0/12, 0]
-        >>> RastriginProblem().evaluate(phenome) # +doctest: ELLIPSIS
+        >>> RastriginProblem().evaluate(phenome) # doctest: +ELLIPSIS
         0.1409190406...
 
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness
         """
+        if isinstance(phenome, np.ndarray):
+            return self.a * len(phenome) + \
+                np.sum(phenome ** 2 - self.a * np.cos(2 * np.pi * phenome))
         return self.a * \
             len(phenome) + sum([x ** 2 - self.a *
                                 np.cos(2 * np.pi * x) for x in phenome])
@@ -195,8 +203,12 @@ class RosenbrockProblem(ScalarProblem):
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness
         """
+        if isinstance(phenome, np.ndarray):
+            x_p = phenome[1:]
+            x = phenome[:-1]
+            return np.sum(100 * (x_p - x ** 2) ** 2 + (x - 1) ** 2)
+
         sum = 0
-        # TODO Speed this up with numpy
         for i, x in enumerate(phenome[0:-1]):
             x_p = phenome[i + 1]
             sum += 100 * (x_p - x ** 2) ** 2 + (x - 1) ** 2
@@ -262,7 +274,8 @@ class StepProblem(ScalarProblem):
         """
         Computes the function value from a real-valued list phenome:
 
-        >>> phenome = [3.5, -3.8, 5.0]
+        >>> import numpy as np
+        >>> phenome = np.array([3.5, -3.8, 5.0])
         >>> StepProblem().evaluate(phenome)
         4.0
 
@@ -336,9 +349,9 @@ class NoisyQuarticProblem(ScalarProblem):
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness
         """
-        indices = np.arange(len(phenome))
+        indices = np.arange(len(phenome)) + 1
         noise = np.random.normal(0, 1, len(phenome))
-        return np.sum(np.dot(indices, np.power(phenome, 4)) + noise)
+        return np.dot(indices, np.power(phenome, 4)) + np.sum(noise)
 
     def worse_than(self, first_fitness, second_fitness):
         """
@@ -463,7 +476,7 @@ class ShekelProblem(ScalarProblem):
 class GriewankProblem(ScalarProblem):
     """The classic Griewank problem.  Like the
     :class:`~leap.RastriginProblem` function, the Griewank has
-    a quadratic global structure with many local optima that are distributed
+    a quadratic global structure with many local optima that are distrib
     in a regular pattern.
 
     .. math::
@@ -500,7 +513,9 @@ class GriewankProblem(ScalarProblem):
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness.
         """
-        phenome = np.array(phenome)
+        if not isinstance(phenome, np.ndarray):
+            raise ValueError(("Expected phenome to be a numpy array. "
+                              f"Got {type(phenome)}."))
         t1 = np.sum(np.power(phenome, 2) / 4000)
         i_vector = np.sqrt(np.arange(1, len(phenome) + 1))
         t2 = np.prod(np.cos(phenome / i_vector))
@@ -521,7 +536,7 @@ class GriewankProblem(ScalarProblem):
 class AckleyProblem(ScalarProblem):
     """
     .. math::
-        f(\\mathbf{x}) = -a \\exp \\left( -b \\sqrt \\frac{1}{d} \\sum_{i=1}^d x_i^2 \\right)
+        f(\\mathbf{x}) = -a \\exp \\left( -b \\sqrt {\\frac{1}{d} \\sum_{i=1}^d x_i^2} \\right)
                          - \\exp \\left( \\frac{1}{d} \\sum_{i=1}^d \\cos(cx_i) \\right)
                          + a + \\exp(1)
 
@@ -556,7 +571,9 @@ class AckleyProblem(ScalarProblem):
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness.
         """
-        phenome = np.array(phenome)
+        if not isinstance(phenome, np.ndarray):
+            raise ValueError(("Expected phenome to be a numpy array. "
+                              f"Got {type(phenome)}."))
         d = len(phenome)
         t1 = -self.a * np.exp(-self.b * np.sqrt(1.0 /
                                                 d * np.sum(np.power(phenome, 2))))
@@ -615,16 +632,22 @@ class WeierstrassProblem(ScalarProblem):
         :param phenome: real-valued vector to be evaluated
         :returns: its fitness.
         """
-        phenome = np.array(phenome)
+        if not isinstance(phenome, np.ndarray):
+            raise ValueError(("Expected phenome to be a numpy array. "
+                              f"Got {type(phenome)}."))
         result = 0
-        for d, x in enumerate(phenome):
+        for x in phenome:
             t1 = 0
-            t2 = 0
             for k in range(self.kmax):
                 t1 += self.a ** k * \
                     np.cos(2 * np.pi * (self.b ** k) * (x + 0.5))
-                t2 += self.a ** k * np.cos(np.pi * (self.b ** k))
-            result += t1 - (d + 1) * t2
+            result += t1
+
+        t2 = 0
+        for k in range(self.kmax):
+            t2 += self.a ** k * np.cos(np.pi * (self.b ** k))
+
+        result = result - len(phenome) * t2
         return result
 
     def __str__(self):
@@ -708,7 +731,9 @@ class LangermannProblem(ScalarProblem):
         :returns: its fitness.
         """
         assert (phenome is not None)
-        phenome = np.array(phenome)
+        if not isinstance(phenome, np.ndarray):
+            raise ValueError(("Expected phenome to be a numpy array. "
+                              f"Got {type(phenome)}."))
         if len(phenome) != self.a.shape[1]:
             raise ValueError(
                 f"Received an {len(phenome)}-dimensional phenome, but this is a {self.a.shape[1]}-dimensional Langerman function.")
@@ -806,7 +831,9 @@ class LunacekProblem(ScalarProblem):
         if len(phenome) != self.N:
             warnings.warn(
                 f"Phenome has length {len(phenome)}, but this function expected {self.N}-dimensional input.")
-        phenome = np.array(phenome)
+        if not isinstance(phenome, np.ndarray):
+            raise ValueError(("Expected phenome to be a numpy array. "
+                              f"Got {type(phenome)}."))
         sphere1 = np.sum((phenome - self.mu_1)**2)
         sphere2 = self.d * len(phenome) + self.s * \
             np.sum((phenome - self.mu_2)**2)
@@ -837,7 +864,7 @@ class SchwefelProblem(ScalarProblem):
     with a regular grid of local optima.
 
     .. math::
-        f(\\mathbf{x}) = \\sum_{i=1}^d\\left(-x_i \\cdot\\sin\\left(\\sqrt{\\|x_i\\|} \\right)\\right) + \\alpha \\cdot d
+        f(\\mathbf{x}) = \\sum_{i=1}^d\\left(-x_i \\cdot\\sin\\left(\\sqrt{|x_i|} \\right)\\right) + \\alpha \\cdot d
 
     :param float alpha: fitness offset (the default value ensures that the
         global optimum has zero fitness)
@@ -861,11 +888,14 @@ class SchwefelProblem(ScalarProblem):
         """
         Computes the function value from a real-valued phenome.
 
-        :param phenome: real-valued vector to be evaluated
+        :param phenome: phenome with a real-valued phenome to be evaluated
         :returns: its fitness.
         """
         assert(phenome is not None)
-        phenome = np.array(phenome)
+        if not isinstance(phenome, np.ndarray):
+            raise ValueError(("Expected phenome to be a numpy array. "
+                              f"Got {type(phenome)}."))
+
         return np.sum(-phenome * np.sin(np.sqrt(np.abs(phenome)))
                       ) + self.alpha * len(phenome)
 
@@ -909,7 +939,10 @@ class GaussianProblem(ScalarProblem):
 
     def evaluate(self, phenome):
         assert(phenome is not None)
-        phenome = np.array(phenome)
+
+        if not isinstance(phenome, np.ndarray):
+            raise ValueError(("Expected phenome to be a numpy array. "
+                              f"Got {type(phenome)}."))
 
         return self.height * np.exp(-np.sum(np.power(phenome/self.width, 2)))
 
@@ -938,7 +971,7 @@ class CosineFamilyProblem(ScalarProblem):
     .. math::
 
        f_{\\cos}(\\mathbf{x}) = \\frac{\\sum_{i=1}^n -\\cos((G_i - 1)2 \\pi x_i)
-                                - \\alpha \\cdot \\cos((G_i - 1)2 \\pi L-i x_y)}{2n}
+                                - \\alpha \\cdot \\cos((G_i - 1)2 \\pi L_i x_i)}{2n}
 
     where :math:`G_i` and :math:`L_i` are parameters that indicate the number
     of global and local optima, respectively, in the ith dimension.
@@ -985,19 +1018,18 @@ class CosineFamilyProblem(ScalarProblem):
         """
         Computes the function value from a real-valued phenome.
 
-        :param phenome: real-valued vector to be evaluated
+        :param phenome: phenome with a real-valued phenome vector to be evaluated
         :returns: its fitness.
         """
-        phenome = np.array(phenome)
+        if not isinstance(phenome, np.ndarray):
+            raise ValueError(("Expected phenome to be a numpy array. "
+                              f"Got {type(phenome)}."))
         term1 = -np.cos((self.global_optima_counts - 1) * 2 * np.pi * phenome)
         term2 = - self.alpha * \
             np.cos((self.global_optima_counts - 1) * 2 *
                    np.pi * self.local_optima_counts * phenome)
         value = np.sum(term1 + term2) / (2 * self.dimensions)
-        # We modify the original function to make it a maximization problem
-        # and so that the global optima are scaled to always have a fitness of
-        # 1
-        return -2 / (self.alpha + 1) * value
+        return value
 
     def __str__(self):
         """Returns the name of the class.
@@ -1006,6 +1038,205 @@ class CosineFamilyProblem(ScalarProblem):
         'CosineFamilyProblem'
         """
         return CosineFamilyProblem.__name__
+
+
+
+##############################
+# Class QuadraticFamilyProblem
+##############################
+class QuadraticFamilyProblem(ScalarProblem):
+    """
+    A configurable multi-modal function based on combinations of
+    spheroids or parabaloids.  Taken from the problem generators
+    proposed in
+
+    .. [Jani2008] "A Generator for Multimodal Test Functions with Multiple Global Optima,"
+         Jani Rönkkönen et al., *Asia-Pacific Conference on Simulated Evolution and Learning*. Springer, Berlin, Heidelberg, 2008.
+
+    [Jani2008]_
+
+    The function is given by
+
+    .. math::
+
+       f(\\mathbf{x}) = \\min_{i=1,2,\\dots,q} \\left( (\\mathbf{x} - \\mathbf{p}_i)^\\top \\mathbf{B}_i^{-1} (\\mathbf{x} - \\mathbf{p}_i) + v_i \\right)
+
+    where the :math:`\\mathbf{p}_i` gives the center of each quadratic (i.e. the location
+    of each local minimum), the :math:`v_i` give their fitness values, and the
+    :math:`\\mathbf{B}_i^{-1}` are symmetric matrices.
+
+    The easiest way to create one of these problems is to use the random generator:
+
+    .. plot::
+       :include-source:
+
+        from leap_ec.real_rep.problems import QuadraticFamilyProblem, plot_2d_problem
+        from matplotlib import pyplot as plt
+
+        problem = QuadraticFamilyProblem.generate(dimensions=2, num_basins=30)
+        plot_2d_problem(problem, xlim=(-10, 10), ylim=(-10, 10), granularity=0.5)
+        plt.show()
+
+    You can also specify the problem structure directly by providing two matrices for each
+    parabaloid along with an offset vector (for translation) and a scalar offset (to define the minimum
+    fitness value for the basin):
+
+    .. plot::
+       :include-source:
+
+        from leap_ec.real_rep.problems import QuadraticFamilyProblem, plot_2d_problem, random_orthonormal_matrix
+        from matplotlib import pyplot as plt
+        import numpy as np
+
+        # Define the parameters for each parabaloid
+
+        diag1 = np.diag([2, 4])     # Diagonal matrix defining the widths (eigenvalues) of the basin for each dimension
+        rot1 = np.identity(2)       # Rotation matrix, in this case the identity (no rotation)
+        offset1 = np.array([-1, -1])  # Offset used to translate the basin location
+        fitness1 = 0                # Fitness value of the local optimum
+
+        diag2 = np.diag([5, 1])
+        rot2 = random_orthonormal_matrix(dimensions=2)  # Apply a random rotation to the second basin
+        offset2 = np.array([3, 4])
+        fitness2 = 100.0
+
+        # Build the problem
+        problem = QuadraticFamilyProblem(
+            diagonal_matrices = [ diag1, diag2 ],
+            rotation_matrices = [ rot1, rot2 ],
+            offset_vectors = [ offset1, offset2 ],
+            fitness_offsets = [ fitness1, fitness2 ]
+        )
+
+        # Visualize
+        plot_2d_problem(problem, xlim=(-10, 10), ylim=(-10, 10), granularity=0.5)
+        plt.show()
+
+    """
+    def __init__(self, diagonal_matrices: list, rotation_matrices: list, offset_vectors: list, fitness_offsets: list, maximize=False):
+        super().__init__(maximize)
+        assert(diagonal_matrices is not None)
+        assert(rotation_matrices is not None)
+        assert(offset_vectors is not None)
+        assert(fitness_offsets is not None)
+        assert(len(diagonal_matrices) == len(rotation_matrices))
+        assert(len(offset_vectors) == len(rotation_matrices))
+        assert(len(fitness_offsets) == len(rotation_matrices))
+
+        # Store all of the input parameters in case the user wants to see them
+        self.diagonal_matrices = diagonal_matrices
+        self.rotation_matrices = rotation_matrices
+        self.offset_vectors = offset_vectors
+        self.fitness_offsets = fitness_offsets
+
+        parabaloids = [ ParabaloidProblem(d, r) for d, r in zip(diagonal_matrices, rotation_matrices) ]
+        parabaloids = [ TranslatedProblem(p, o) for p, o in zip(parabaloids, offset_vectors) ]
+        self.parabaloids = [ FitnessOffsetProblem(p, v) for p, v in zip(parabaloids, fitness_offsets) ]
+
+    @property
+    def num_basins(self):
+        return len(self.diagonal_matrices)
+
+    @property
+    def dimensions(self):
+        return len(self.offset_vectors[0])
+
+    def evaluate(self, phenome):
+        basin_values = [ p.evaluate(phenome) for p in self.parabaloids ]
+        return np.min(basin_values)
+
+    @classmethod
+    def generate(self, dimensions: int, num_basins: int, num_global_optima: int = 1, width_bounds: tuple = (1, 5), offset_bounds: tuple = (-10, 10), fitness_offset_bounds: tuple = (10, 100)):
+        """
+        Convenient method to generate a QuadraticFamilyProblem by randomly sampling the matrices that define it.
+
+        >>> problem = QuadraticFamilyProblem.generate(10, 20, num_global_optima = 2)
+        >>> x = problem.evaluate(np.array([0.0, 0.5, 0.0, 0.6, 0.0, 0.7, 0.6, 0.8, 4.3, 0.2]))
+        """
+        assert(num_basins >= 0)
+        assert(len(width_bounds) == 2)
+        assert(width_bounds[1] >= width_bounds[0])
+        assert(len(offset_bounds) == 2)
+        assert(offset_bounds[1] >= offset_bounds[0])
+        assert(len(fitness_offset_bounds) == 2)
+        assert(num_global_optima <= num_basins)
+
+        diagonal_matrices = [ np.diag(np.random.uniform(*width_bounds, dimensions)) for _ in range(num_basins) ]
+        rotation_matrices = [ random_orthonormal_matrix(dimensions) for _ in range(num_basins) ]
+        offset_vectors = [ np.random.uniform(*offset_bounds, dimensions) for _ in range(num_basins) ]
+        fitness_offsets = np.append(np.zeros(num_global_optima), np.random.uniform(*fitness_offset_bounds, num_basins - num_global_optima))
+
+        p = QuadraticFamilyProblem(diagonal_matrices, rotation_matrices, offset_vectors, fitness_offsets)
+        p.bounds = (-2*width_bounds[1], 2*width_bounds[1])
+
+        # Record a global optimum for convenience
+        if num_global_optima > 0:
+            p.global_optimum = offset_vectors[0]
+
+        return p
+
+
+##############################
+# ParabaloidProblem
+##############################
+class ParabaloidProblem(ScalarProblem):
+    """
+    A generalization of the `SpheroidProblem` into parabaloids (including elliptic and hyperbolic parabaloids).
+
+    We construct the parabaloid by combining a diagonal matrix (which defines an axis-aligned parabaloid)
+    with an orthornormal rotation.  Together, these make up the eigenvalues and
+    eigenbasis, respectively, of an arbitrary parabaloid:
+
+    .. math::
+       \\mathbf{A} = \\mathbf{R}^\\top \\mathbf{D} \\mathbf{R}
+
+    We then compute fitness by interpretting :math:`A` as a quadratic form:
+
+    .. math::
+       f(x) = x^\\top \\mathbf{A} x
+
+    When the eigenvalues are all positive, then the result is an elliptic parabaloid
+
+    .. plot::
+       :include-source:
+
+       from leap_ec.real_rep .problems import ParabaloidProblem, plot_2d_problem
+       from matplotlib import pyplot as plt
+       import numpy as np
+
+       p = ParabaloidProblem(diagonal_matrix=np.diag([1, 5]), rotation_matrix=np.identity(2))
+       plot_2d_problem(p, xlim=(-10, 10), ylim=(-10, 10), granularity=0.5)
+       plt.show()
+
+    If one or more eigenvalues are negative, then a hyperbolic parabloid results,
+    which has a saddle shape:
+
+    .. plot::
+       :include-source:
+
+       from leap_ec.real_rep .problems import ParabaloidProblem, plot_2d_problem
+       from matplotlib import pyplot as plt
+       import numpy as np
+
+       p = ParabaloidProblem(diagonal_matrix=np.diag([-3, 5]), rotation_matrix=np.identity(2))
+       plot_2d_problem(p, xlim=(-10, 10), ylim=(-10, 10), granularity=0.5)
+       plt.show()
+
+    """
+    def __init__(self, diagonal_matrix: np.ndarray, rotation_matrix: np.ndarray, maximize=False):
+        super().__init__(maximize)
+        assert(diagonal_matrix is not None)
+        assert(rotation_matrix is not None)
+        # Trick to check for diagonality: np.diagonal() extracts the diagonal, np.diag() builds a diagonal matrix from it.
+        # This should equal the original matrix.
+        assert(np.allclose(diagonal_matrix, np.diag(np.diagonal(diagonal_matrix)))), f"Expected a diagonal matrix, but received {diagonal_matrix}."
+        R = rotation_matrix
+        D = diagonal_matrix
+        # Construct the matrix for the quadratic form
+        self.matrix = R.T @ D @ R
+
+    def evaluate(self, phenome):
+        return phenome.T @ self.matrix @ phenome
 
 
 ##############################
@@ -1079,9 +1310,10 @@ class TranslatedProblem(ScalarProblem):
 
         Translation can be used in higher than two dimensions:
 
+        >>> import numpy as np
         >>> offset = [-1.0, -1.0, 1.0, 1.0, -5.0]
         >>> t_sphere = TranslatedProblem(SpheroidProblem(), offset)
-        >>> genome = [0.5, 2.0, 3.0, 8.5, -0.6]
+        >>> genome = np.array([0.5, 2.0, 3.0, 8.5, -0.6])
         >>> t_sphere.evaluate(genome)
         90.86
         """
@@ -1091,7 +1323,10 @@ class TranslatedProblem(ScalarProblem):
         # Substract the offset so that we are moving the origin *to* the offset.
         # This way we can think of it as offsetting the fitness function,
         # rather than the input points.
-        new_phenome = np.array(phenome) - self.offset
+        if not isinstance(phenome, np.ndarray):
+            raise ValueError(("Expected phenome to be a numpy array. "
+                              f"Got {type(phenome)}."))
+        new_phenome = phenome - self.offset
         return self.problem.evaluate(new_phenome)
 
     def __str__(self):
@@ -1123,7 +1358,9 @@ class ScaledProblem(ScalarProblem):
         self.bounds = new_bounds
 
     def evaluate(self, phenome):
-        phenome = np.array(phenome)
+        if not isinstance(phenome, np.ndarray):
+            raise ValueError(("Expected phenome to be a numpy array. "
+                              f"Got {type(phenome)}."))
         transformed_phenome = self.old_bounds[0] + (
                     phenome - self.bounds[0]) / (
                                           self.bounds[1] - self.bounds[0]) \
@@ -1139,6 +1376,51 @@ class ScaledProblem(ScalarProblem):
         'ScaledProblem(SpheroidProblem)'
         """
         return f"{ScaledProblem.__name__}({str(self.problem)})"
+
+
+################################
+# Function random_orthonormal_matrix()
+################################
+def random_orthonormal_matrix(dimensions: int):
+    """Generate a random orthornomal matrix using the Gramm-Schmidt
+    process.
+
+    Orthonormal matrices represent rotations (and flips) of a space.
+
+    The defining property of an orthonormal matrix is that its
+    transpose is its inverse:
+
+    >>> Q = random_orthonormal_matrix(10)
+    >>> np.allclose( Q.dot(Q.T), np.identity(10) )
+    True
+
+    """
+    matrix = np.random.normal(size=[dimensions, dimensions])
+    for i, row in enumerate(matrix):
+        previous_rows = matrix[0:i, :]
+        row = row - \
+            sum([np.dot(row, prev) * prev for prev in previous_rows])
+        matrix[i, :] = row / np.linalg.norm(row)
+
+    # Any vector in the resulting matrix will be of unit length
+    assert (
+            round(
+                np.linalg.norm(
+                    matrix[0]),
+                5) == 1.0), f"A column in the transformation matrix has a " \
+                            f"norm of {np.linalg.norm(matrix[0])}, " \
+                            f"but it should always be approximately 1.0. "
+    # Any pair of vectors will be linearly independent
+    assert (abs(round(np.dot(matrix[0], matrix[1]), 5)) ==
+            0.0), f"A pair of columns in the transformation matrix has " \
+                    f"dot product of {round(np.dot(matrix[0], matrix[1]),5)},"\
+                    f" but it should always be approximately 0.0. "
+    # The matrix's transpose will be its inverse
+    assert(np.allclose(matrix.dot(matrix.T), np.identity(len(matrix)))), \
+        f"Any orthornormal matrix should satisfy Q^(-1) = Q^T, but we got " \
+        f"QQ^T = {matrix.dot(matrix.T)} instead of {np.identity(len(matrix))}."
+
+    return matrix
 
 
 ################################
@@ -1238,27 +1520,7 @@ class MatrixTransformedProblem(ScalarProblem):
            plt.subplot(224)
            plot_2d_problem(transformed_problem, kind='contour', xlim=bounds, ylim=bounds, ax=plt.gca(), granularity=0.025)
         """
-        matrix = np.random.normal(size=[dimensions, dimensions])
-        for i, row in enumerate(matrix):
-            previous_rows = matrix[0:i, :]
-            matrix[i, :] = row - \
-                sum([np.dot(row, prev) * prev for prev in previous_rows])
-            matrix[i, :] = row / np.linalg.norm(row)
-
-        # Any vector in the resulting matrix will be of unit length
-        assert (
-                round(
-                    np.linalg.norm(
-                        matrix[0]),
-                    5) == 1.0), f"A column in the transformation matrix has a " \
-                                f"norm of {np.linalg.norm(matrix[0])}, " \
-                                f"but it should always be approximately 1.0. "
-        # Any pair of vectors will be linearly independent
-        assert (abs(round(np.dot(matrix[0], matrix[1]), 5)) ==
-                0.0), f"A pair of columns in the transformation matrix has " \
-                      f"dot product of {round(np.dot(matrix[0], matrix[1]),5)},"\
-                      f" but it should always be approximately 0.0. "
-
+        matrix = random_orthonormal_matrix(dimensions)
         return cls(problem, matrix, maximize)
 
     def evaluate(self, phenome):
@@ -1268,8 +1530,9 @@ class MatrixTransformedProblem(ScalarProblem):
         For example, consider a sphere function whose global optimum is
         situated at (0, 1):
 
+        >>> import numpy as np
         >>> s = TranslatedProblem(SpheroidProblem(), offset=[0, 1])
-        >>> round(s.evaluate([0, 1]), 5)
+        >>> round(s.evaluate(np.array([0, 1])), 5)
         0
 
         Now let's take a rotation matrix that transforms the space by pi/2
@@ -1283,13 +1546,13 @@ class MatrixTransformedProblem(ScalarProblem):
 
         The rotation has moved the new global optimum to (1, 0)
 
-        >>> round(r.evaluate([1, 0]), 5)
+        >>> round(r.evaluate(np.array([1, 0])), 5)
         0.0
 
         The point (0, 1) lies at a distance of sqrt(2) from the new optimum,
         and has a fitness of 2:
 
-        >>> round(r.evaluate([0, 1]), 5)
+        >>> round(r.evaluate(np.array([0, 1])), 5)
         2.0
         """
         assert (len(phenome) == len(
@@ -1311,8 +1574,8 @@ class MatrixTransformedProblem(ScalarProblem):
 ##############################
 # Function plot_2d_problem
 ##############################
-def plot_2d_problem(problem, xlim, ylim, kind='surface',
-                    ax=None, granularity=None):
+def plot_2d_problem(problem, xlim=None, ylim=None, kind='surface',
+                    ax=None, granularity=None, title=None, pad=None, **kwargs):
     """
     Convenience function for plotting a :class:`~leap.problem.Problem` that
     accepts 2-D real-valued phenomes and produces a 1-D scalar fitness output.
@@ -1320,18 +1583,20 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
     :param ~leap.problem.Problem fun: The :class:`~leap.problem.Problem` to
         plot.
 
-    :param xlim: Bounds of the horizontal axes.
+    :param xlim: Bounds of the horizontal axes.  If None, uses `problem.bounds`.
     :type xlim: (float, float)
-    :param ylim: Bounds of the vertical axis.
+    :param ylim: Bounds of the vertical axis.  If None, uses `problem.bounds`.
     :type ylim: (float, float)
     :param kind: The kind of plot to create: 'surface' or 'contour'
     :type kind: str
-
+    :param pad: An array of extra gene values, used to fill in the hidden
+        dimensions with contants while drawing fitness contours.
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
         be created).
     :param float granularity: Spacing of the grid to sample points along. If
         none is given, then the granularity will default to 1/50th of the range
         of the function's `bounds` attribute.
+    :param kwargs: additional keyword arguments to pass along to plot_surface()
 
 
     The difference between this and :meth:`plot_2d_function` is that this
@@ -1370,6 +1635,11 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
     def call(phenome):
         return problem.evaluate(phenome)
 
+    if xlim is None:
+        xlim = problem.bounds
+    if ylim is None:
+        ylim = problem.bounds
+
     if granularity is None:
         if hasattr(problem, 'bounds'):
             granularity = (problem.bounds[1] - problem.bounds[0]) / 50.
@@ -1380,9 +1650,9 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
                              "granularity to plot the problem.")
 
     if kind == 'surface':
-        return plot_2d_function(call, xlim, ylim, granularity, ax)
+        return plot_2d_function(call, xlim, ylim, granularity, ax, title, pad, **kwargs)
     elif kind == 'contour':
-        return plot_2d_contour(call, xlim, ylim, granularity, ax)
+        return plot_2d_contour(call, xlim, ylim, granularity, ax, title, pad, **kwargs)
     else:
         raise ValueError(f'Unrecognized plot kind: "{kind}".')
 
@@ -1390,7 +1660,7 @@ def plot_2d_problem(problem, xlim, ylim, kind='surface',
 ##############################
 # Function plot_2d_function
 ##############################
-def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None):
+def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None, title=None, pad=None, **kwargs):
     """
     Convenience method for plotting a function that accepts 2-D real-valued
     imputs and produces a 1-D scalar output.
@@ -1402,6 +1672,9 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None):
     :type ylim: (float, float)
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will be created).
     :param float granularity: Spacing of the grid to sample points along.
+    :param pad: An array of extra gene values, used to fill in the hidden
+        dimensions with contants while drawing fitness contours.
+    :param kwargs: additional keyword arguments to pass along to plot_surface() or contour()
 
     The difference between this and :meth:`plot_2d_problem` is that this
     takes a raw function (instead of a :class:`~leap.problem.Problem` object).
@@ -1420,8 +1693,11 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None):
 
        plot_2d_function(sinc_hd, xlim=(-10, 10), ylim=(-10, 10), granularity=0.2)
     """
-    assert (len(xlim) == 2)
-    assert (len(ylim) == 2)
+    assert(len(xlim) == 2)
+    assert(len(ylim) == 2)
+    if pad is None:
+        pad = np.array([])
+    assert(isinstance(pad, np.ndarray)), f"Expected pad to be a numpy array.  Got {type(pad)}."
 
     if ax is None:
         fig = plt.figure()
@@ -1429,19 +1705,22 @@ def plot_2d_function(fun, xlim, ylim, granularity=0.1, ax=None):
 
     @np.vectorize
     def v_fun(x, y):
-        return fun([x, y])
+        return fun(np.append(np.array([x, y]), pad))
 
     x = np.arange(xlim[0], xlim[1], granularity)
     y = np.arange(ylim[0], ylim[1], granularity)
     xx, yy = np.meshgrid(x, y)
 
-    return ax.plot_surface(xx, yy, v_fun(xx, yy))
+    if title:
+        ax.set_title(title)
+
+    return ax.plot_surface(xx, yy, v_fun(xx, yy), **kwargs)
 
 
 ##############################
 # Function plot_2d_contour
 ##############################
-def plot_2d_contour(fun, xlim, ylim, granularity, ax=None):
+def plot_2d_contour(fun, xlim, ylim, granularity, ax=None, title=None, pad=None):
     """
     Convenience method for plotting contours for a function that accepts 2-D
     real-valued inputs and produces a 1-D scalar output.
@@ -1451,11 +1730,11 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None):
     :type xlim: (float, float)
     :param ylim: Bounds of the vertical axis.
     :type ylim: (float, float)
-
     :param Axes ax: Matplotlib axes to plot to (if `None`, a new figure will
         be created).
-
     :param float granularity: Spacing of the grid to sample points along.
+    :param pad: An array of extra gene values, used to fill in the hidden
+        dimensions with contants while drawing fitness contours.
 
     The difference between this and :meth:`plot_2d_problem` is that this
     takes a raw function (instead of a :class:`~leap.problem.Problem` object).
@@ -1478,6 +1757,9 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None):
     """
     assert (len(xlim) == 2)
     assert (len(ylim) == 2)
+    if pad is None:
+        pad = np.array([])
+    assert(isinstance(pad, np.ndarray)), f"Expected pad to be a numpy array.  Got {type(pad)}."
 
     if ax is None:
         fig = plt.figure()
@@ -1485,14 +1767,13 @@ def plot_2d_contour(fun, xlim, ylim, granularity, ax=None):
 
     @np.vectorize
     def v_fun(x, y):
-        return fun([x, y])
+        return fun(np.append(np.array([x, y]), pad))
 
     x = np.arange(xlim[0], xlim[1], granularity)
     y = np.arange(ylim[0], ylim[1], granularity)
     xx, yy = np.meshgrid(x, y)
 
+    if title:
+        ax.set_title(title)
+
     return ax.contour(xx, yy, v_fun(xx, yy))
-
-
-if __name__ == '__main__':
-    pass
