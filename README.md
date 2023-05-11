@@ -167,7 +167,7 @@ python LEAP/examples/advanced/island_models.py
 
 # Documentation
 
-The stable version of LEAP's full documentation is over at [ReadTheDocs](https://leap_gmu.readthedocs.io/).
+The stable version of LEAP's full documentation is over at [ReadTheDocs](https://leap-gmu.readthedocs.io/).
 
 If you want to build a fresh set of docs for yourself, you can do so after running `make setup`:
 
