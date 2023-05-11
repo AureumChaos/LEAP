@@ -119,7 +119,7 @@ Documentation
 
 The stable version of LEAP's full documentation is over at ReadTheDocs_
 
-.. _ReadTheDocs: https://leap_gmu.readthedocs.io/
+.. _ReadTheDocs: https://leap-gmu.readthedocs.io/
 
 If you want to build a fresh set of docs for yourself, you can do so after running `make setup`:
 
