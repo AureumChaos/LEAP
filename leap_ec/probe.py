@@ -208,6 +208,22 @@ class BestSoFarIterProbe(op.Operator):
             yield ind
 
 
+def _to_quoted_list(arr):
+    return f"{json.dumps(arr.tolist())}"
+
+@contextlib.contextmanager
+def _maybe_json(numpy_as_json):
+    try:
+        if numpy_as_json:
+            np.set_string_function(_to_quoted_list, True)
+            np.set_string_function(_to_quoted_list, False)
+        yield
+    finally:
+        if numpy_as_json:
+            np.set_string_function(None, True)
+            np.set_string_function(None, False)
+
+
 ##############################
 # Class FitnessStatsCSVProbe
 ##############################
@@ -230,6 +246,8 @@ class FitnessStatsCSVProbe(op.Operator):
         first column
     :param str notes: a dict of optional constant-value columns to include in
         all rows (ex. to identify and experiment or parameters)
+    :param bool numpy_as_json: if True, numpy arrays will be first converted to
+        a python list then formatted as a quoted json string.
     :param context: a LEAP context object, used to retrieve the current generation
         from the EA state (i.e. from `context['leap']['generation']`)
 
@@ -292,6 +310,7 @@ class FitnessStatsCSVProbe(op.Operator):
                  job: str = None,
                  notes: Dict = None,
                  modulo: int = 1,
+                 numpy_as_json=True,
                  context: Dict = context):
         assert (stream is not None)
         assert (hasattr(stream, 'write'))
@@ -305,6 +324,7 @@ class FitnessStatsCSVProbe(op.Operator):
         self.extra_metrics = extra_metrics if extra_metrics else {}
         self.job = job
         self.comment = comment
+        self.numpy_as_json = numpy_as_json
 
         if header:
             self.write_comment(stream)
@@ -330,37 +350,39 @@ class FitnessStatsCSVProbe(op.Operator):
         assert (population is not None)
         assert ('leap' in self.context)
         assert ('generation' in self.context['leap'])
+        
+        with _maybe_json(self.numpy_as_json):
 
-        # Always update the best-so-far variable
-        best_ind = best_of_gen(population)
-        if self.bsf_ind is None or (best_ind > self.bsf_ind):
-            self.bsf_ind = best_ind
+            # Always update the best-so-far variable
+            best_ind = best_of_gen(population)
+            if self.bsf_ind is None or (best_ind > self.bsf_ind):
+                self.bsf_ind = best_ind
 
-        # Check if we've reached a measurement interval
-        generation = self.context['leap']['generation']
-        if generation % self.modulo != 0:
-            # If not, don't write fitness info
-            return population
-        else:
-            # Do write fitness info
-            if self.job is not None:
-                self.stream.write(str(self.job) + ', ')
-            for _, v in self.notes.items():
-                self.stream.write(str(v) + ', ')
+            # Check if we've reached a measurement interval
+            generation = self.context['leap']['generation']
+            if generation % self.modulo != 0:
+                # If not, don't write fitness info
+                return population
+            else:
+                # Do write fitness info
+                if self.job is not None:
+                    self.stream.write(str(self.job) + ', ')
+                for _, v in self.notes.items():
+                    self.stream.write(str(v) + ', ')
 
-            self.stream.write(str(generation) + ', ')
+                self.stream.write(str(generation) + ', ')
 
-            self.stream.write(str(self.bsf_ind.fitness) + ', ')
+                self.stream.write(str(self.bsf_ind.fitness) + ', ')
 
-            fitnesses = [x.fitness for x in population]
-            self.stream.write(str(np.mean(fitnesses)) + ', ')
-            self.stream.write(str(np.std(fitnesses)) + ', ')
-            self.stream.write(str(np.min(fitnesses)) + ', ')
-            self.stream.write(str(np.max(fitnesses)))
-            for _, f in self.extra_metrics.items():
-                self.stream.write(', ' + str(f(population)))
-            self.stream.write('\n')
-            return population
+                fitnesses = [x.fitness for x in population]
+                self.stream.write(str(np.mean(fitnesses)) + ', ')
+                self.stream.write(str(np.std(fitnesses)) + ', ')
+                self.stream.write(str(np.min(fitnesses)) + ', ')
+                self.stream.write(str(np.max(fitnesses)))
+                for _, f in self.extra_metrics.items():
+                    self.stream.write(', ' + str(f(population)))
+                self.stream.write('\n')
+                return population
 
 
 ##############################
@@ -510,24 +532,7 @@ class AttributesCSVProbe(op.Operator):
                 f'{type(AttributesCSVProbe).__name__} was initialized with dataframe=False.')
         # We create the DataFrame on demand because it's inefficient to append to a DataFrame,
         # so we only want to create it after we are done generating data.
-        return pd.DataFrame(self.data, columns=self.fieldnames)
-    
-    @staticmethod
-    def _to_quoted_list(arr):
-        return f"{json.dumps(arr.tolist())}"
-    
-    @contextlib.contextmanager
-    def _maybe_json(self):
-        try:
-            if self.numpy_as_json:
-                np.set_string_function(self._to_quoted_list, True)
-                np.set_string_function(self._to_quoted_list, False)
-            yield
-        finally:
-            if self.numpy_as_json:
-                np.set_string_function(None, True)
-                np.set_string_function(None, False)
-                
+        return pd.DataFrame(self.data, columns=self.fieldnames)       
         
     def __call__(self, population):
         """When called (i.e. as part of an operator pipeline), take a
@@ -538,7 +543,7 @@ class AttributesCSVProbe(op.Operator):
 
         individuals = [max(population)] if self.best_only else population
         
-        with self._maybe_json():
+        with _maybe_json(self.numpy_as_json):
             for ind in individuals:
                 row = self.get_row_dict(ind)
                 if self.writer is not None:
