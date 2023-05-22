@@ -238,6 +238,9 @@ class FitnessStatsCSVProbe(op.Operator):
     compute them.
 
     :param stream: the file object to write to (defaults to sys.stdout)
+    :param bool do_best: if True (the default), the best-so-far individual is
+        included on each row. When using multiobjective, disabling this may
+        be better since a singular "best" isn't well formed.
     :param header: whether to print column names in the first line
     :param extra_metrics: a dict of `'column_name': function` pairs, to compute
         optional extra columns.  The functions take a the population as input
@@ -246,7 +249,7 @@ class FitnessStatsCSVProbe(op.Operator):
         first column
     :param str notes: a dict of optional constant-value columns to include in
         all rows (ex. to identify and experiment or parameters)
-    :param bool numpy_as_json: if True, numpy arrays will be first converted to
+    :param bool numpy_as_json: if True (the default), numpy arrays will be first converted to
         a python list then formatted as a quoted json string.
     :param context: a LEAP context object, used to retrieve the current generation
         from the EA state (i.e. from `context['leap']['generation']`)
@@ -275,8 +278,8 @@ class FitnessStatsCSVProbe(op.Operator):
 
     and the output has the following columns:
     >>> print(stream.getvalue())
-    job, description, step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness
-    15, just a test, 100, 4, 2.5, 1.11803..., 1, 4
+    job,description,step,bsf,mean_fitness,std_fitness,min_fitness,max_fitness
+    15,just a test,100,4,2.5,1.11803...,1,4
     <BLANKLINE>
 
     To add custom columns, use the `extra_metrics` dict.  For example, here's a function
@@ -293,8 +296,8 @@ class FitnessStatsCSVProbe(op.Operator):
     True
 
     >>> print(stream.getvalue())
-    job, step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness, median_fitness
-    15, 100, 4, 2.5, 1.11803..., 1, 4, 2.5
+    job,step,bsf,mean_fitness,std_fitness,min_fitness,max_fitness,median_fitness
+    15,100,4,2.5,1.11803...,1,4,2.5
     <BLANKLINE>
 
     """
@@ -304,6 +307,7 @@ class FitnessStatsCSVProbe(op.Operator):
     default_metric_cols=('bsf', 'mean_fitness', 'std_fitness', 'min_fitness', 'max_fitness')
 
     def __init__(self, stream=sys.stdout,
+                 do_best=True,
                  header=True,
                  extra_metrics=None,
                  comment=None,
@@ -317,6 +321,7 @@ class FitnessStatsCSVProbe(op.Operator):
         assert (context is not None)
 
         self.stream = stream
+        self.do_best = do_best
         self.context = context
         self.bsf_ind = None
         self.modulo = modulo
@@ -325,19 +330,27 @@ class FitnessStatsCSVProbe(op.Operator):
         self.job = job
         self.comment = comment
         self.numpy_as_json = numpy_as_json
-
-        if header:
-            self.write_comment(stream)
-            self.write_header(stream)
-
-    def write_header(self, stream):
-        job_header = 'job, ' if self.job is not None else ''
-        note_extras = '' if not self.notes else ', '.join(self.notes.keys()) + ', '
-        extras = '' if not self.extra_metrics else ', ' + ', '.join(
-            self.extra_metrics.keys())
-        stream.write(
-            job_header + note_extras + 'step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness'
-            + extras + '\n')
+        
+        fieldnames = []
+        if job is not None:
+            fieldnames.append("job")
+        fieldnames.extend(self.notes.keys())
+        fieldnames.append("step")
+        if self.do_best:
+            fieldnames.append("bsf")
+        fieldnames.extend(["mean_fitness", "std_fitness", "min_fitness", "max_fitness"])
+        fieldnames.extend(self.extra_metrics.keys())
+        
+        self.fieldnames = fieldnames
+        
+        self.writer = None
+        if stream is not None:
+            if header:
+                self.write_comment(stream)
+            self.writer = csv.DictWriter(
+                stream, fieldnames=fieldnames, lineterminator='\n')
+            if header:
+                self.writer.writeheader()
 
     def write_comment(self, stream):
         if self.comment:
@@ -350,13 +363,14 @@ class FitnessStatsCSVProbe(op.Operator):
         assert (population is not None)
         assert ('leap' in self.context)
         assert ('generation' in self.context['leap'])
-        
-        with _maybe_json(self.numpy_as_json):
 
+        if self.do_best:
             # Always update the best-so-far variable
             best_ind = best_of_gen(population)
             if self.bsf_ind is None or (best_ind > self.bsf_ind):
                 self.bsf_ind = best_ind
+        
+        with _maybe_json(self.numpy_as_json):
 
             # Check if we've reached a measurement interval
             generation = self.context['leap']['generation']
@@ -364,26 +378,34 @@ class FitnessStatsCSVProbe(op.Operator):
                 # If not, don't write fitness info
                 return population
             else:
-                # Do write fitness info
-                if self.job is not None:
-                    self.stream.write(str(self.job) + ', ')
-                for _, v in self.notes.items():
-                    self.stream.write(str(v) + ', ')
-
-                self.stream.write(str(generation) + ', ')
-
-                self.stream.write(str(self.bsf_ind.fitness) + ', ')
-
-                fitnesses = [x.fitness for x in population]
-                self.stream.write(str(np.mean(fitnesses)) + ', ')
-                self.stream.write(str(np.std(fitnesses)) + ', ')
-                self.stream.write(str(np.min(fitnesses)) + ', ')
-                self.stream.write(str(np.max(fitnesses)))
-                for _, f in self.extra_metrics.items():
-                    self.stream.write(', ' + str(f(population)))
-                self.stream.write('\n')
+                row = self.get_row_dict(population)
+                if self.writer is not None:
+                    self.writer.writerow(row)
+                
                 return population
+        
+    def get_row_dict(self, pop):
+        """Compute a full row of data from the population."""
 
+        row = {'step': self.context['leap']['generation']}
+        
+        if self.job is not None:
+            row['job'] = self.job
+        for k, v in self.notes.items():
+            row[k] = v        
+        if self.do_best:
+            row['bsf'] = self.bsf_ind.fitness
+        
+        fitnesses = [x.fitness for x in pop]
+        row["mean_fitness"] = np.mean(fitnesses, axis=0)
+        row["std_fitness"] = np.std(fitnesses, axis=0)
+        row["min_fitness"] = np.min(fitnesses, axis=0)
+        row["max_fitness"] = np.max(fitnesses, axis=0)
+        
+        for k, f in self.extra_metrics.items():
+            row[k] = f(pop)
+        
+        return row
 
 ##############################
 # Class AttributesCSVProbe
@@ -418,7 +440,7 @@ class AttributesCSVProbe(op.Operator):
         as a list of individuals, and their return value is printed in the column.
     :param int job: a job ID that will be included as a constant-value column in
         all rows (ex. typically an integer, indicating the ith run out of many)
-    :param bool numpy_as_json: if True, numpy arrays will be first converted to
+    :param bool numpy_as_json: if True (the default), numpy arrays will be first converted to
         a python list then formatted as a quoted json string.
     :param context: the algorithm context we use to read the current generation
         from (so we can write it to a column)
@@ -541,7 +563,7 @@ class AttributesCSVProbe(op.Operator):
         assert ('leap' in self.context)
         assert ('generation' in self.context['leap'])
 
-        individuals = [max(population)] if self.best_only else population
+        individuals = [best_of_gen(population)] if self.best_only else population
         
         with _maybe_json(self.numpy_as_json):
             for ind in individuals:
