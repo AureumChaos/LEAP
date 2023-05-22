@@ -212,17 +212,17 @@ class BestSoFarIterProbe(op.Operator):
 def _maybe_list(numpy_as_list):
     """ A conditional context manager that sets the numpy str and repr
     functions to use a normal python list implementation.
-    
+
     This uses a context manager so if anything preemptively terminates during
     writing, say by stopping a jupyter cell, default behavior is restored.
 
     :param numpy_as_list: whether or not in the scope of this context
         manager numpy arrays should be formatted as python lists.
     """
-    
+
     def to_str_list(arr):
         return str(arr.tolist())
-    
+
     if numpy_as_list:
         try:
             np.set_string_function(to_str_list, True)
