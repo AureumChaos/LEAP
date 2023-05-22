@@ -3,6 +3,8 @@ pipeline such as populations or individuals.
 """
 import csv
 import sys
+import json
+import contextlib
 
 from typing import Dict, Iterator
 
@@ -394,6 +396,8 @@ class AttributesCSVProbe(op.Operator):
         as a list of individuals, and their return value is printed in the column.
     :param int job: a job ID that will be included as a constant-value column in
         all rows (ex. typically an integer, indicating the ith run out of many)
+    :param bool numpy_as_json: if True, numpy arrays will be first converted to
+        a python list then formatted as a quoted json string.
     :param context: the algorithm context we use to read the current generation
         from (so we can write it to a column)
 
@@ -448,6 +452,7 @@ class AttributesCSVProbe(op.Operator):
                  best_only=False, header=True, do_fitness=False,
                  do_genome=False,
                  notes=None, extra_metrics=None, job=None,
+                 numpy_as_json=True,
                  context=context):
         assert ((stream is None) or hasattr(stream, 'write'))
         self.context = context
@@ -461,6 +466,7 @@ class AttributesCSVProbe(op.Operator):
         self.extra_metrics = extra_metrics if extra_metrics else {}
         self.job = job
         self.do_dataframe = do_dataframe
+        self.numpy_as_json = numpy_as_json
 
         if (not do_dataframe) and stream is None:
             raise ValueError(
@@ -505,7 +511,24 @@ class AttributesCSVProbe(op.Operator):
         # We create the DataFrame on demand because it's inefficient to append to a DataFrame,
         # so we only want to create it after we are done generating data.
         return pd.DataFrame(self.data, columns=self.fieldnames)
-
+    
+    @staticmethod
+    def _to_quoted_list(arr):
+        return f"{json.dumps(arr.tolist())}"
+    
+    @contextlib.contextmanager
+    def _maybe_json(self):
+        try:
+            if self.numpy_as_json:
+                np.set_string_function(self._to_quoted_list, True)
+                np.set_string_function(self._to_quoted_list, False)
+            yield
+        finally:
+            if self.numpy_as_json:
+                np.set_string_function(None, True)
+                np.set_string_function(None, False)
+                
+        
     def __call__(self, population):
         """When called (i.e. as part of an operator pipeline), take a
         population of individuals and collect data from it. """
@@ -514,14 +537,15 @@ class AttributesCSVProbe(op.Operator):
         assert ('generation' in self.context['leap'])
 
         individuals = [max(population)] if self.best_only else population
+        
+        with self._maybe_json():
+            for ind in individuals:
+                row = self.get_row_dict(ind)
+                if self.writer is not None:
+                    self.writer.writerow(row)
 
-        for ind in individuals:
-            row = self.get_row_dict(ind)
-            if self.writer is not None:
-                self.writer.writerow(row)
-
-            if self.do_dataframe:
-                self.data.append(row)
+                if self.do_dataframe:
+                    self.data.append(row)
 
         return population
 
