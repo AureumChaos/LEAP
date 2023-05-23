@@ -20,10 +20,4 @@ leap\_ec.contrib.analysis module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
 
-.. automodule:: leap_ec.contrib
-   :members:
-   :undoc-members:
-   :show-inheritance:

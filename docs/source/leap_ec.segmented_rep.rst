@@ -28,10 +28,4 @@ leap\_ec.segmented\_rep.ops module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
 
-.. automodule:: leap_ec.segmented_rep
-   :members:
-   :undoc-members:
-   :show-inheritance:

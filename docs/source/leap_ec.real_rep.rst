@@ -28,10 +28,4 @@ leap\_ec.real\_rep.problems module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
 
-.. automodule:: leap_ec.real_rep
-   :members:
-   :undoc-members:
-   :show-inheritance:
