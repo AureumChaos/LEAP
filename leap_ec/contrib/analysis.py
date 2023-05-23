@@ -55,13 +55,13 @@ class CurveAnalyzer():
     There are four fundamental ways that we often analyze performance curves:
 
      * plotting the raw curves for all runs, grouped by each experimental
-        configuration,
+       configuration,
      * averaging each curve across runs to get one mean curve for each
-        experiment,
+       experiment,
      * averaging each curve across time to get a scalar performance metric
-        for each run,
+       for each run,
      * averaging each curve across both runs and time to get an average scalar
-        metrics for each experiment.
+       metrics for each experiment.
 
     This class takes the data for (1) as input, and provides functions for
     creating dataframes for (2), (3), and (4).
@@ -70,14 +70,14 @@ class CurveAnalyzer():
     `FitnessStatsCSVProbe`. That is, we have four kinds of columns:
 
      * a `time_col` to serve as the "x axis" (ex. steps, generations,
-        evals, or births),
+       evals, or births),
      * a list of `metric_cols` that measure performance at each time
-        step (ex. best-so-far fitness),
+       step (ex. best-so-far fitness),
      * a `run_col` that uniquely identifies each multivariate time series
-        (run), and
+       (run), and
      * a list of `experiment_cols` indicating the experimental configuration
-        of the runs (such as the name of the algorithm used, or the value of
-        various hyperparameters).
+       of the runs (such as the name of the algorithm used, or the value of
+       various hyperparameters).
     """
 
     def __init__(self, df,
