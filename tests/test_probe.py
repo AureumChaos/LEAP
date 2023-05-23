@@ -7,11 +7,10 @@ import io
 
 import pytest
 
-from leap_ec import data
-from leap_ec.probe import *
 import leap_ec.ops as ops
+from leap_ec import data
 from leap_ec.global_vars import context
-
+from leap_ec.probe import *
 
 
 ##############################
@@ -168,3 +167,27 @@ def test_AttributesCSVProbe_5(test_pop_with_attributes):
                "0,10,BLUE,ideas\n" + \
                "0,10,72.81,sleep\n"
     assert (result == expected)
+
+
+def test_AttributesCSVProbe_6(test_pop_with_attributes):
+    """When printing numpy arrays with numpy_as_json=True, there should only be as many rows as indviduals."""
+    # Alter the test population to have multidimensional numpy arrays for some important attributes
+    pop = ops.pool(ops.clone(iter(test_pop_with_attributes)), len(test_pop_with_attributes))
+    for ind in pop:
+        ind.fitness = np.zeros((1,2,3))
+        ind.genome = np.zeros((2,3,4))
+    
+    # Setup a probe that writes to a str in memory
+    stream = io.StringIO()
+    probe = AttributesCSVProbe(do_fitness=True, do_genome=True, header=False, numpy_as_json=True, stream=stream)
+
+    # Set the generation in the context
+    context['leap']['generation'] = 10
+
+    # Execute
+    probe(pop)
+    result = stream.getvalue()
+    stream.close()
+    
+    # Test
+    assert len(result.splitlines()) == len(pop)
