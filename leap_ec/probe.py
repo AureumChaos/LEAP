@@ -208,20 +208,31 @@ class BestSoFarIterProbe(op.Operator):
             yield ind
 
 
-def _to_quoted_list(arr):
-    return f"{json.dumps(arr.tolist())}"
-
 @contextlib.contextmanager
-def _maybe_json(numpy_as_json):
-    try:
-        if numpy_as_json:
-            np.set_string_function(_to_quoted_list, True)
-            np.set_string_function(_to_quoted_list, False)
-        yield
-    finally:
-        if numpy_as_json:
+def _maybe_list(numpy_as_list):
+    """ A conditional context manager that sets the numpy str and repr
+    functions to use a normal python list implementation.
+    
+    This uses a context manager so if anything preemptively terminates during
+    writing, say by stopping a jupyter cell, default behavior is restored.
+
+    :param numpy_as_list: whether or not in the scope of this context
+        manager numpy arrays should be formatted as python lists.
+    """
+    
+    def to_str_list(arr):
+        return str(arr.tolist())
+    
+    if numpy_as_list:
+        try:
+            np.set_string_function(to_str_list, True)
+            np.set_string_function(to_str_list, False)
+            yield
+        finally:
             np.set_string_function(None, True)
             np.set_string_function(None, False)
+    else:
+        yield
 
 
 ##############################
@@ -246,8 +257,10 @@ class FitnessStatsCSVProbe(op.Operator):
         first column
     :param str notes: a dict of optional constant-value columns to include in
         all rows (ex. to identify and experiment or parameters)
-    :param bool numpy_as_json: if True, numpy arrays will be first converted to
-        a python list then formatted as a quoted json string.
+    :param bool numpy_as_list: if True, numpy arrays will be first converted to
+        a python list before printing. This is intended for multiobjective fitnesses,
+        where large numpy arrays are normally split across csv rows with the default
+        formatter.
     :param context: a LEAP context object, used to retrieve the current generation
         from the EA state (i.e. from `context['leap']['generation']`)
 
@@ -310,7 +323,7 @@ class FitnessStatsCSVProbe(op.Operator):
                  job: str = None,
                  notes: Dict = None,
                  modulo: int = 1,
-                 numpy_as_json=True,
+                 numpy_as_list=True,
                  context: Dict = context):
         assert (stream is not None)
         assert (hasattr(stream, 'write'))
@@ -324,7 +337,7 @@ class FitnessStatsCSVProbe(op.Operator):
         self.extra_metrics = extra_metrics if extra_metrics else {}
         self.job = job
         self.comment = comment
-        self.numpy_as_json = numpy_as_json
+        self.numpy_as_list = numpy_as_list
 
         if header:
             self.write_comment(stream)
@@ -351,7 +364,8 @@ class FitnessStatsCSVProbe(op.Operator):
         assert ('leap' in self.context)
         assert ('generation' in self.context['leap'])
         
-        with _maybe_json(self.numpy_as_json):
+        # If numpy_as_list is true, then numpy arrays are printed as lists in this scope
+        with _maybe_list(self.numpy_as_list):
 
             # Always update the best-so-far variable
             best_ind = best_of_gen(population)
@@ -418,8 +432,10 @@ class AttributesCSVProbe(op.Operator):
         as a list of individuals, and their return value is printed in the column.
     :param int job: a job ID that will be included as a constant-value column in
         all rows (ex. typically an integer, indicating the ith run out of many)
-    :param bool numpy_as_json: if True, numpy arrays will be first converted to
-        a python list then formatted as a quoted json string.
+    :param bool numpy_as_list: if True, numpy arrays will be first converted to
+        a python list before printing. This is intended for large genomes and
+        multiobjective fitnesses, where large numpy arrays would be split across
+        multiple csv rows by the default formatter.
     :param context: the algorithm context we use to read the current generation
         from (so we can write it to a column)
 
@@ -474,7 +490,7 @@ class AttributesCSVProbe(op.Operator):
                  best_only=False, header=True, do_fitness=False,
                  do_genome=False,
                  notes=None, extra_metrics=None, job=None,
-                 numpy_as_json=True,
+                 numpy_as_list=True,
                  context=context):
         assert ((stream is None) or hasattr(stream, 'write'))
         self.context = context
@@ -488,7 +504,7 @@ class AttributesCSVProbe(op.Operator):
         self.extra_metrics = extra_metrics if extra_metrics else {}
         self.job = job
         self.do_dataframe = do_dataframe
-        self.numpy_as_json = numpy_as_json
+        self.numpy_as_list = numpy_as_list
 
         if (not do_dataframe) and stream is None:
             raise ValueError(
@@ -543,7 +559,8 @@ class AttributesCSVProbe(op.Operator):
 
         individuals = [max(population)] if self.best_only else population
         
-        with _maybe_json(self.numpy_as_json):
+        # If numpy_as_list is true, then numpy arrays are printed as lists in this scope
+        with _maybe_list(self.numpy_as_list):
             for ind in individuals:
                 row = self.get_row_dict(ind)
                 if self.writer is not None:
