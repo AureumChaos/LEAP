@@ -1050,9 +1050,6 @@ class QuadraticFamilyProblem(ScalarProblem):
     spheroids or parabaloids.  Taken from the problem generators
     proposed in
 
-    .. [Jani2008] "A Generator for Multimodal Test Functions with Multiple Global Optima,"
-         Jani Rönkkönen et al., *Asia-Pacific Conference on Simulated Evolution and Learning*. Springer, Berlin, Heidelberg, 2008.
-
     [Jani2008]_
 
     The function is given by

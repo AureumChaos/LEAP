@@ -12,10 +12,4 @@ leap\_ec.landscape\_features.exploratory module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
 
-.. automodule:: leap_ec.landscape_features
-   :members:
-   :undoc-members:
-   :show-inheritance:

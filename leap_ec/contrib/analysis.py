@@ -54,22 +54,30 @@ class CurveAnalyzer():
     """
     There are four fundamental ways that we often analyze performance curves:
 
-     1. plotting the raw curves for all runs, grouped by each experimental configuration,
-     2. averaging each curve across runs to get one mean curve for each experiment,
-     3. averaging each curve across time to get a scalar performance metric for each run,
-     4. averaging each curve across both runs and time to get an average scalar metrics for each experiment.
+     * plotting the raw curves for all runs, grouped by each experimental
+       configuration,
+     * averaging each curve across runs to get one mean curve for each
+       experiment,
+     * averaging each curve across time to get a scalar performance metric
+       for each run,
+     * averaging each curve across both runs and time to get an average scalar
+       metrics for each experiment.
 
-    This class takes the data for (1) as input, and provides functions for creating
-    dataframes for (2), (3), and (4).
+    This class takes the data for (1) as input, and provides functions for
+    creating dataframes for (2), (3), and (4).
 
-    It accepts a dataframe following the conventions used by `FitnessStatsCSVProbe`.
-    That is, we have four kinds of columns:
+    It accepts a dataframe following the conventions used by
+    `FitnessStatsCSVProbe`. That is, we have four kinds of columns:
 
-     1. a `time_col` to serve as the "x axis" (ex. steps, generations, evals, or births),
-     2. a list of `metric_cols` that measure performance at each time step (ex. best-so-far fitness),
-     3. a `run_col` that uniquely identifies each multivariate time series (run), and
-     3. a list of `experiment_cols` indicating the experimental configuration of the runs (such 
-        as the name of the algorithm used, or the value of various hyperparameters).
+     * a `time_col` to serve as the "x axis" (ex. steps, generations,
+       evals, or births),
+     * a list of `metric_cols` that measure performance at each time
+       step (ex. best-so-far fitness),
+     * a `run_col` that uniquely identifies each multivariate time series
+       (run), and
+     * a list of `experiment_cols` indicating the experimental configuration
+       of the runs (such as the name of the algorithm used, or the value of
+       various hyperparameters).
     """
 
     def __init__(self, df,
@@ -95,10 +103,11 @@ class CurveAnalyzer():
         assert(set(experiment_cols).issubset(df.columns)), f"Expected '{experiment_cols}' to be a subset of {df.columns}."
 
     def avg_curves(self):
-        """Return a dataframe that reports the mean and std of each metric for each experimental group,
-        averaged over all of the runs.
+        """ Return a dataframe that reports the mean and std of each metric
+            for each experimental group, averaged over all of the runs.
 
-        This is analogous to scalar_metrics_per_run, except we're aggregating over runs, instead time.
+        This is analogous to scalar_metrics_per_run, except we're aggregating
+        over runs, instead time.
         """
         # We'll be grouping over time and the experiment columns
         group_cols = [self.time_col] + self.experiment_cols
@@ -115,12 +124,16 @@ class CurveAnalyzer():
         return avg_df
 
     def scalar_metrics_per_run(self, metric_col: str, scalar_measure=auc):
-        """Compute one or more scalar peformance measure of each metric for each run.
+        """ Compute one or more scalar peformance measure of each metric for
+        each run.
 
-        This is analogous to avg_curves, except we're aggregating over time, instead of across runs.
+        This is analogous to avg_curves, except we're aggregating over time,
+        instead of across runs.
         
-        For example, we might use this to take a set of best-so-far curves and reduce
-        them to a series convergence times, or area-under-curve score (one value per run)."""
+        For example, we might use this to take a set of best-so-far curves
+        and reduce them to a series convergence times, or area-under-curve
+        score (one value per run).
+        """
 
         # We'll be grouping over the run and experiment columns
         group_cols = [self.run_col] + self.experiment_cols
@@ -144,11 +157,11 @@ class CurveAnalyzer():
 
     def avg_scalar_metrics(self, metric_col :str, scalar_measure=auc):
         """
-        Aggregate over both runs and time, computing the mean and std of several scalar
-        metrics across runs.
+        Aggregate over both runs and time, computing the mean and std of
+        several scalar metrics across runs.
 
-        For example, we can use this to compute the average area-under-best-so-far-curve
-        for a collection of runs.
+        For example, we can use this to compute the average
+        area-under-best-so-far-curve for a collection of runs.
         """
         df_scalars = self.scalar_metrics_per_run(metric_col=metric_col, scalar_measure=scalar_measure)
         scalar_metric_col = scalar_measure.__name__

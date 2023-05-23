@@ -20,10 +20,4 @@ leap\_ec.contrib.transfer.sequential module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
 
-.. automodule:: leap_ec.contrib.transfer
-   :members:
-   :undoc-members:
-   :show-inheritance:

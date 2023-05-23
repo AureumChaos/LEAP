@@ -1,6 +1,7 @@
 leap\_ec.distrib package
 ========================
 
+
 Submodules
 ----------
 
@@ -52,10 +53,4 @@ leap\_ec.distrib.synchronous module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
 
-.. automodule:: leap_ec.distrib
-   :members:
-   :undoc-members:
-   :show-inheritance:
