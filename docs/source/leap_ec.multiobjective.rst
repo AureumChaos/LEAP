@@ -6,7 +6,7 @@ Submodules
 
 
 leap\_ec.multiobjective.nsga2 module
-----------------------------------
+------------------------------------
 
 .. automodule:: leap_ec.multiobjective.nsga2
    :members:
