@@ -118,11 +118,12 @@ class EnvironmentProblem(ScalarProblem):
 # Class TruthTableProblem
 ##############################
 class TruthTableProblem(ScalarProblem):
-    """Defines a fitness function over a :class:`~leap_ec.executable.phenotype.Executable` by 
-    evaluating it against each row of a given Boolean function's truth table.
+    """ Defines a fitness function over a
+    :class:`~leap_ec.executable.phenotype.Executable` by evaluating it
+    against each row of a given Boolean function's truth table.
 
-    Both the executable we receive and the `boolean_function` we compare against should return 
-    a list of 1 or more outputs.
+    Both the executable we receive and the `boolean_function` we compare
+    against should return a list of 1 or more outputs.
     """
 
     def __init__(self, boolean_function, num_inputs, num_outputs, name: str = None, pad_inputs=False, maximize=True):

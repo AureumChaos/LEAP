@@ -1184,6 +1184,7 @@ def migration_metric(stream, header: bool = True, notes: dict = None):
 
     In general, the interface for a migration metric function takes
     four parameters:
+
         - `generation`: the current generation
         - `immigrant_ind`: the individual that is attempting to migrate
         - `contestant_ind`: the individual that has been chosen to be replaced
