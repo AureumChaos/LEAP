@@ -1,50 +1,71 @@
-import toolz
 import numpy as np
-import bisect
-import logging
-
 from leap_ec import ops, util
 from leap_ec.global_vars import context
 from leap_ec.individual import Individual
 from leap_ec.multiobjective.problems import MultiObjectiveProblem
-from leap_ec.multiobjective.ops import fast_nondominated_sort, rank_ordinal_sort
+from leap_ec.multiobjective.ops import fast_nondominated_sort, per_rank_crowding_calc
 from leap_ec.global_vars import context
-from leap_ec.distrib.evaluate import evaluate, is_viable
-from leap_ec.distrib.asynchronous import eval_population
+from leap_ec.distrib.asynchronous import steady_state
 
 
-# Create unique logger for this namespace
-logger = logging.getLogger(__name__)
-
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG)
-
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-console_handler.setFormatter(formatter)
-
-logger.addHandler(console_handler)
-
+def _find_start_layer(ind, layer_pops):
+    """
+    Finds the highest layer in which ind is not dominated.
+    """
+    lo = 0
+    hi = len(layer_pops) - 1
+    
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if not any(i > ind for i in layer_pops[mid]):
+            hi = mid - 1
+        else:
+            lo = mid + 1
+    
+    return lo
 
 def _split_dominated(moving_points, layer):
     """
-    Splits layer into populations of points that are / aren't
-    dominated by the nadir of moving_points.
+    Splits layer into populations of points that aren't / are dominated by the
+    zenith of moving_points. We use a maximization rather than minimization
+    objective versus ENLU, so this is zenith / max vs nadir / min
     """
-    nadir = np.min([
+    zenith = np.max([
         ind.fitness * ind.problem.maximize
         for ind in moving_points
     ], axis=0)
     
-    arr_layer = np.array(layer)
-    ord_fitness = np.array([ind.fitness * ind.problem.maximize for ind in layer])
-    dominated = np.all(nadir >= ord_fitness, 1) & np.any(nadir > ord_fitness, 1)
+    dominated = []
+    nondominated = []
+    for ind in layer:
+        ord_fitness = ind.fitness * ind.problem.maximize
+        if all(zenith >= ord_fitness) and any(zenith > ord_fitness):
+            dominated.append(ind)
+        else:
+            nondominated.append(ind)
     
-    return arr_layer[dominated].tolist(), arr_layer[~dominated].tolist()
+    return nondominated, dominated
 
-def inds_rank(moving_points, layer_pops, rank_func, depth=None):
+def _set_domination(pop_a, pop_b):
+    """
+    Checks for each individual in pop_b whether it was dominated by an individual in pop_a.
+    """
+    return [
+        any(li > ri for li in pop_a)
+        for ri in pop_b
+    ]
+    
+def inds_rank(start_point, layer_pops):
     """ Performs the incremental non-dominated sorting ranking process.
+    
+    Based on the ENLU insertion algorithm with the modification of a binary search for the start point.
+    Locates the highest layer where the individual is nondominated and inserts it, propagating
+    layer composition changes down the rankings.
+    
+        - K. Li, K. Deb, Q. Zhang and Q. Zhang, "Efficient Nondomination Level Update Method for
+            Steady-State Evolutionary Multiobjective Optimization," in IEEE Transactions on
+            Cybernetics, vol. 47, no. 9, pp. 2838-2849, Sept. 2017, doi: 10.1109/TCYB.2016.2621008.
+    
     :param moving points: the set of points descending in rank from the previous layer.
         In the first recursion this is the inserted individual.
     :param layer_pops: the population separated into non-dominating layers.
@@ -53,105 +74,67 @@ def inds_rank(moving_points, layer_pops, rank_func, depth=None):
     :param depth: the current layer depth the moving points set is dominating.
     """
     
-    if depth is None:
-        for i, pop in enumerate(layer_pops):
-            if any(ind > moving_points for ind in pop):
-                inds_rank([moving_points], layer_pops, rank_func, i+1)
-                return
+    # CASE I: Find the first layer where start_point is not dominated
+    depth = _find_start_layer(start_point, layer_pops)
+    moving_points = [start_point]
     
-    if depth >= len(layer_pops):
+    while depth < len(layer_pops):
+        # CASE II: If the last layer merged perfectly, done
+        if not moving_points:
+            return
+        
+        # Find the individuals who are dominated by the zenith
+        nondominated, dominated = _split_dominated(moving_points, layer_pops[depth])
+        # Further check if those individuals are properly dominated
+        true_dominated = _set_domination(moving_points, dominated)
+
+        # CASE III: If nondominated is empty, insert moving points as a layer and re-update all ranks
+        if not nondominated:
+            layer_pops.insert(depth, moving_points)
+            for i, lp in enumerate(layer_pops[depth:]):
+                for ind in lp:
+                    ind.rank = depth + i + 1
+            return
+        
+        # CASE IV: Some points are dominated, propagate those onwards
+        # The moving points stay in this layer, while those not dominated by the zenith
+        # remain unchanged
+        layer_pops[depth] = nondominated + moving_points
+        moving_points = []
+        
+        # The truly dominated go to the next layer down, while the rest are added to
+        # the current layer
+        for ind, dom in zip(dominated, true_dominated):
+            if dom:
+                moving_points.append(ind)
+            else:
+                layer_pops[depth].append(ind)
+                
+        for ind in layer_pops[depth]:
+            ind.rank = depth + 1
+        depth += 1
+    
+    # If any points make it all the way through, they form a new layer
+    if moving_points:
+        for ind in moving_points:
+            ind.rank = len(layer_pops) + 1
         layer_pops.append(moving_points)
-        return
-    
-    if not moving_points:
-        return
-    
-    dominated_l, nondominated_l = _split_dominated(moving_points, layer_pops[depth])
-    rank_func(dominated_l + moving_points)
-    
-    rank_split = ([], [])
-    for ind in dominated_l:
-        rank_split[ind.rank-1].append(ind)
-    
-    layer_pops[depth] = nondominated_l + moving_points + rank_split[0]
-    for ind in layer_pops[depth]:
-        ind.rank = depth + 1
-    
-    inds_rank(rank_split[1], layer_pops, rank_func, depth + 1)
-
-
-@toolz.curry
-def _get_fitness(ind, obj):
-    return ind.fitness[obj] * ind.problem.maximize[obj]
-
-def _recalculate_distance(ind, objective_pops):
-    ind.distance = 0
-    
-    for i, op in enumerate(objective_pops):
-        gf = _get_fitness(obj=i)
-        idx = op.index(ind)
-        
-        left_diff = abs(gf(ind) - gf(op[idx-1]))
-        right_diff = abs(gf(op[idx+1] - gf(ind)))
-        ind.distance += left_diff + right_diff
-    
-def insert_crowding(ind, objective_pops):
-    ind.distance = 0
-    
-    for i, op in enumerate(objective_pops):
-        # TODO: This can be expensive. Other data structures may help
-        # The real time cost may be inconsequential though
-        gf = _get_fitness(obj=i)
-        idx = bisect.bisect_right(op, ind, key=gf)
-        op.insert(idx, ind)
-        
-        if idx == 0:
-            ind.distance = np.inf
-            if len(op) > 1: _recalculate_distance(op[1], objective_pops)
-        elif idx == len(op)-1:
-            ind.distance = np.inf
-            if len(op) > 1: _recalculate_distance(op[-2], objective_pops)
-        else:
-            left_diff = abs(gf(ind) - gf(op[idx-1]))
-            right_diff = abs(gf(op[idx+1] - gf(ind)))
-            old_diff = abs(gf(op[idx+1]) - gf(op[idx-1]))
             
-            op[idx-1].distance += left_diff - old_diff
-            ind.distance += left_diff + right_diff
-            op[idx+1].distance += right_diff - old_diff
-        
-def remove_crowding(ind, objective_pops):
-    for i, op in enumerate(objective_pops):
-        # Same as in insert, this can be expensive.
-        gf = _get_fitness(obj=i)
-        idx = op.index(ind)
-        
-        if idx == 0:
-            op[1].distance = np.inf
-        elif idx == len(op)-1:
-            op[-2].distance = np.inf
-        else:
-            left_diff = abs(gf(ind) - gf(op[idx-1]))
-            right_diff = abs(gf(ind) - gf(op[idx+1]))
-            old_diff = abs(gf(op[idx+1]) - gf(op[idx-1]))
-            
-            op[idx-1].distance += old_diff - left_diff
-            op[idx+1].distance += old_diff - right_diff
-        
-        op.pop(idx)
-            
-def async_nsga_2(
+def steady_state_nsga_2(
             client, max_births: int, init_pop_size: int, pop_size: int,
             problem: MultiObjectiveProblem,
             representation,
             offspring_pipeline,
-            rank_func,
             count_nonviable=False,
             evaluated_probe=None,
             pop_probe=None,
             context=context
         ):
     """ A steady state version of the NSGA-II multi-objective evolutionary algorithm.
+    
+        - K. Li, K. Deb, Q. Zhang and Q. Zhang, "Efficient Nondomination Level Update Method for
+            Steady-State Evolutionary Multiobjective Optimization," in IEEE Transactions on
+            Cybernetics, vol. 47, no. 9, pp. 2838-2849, Sept. 2017, doi: 10.1109/TCYB.2016.2621008.
 
     :param client: Dask client that should already be set-up
     :param max_births: how many births are we allowing?
@@ -173,86 +156,40 @@ def async_nsga_2(
            population to a CSV formatted stream ever N births
     :return: the population containing the final individuals
     """
-    
-    initial_population = representation.create_population(init_pop_size,
-                                                          problem=problem)
 
-    # fan out the entire initial population to dask workers
-    as_completed_iter = eval_population(initial_population, client=client,
-                                        context=context)
-
-    # This is where we'll be putting evaluated individuals
+    # This holds the separated layers, so we don't have to rebuild it each time
     layer_pops = []
-    objective_pops = [[] for _ in range(len(problem.maximize))]
         
-    def inds_inserter(ind):
-        inds_rank(ind, layer_pops, rank_func)
-        insert_crowding(ind, objective_pops)
+    def inds_inserter(ind, flat_pop, pop_size):
+        # The bulk of the logic for this insertion happens in inds_rank
+        nonlocal layer_pops
+        inds_rank(ind, layer_pops)
         
-        if len(objective_pops[-1]) > pop_size:
+        # Rank the layers
+        for lp in layer_pops:
+            per_rank_crowding_calc(lp, lp[0].problem.maximize)
+        
+        # If the population is too big, drop the most crowded
+        if sum(len(lp) for lp in layer_pops) > pop_size:
             rem_idx = min(range(len(layer_pops[-1])), key=lambda i: layer_pops[-1][i].distance)
-            rem_ind = layer_pops[-1].pop(rem_idx)
-            remove_crowding(rem_ind, objective_pops)
+            layer_pops[-1].pop(rem_idx)
             
-            if not layer_pops[-1]: del layer_pops[-1]
-
-    # Bookkeeping for tracking the number of max_births towards are fixed
-    # birth budget.
-    birth_counter = util.inc_births(context, start=0)
-
-    for i, evaluated_future in enumerate(as_completed_iter):
-
-        evaluated = evaluated_future.result()
-
-        if evaluated_probe is not None:
-            # Give a chance to do something extra with the newly evaluated
-            # individual, which is *usually* a call to
-            # probe.log_worker_location, but can be any function that
-            # accepts an individual as an argument
-            evaluated_probe(evaluated)
-
-        logger.debug('%d evaluated: %s %s', i, str(evaluated.genome),
-                     str(evaluated.fitness))
-
-        if not is_viable(evaluated):
-            if not count_nonviable:
-                # if we want the non-viables to not count towards the budget
-                # then we need to decrement the birth counter to ensure that
-                # a new individual is spawned to replace it.
-                logger.debug(f'Non-viable individual, decrementing birth'
-                             f'count.  Was {birth_counter.births()}')
-                births = birth_counter.do_decrement()
-                logger.debug(f'Birth count now {births}')
-        else:
-            # is viable, so bump that birth count er
-            births = birth_counter.do_increment()
-            logger.debug(f'Counting a birth.  '
-                         f'Births at: {births}')
-
-        inds_inserter(evaluated)
-
-        if pop_probe is not None:
-            pop_probe(objective_pops[0])
-
-        if birth_counter.births() < max_births:
-            logger.debug(f'Creating offspring because birth count is'
-                         f'{birth_counter.births()}')
-            # Only create offspring if we have the budget for one
-            offspring = toolz.pipe(objective_pops[0], *offspring_pipeline)
-
-            logger.debug('created offspring: ')
-            [logger.debug('%s', str(o.genome)) for o in offspring]
-
-            # Now asynchronously submit to dask
-            for child in offspring:
-                future = client.submit(evaluate(context=context), child,
-                                       pure=False)
-                as_completed_iter.add(future)
-
-            # Be sure to count the new kids against the birth budget
-            birth_counter.do_increment(len(offspring))
-        else:
-            logger.debug(f'Not creating offspring because birth count is'
-                         f'{birth_counter.births()}')
-
-    return objective_pops[0]
+            if layer_pops[-1]:
+                # Since this layer is losing a member, needs recalculation of crowding
+                per_rank_crowding_calc(layer_pops[-1], layer_pops[-1][0].problem.maximize)
+            else:
+                del layer_pops[-1]
+        
+        # Calculate the rankings of each layer and reconstruct flat_pop
+        flat_pop.clear()
+        for lp in layer_pops:
+            flat_pop.extend(lp)
+    
+    # This is functionally just a wrapper around steady state, all of the logic is the same
+    # with the exception of a special population structure and inserter
+    return steady_state(
+            client, max_births, init_pop_size, pop_size,
+            representation, problem, offspring_pipeline,
+            inds_inserter, count_nonviable, evaluated_probe,
+            pop_probe, context
+        )
