@@ -246,12 +246,12 @@ def get_step(context=context, use_generation=None, use_births=None):
         use_births = 'births' in context['leap']
     
     else:
-        if use_generation:
+        if use_generation is not None and use_generation:
             assert 'generation' in context['leap'], "To use 'generation', it must be present in context['leap']"
-        if use_births:
-            assert 'generation' in context['leap'], "To use 'births', it must be present in context['leap']"
+        if use_births is not None and use_births:
+            assert 'births' in context['leap'], "To use 'births', it must be present in context['leap']"
     
-    assert use_generation != use_births, "Only one of 'generation' or 'births' can be used"
+    assert use_generation != use_births, "Only one of 'generation' or 'births' can be used at a time"
     if use_generation:
         return context['leap']['generation']
     if use_births:
