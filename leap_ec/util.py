@@ -127,7 +127,8 @@ def inc_generation(start_generation: int=0, context=context, callbacks=()):
 
         # Now echo the new generation to all the registered callbacks.
         # TODO There is probably a more pythonic way to do this
-        [f(curr_generation) for f in callbacks]
+        for f in callbacks:
+            f(curr_generation)
 
         return curr_generation
 
@@ -143,10 +144,10 @@ def inc_births(context=context, start=0, callbacks=()):
     """ This tracks the current number of births
 
     The `context` is used to report the current births, though that
-    can also be given by inc_births.generation().
+    can also be obtained by inc_births.births()
 
     This will optionally call all the given callback functions whenever the
-    generation is incremented. The registered callback functions should have
+    births are incremented. The registered callback functions should have
     a signature f(int), where the int is the new birth.
 
     >>> from leap_ec.global_vars import context
@@ -199,7 +200,8 @@ def inc_births(context=context, start=0, callbacks=()):
 
         # Now echo the new generation to all the registered callbacks.
         # TODO There is probably a more pythonic way to do this
-        [f(curr_births) for f in callbacks]
+        for f in callbacks:
+            f(curr_births)
 
         return curr_births
 
@@ -222,6 +224,38 @@ def inc_births(context=context, start=0, callbacks=()):
 
     return do_increment
 
+###############################
+# Function get_step
+###############################
+def get_step(context=context, use_generation=None, use_births=None):
+    """
+    Returns the current step of an algorithm using context. Will infer which to use
+    from the context if neither is specified with `use_generation` or `use_births`.
+    If both are set to True, will raise an error.
+
+    :param context: the context from which the generations or births is taken from.
+    :param use_generation: an override to use generation.
+    :param use_births: an override to use births.
+    """
+    assert 'leap' in context, "'leap' key must be present in context"
+    
+    if use_generation is None and use_births is None:
+        assert 'generation' in context['leap'] or 'births' in context['leap'],\
+            "One of 'generation' or 'births' must be in context['leap']"
+        use_generation = 'generation' in context['leap']
+        use_births = 'births' in context['leap']
+    
+    else:
+        if use_generation:
+            assert 'generation' in context['leap'], "To use 'generation', it must be present in context['leap']"
+        if use_births:
+            assert 'generation' in context['leap'], "To use 'births', it must be present in context['leap']"
+    
+    assert use_generation != use_births, "Only one of 'generation' or 'births' can be used"
+    if use_generation:
+        return context['leap']['generation']
+    if use_births:
+        return context['leap']['births']
 
 ###############################
 # Function print_list
