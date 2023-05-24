@@ -229,9 +229,9 @@ def inc_births(context=context, start=0, callbacks=()):
 ###############################
 def get_step(context=context, use_generation=None, use_births=None):
     """
-    Returns the current step of an algorithm using context. Will infer which to use
-    from the context if neither is specified with `use_generation` or `use_births`.
-    If both are set to True, will raise an error.
+    Returns the current step of an algorithm using `context`. Will infer which to use
+    if neither is specified with `use_generation` or `use_births`. If both are set
+    to True, will raise an error.
 
     :param context: the context from which the generations or births is taken from.
     :param use_generation: an override to use generation.
