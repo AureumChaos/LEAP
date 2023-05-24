@@ -4,7 +4,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-
+from leap_ec.util import get_step
 from leap_ec.probe import PopulationMetricsPlotProbe
 from leap_ec.global_vars import context
 
@@ -45,9 +45,7 @@ class ParetoPlotProbe2D(PopulationMetricsPlotProbe):
 
     def __call__(self, population):
         assert (population is not None)
-        assert ('leap' in self.context)
-        assert ('generation' in self.context['leap'])
-        step = self.context['leap']['generation']
+        step = get_step(self.context)
 
         if step % self.modulo == 0:
             self.x = np.array([ind.fitness[0] for ind in population])
