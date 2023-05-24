@@ -16,7 +16,10 @@ def sigmoid(x):
     """A logistic sigmoid activation function.  Accepts array-like inputs,
     and uses NumPy for efficient computation.
     """
-    return 1/(1+np.exp(-x))
+    # Error handling, prevents overflow with negative or positive exponents
+    # For x > 0, equivalent to 1 / (1 + e^-x)
+    # For x < 0, equivalent to e^x / (1 + e^x)
+    return np.exp(np.minimum(0, x)) / (1 + np.exp(-np.abs(x)))
 
 
 ##############################
@@ -34,7 +37,9 @@ def relu(x):
 def softmax(x):
     """A softmax activation function.  Accepts array-like input and normalizes
     each element relative to the others."""
-    return np.exp(x)/np.sum(np.exp(x))
+    # Softmax is invariant against translation, this make sure all exponents are <= 0
+    safe_exp = np.exp(x - np.max(x))
+    return safe_exp / np.sum(safe_exp)
 
 
 ##############################
