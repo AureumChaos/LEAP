@@ -1,4 +1,4 @@
-from leap_ec.multiobjective.asynchronous import inds_rank
+from leap_ec.multiobjective.asynchronous import enlu_inds_rank
 from leap_ec.multiobjective.ops import fast_nondominated_sort, \
     crowding_distance_calc, rank_ordinal_sort
 from leap_ec.multiobjective.problems import SCHProblem
@@ -20,7 +20,7 @@ def test_inds_rank1():
     
     layer_pops = []
     for ind in pop:
-        inds_rank(ind, layer_pops)
+        enlu_inds_rank(ind, layer_pops)
     
     np.testing.assert_array_equal(
         [ind.rank for ind in pop],
@@ -44,7 +44,7 @@ def test_inds_rank2():
         
         layer_pops = []
         for ind in pop:
-            inds_rank(ind, layer_pops)
+            enlu_inds_rank(ind, layer_pops)
         
         ranks_1 = np.array([ind.rank for ind in pop])
         

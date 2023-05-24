@@ -55,7 +55,7 @@ def _set_domination(pop_a, pop_b):
         for ri in pop_b
     ]
     
-def inds_rank(start_point, layer_pops):
+def enlu_inds_rank(start_point, layer_pops):
     """ Performs the incremental non-dominated sorting ranking process.
     
     Based on the ENLU insertion algorithm with the modification of a binary search for the start point.
@@ -163,7 +163,7 @@ def steady_state_nsga_2(
     def inds_inserter(ind, flat_pop, pop_size):
         # The bulk of the logic for this insertion happens in inds_rank
         nonlocal layer_pops
-        inds_rank(ind, layer_pops)
+        enlu_inds_rank(ind, layer_pops)
         
         # Rank the layers
         for lp in layer_pops:
