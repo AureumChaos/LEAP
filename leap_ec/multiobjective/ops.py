@@ -212,6 +212,9 @@ def per_rank_crowding_calc(ranked_population: list, is_maximizing) -> list:
     sorted_pop = []
 
     for objective in range(num_objectives):
+        if objective_ranges[objective] == 0:
+            continue
+        
         # sort by objective being mindful that maximization vs. minimization may
         # be different for each objective
         if is_maximizing[objective] == -1:
