@@ -352,9 +352,7 @@ def clone(next_individual: Iterator) -> Iterator:
 # Function uniform_crossover
 ##############################
 @curry
-@iteriter_op
-def uniform_crossover(next_individual: Iterator,
-                      p_swap: float = 0.2, p_xover: float = 1.0) -> Iterator:
+def uniform_crossover(p_swap: float = 0.2, p_xover: float = 1.0):
     """Parameterized uniform crossover iterates through two parents' genomes
     and swaps each of their genes with the given probability.
 
@@ -374,22 +372,23 @@ def uniform_crossover(next_individual: Iterator,
     >>> first = Individual(genome1)
     >>> second = Individual(genome2)
     >>> i = iter([first, second])
-    >>> result = uniform_crossover(i)
+    >>> op = uniform_crossover()
+    >>> result = op(i)
 
     >>> new_first = next(result)
     >>> new_second = next(result)
 
     The probability can be tuned via the `p_swap` parameter:
 
-    >>> result = uniform_crossover(i, p_swap=0.1)
+    >>> op = uniform_crossover(p_swap=0.1)
+    >>> result = op(i)
 
-    :param next_individual: where we get the next individual
     :param p_swap: how likely are we to swap each pair of genes when crossover
         is performed
     :param float p_xover: the probability that crossover is performed in the
         first place
-    :return: two recombined individuals (with probability p_xover), or two
-        unmodified individuals (with probability 1 - p_xover)
+    :return: a pipeline operator that returns two recombined individuals (with probability
+        p_xover), or two unmodified individuals (with probability 1 - p_xover)
     """
 
     def _uniform_crossover(ind1, ind2, p_swap):
@@ -419,32 +418,45 @@ def uniform_crossover(next_individual: Iterator,
         ind2.genome[indices_to_swap] = tmp
 
         return ind1, ind2
+    
+    # Accumulate children in a deque to be yielded. This lets us keep them between
+    # generations, or between steady state offspring pipeline calls
+    next_children = collections.deque()
+    
+    @iteriter_op
+    def _crossover_op(next_individual: Iterator) -> Iterator:
+        """ Performs successive in-pipeline recombinations.
 
-    while True:
-        parent1 = next(next_individual)
-        parent2 = next(next_individual)
-        # Return the parents unmodified if we're not performing crossover
-        if np.random.uniform() > p_xover:
-            yield parent1
-            yield parent2
-        else:  # Else do crossover
-            child1, child2 = _uniform_crossover(parent1, parent2, p_swap)
+        :param next_individual: where we get the next individual
+        :return: two recombined individuals (with probability p_xover), or two
+            unmodified individuals (with probability 1 - p_xover)
+        """
+        
+        while True:
+            for ind in next_children:
+                yield ind
+            
+            parent1 = next(next_individual)
+            parent2 = next(next_individual)
+            
+            # Return the parents unmodified if we're not performing crossover
+            if np.random.uniform() > p_xover:
+                next_children.append(parent1)
+                next_children.append(parent2)
+            else:  # Else do crossover
+                child1, child2 = _uniform_crossover(parent1, parent2, p_swap)
 
-            # Invalidate fitness since the genomes have changed
-            child1.fitness = child2.fitness = None
+                # Invalidate fitness since the genomes have changed
+                child1.fitness = child2.fitness = None
+                next_children.append(child1)
+                next_children.append(child2)
 
-            yield child1
-            yield child2
-
+    return _crossover_op
 
 ##############################
 # Function n_ary_crossover
 ##############################
-@curry
-@iteriter_op
-def n_ary_crossover(next_individual: Iterator,
-                    num_points: int = 2,
-                    p=1.0) -> Iterator:
+def n_ary_crossover(num_points: int = 2, p=1.0):
     """ Do crossover between individuals between N crossover points.
 
     1 < n < genome length - 1
@@ -460,17 +472,18 @@ def n_ary_crossover(next_individual: Iterator,
     >>> first = Individual(genome1)
     >>> second = Individual(genome2)
     >>> i = iter([first, second])
-    >>> result = n_ary_crossover(i)
+    >>> op = n_ary_crossover()
+    >>> result = op(i)
 
     >>> new_first = next(result)
     >>> new_second = next(result)
 
-    :param next_individual: where we get the next individual from the pipeline
     :param num_points: how many crossing points do we use?  Defaults to 2, since
         2-point crossover has been shown to be the least disruptive choice for
         this value.
     :param p: the probability that crossover is performed.
-    :return: two recombined
+    :return: a pipeline operator that returns two recombined individuals (with probability
+        p), or two unmodified individuals (with probability 1 - p)
     """
 
     def _pick_crossover_points(num_points, genome_size):
@@ -522,18 +535,40 @@ def n_ary_crossover(next_individual: Iterator,
 
         return child1, child2
 
-    while True:
-        parent1 = next(next_individual)
-        parent2 = next(next_individual)
+    
+    # Accumulate children in a deque to be yielded. This lets us keep them between
+    # generations, or between steady state offspring pipeline calls
+    next_children = collections.deque()
+    
+    @iteriter_op
+    def _crossover_op(next_individual: Iterator) -> Iterator:
+        """ Performs successive in-pipeline recombinations.
 
-        # Return the parents unmodified if we're not performing crossover
-        if np.random.uniform() > p:
-            yield parent1
-            yield parent2
-        else:  # Else cross them over
-            child1, child2 = _n_ary_crossover(parent1, parent2, num_points)
-            yield child1
-            yield child2
+        :param next_individual: where we get the next individual
+        :return: two recombined individuals (with probability p_xover), or two
+            unmodified individuals (with probability 1 - p_xover)
+        """
+        
+        while True:
+            for ind in next_children:
+                yield ind
+            
+            parent1 = next(next_individual)
+            parent2 = next(next_individual)
+            
+            # Return the parents unmodified if we're not performing crossover
+            if np.random.uniform() > p:
+                next_children.append(parent1)
+                next_children.append(parent2)
+            else:  # cross them over
+                child1, child2 = _n_ary_crossover(parent1, parent2, num_points)
+
+                # Invalidate fitness since the genomes have changed
+                child1.fitness = child2.fitness = None
+                next_children.append(child1)
+                next_children.append(child2)
+    
+    return _crossover_op
 
 
 ##############################

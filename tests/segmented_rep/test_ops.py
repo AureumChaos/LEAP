@@ -156,7 +156,7 @@ def test_segmented_crossover():
     a = Individual([np.array([0, 0]), np.array([1, 1])])
     b = Individual([np.array([1, 1]), np.array([0, 0])])
 
-    result = n_ary_crossover(iter([a, b]))
+    result = n_ary_crossover()(iter([a, b]))
     c = next(result)
     d = next(result)
 
@@ -186,7 +186,7 @@ def test_segmented_crossover():
         a = Individual([np.array([0, 0]), np.array([1, 1])])
         b = Individual([[2, 2]])
 
-        result = n_ary_crossover(iter([a, b]), num_points=1)
+        result = n_ary_crossover(num_points=1)(iter([a, b]))
         c = next(result)
         d = next(result)
 
