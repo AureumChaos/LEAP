@@ -545,8 +545,8 @@ def n_ary_crossover(num_points: int = 2, p=1.0):
         """ Performs successive in-pipeline recombinations.
 
         :param next_individual: where we get the next individual
-        :return: two recombined individuals (with probability p_xover), or two
-            unmodified individuals (with probability 1 - p_xover)
+        :return: two recombined individuals (with probability p), or two
+            unmodified individuals (with probability 1 - p)
         """
         
         while True:
