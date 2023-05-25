@@ -433,8 +433,8 @@ def uniform_crossover(p_swap: float = 0.2, p_xover: float = 1.0):
         """
         
         while True:
-            for ind in next_children:
-                yield ind
+            while next_children:
+                yield next_children.popleft()
             
             parent1 = next(next_individual)
             parent2 = next(next_individual)
@@ -550,8 +550,8 @@ def n_ary_crossover(num_points: int = 2, p=1.0):
         """
         
         while True:
-            for ind in next_children:
-                yield ind
+            while next_children:
+                yield next_children.popleft()
             
             parent1 = next(next_individual)
             parent2 = next(next_individual)
