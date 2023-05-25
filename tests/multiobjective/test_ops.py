@@ -48,15 +48,32 @@ def generate_test_pop():
         1, # [4, 0]
         1  # [4, 0] Note: Duplicated fitness
     ]
+    
+    # 1-1 argsort: 2, 3, 4, 5  [0, 4]
+    # 1-2 argsort: 4, 5, 3, 2  [0, 4]
+    
+    # 2-1 argsort: 1  [1, 1]
+    # 2-2 argsort: 1  [9, 9]
+    
+    # 3-1 argsort: 0  [4, 4]
+    # 3-2 argsort: 0  [16, 16]
+    
+    distances = [
+        np.inf, # Edge
+        np.inf, # Edge
+        np.inf, # Edge
+        (4 - 0) / 4 + (4 - 0) / 4,
+        np.inf, # Edge
+        np.inf  # Edge
+    ]
 
-    return pop, ranks
+    return pop, ranks, distances
 
 
 def test_fast_nondominated_sort():
     """ Test for non-dominated sorting """
-    pop, ranks = generate_test_pop()
-
-    sorted_pop = fast_nondominated_sort(pop)
+    pop, ranks, _ = generate_test_pop()
+    fast_nondominated_sort(pop)
 
     np.testing.assert_array_equal(
         [ind.rank for ind in pop],
@@ -65,9 +82,8 @@ def test_fast_nondominated_sort():
 
 def test_rank_ordinal_sort():
     """ Test for rank ordinal sorting """
-    pop, ranks = generate_test_pop()
-
-    sorted_pop = rank_ordinal_sort(pop)
+    pop, ranks, _ = generate_test_pop()
+    rank_ordinal_sort(pop)
 
     np.testing.assert_array_equal(
         [ind.rank for ind in pop],
@@ -76,20 +92,19 @@ def test_rank_ordinal_sort():
 
 def test_crowding_distance_calc():
     """ Test of crowding distance calculation """
-    pop, _ = generate_test_pop()
-
-    sorted_pop = fast_nondominated_sort(pop)
-
-    sorted_pop = crowding_distance_calc(sorted_pop)
-
-    # TODO add manual checks to verify correct calculation for crowding
-    # distance.
-    pass
+    pop, _, distances = generate_test_pop()
+    fast_nondominated_sort(pop)
+    crowding_distance_calc(pop)
+    
+    np.testing.assert_array_equal(
+        [ind.distance for ind in pop],
+        distances
+    )
 
 
 def test_sorting_criteria():
     """ Test sorting by rank and distance criteria """
-    pop, _ = generate_test_pop()
+    pop, _, _ = generate_test_pop()
     processed_pop = pipe(pop,
                fast_nondominated_sort,
                crowding_distance_calc)
