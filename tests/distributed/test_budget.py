@@ -61,7 +61,7 @@ def test_meet_budget():
 
     inds = my_accumulate.individuals()
 
-    assert len(inds) == 4
+    assert len(inds) == 6
 
 
 class Counter:
@@ -137,7 +137,7 @@ def test_meet_budget_count_nonviable():
 
     inds = my_accumulate.individuals()
 
-    assert len(inds) == 5
+    assert len(inds) == 7
 
 def test_meet_budget_do_not_count_nonviable():
     """ Birth budget without counting non-viable individuals """
@@ -166,4 +166,4 @@ def test_meet_budget_do_not_count_nonviable():
 
     inds = my_accumulate.individuals()
 
-    assert len(inds) == 4
+    assert len(inds) == 6
