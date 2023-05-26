@@ -70,7 +70,7 @@ def test_uniform_crossover_probability2():
         pop = [Individual(np.array([0, 0])),
                Individual(np.array([1, 1]))]
         i = ops.naive_cyclic_selection(pop)
-        new_pop = list(itertools.islice(ops.uniform_crossover(p_xover=1.0), 2))
+        new_pop = list(itertools.islice(ops.uniform_crossover(p_xover=1.0)(i), 2))
 
         # There are four possible outcomes, which we will count the occurence of
         if np.all(new_pop[0].genome == [0, 0]) and np.all(new_pop[1].genome == [1, 1]):
