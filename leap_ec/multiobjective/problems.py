@@ -85,10 +85,10 @@ class MultiObjectiveProblem(Problem):
         :param second_fitnesses: same as `first_fitnesses`, but for a different
             individual
         """
-        assert(first_fitnesses is not None)
-        assert(second_fitnesses is not None)
-        assert(len(first_fitnesses) == len(self.maximize))
-        assert(len(second_fitnesses) == len(self.maximize))
+        # assert(first_fitnesses is not None)
+        # assert(second_fitnesses is not None)
+        # assert(len(first_fitnesses) == len(self.maximize))
+        # assert(len(second_fitnesses) == len(self.maximize))
 
         # Negate the minimization problems, so we can treat all objectives as
         # maximization
