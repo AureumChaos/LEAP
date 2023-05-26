@@ -364,24 +364,32 @@ def uniform_crossover(p_swap: float = 0.2, p_xover: float = 1.0):
         *Proceedings of the 4th international conference on genetic algorithms.* Morgan Kaufmann Publishers, 1991.
 
     >>> from leap_ec.individual import Individual
-    >>> from leap_ec.ops import uniform_crossover
+    >>> from leap_ec.ops import uniform_crossover, naive_cyclic_selection
     >>> import numpy as np
 
     >>> genome1 = np.array([0, 0])
     >>> genome2 = np.array([1, 1])
     >>> first = Individual(genome1)
     >>> second = Individual(genome2)
-    >>> i = iter([first, second])
+    >>> pop = [first, second]
+    >>> select = naive_cyclic_selection(pop)
     >>> op = uniform_crossover()
-    >>> result = op(i)
-
+    >>> result = op(select)
     >>> new_first = next(result)
     >>> new_second = next(result)
 
     The probability can be tuned via the `p_swap` parameter:
-
     >>> op = uniform_crossover(p_swap=0.1)
-    >>> result = op(i)
+    >>> result = op(select)
+    
+    If there is a child that was made by crossover but isn't used in the first call,
+    it will be yielded in a future call.
+    
+    >>> op = uniform_crossover(p_xover=0.0)
+    >>> next(op(select)) is first
+    True
+    >>> next(op(select)) is second
+    True
 
     :param p_swap: how likely are we to swap each pair of genes when crossover
         is performed
@@ -419,9 +427,8 @@ def uniform_crossover(p_swap: float = 0.2, p_xover: float = 1.0):
 
         return ind1, ind2
     
-    # Accumulate children in a deque to be yielded. This lets us keep them between
-    # generations, or between steady state offspring pipeline calls
-    next_children = collections.deque()
+    # Keep the second child available if it is unyielded in a prior run    
+    second_child = None
     
     @iteriter_op
     def _crossover_op(next_individual: Iterator) -> Iterator:
@@ -431,25 +438,36 @@ def uniform_crossover(p_swap: float = 0.2, p_xover: float = 1.0):
         :return: two recombined individuals (with probability p_xover), or two
             unmodified individuals (with probability 1 - p_xover)
         """
+        nonlocal second_child
+        if second_child is not None:
+            # Return a child left from another run
+            # Swap with None has to happen before the yield to be certain its executed
+            ret_child, second_child = second_child, None
+            yield ret_child
         
         while True:
-            while next_children:
-                yield next_children.popleft()
             
             parent1 = next(next_individual)
             parent2 = next(next_individual)
-            
+
             # Return the parents unmodified if we're not performing crossover
             if np.random.uniform() > p_xover:
-                next_children.append(parent1)
-                next_children.append(parent2)
+                first_child, second_child = parent1, parent2
             else:  # Else do crossover
-                child1, child2 = _uniform_crossover(parent1, parent2, p_swap)
-
+                first_child, second_child = _uniform_crossover(parent1, parent2, p_swap)
                 # Invalidate fitness since the genomes have changed
-                child1.fitness = child2.fitness = None
-                next_children.append(child1)
-                next_children.append(child2)
+                first_child.fitness = second_child.fitness = None
+            
+            # Generators only execute code if necessary, so children will only be generated
+            # if the first child needs to be yielded. That's why it doesn't need to be stored
+            # in the closure as well.
+            yield first_child
+            
+            # Remove the second child from the closure and yield it if the generator does
+            # get requested for it
+            ret_child, second_child = second_child, None
+            yield ret_child
+            
 
     return _crossover_op
 
@@ -471,12 +489,23 @@ def n_ary_crossover(num_points: int = 2, p=1.0):
     >>> genome2 = np.array([1, 1])
     >>> first = Individual(genome1)
     >>> second = Individual(genome2)
-    >>> i = iter([first, second])
+    >>> pop = [first, second]
+    >>> select = naive_cyclic_selection(pop)
+    
     >>> op = n_ary_crossover()
-    >>> result = op(i)
+    >>> result = op(select)
 
     >>> new_first = next(result)
     >>> new_second = next(result)
+    
+    If there is a child that was made by crossover but isn't used in the first call,
+    it will be yielded in a future call.
+    
+    >>> op = uniform_crossover(p_xover=0.0)
+    >>> next(op(select)) is first
+    True
+    >>> next(op(select)) is second
+    True
 
     :param num_points: how many crossing points do we use?  Defaults to 2, since
         2-point crossover has been shown to be the least disruptive choice for
@@ -535,38 +564,45 @@ def n_ary_crossover(num_points: int = 2, p=1.0):
 
         return child1, child2
 
-    
-    # Accumulate children in a deque to be yielded. This lets us keep them between
-    # generations, or between steady state offspring pipeline calls
-    next_children = collections.deque()
+    # Keep the second child available if it is unyielded in a prior run    
+    second_child = None
     
     @iteriter_op
     def _crossover_op(next_individual: Iterator) -> Iterator:
         """ Performs successive in-pipeline recombinations.
 
         :param next_individual: where we get the next individual
-        :return: two recombined individuals (with probability p), or two
-            unmodified individuals (with probability 1 - p)
+        :return: two recombined individuals (with probability p_xover), or two
+            unmodified individuals (with probability 1 - p_xover)
         """
+        nonlocal second_child
+        if second_child is not None:
+            # Return a child left from another run
+            # Swap with None has to happen before the yield to be certain its executed
+            ret_child, second_child = second_child, None
+            yield ret_child
         
         while True:
-            while next_children:
-                yield next_children.popleft()
-            
             parent1 = next(next_individual)
             parent2 = next(next_individual)
-            
+
             # Return the parents unmodified if we're not performing crossover
             if np.random.uniform() > p:
-                next_children.append(parent1)
-                next_children.append(parent2)
-            else:  # cross them over
-                child1, child2 = _n_ary_crossover(parent1, parent2, num_points)
-
+                first_child, second_child = parent1, parent2
+            else:  # Else do crossover
+                first_child, second_child = _n_ary_crossover(parent1, parent2, num_points)
                 # Invalidate fitness since the genomes have changed
-                child1.fitness = child2.fitness = None
-                next_children.append(child1)
-                next_children.append(child2)
+                first_child.fitness = second_child.fitness = None
+            
+            # Generators only execute code if necessary, so children will only be generated
+            # if the first child needs to be yielded. That's why it doesn't need to be stored
+            # in the closure as well.
+            yield first_child
+            
+            # Remove the second child from the closure and yield it if the generator does
+            # get requested for it
+            ret_child, second_child = second_child, None
+            yield ret_child
     
     return _crossover_op
 
