@@ -352,7 +352,7 @@ def clone(next_individual: Iterator) -> Iterator:
 # Function uniform_crossover
 ##############################
 @curry
-def uniform_crossover(p_swap: float = 0.2, p_xover: float = 1.0):
+def uniform_crossover(p_swap: float = 0.2, p_xover: float = 1.0, persist_children = False):
     """Parameterized uniform crossover iterates through two parents' genomes
     and swaps each of their genes with the given probability.
 
@@ -382,10 +382,10 @@ def uniform_crossover(p_swap: float = 0.2, p_xover: float = 1.0):
     >>> op = uniform_crossover(p_swap=0.1)
     >>> result = op(select)
     
-    If there is a child that was made by crossover but isn't used in the first call,
-    it will be yielded in a future call.
+    If `persist_children` is True and there is a child that was made by crossover but isn't
+    used in the first call, it will be yielded in a future call.
     
-    >>> op = uniform_crossover(p_xover=0.0)
+    >>> op = uniform_crossover(p_xover=0.0, persist_children=True)
     >>> next(op(select)) is first
     True
     >>> next(op(select)) is second
@@ -395,6 +395,9 @@ def uniform_crossover(p_swap: float = 0.2, p_xover: float = 1.0):
         is performed
     :param float p_xover: the probability that crossover is performed in the
         first place
+    :param bool persist_children: whether unyielded children should persist between calls.
+        This is useful for `leap_ec.distrib.asynchronous.steady_state`, where the pipeline
+        may only produce one individual at a time.
     :return: a pipeline operator that returns two recombined individuals (with probability
         p_xover), or two unmodified individuals (with probability 1 - p_xover)
     """
@@ -439,7 +442,7 @@ def uniform_crossover(p_swap: float = 0.2, p_xover: float = 1.0):
             unmodified individuals (with probability 1 - p_xover)
         """
         nonlocal second_child
-        if second_child is not None:
+        if persist_children and second_child is not None:
             # Return a child left from another run
             # Swap with None has to happen before the yield to be certain its executed
             ret_child, second_child = second_child, None
@@ -474,7 +477,7 @@ def uniform_crossover(p_swap: float = 0.2, p_xover: float = 1.0):
 ##############################
 # Function n_ary_crossover
 ##############################
-def n_ary_crossover(num_points: int = 2, p=1.0):
+def n_ary_crossover(num_points: int = 2, p=1.0, persist_children = False):
     """ Do crossover between individuals between N crossover points.
 
     1 < n < genome length - 1
@@ -498,10 +501,10 @@ def n_ary_crossover(num_points: int = 2, p=1.0):
     >>> new_first = next(result)
     >>> new_second = next(result)
     
-    If there is a child that was made by crossover but isn't used in the first call,
-    it will be yielded in a future call.
+    If `persist_children` is True and there is a child that was made by crossover but isn't
+    used in the first call, it will be yielded in a future call.
     
-    >>> op = uniform_crossover(p_xover=0.0)
+    >>> op = uniform_crossover(p_xover=0.0, persist_children=True)
     >>> next(op(select)) is first
     True
     >>> next(op(select)) is second
@@ -511,6 +514,9 @@ def n_ary_crossover(num_points: int = 2, p=1.0):
         2-point crossover has been shown to be the least disruptive choice for
         this value.
     :param p: the probability that crossover is performed.
+    :param bool persist_children: whether unyielded children should persist between calls.
+        This is useful for `leap_ec.distrib.asynchronous.steady_state`, where the pipeline
+        may only produce one individual at a time.
     :return: a pipeline operator that returns two recombined individuals (with probability
         p), or two unmodified individuals (with probability 1 - p)
     """
@@ -576,7 +582,7 @@ def n_ary_crossover(num_points: int = 2, p=1.0):
             unmodified individuals (with probability 1 - p_xover)
         """
         nonlocal second_child
-        if second_child is not None:
+        if persist_children and second_child is not None:
             # Return a child left from another run
             # Swap with None has to happen before the yield to be certain its executed
             ret_child, second_child = second_child, None
