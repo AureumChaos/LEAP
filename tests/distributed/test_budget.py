@@ -110,30 +110,29 @@ class BrokenProblem(ScalarProblem):
 
 def test_meet_budget_count_nonviable():
     """ Birth budget counting non-viable individuals """
-    with Client(LocalCluster(processes=False,
-                             threads_per_worker=1,
-                             n_workers=1)) as client:
-        # Create a Counter on a worker
-        future = client.submit(Counter, actor=True)
-        counter = future.result()  # Get back a pointer to that object
+    with LocalCluster(processes=False, threads_per_worker=1, n_workers=1) as cluster:
+        with Client(cluster) as client:
+            # Create a Counter on a worker
+            future = client.submit(Counter, actor=True)
+            counter = future.result()  # Get back a pointer to that object
 
-        # We accumulate all the evaluated individuals the number of
-        # which should be equal to our birth budget of four.
-        my_accumulate = accumulate()
+            # We accumulate all the evaluated individuals the number of
+            # which should be equal to our birth budget of four.
+            my_accumulate = accumulate()
 
-        pop = steady_state(client=client,
-                           max_births=4,
-                           init_pop_size=2,
-                           pop_size=2,
-                           representation=representation,
-                           problem=BrokenProblem(1, counter),
-                           evaluated_probe=my_accumulate,
-                           count_nonviable=False,
-                           offspring_pipeline=[
-                               ops.random_selection,
-                               ops.clone,
-                               ops.pool(size=1)]
-                           )
+            pop = steady_state(client=client,
+                            max_births=4,
+                            init_pop_size=2,
+                            pop_size=2,
+                            representation=representation,
+                            problem=BrokenProblem(1, counter),
+                            evaluated_probe=my_accumulate,
+                            count_nonviable=False,
+                            offspring_pipeline=[
+                                ops.random_selection,
+                                ops.clone,
+                                ops.pool(size=1)]
+                            )
 
     inds = my_accumulate.individuals()
 
