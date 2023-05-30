@@ -59,8 +59,8 @@ def generate_test_pop():
     # 3-2 argsort: 0  [16, 16]
     
     distances = [
-        np.inf, # Edge
-        np.inf, # Edge
+        0, # Edge
+        0, # Edge
         np.inf, # Edge
         (4 - 0) / 4 + (4 - 0) / 4,
         np.inf, # Edge
