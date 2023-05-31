@@ -195,20 +195,14 @@ def steady_state(client, max_births, init_pop_size, pop_size,
         logger.debug('%d evaluated: %s %s', i, str(evaluated.genome),
                      str(evaluated.fitness))
 
-        if not is_viable(evaluated):
-            if not count_nonviable:
-                # if we want the non-viables to not count towards the budget
-                # then we need to decrement the birth counter to ensure that
-                # a new individual is spawned to replace it.
-                logger.debug(f'Non-viable individual, decrementing birth'
-                             f'count.  Was {birth_counter.births()}')
-                births = birth_counter.do_decrement()
-                logger.debug(f'Birth count now {births}')
-        else:
-            # is viable, so bump that birth count er
-            births = birth_counter.do_increment()
-            logger.debug(f'Counting a birth.  '
-                         f'Births at: {births}')
+        if not is_viable(evaluated) and not count_nonviable:
+            # if we want the non-viables to not count towards the budget
+            # then we need to decrement the birth counter to ensure that
+            # a new individual is spawned to replace it.
+            logger.debug(f'Non-viable individual, decrementing birth'
+                            f'count.  Was {birth_counter.births()}')
+            births = birth_counter.do_decrement()
+            logger.debug(f'Birth count now {births}')
 
         inserter(evaluated, pop, pop_size)
 
