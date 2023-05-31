@@ -386,10 +386,21 @@ def uniform_crossover(p_swap: float = 0.2, p_xover: float = 1.0, persist_childre
     used in the first call, it will be yielded in a future call.
     
     >>> op = uniform_crossover(p_xover=0.0, persist_children=True)
-    >>> next(op(select)) is first
+    >>>
+    >>> next(op(select)) is first  # Create an iterator loop with op(select) and consume 1 individual
     True
-    >>> next(op(select)) is second
+    >>> next(op(select)) is second # Create a different iterator loop with op(select)
     True
+
+    With `persist_children` set to False, the second child will not be yielded if the iterator
+    is consumed an odd number of times. Instead, on the next call the loop is started anew.
+
+    >>> op = uniform_crossover(p_xover=0.0, persist_children=False)
+    >>>
+    >>> next(op(select)) is first  # Create an iterator loop with op(select) and consume 1 individual
+    True
+    >>> next(op(select)) is second # Create a different iterator loop with op(select)
+    False
 
     :param p_swap: how likely are we to swap each pair of genes when crossover
         is performed
@@ -501,14 +512,26 @@ def n_ary_crossover(num_points: int = 2, p=1.0, persist_children = False):
     >>> new_first = next(result)
     >>> new_second = next(result)
     
+    
     If `persist_children` is True and there is a child that was made by crossover but isn't
     used in the first call, it will be yielded in a future call.
     
-    >>> op = uniform_crossover(p_xover=0.0, persist_children=True)
-    >>> next(op(select)) is first
+    >>> op = n_ary_crossover(p=0.0, persist_children=True)
+    >>>
+    >>> next(op(select)) is first  # Create an iterator loop with op(select) and consume 1 individual
     True
-    >>> next(op(select)) is second
+    >>> next(op(select)) is second # Create a different iterator loop with op(select)
     True
+
+    With `persist_children` set to False, the second child will not be yielded if the iterator
+    is consumed an odd number of times. Instead, on the next call the loop is started anew.
+
+    >>> op = n_ary_crossover(p=0.0, persist_children=False)
+    >>>
+    >>> next(op(select)) is first  # Create an iterator loop with op(select) and consume 1 individual
+    True
+    >>> next(op(select)) is second # Create a different iterator loop with op(select)
+    False
 
     :param num_points: how many crossing points do we use?  Defaults to 2, since
         2-point crossover has been shown to be the least disruptive choice for
