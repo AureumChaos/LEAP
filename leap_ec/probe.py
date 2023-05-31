@@ -17,6 +17,7 @@ from leap_ec import Individual
 from leap_ec.global_vars import context
 from leap_ec import ops as op
 from leap_ec.ops import iteriter_op, listlist_op
+from leap_ec.util import get_step
 
 
 ##############################
@@ -82,7 +83,7 @@ class BestSoFarProbe(op.Operator):
         format.
 
         Like many operators, this operator checks the context object to
-        retrieve the current generation number for output purposes.
+        retrieve the current generation or birth number for output purposes.
 
         >>> from leap_ec import context, data
         >>> from leap_ec import probe
@@ -122,15 +123,13 @@ class BestSoFarProbe(op.Operator):
 
     def __call__(self, population):
         assert (population is not None)
-        assert ('leap' in self.context)
-        assert ('generation' in self.context['leap'])
 
         ind = max(population)
         assert(ind.fitness is not None), f"Probe expects individuals to have fitness values, but found one that doesn't."
         if self.bsf is None or (ind > self.bsf):
             self.bsf = ind
 
-        self.writer.writerow({'step': self.context['leap']['generation'],
+        self.writer.writerow({'step': get_step(self.context),
                             'bsf' : self.bsf.fitness
                             })
 
@@ -150,7 +149,7 @@ class BestSoFarIterProbe(op.Operator):
         format.
 
         Like many operators, this operator checks the context object to
-        retrieve the current generation number for output purposes.
+        retrieve the current generation or birth number for output purposes.
 
         >>> from leap_ec import context, data
         >>> from leap_ec import probe
@@ -192,8 +191,6 @@ class BestSoFarIterProbe(op.Operator):
 
     def __call__(self, next_individual):
         assert (next_individual is not None)
-        assert ('leap' in self.context)
-        assert ('generation' in self.context['leap'])
 
         while True:
             ind = next(next_individual)
@@ -201,7 +198,7 @@ class BestSoFarIterProbe(op.Operator):
             if self.bsf is None or (ind > self.bsf):
                 self.bsf = ind
 
-            self.writer.writerow({'step': self.context['leap']['generation'],
+            self.writer.writerow({'step': get_step(self.context),
                                 'bsf' : self.bsf.fitness
                                 })
 
@@ -374,8 +371,6 @@ class FitnessStatsCSVProbe(op.Operator):
 
     def __call__(self, population):
         assert (population is not None)
-        assert ('leap' in self.context)
-        assert ('generation' in self.context['leap'])
         
         if self.do_best:
             # Always update the best-so-far variable
@@ -387,8 +382,8 @@ class FitnessStatsCSVProbe(op.Operator):
         with _maybe_list(self.numpy_as_list):
 
             # Check if we've reached a measurement interval
-            generation = self.context['leap']['generation']
-            if generation % self.modulo != 0:
+            step = get_step(self.context)
+            if step % self.modulo != 0:
                 # If not, don't write fitness info
                 return population
             else:
@@ -401,7 +396,7 @@ class FitnessStatsCSVProbe(op.Operator):
     def get_row_dict(self, pop):
         """Compute a full row of data from the population."""
 
-        row = {'step': self.context['leap']['generation']}
+        row = {'step': get_step(self.context)}
         
         if self.job is not None:
             row['job'] = self.job
@@ -576,8 +571,6 @@ class AttributesCSVProbe(op.Operator):
         """When called (i.e. as part of an operator pipeline), take a
         population of individuals and collect data from it. """
         assert (population is not None)
-        assert ('leap' in self.context)
-        assert ('generation' in self.context['leap'])
 
         individuals = [best_of_gen(population)] if self.best_only else population
         
@@ -595,7 +588,7 @@ class AttributesCSVProbe(op.Operator):
 
     def get_row_dict(self, ind):
         """Compute a full row of data from a given individual."""
-        row = {'step': self.context['leap']['generation']}
+        row = {'step': get_step(self.context)}
 
         for attr in self.attributes:
             if attr not in ind.__dict__:
@@ -649,7 +642,7 @@ class PopulationMetricsPlotProbe:
         self.modulo = modulo
         # x-axis defaults to generation
         if x_axis_value is None:
-            x_axis_value = lambda: context['leap']['generation']
+            x_axis_value = lambda: get_step(context)
         self.x_axis_value = x_axis_value
         self.context = context
 
@@ -665,9 +658,7 @@ class PopulationMetricsPlotProbe:
 
     def __call__(self, population):
         assert (population is not None)
-        assert ('leap' in self.context)
-        assert ('generation' in self.context['leap'])
-        step = self.context['leap']['generation']
+        step = get_step(self.context)
 
         if step % self.modulo == 0:
             self.x = np.append(self.x, self.x_axis_value())
@@ -1044,9 +1035,7 @@ class CartesianPhenotypePlotProbe:
 
     def __call__(self, population):
         assert (population is not None)
-        assert ('leap' in self.context)
-        assert ('generation' in self.context['leap'])
-        step = self.context['leap']['generation']
+        step = get_step(self.context)
 
         if step % self.modulo == 0:
             self.x = np.array([ind.decode()[0] for ind in population])
@@ -1090,9 +1079,7 @@ class HistPhenotypePlotProbe():
 
     def __call__(self, population):
         assert (population is not None)
-        assert ('leap' in self.context)
-        assert ('generation' in self.context['leap'])
-        step = self.context['leap']['generation']
+        step = get_step(self.context)
 
         if step % self.modulo == 0:
             phenomes = [ ind.decode() for ind in population ]
@@ -1125,9 +1112,7 @@ class HeatMapPhenotypeProbe():
 
     def __call__(self, population):
         assert (population is not None)
-        assert ('leap' in self.context)
-        assert ('generation' in self.context['leap'])
-        step = self.context['leap']['generation']
+        step = get_step(self.context)
 
         if step % self.modulo == 0:
             phenomes = [ ind.decode() for ind in population ]
@@ -1295,9 +1280,7 @@ class SumPhenotypePlotProbe:
 
     def __call__(self, population):
         assert (population is not None)
-        assert ('leap' in self.context)
-        assert ('generation' in self.context['leap'])
-        step = self.context['leap']['generation']
+        step = get_step(self.context)
 
         if step % self.modulo == 0:
             self.x = np.array([np.sum(ind.decode()) for ind in population])
