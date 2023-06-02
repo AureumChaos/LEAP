@@ -79,7 +79,7 @@ if __name__ == '__main__':
                                    ops.tournament_selection,
                                    ops.clone,
                                    mutate_bitflip(expected_num_mutations=1),
-                                   ops.uniform_crossover(),
+                                   ops.UniformCrossover(),
                                    # Scatter offspring to be evaluated
                                    synchronous.eval_pool(client=client,
                                                          size=len(parents)),

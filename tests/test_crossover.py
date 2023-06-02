@@ -26,7 +26,7 @@ def test_uniform_crossover():
     i = ops.naive_cyclic_selection(pop)
 
     # Do swap with 100% certainty, which will cause the two individuals' genomes to exchange values
-    new_pop = list(itertools.islice(ops.uniform_crossover(p_swap=1.0)(i), 2))
+    new_pop = list(itertools.islice(ops.UniformCrossover(p_swap=1.0)(i), 2))
     assert np.all(new_pop[0].genome == [1,1])
     assert np.all(new_pop[1].genome == [0,0])
 
@@ -49,7 +49,7 @@ def test_uniform_crossover_probability1():
         pop = [Individual(np.array([0, 0])),
                Individual(np.array([1, 1]))]
         i = ops.naive_cyclic_selection(pop)
-        new_pop = list(itertools.islice(ops.uniform_crossover(p_xover=0.0)(i), 2))
+        new_pop = list(itertools.islice(ops.UniformCrossover(p_xover=0.0)(i), 2))
 
         if np.all(new_pop[0].genome == [0, 0]) and np.all(new_pop[1].genome == [1, 1]):
             unmodified_count += 1
@@ -70,7 +70,7 @@ def test_uniform_crossover_probability2():
         pop = [Individual(np.array([0, 0])),
                Individual(np.array([1, 1]))]
         i = ops.naive_cyclic_selection(pop)
-        new_pop = list(itertools.islice(ops.uniform_crossover(p_xover=1.0)(i), 2))
+        new_pop = list(itertools.islice(ops.UniformCrossover(p_xover=1.0)(i), 2))
 
         # There are four possible outcomes, which we will count the occurence of
         if np.all(new_pop[0].genome == [0, 0]) and np.all(new_pop[1].genome == [1, 1]):
@@ -112,7 +112,7 @@ def test_n_ary_crossover_bad_crossover_points():
     i = ops.naive_cyclic_selection(pop)
 
     with pytest.raises(RuntimeError):
-        new_pop = list(itertools.islice(ops.n_ary_crossover(num_points=3)(i), 2))
+        new_pop = list(itertools.islice(ops.NAryCrossover(num_points=3)(i), 2))
 
 
 def test_n_ary_crossover():
@@ -123,7 +123,7 @@ def test_n_ary_crossover():
 
     i = ops.naive_cyclic_selection(pop)
 
-    new_pop = list(itertools.islice(ops.n_ary_crossover(num_points=1)(i), 2))
+    new_pop = list(itertools.islice(ops.NAryCrossover(num_points=1)(i), 2))
 
     # Given that there are only two genes, one [0,0] and the other [1,1] and a single crossover point, and that the
     # only two valid crossover points are 0 or 1, then there are two possible valid states for offspring with single
@@ -143,7 +143,7 @@ def test_n_ary_crossover_probability():
         pop = [Individual(np.array([0, 0])),
                Individual(np.array([1, 1]))]
         i = ops.naive_cyclic_selection(pop)
-        new_pop = list(itertools.islice(ops.n_ary_crossover(num_points=1, p=0.5)(i), 2))
+        new_pop = list(itertools.islice(ops.NAryCrossover(num_points=1, p_xover=0.5)(i), 2))
 
         if np.all(new_pop[0].genome == [0, 0]) and np.all(new_pop[1].genome == [1, 1]):
             unmodified_count += 1

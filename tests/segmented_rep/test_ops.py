@@ -5,7 +5,7 @@ import pytest
 from leap_ec.binary_rep.ops import genome_mutate_bitflip
 from leap_ec.int_rep.ops import genome_mutate_binomial, individual_mutate_randint
 from leap_ec.individual import Individual
-from leap_ec.ops import n_ary_crossover
+from leap_ec.ops import NAryCrossover
 from leap_ec.segmented_rep.ops import apply_mutation, remove_segment, \
     add_segment, copy_segment
 
@@ -156,7 +156,7 @@ def test_segmented_crossover():
     a = Individual([np.array([0, 0]), np.array([1, 1])])
     b = Individual([np.array([1, 1]), np.array([0, 0])])
 
-    result = n_ary_crossover()(iter([a, b]))
+    result = NAryCrossover()(iter([a, b]))
     c = next(result)
     d = next(result)
 
@@ -186,7 +186,7 @@ def test_segmented_crossover():
         a = Individual([np.array([0, 0]), np.array([1, 1])])
         b = Individual([[2, 2]])
 
-        result = n_ary_crossover(num_points=1)(iter([a, b]))
+        result = NAryCrossover(num_points=1)(iter([a, b]))
         c = next(result)
         d = next(result)
 

@@ -13,7 +13,7 @@ import random
 
 
 from leap_ec.representation import Representation
-from leap_ec.ops import tournament_selection, clone, evaluate, pool, uniform_crossover
+from leap_ec.ops import tournament_selection, clone, evaluate, pool, UniformCrossover
 from leap_ec.real_rep.initializers import create_real_vector
 from leap_ec.real_rep.ops import mutate_gaussian, apply_hard_bounds
 from leap_ec.probe import print_individual
@@ -39,7 +39,7 @@ def benchmark_nsga2(pop_size, algorithm, iteration, *_):
     pipeline = [
         tournament_selection,
         clone,
-        uniform_crossover(p_swap=0.2),
+        UniformCrossover(p_swap=0.2),
         mutate_gaussian(std=0.5, expected_num_mutations=1),
         evaluate,
         pool(size=pop_size)

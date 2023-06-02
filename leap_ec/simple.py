@@ -99,7 +99,7 @@ def ea_solve(function, bounds, generations=100, pop_size=cpu_count(),
         ops.tournament_selection,
         ops.clone,
         mutation_op,
-        ops.uniform_crossover(p_swap=0.2),
+        ops.UniformCrossover(p_swap=0.2),
         *eval_ops,
         bsf_probe
     ]
