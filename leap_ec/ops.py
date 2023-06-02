@@ -349,7 +349,7 @@ def clone(next_individual: Iterator) -> Iterator:
 
 
 ##############################
-# Function uniform_crossover
+# Crossover base class
 ##############################
 class Crossover(Operator):
     
@@ -404,6 +404,9 @@ class Crossover(Operator):
         return _call(next_individual)
 
 
+##############################
+# Uniform Crossover class
+##############################
 class UniformCrossover(Crossover):
     """Parameterized uniform crossover iterates through two parents' genomes
     and swaps each of their genes with the given probability.
@@ -488,6 +491,9 @@ class UniformCrossover(Crossover):
         return parent_a, parent_b
 
 
+##############################
+# N-Ary Crossover class
+##############################
 class NAryCrossover(Crossover):
     """ Do crossover between individuals between N crossover points.
 
