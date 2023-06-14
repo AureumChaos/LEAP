@@ -385,7 +385,7 @@ class CGPDecoder(Decoder):
 
         >>> op = decoder.check_constraints
         >>> next(op(population))
-        Individual(...)
+        Individual<...>(...)
 
         The next fails (genome1), however, because it violates the levels_back constraint:
 

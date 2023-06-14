@@ -25,8 +25,6 @@ class DistributedIndividual(RobustIndividual):
     def __init__(self, genome, decoder=None, problem=None):
         super().__init__(genome, decoder, problem)
 
-        self.uuid = uuid.uuid4()
-
         self.birth_id = next(DistributedIndividual.birth_id)
 
         # These are set in evaluate.evaluate(), so these are just to inform

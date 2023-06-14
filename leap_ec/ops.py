@@ -1085,11 +1085,11 @@ def migrate(topology, emigrant_selector,
     >>> context['leap']['generation'] = 0
     >>> context['leap']['current_subpopulation'] = 0
     >>> op(pop0)
-    [Individual(...), Individual(...), Individual(...), Individual(...)]
+    [Individual<...>(...), Individual<...>(...), Individual<...>(...), Individual<...>(...)]
 
     >>> context['leap']['current_subpopulation'] = 1
     >>> op(pop1)
-    [Individual(...), Individual(...), Individual(...), Individual(...)]
+    [Individual<...>(...), Individual<...>(...), Individual<...>(...), Individual<...>(...)]
 
     This operator is a stateful closure: it maintains an
     internal list of all the out-going "emigrations" that

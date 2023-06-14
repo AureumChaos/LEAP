@@ -103,18 +103,18 @@ def generational_ea(max_generations: int,
     The algorithm runs immediately and returns the final population:
 
     >>> print(*final_pop, sep='\\n') # doctest:+ELLIPSIS
-    [...] ...
-    [...] ...
-    [...] ...
+    Individual<...> ...
+    Individual<...> ...
+    Individual<...> ...
     ...
-    [...] ...
+    Individual<...> ...
 
     You can get the best individual by using `max` (since comparison on
     individuals is based on the `Problem` associated with them, this will
     return the best individaul even on minimization problems)):
 
     >>> max(final_pop)
-    Individual(...)
+    Individual<...>(...)
 
     """
     # Initialize a population of pop_size individuals of the same type as
@@ -234,7 +234,7 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
     ...                                            migration_gap=5)
     ...                            ])
     >>> pops # doctest:+ELLIPSIS
-    [[Individual(...), ..., Individual(...)], ..., [Individual(...), ..., Individual(...)]]
+    [[Individual<...>(...), ..., Individual<...>(...)], ..., [Individual<...>(...), ..., Individual<...>(...)]]
 
     We can now run the algorithm by pulling output from its generator,
     which gives us the best individual in each population at each generation:

@@ -29,4 +29,7 @@ def test_clone():
     assert original.decoder == cloned.decoder
     assert original.problem == cloned.problem
     # use this when comparing complex objects with arrays
-    np.testing.assert_equal(original.__dict__, cloned.__dict__)
+
+    assert original.uuid != cloned.uuid
+    assert original.children[0] == cloned.uuid
+    assert original.uuid == cloned.parents[0]

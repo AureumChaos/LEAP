@@ -1314,7 +1314,7 @@ def best_of_gen(population):
 
     >>> from leap_ec.data import test_population
     >>> print(best_of_gen(test_population))
-    [0 1 1 1 1] 4
+    Individual<...> with fitness 4
     """
     assert (len(population) > 0)
     return max(population)
