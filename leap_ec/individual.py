@@ -6,8 +6,6 @@ from math import nan
 from copy import copy, deepcopy
 from functools import total_ordering
 import uuid
-from hashlib import sha1
-import numpy as np
 
 from leap_ec.decoder import IdentityDecoder
 
@@ -142,8 +140,8 @@ class Individual:
 
         cloned.uuid = uuid.uuid4()
         cloned.parents = [self.uuid]
-
         self.children.append(cloned.uuid)
+        
         return cloned
 
     def decode(self, *args, **kwargs):
