@@ -670,14 +670,15 @@ class PopulationMetricsPlotProbe:
             self.ax.plot([], [])
 
     def _rescale_ax(self):
-        if np.min(self.x) < self.left:
-            self.ax.set_xlim(left=np.min(self.x))
-        if np.max(self.x) > self.right:
-            self.ax.set_xlim(right=np.max(self.x))
-        if np.min(self.y) < self.bottom:
-            self.ax.set_ylim(bottom=np.min(self.y))
-        if np.max(self.y) > self.top:
-            self.ax.set_ylim(top=np.max(self.y))
+        l = min(self.left, np.min(self.x))
+        r = max(self.right, np.max(self.x))
+
+        b = min(self.bottom, np.min(self.y))
+        t = max(self.top, np.max(self.y))
+
+        self.ax.relim()
+        self.ax.update_datalim(((l, b), (r, t)))
+        self.ax.autoscale()
 
 
 ##############################
