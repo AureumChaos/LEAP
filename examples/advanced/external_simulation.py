@@ -107,7 +107,7 @@ for phenome_str in sys.stdin:
                     pipeline=[
                         ops.tournament_selection(k=2),
                         ops.clone,  # Copying individuals before we change them, just to be safe
-                        mutate_gaussian(std=0.2, hard_bounds=[problem.bounds]*num_genes,
+                        mutate_gaussian(std=0.2, bounds=[problem.bounds]*num_genes,
                                         expected_num_mutations=1),
                         ops.pool(size=pop_size),
                         # Here again, we use grouped_evaluate to send chunks of individuals to the ExternalProcessProblem.

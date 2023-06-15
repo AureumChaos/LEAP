@@ -88,7 +88,7 @@ def ea_solve(function, bounds, generations=100, pop_size=cpu_count(),
     ########## Operators ##########
     # Isotropic Gaussian mutation operator
     if hard_bounds:
-        mutation_op = mutate_gaussian(std=mutation_std, hard_bounds=bounds,
+        mutation_op = mutate_gaussian(std=mutation_std, bounds=bounds,
                                       expected_num_mutations='isotropic')
     else:
         mutation_op = mutate_gaussian(std=mutation_std,

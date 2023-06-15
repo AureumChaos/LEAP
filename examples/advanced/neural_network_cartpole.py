@@ -105,7 +105,7 @@ if __name__ == '__main__':
                         pipeline=[
                             ops.tournament_selection,
                             ops.clone,
-                            mutate_gaussian(std=mutate_std, hard_bounds=(-1, 1), expected_num_mutations=1),
+                            mutate_gaussian(std=mutate_std, bounds=(-1, 1), expected_num_mutations=1),
                             ops.evaluate,
                             ops.pool(size=pop_size),
                             *build_probes(genomes_file)  # Inserting all the probes at the end

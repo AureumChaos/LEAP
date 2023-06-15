@@ -131,7 +131,7 @@ if __name__ == '__main__':
                                      mutate_gaussian(
                                          std=30,
                                          expected_num_mutations=1,
-                                         hard_bounds=problem.bounds),
+                                         bounds=problem.bounds),
                                      ops.evaluate,
                                      ops.pool(size=pop_size),
                                      ops.migrate(topology=topology,
