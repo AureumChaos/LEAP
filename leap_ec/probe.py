@@ -618,7 +618,7 @@ class PopulationMetricsPlotProbe:
 
     def __init__(self, ax=None,
                  metrics=None,
-                 xlim=(0, 100), ylim=(0, 1), modulo=1,
+                 xlim=None, ylim=None, modulo=1,
                  title='Population Metrics',
                  x_axis_value=None, context=context):
         """
@@ -647,11 +647,9 @@ class PopulationMetricsPlotProbe:
         self.context = context
 
         # Set axis limits, and some variables we'll use for real-time scaling
-        ax.set_ylim(ylim)
-        ax.set_xlim(xlim)
+        self.xlim = xlim
+        self.ylim = ylim
         self.ax = ax
-        self.left, self.right = xlim
-        self.bottom, self.top = ylim
         plt.title(title)
 
         self.reset()
@@ -683,11 +681,17 @@ class PopulationMetricsPlotProbe:
             self.ax.plot([], [])
 
     def _rescale_ax(self):
-        l = min(self.left, np.min(self.x))
-        r = max(self.right, np.max(self.x))
+        l = np.min(self.x)
+        r = np.max(self.x)
+        if self.xlim is not None:
+            l = min(self.xlim[0], l)
+            r = max(self.xlim[1], r)
 
-        b = min(self.bottom, np.min(self.y))
-        t = max(self.top, np.max(self.y))
+        b = np.min(self.y)
+        t = np.max(self.y)
+        if self.ylim is not None:
+            b = min(self.ylim[0], b)
+            t = max(self.ylim[1], t)
 
         self.ax.relim()
         self.ax.update_datalim(((l, b), (r, t)))
@@ -875,7 +879,7 @@ class FitnessPlotProbe(PopulationMetricsPlotProbe):
     magic for Jupyter Notebook (as opposed to `%matplotlib inline`,
     which only allows static plots).
     """
-    def __init__(self, ax=None, xlim=(0, 100), ylim=(0, 1), modulo=1, title='Best-of-Generation Fitness',  x_axis_value=None, context=context):
+    def __init__(self, ax=None, xlim=None, ylim=None, modulo=1, title='Best-of-Generation Fitness',  x_axis_value=None, context=context):
         super().__init__(ax=ax,
                  metrics=[ lambda pop: best_of_gen(pop).fitness ],
                  xlim=xlim, ylim=ylim, modulo=modulo, title=title,
