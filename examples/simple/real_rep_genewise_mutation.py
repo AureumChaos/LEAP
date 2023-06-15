@@ -52,7 +52,7 @@ if __name__ == '__main__':
                                  ops.tournament_selection(k=2),
                                  ops.clone,
                                  # We pass two different std values to Gaussian mutation
-                                 mutate_gaussian(std=[1.5, 0.5], hard_bounds=bounds,
+                                 mutate_gaussian(std=[1.5, 0.5], bounds=bounds,
                                                  expected_num_mutations=1),
                                  ops.evaluate,
                                  ops.pool(size=pop_size),

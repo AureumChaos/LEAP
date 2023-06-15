@@ -52,7 +52,7 @@ if __name__ == '__main__':
                         ops.clone,
 
                         # Apply Gaussian mutation
-                        mutate_gaussian(std=1.5, hard_bounds=[problem.bounds]*l,
+                        mutate_gaussian(std=1.5, bounds=[problem.bounds]*l,
                                         expected_num_mutations=1),
                         ops.evaluate,
                         ops.pool(size=pop_size),

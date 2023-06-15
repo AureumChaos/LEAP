@@ -20,7 +20,7 @@ from leap_ec.ops import compute_expected_probability, iteriter_op, random_bernou
 def mutate_gaussian(next_individual: Iterator,
                     std,
                     expected_num_mutations: Union[int, str] = None,
-                    hard_bounds=(-math.inf, math.inf),
+                    bounds=(-math.inf, math.inf),
                     transform_slope: float = 1.0,
                     transform_intercept: float = 0.0) -> Iterator:
     """Mutate and return an Individual with a real-valued representation.
@@ -34,15 +34,15 @@ def mutate_gaussian(next_individual: Iterator,
 
     Mutation can either use the same parameters for all genes:
 
-    >>> op = mutate_gaussian(std=1.0, expected_num_mutations='isotropic', hard_bounds=(-5, 5))
+    >>> op = mutate_gaussian(std=1.0, expected_num_mutations='isotropic', bounds=(-5, 5))
     >>> mutated = next(op(pop))
 
-    Or we can specify the `std` and `hard_bounds` independently for each gene:
+    Or we can specify the `std` and `bounds` independently for each gene:
 
     >>> pop = iter([Individual(np.array([1.0, 0.0]))])
     >>> op = mutate_gaussian(std=[0.5, 1.0],
     ...                      expected_num_mutations='isotropic',
-    ...                      hard_bounds=[(-1, 1), (-10, 10)]
+    ...                      bounds=[(-1, 1), (-10, 10)]
     ... )
     >>> mutated = next(op(pop))
 
@@ -51,7 +51,7 @@ def mutate_gaussian(next_individual: Iterator,
         this can be a scalar value or a "shadow vector" of standard deviations
     :param expected_num_mutations: if an int, the *expected* number of mutations per
         individual, on average.  If 'isotropic', all genes will be mutated.
-    :param hard_bounds: to clip for mutations; defaults to (- ∞, ∞)
+    :param bounds: to clip for mutations; defaults to (- ∞, ∞)
     :return: a generator of mutated individuals.
     """
     if expected_num_mutations is None:
@@ -59,7 +59,7 @@ def mutate_gaussian(next_individual: Iterator,
     
     genome_mutator = genome_mutate_gaussian(std=std,
                                 expected_num_mutations=expected_num_mutations,
-                                hard_bounds=hard_bounds,
+                                bounds=bounds,
                                 transform_slope=transform_slope,
                                 transform_intercept=transform_intercept)
 
@@ -80,7 +80,7 @@ def mutate_gaussian(next_individual: Iterator,
 def genome_mutate_gaussian(genome,
                            std: float,
                            expected_num_mutations,
-                           hard_bounds: Tuple[float, float] =
+                           bounds: Tuple[float, float] =
                              (-math.inf, math.inf),
                            transform_slope: float = 1.0,
                            transform_intercept: float = 0.0):
@@ -134,7 +134,7 @@ def genome_mutate_gaussian(genome,
     genome[indices_to_mutate] = new_gene_values
 
     # Implement hard bounds
-    genome = apply_hard_bounds(genome, hard_bounds)
+    genome = apply_hard_bounds(genome, bounds)
 
     return genome
 
