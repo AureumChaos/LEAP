@@ -1,3 +1,6 @@
+0.9
+    Lucas McCombs for improvements to crossover operators, parent/offspring tracking, plotting, and more.
+
 0.8
     Lucas McCombs for fix in MultiObjectiveProblem.__init__() for per-objective maximize flags
     Gabriel Rudloff for performance enhancements to mutation operators via the ops.random_bernoulli_vector() function

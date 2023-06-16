@@ -9,7 +9,6 @@
     * birth ID, a unique birth number; first individual has ID 0, the last N-1.
 """
 import itertools
-import uuid
 
 from leap_ec.individual import RobustIndividual
 
