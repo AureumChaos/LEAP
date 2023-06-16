@@ -6,6 +6,9 @@ Being a terse compilation by version of changes.
 
  * API changes
    * `CGPDecoder` now has an `initialize()` method for convenience, offering a default genome initializer
+   * Replaced `n_ary_crossover` and `uniform_crossover` functions with classes `NAryCrossover` and `UniformCrossover`
+   * Crossover operators now offer a `persist_children` flag, which allows offspring pairs
+   to be used with steady-state algorithms
 
 ## 0.8.0, 4/14/2023
 
