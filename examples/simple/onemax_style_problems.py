@@ -51,11 +51,12 @@ if __name__ == '__main__':
             ax=plt.gca())
 
     plt.subplot(132)
-    p2 = probe.FitnessPlotProbe(ax=plt.gca())
+    p2 = probe.FitnessPlotProbe(ax=plt.gca(), xlim=(0, generations))
 
     plt.subplot(133)
     p3 = probe.PopulationMetricsPlotProbe(
             metrics=[ probe.pairwise_squared_distance_metric ],
+            xlim=(0, generations),
             title='Population Diversity',
             ax=plt.gca())
 
