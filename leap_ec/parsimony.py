@@ -27,12 +27,12 @@ def lexical_parsimony(ind):
     ...        Individual(np.array([1, 1]), problem=problem),
     ...        Individual(np.array([1, 1, 1]), problem=problem)]
     >>> pop = Individual.evaluate_population(pop)
-    >>> best = ops.truncation_selection(pop, size=1)
-    >>> print(f'{best[0]!s}')
+    >>> best, = ops.truncation_selection(pop, size=1)
+    >>> print(best.genome, best.fitness)
     [0 0 0 1 1 1] 3
 
-    >>> best = ops.truncation_selection(pop, size=1, key=lexical_parsimony)
-    >>> print(f'{best[0]!s}')
+    >>> best, = ops.truncation_selection(pop, size=1, key=lexical_parsimony)
+    >>> print(best.genome, best.fitness)
     [1 1 1] 3
 
     .. [Luke2002]
@@ -68,12 +68,12 @@ def koza_parsimony(ind, *, penalty):
     ...        Individual(np.array([1, 1]), problem=problem),
     ...        Individual(np.array([1, 1, 1]), problem=problem)]
     >>> pop = Individual.evaluate_population(pop)
-    >>> best = ops.truncation_selection(pop, size=1)
-    >>> print(f'{best[0]!s}')
+    >>> best, = ops.truncation_selection(pop, size=1)
+    >>> print(best.genome, best.fitness)
     [0 0 0 1 1 1] 3
 
-    >>> best = ops.truncation_selection(pop, size=1, key=koza_parsimony(penalty=.5))
-    >>> print(f'{best[0]!s}')
+    >>> best, = ops.truncation_selection(pop, size=1, key=koza_parsimony(penalty=.5))
+    >>> print(best.genome, best.fitness)
     [1 1 1] 3
 
     .. [Koza1992]
