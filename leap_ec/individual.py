@@ -3,10 +3,9 @@
     Defines `Individual`
 """
 from math import nan
-from copy import deepcopy
+from copy import copy, deepcopy
 from functools import total_ordering
-
-import numpy as np
+import uuid
 
 from leap_ec.decoder import IdentityDecoder
 
@@ -25,7 +24,7 @@ class Individual:
         converted into phenomes for fitness evaluation.
     """
 
-    def __init__(self, genome, decoder=IdentityDecoder(), problem=None):
+    def __init__(self, genome, decoder=IdentityDecoder(), problem=None, parent_id=None, child_number=None):
         """
         Initialize an `Individual` with a given genome.
 
@@ -69,6 +68,10 @@ class Individual:
         self.decoder = decoder
         self.fitness = None
         self._phenome = None
+        
+        self.uuid = uuid.uuid4()
+        self.parents = []
+        self.children = []
 
     @property
     def phenome(self):
@@ -131,9 +134,14 @@ class Individual:
         >>> ind_copy.decoder == ind.decoder
         True
         """
-        new_genome = deepcopy(self.genome)
-        cloned = type(self)(new_genome, self.decoder, self.problem)
+        cloned = copy(self)
+        cloned.genome = deepcopy(self.genome)
         cloned.fitness = None
+
+        cloned.uuid = uuid.uuid4()
+        cloned.parents = [self.uuid]
+        self.children.append(cloned.uuid)
+        
         return cloned
 
     def decode(self, *args, **kwargs):
@@ -239,10 +247,10 @@ class Individual:
         return self.problem.worse_than(self.fitness, other.fitness)
 
     def __str__(self):
-        return f'{self.genome!s} {self.fitness!s}'
+        return f'{type(self).__name__}<{self.uuid}> with fitness {self.fitness!s}'
 
     def __repr__(self):
-        return f"{type(self).__name__}({self.genome.__repr__()}, " \
+        return f"{type(self).__name__}<{self.uuid}>({self.genome.__repr__()}, " \
                f"{self.decoder.__repr__()}, {self.problem.__repr__()})"
 
 

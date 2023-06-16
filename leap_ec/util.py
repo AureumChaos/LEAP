@@ -271,13 +271,13 @@ def print_list(l):
     >>> l = [Individual(np.array([0, 1, 2])),
     ...      Individual(np.array([3, 4, 5]))]
     >>> print_list(l)
-    [[0 1 2] None, [3 4 5] None]
+    [Individual<...> ..., Individual<...> ...]
 
     As opposed to the standard printing mechanism, which calls __repr__() on
     the elements to produce
 
     >>> print(l)
-    [Individual(array([0, 1, 2]), IdentityDecoder(), None), Individual(array([3, 4, 5]), IdentityDecoder(), None)]
+    [Individual<...>(...), Individual<...>(...)]
 
     :param l:
     :return:
