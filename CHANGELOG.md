@@ -9,6 +9,7 @@ Being a terse compilation by version of changes.
    * Replaced `n_ary_crossover` and `uniform_crossover` functions with classes `NAryCrossover` and `UniformCrossover`
    * Crossover operators now offer a `persist_children` flag, which allows offspring pairs
    to be used with steady-state algorithms
+   * All `Individual` classes now have a `uuid` field, and also now track parent & offspring UUIDs
 
 ## 0.8.0, 4/14/2023
 
