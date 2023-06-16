@@ -30,7 +30,7 @@ final_pop = generational_ea(max_generations=10, pop_size=pop_size,
                                     # Basic mutation with a 1/L mutation rate
                                     mutate_bitflip(expected_num_mutations=1),
                                     # Crossover with a 40% chance of swapping each gene
-                                    ops.uniform_crossover(p_swap=0.4),
+                                    ops.UniformCrossover(p_swap=0.4),
                                     ops.evaluate,  # Evaluate fitness
                                     # Collect offspring into a new population
                                     ops.pool(size=pop_size),

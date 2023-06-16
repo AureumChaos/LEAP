@@ -349,12 +349,65 @@ def clone(next_individual: Iterator) -> Iterator:
 
 
 ##############################
-# Function uniform_crossover
+# Crossover base class
 ##############################
-@curry
-@iteriter_op
-def uniform_crossover(next_individual: Iterator,
-                      p_swap: float = 0.2, p_xover: float = 1.0) -> Iterator:
+class Crossover(Operator):
+    
+    def __init__(self, persist_children, p_xover):
+        self.persist_children = persist_children
+        self.second_child = None
+        self.p_xover = p_xover
+    
+    @abc.abstractmethod
+    def recombine(self, parent_a, parent_b):
+        """
+        Perform recombination between two parents to produce two new individuals.
+        """
+        raise NotImplementedError
+
+    def __call__(self, next_individual):
+        """ Performs successive in-pipeline recombinations.
+
+        :param next_individual: where we get the next individual
+        :return: two recombined individuals (with probability p_xover), or two
+            unmodified individuals (with probability 1 - p_xover)
+        """
+        # There has to be an inner function so we can properly use @iteriter_op
+        @iteriter_op
+        def _call(next_individual):
+            if self.persist_children and self.second_child is not None:
+                # Return a child left from another run
+                # Swap with None has to happen before the yield to be certain its executed
+                ret_child, self.second_child = self.second_child, None
+                yield ret_child
+            
+            while True:
+                parent_a = next(next_individual)
+                parent_b = next(next_individual)
+
+                if np.random.uniform() > self.p_xover:
+                    first_child, self.second_child = parent_a, parent_b
+                else:
+                    first_child, self.second_child = self.recombine(parent_a, parent_b)
+                    first_child.fitness = self.second_child.fitness = None
+                
+                # Generators only execute code if necessary, so children will only be generated
+                # if the first child needs to be yielded. That's why it doesn't need to be stored
+                # in the class as well.
+                yield first_child
+                
+                # Remove the second child from the class and yield it if the generator does
+                # get requested for it
+                ret_child, self.second_child = self.second_child, None
+                yield ret_child
+        
+        return _call(next_individual)
+
+
+##############################
+# Uniform Crossover class
+##############################
+class UniformCrossover(Crossover):
     """Parameterized uniform crossover iterates through two parents' genomes
     and swaps each of their genes with the given probability.
 
@@ -366,85 +419,82 @@ def uniform_crossover(next_individual: Iterator,
         *Proceedings of the 4th international conference on genetic algorithms.* Morgan Kaufmann Publishers, 1991.
 
     >>> from leap_ec.individual import Individual
-    >>> from leap_ec.ops import uniform_crossover
+    >>> from leap_ec.ops import UniformCrossover, naive_cyclic_selection
     >>> import numpy as np
 
     >>> genome1 = np.array([0, 0])
     >>> genome2 = np.array([1, 1])
     >>> first = Individual(genome1)
     >>> second = Individual(genome2)
-    >>> i = iter([first, second])
-    >>> result = uniform_crossover(i)
-
+    >>> pop = [first, second]
+    >>> select = naive_cyclic_selection(pop)
+    >>> op = UniformCrossover()
+    >>> result = op(select)
     >>> new_first = next(result)
     >>> new_second = next(result)
 
     The probability can be tuned via the `p_swap` parameter:
+    >>> op = UniformCrossover(p_swap=0.1)
+    >>> result = op(select)
+    
+    If `persist_children` is True and there is a child that was made by crossover but isn't
+    used in the first call, it will be yielded in a future call.
+    
+    >>> op = UniformCrossover(p_xover=0.0, persist_children=True)
+    >>>
+    >>> next(op(select)) is first  # Create an iterator loop with op(select) and consume 1 individual
+    True
+    >>> next(op(select)) is second # Create a different iterator loop with op(select)
+    True
 
-    >>> result = uniform_crossover(i, p_swap=0.1)
+    With `persist_children` set to False, the second child will not be yielded if the iterator
+    is consumed an odd number of times. Instead, on the next call the loop is started anew.
 
-    :param next_individual: where we get the next individual
+    >>> op = UniformCrossover(p_xover=0.0, persist_children=False)
+    >>>
+    >>> next(op(select)) is first  # Create an iterator loop with op(select) and consume 1 individual
+    True
+    >>> next(op(select)) is second # Create a different iterator loop with op(select)
+    False
+
     :param p_swap: how likely are we to swap each pair of genes when crossover
         is performed
     :param float p_xover: the probability that crossover is performed in the
         first place
-    :return: two recombined individuals (with probability p_xover), or two
-        unmodified individuals (with probability 1 - p_xover)
+    :param bool persist_children: whether unyielded children should persist between calls.
+        This is useful for `leap_ec.distrib.asynchronous.steady_state`, where the pipeline
+        may only produce one individual at a time.
+    :return: a pipeline operator that returns two recombined individuals (with probability
+        p_xover), or two unmodified individuals (with probability 1 - p_xover)
     """
 
-    def _uniform_crossover(ind1, ind2, p_swap):
-        """ Recombination operator that can potentially swap any matching pair of
-        genes between two individuals with some probability.
-
-        It is assumed that ind1.genome and ind2.genome are lists of things.
-
-        :param ind1: The first individual
-        :param ind2: The second individual
-        :param p_swap: how likely are we to swap each pair of genes when crossover
-            is performed
-
-        :return: a copy of both individuals with individual.genome bits
-                 swapped based on probability
+    def __init__(self, p_swap: float=0.2, p_xover: float=1.0, persist_children=False):
+        super().__init__(p_xover=p_xover, persist_children=persist_children)
+        self.p_swap = p_swap
+    
+    def recombine(self, parent_a, parent_b):
         """
-        assert(isinstance(ind1.genome, np.ndarray))
-        assert(isinstance(ind2.genome, np.ndarray))
+        Perform recombination between two parents to produce two new individuals.
+        """
+        assert(isinstance(parent_a.genome, np.ndarray))
+        assert(isinstance(parent_b.genome, np.ndarray))
 
         # generate which indices we should swap
-        min_length = min(ind1.genome.shape[0], ind2.genome.shape[0])
-        indices_to_swap = random_bernoulli_vector(min_length, p_swap)
+        min_length = min(parent_a.genome.shape[0], parent_b.genome.shape[0])
+        indices_to_swap = random_bernoulli_vector(min_length, self.p_swap)
 
         # perform swap
-        tmp = ind1.genome[indices_to_swap]
-        ind1.genome[indices_to_swap] = ind2.genome[indices_to_swap]
-        ind2.genome[indices_to_swap] = tmp
+        tmp = parent_a.genome[indices_to_swap]
+        parent_a.genome[indices_to_swap] = parent_b.genome[indices_to_swap]
+        parent_b.genome[indices_to_swap] = tmp
 
-        return ind1, ind2
-
-    while True:
-        parent1 = next(next_individual)
-        parent2 = next(next_individual)
-        # Return the parents unmodified if we're not performing crossover
-        if np.random.uniform() > p_xover:
-            yield parent1
-            yield parent2
-        else:  # Else do crossover
-            child1, child2 = _uniform_crossover(parent1, parent2, p_swap)
-
-            # Invalidate fitness since the genomes have changed
-            child1.fitness = child2.fitness = None
-
-            yield child1
-            yield child2
+        return parent_a, parent_b
 
 
 ##############################
-# Function n_ary_crossover
+# N-Ary Crossover class
 ##############################
-@curry
-@iteriter_op
-def n_ary_crossover(next_individual: Iterator,
-                    num_points: int = 2,
-                    p=1.0) -> Iterator:
+class NAryCrossover(Crossover):
     """ Do crossover between individuals between N crossover points.
 
     1 < n < genome length - 1
@@ -452,47 +502,78 @@ def n_ary_crossover(next_individual: Iterator,
     We also assume that the passed in individuals are *clones* of parents.
 
     >>> from leap_ec.individual import Individual
-    >>> from leap_ec.ops import n_ary_crossover
+    >>> from leap_ec.ops import NAryCrossover
     >>> import numpy as np
 
     >>> genome1 = np.array([0, 0])
     >>> genome2 = np.array([1, 1])
     >>> first = Individual(genome1)
     >>> second = Individual(genome2)
-    >>> i = iter([first, second])
-    >>> result = n_ary_crossover(i)
+    >>> pop = [first, second]
+    >>> select = naive_cyclic_selection(pop)
+    
+    >>> op = NAryCrossover()
+    >>> result = op(select)
 
     >>> new_first = next(result)
     >>> new_second = next(result)
+    
+    
+    If `persist_children` is True and there is a child that was made by crossover but isn't
+    used in the first call, it will be yielded in a future call.
+    
+    >>> op = NAryCrossover(p_xover=0.0, persist_children=True)
+    >>>
+    >>> next(op(select)) is first  # Create an iterator loop with op(select) and consume 1 individual
+    True
+    >>> next(op(select)) is second # Create a different iterator loop with op(select)
+    True
 
-    :param next_individual: where we get the next individual from the pipeline
+    With `persist_children` set to False, the second child will not be yielded if the iterator
+    is consumed an odd number of times. Instead, on the next call the loop is started anew.
+
+    >>> op = NAryCrossover(p_xover=0.0, persist_children=False)
+    >>>
+    >>> next(op(select)) is first  # Create an iterator loop with op(select) and consume 1 individual
+    True
+    >>> next(op(select)) is second # Create a different iterator loop with op(select)
+    False
+
     :param num_points: how many crossing points do we use?  Defaults to 2, since
         2-point crossover has been shown to be the least disruptive choice for
         this value.
     :param p: the probability that crossover is performed.
-    :return: two recombined
+    :param bool persist_children: whether unyielded children should persist between calls.
+        This is useful for `leap_ec.distrib.asynchronous.steady_state`, where the pipeline
+        may only produce one individual at a time.
+    :return: a pipeline operator that returns two recombined individuals (with probability
+        p), or two unmodified individuals (with probability 1 - p)
     """
 
-    def _pick_crossover_points(num_points, genome_size):
+    def __init__(self, num_points=2, p_xover=1.0, persist_children=False):
+        super().__init__(p_xover=p_xover, persist_children=persist_children)
+        self.num_points = num_points
+
+    def _pick_crossover_points(self, genome_size):
         """
         Randomly choose (without replacement) crossover points.
         """
         # See De Jong, EC, pg 145
         pp = np.arange(genome_size, dtype=int)
 
-        xpts = np.random.choice(pp, size=(num_points,), replace=False)
+        xpts = np.random.choice(pp, size=(self.num_points,), replace=False)
         xpts.sort()
         xpts = [0] + list(xpts) + [genome_size]  # Add start and end
 
         return xpts
 
-    def _n_ary_crossover(child1, child2, num_points):
-        if len(child1.genome) < num_points or \
-                len(child2.genome) < num_points:
+    def recombine(self, parent_a, parent_b):
+        if len(parent_a.genome) < self.num_points or \
+                len(parent_b.genome) < self.num_points:
             raise RuntimeError(
                 'Invalid number of crossover points for n_ary_crossover')
 
-        children = [child1, child2]
+        children = [parent_a, parent_b]
         # store each section of the genome to concatenate later
         genome1_sections = []
         genome2_sections = []
@@ -500,7 +581,7 @@ def n_ary_crossover(next_individual: Iterator,
         src1, src2 = 0, 1
 
         # Pick crossover points
-        xpts = _pick_crossover_points(num_points, len(child1.genome))
+        xpts = self._pick_crossover_points(len(parent_a.genome))
 
         for start, stop in toolz.itertoolz.sliding_window(2, xpts):
             genome1_sections.append(children[src1].genome[start:stop])
@@ -511,29 +592,16 @@ def n_ary_crossover(next_individual: Iterator,
 
         # allows for crossover in both simple representations
         # and segmented representations, respectively
-        if isinstance(child1.genome, np.ndarray):
-            child1.genome = np.concatenate(genome1_sections)
-            child2.genome = np.concatenate(genome2_sections)
+        if isinstance(parent_a.genome, np.ndarray):
+            parent_a.genome = np.concatenate(genome1_sections)
+            parent_b.genome = np.concatenate(genome2_sections)
         else:
-            child1.genome = list(
+            parent_a.genome = list(
                 itertools.chain.from_iterable(genome1_sections))
-            child2.genome = list(
+            parent_b.genome = list(
                 itertools.chain.from_iterable(genome2_sections))
 
-        return child1, child2
-
-    while True:
-        parent1 = next(next_individual)
-        parent2 = next(next_individual)
-
-        # Return the parents unmodified if we're not performing crossover
-        if np.random.uniform() > p:
-            yield parent1
-            yield parent2
-        else:  # Else cross them over
-            child1, child2 = _n_ary_crossover(parent1, parent2, num_points)
-            yield child1
-            yield child2
+        return parent_a, parent_b
 
 
 ##############################
