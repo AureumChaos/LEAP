@@ -10,18 +10,18 @@ import random
 from itertools import chain
 
 import toolz
-from toolz import curry
 from math import inf
 
 import numpy as np
 
 from leap_ec.ops import compute_expected_probability, listlist_op, iteriter_op
+from leap_ec.util import wrap_curry
 from .problems import MultiObjectiveProblem
 
 ##############################
 # sort_by_dominance operator
 ##############################
-@curry
+@wrap_curry
 @listlist_op
 def sort_by_dominance(population: list) -> list:
     """ Sort population by rank and distance
@@ -38,7 +38,7 @@ def sort_by_dominance(population: list) -> list:
 ##############################
 # fast_nondominated_sort operator
 ##############################
-@curry
+@wrap_curry
 @listlist_op
 def fast_nondominated_sort(population: list, parents: list = None) -> list:
     """ This implements the NSGA-II fast-non-dominated-sort()
@@ -109,7 +109,7 @@ def fast_nondominated_sort(population: list, parents: list = None) -> list:
 ##############################
 # rank_ordinal_sort operator
 ##############################
-@curry
+@wrap_curry
 @listlist_op
 def rank_ordinal_sort(population: list, parents: list = None) -> list:
     """ This implements Rank Ordinal Sort from Rank-based Non-dominated Sorting
@@ -241,7 +241,7 @@ def per_rank_crowding_calc(ranked_population: list, is_maximizing) -> list:
 
     return sorted_pop
 
-@curry
+@wrap_curry
 @listlist_op
 def crowding_distance_calc(population: list) -> list:
     """ This implements the NSGA-II crowding-distance-assignment()

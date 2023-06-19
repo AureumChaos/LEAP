@@ -4,17 +4,17 @@
 """
 from typing import Iterator, Callable
 import random
-from toolz import curry
 
 import numpy as np
 
+from leap_ec.util import wrap_curry
 from leap_ec.ops import compute_expected_probability, iteriter_op
 
 
 ##############################
 # Function apply_mutation
 ##############################
-@curry
+@wrap_curry
 @iteriter_op
 def apply_mutation(next_individual: Iterator,
                    mutator: Callable[[list, float], list],
@@ -65,7 +65,7 @@ def apply_mutation(next_individual: Iterator,
 ##############################
 # Function segmented_mutation()
 ##############################
-@curry
+@wrap_curry
 @iteriter_op
 def segmented_mutate(next_individual: Iterator, mutator_functions: list):
     """
@@ -91,7 +91,7 @@ def segmented_mutate(next_individual: Iterator, mutator_functions: list):
 ##############################
 # add_segment
 ##############################
-@curry
+@wrap_curry
 @iteriter_op
 def add_segment(next_individual: Iterator,
                 seq_initializer: Callable,
@@ -142,7 +142,7 @@ def add_segment(next_individual: Iterator,
 ##############################
 # remove_segment
 ##############################
-@curry
+@wrap_curry
 @iteriter_op
 def remove_segment(next_individual: Iterator,
                    probability: float) -> Iterator:
@@ -180,7 +180,7 @@ def remove_segment(next_individual: Iterator,
 ##############################
 # copy_segment
 ##############################
-@curry
+@wrap_curry
 @iteriter_op
 def copy_segment(next_individual: Iterator,
                  probability: float,

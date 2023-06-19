@@ -8,7 +8,6 @@ import sys
 
 from matplotlib import pyplot as plt
 import networkx as nx
-from toolz import curry
 
 from leap_ec import Individual, Representation, context, test_env_var
 from leap_ec import ops, probe
