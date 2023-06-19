@@ -5,14 +5,14 @@
 import time
 import platform
 import os
-from toolz import curry
 
 import distributed
 
+from leap_ec.util import wrap_curry
 from leap_ec.global_vars import context
 
 
-@curry
+@wrap_curry
 def evaluate(individual, context=context):
     """ concurrently evaluate the given individual
 

@@ -4,8 +4,8 @@ import random
 from typing import Iterator
 
 import numpy as np
-from toolz import curry
 
+from leap_ec.util import wrap_curry
 from leap_ec.ops import compute_expected_probability, iteriter_op, random_bernoulli_vector
 from leap_ec.real_rep.ops import apply_hard_bounds
 
@@ -13,7 +13,7 @@ from leap_ec.real_rep.ops import apply_hard_bounds
 ##############################
 # Function mutate_randint
 ##############################
-@curry
+@wrap_curry
 @iteriter_op
 def mutate_randint(next_individual: Iterator, bounds,
                    expected_num_mutations = None,
@@ -61,7 +61,7 @@ def mutate_randint(next_individual: Iterator, bounds,
 ##############################
 # Function individual_mutate_randint
 ##############################
-@curry
+@wrap_curry
 def individual_mutate_randint(genome,
                               bounds: list,
                               expected_num_mutations = None,
@@ -112,7 +112,7 @@ def individual_mutate_randint(genome,
 ##############################
 # Function mutate_binomial
 ##############################
-@curry
+@wrap_curry
 @iteriter_op
 def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
                     expected_num_mutations: float = None,
@@ -230,7 +230,7 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
 ##############################
 # Function genome_mutate_binomial
 ##############################
-@curry
+@wrap_curry
 def genome_mutate_binomial(std,
                         bounds: list,
                         expected_num_mutations: float = None,

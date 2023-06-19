@@ -22,7 +22,7 @@ from typing import Iterator, List, Union, Tuple
 
 import numpy as np
 import toolz
-from toolz import curry
+from leap_ec.util import wrap_curry
 
 from leap_ec import leap_logger_name
 from leap_ec.global_vars import context
@@ -233,7 +233,7 @@ def iterlist_op(f):
 ##############################
 # evaluate operator
 ##############################
-@curry
+@wrap_curry
 @iteriter_op
 def evaluate(next_individual: Iterator) -> Iterator:
     """ Evaluate and returns the next individual in the pipeline
@@ -267,7 +267,7 @@ def evaluate(next_individual: Iterator) -> Iterator:
 ##############################
 # evaluate operator
 ##############################
-@curry
+@wrap_curry
 @listlist_op
 def grouped_evaluate(population: list, max_individuals_per_chunk: int = None) -> list:
     """Evaluate the population by sending groups of multiple individuals to
@@ -302,7 +302,7 @@ def grouped_evaluate(population: list, max_individuals_per_chunk: int = None) ->
 ##############################
 # const_evaluate operator
 ##############################
-@curry
+@wrap_curry
 @listlist_op
 def const_evaluate(population: List, value) -> List:
     """An evaluator that assigns a constant fitness to every individual.
@@ -323,7 +323,7 @@ def const_evaluate(population: List, value) -> List:
 ##############################
 # clone operator
 ##############################
-@curry
+@wrap_curry
 @iteriter_op
 def clone(next_individual: Iterator) -> Iterator:
     """ clones and returns the next individual in the pipeline
@@ -607,7 +607,7 @@ class NAryCrossover(Crossover):
 ##############################
 # Function proportional_selection
 ##############################
-@curry
+@wrap_curry
 @listiter_op
 def proportional_selection(population: List, offset=0, exponent: int = 1,
                            key=lambda x: x.fitness) -> Iterator:
@@ -668,7 +668,7 @@ def proportional_selection(population: List, offset=0, exponent: int = 1,
 ##############################
 # Function sus_selection
 ##############################
-@curry
+@wrap_curry
 @listiter_op
 def sus_selection(population: List, n=None, shuffle: bool = True,
                   offset=0, exponent: int = 1,
@@ -767,7 +767,7 @@ def sus_selection(population: List, n=None, shuffle: bool = True,
 ##############################
 # Function truncation_selection
 ##############################
-@curry
+@wrap_curry
 @listlist_op
 def truncation_selection(offspring: List, size: int,
                          parents: List = None,
@@ -818,7 +818,7 @@ def truncation_selection(offspring: List, size: int,
 ##############################
 # Function elitist_survival
 ##############################
-@curry
+@wrap_curry
 @listlist_op
 def elitist_survival(offspring: List, parents: List, k: int = 1, key = None) -> List:
     """ This allows k best parents to compete with the offspring.
@@ -895,7 +895,7 @@ def elitist_survival(offspring: List, parents: List, k: int = 1, key = None) -> 
 ##############################
 # Function tournament_selection
 ##############################
-@curry
+@wrap_curry
 @listiter_op
 def tournament_selection(population: list, k: int = 2, key = None, select_worst: bool=False, indices = None) -> Iterator:
     """Returns an operator that selects the best individual from k individuals randomly selected from
@@ -948,7 +948,7 @@ def tournament_selection(population: list, k: int = 2, key = None, select_worst:
 ##############################
 # Function insertion_selection
 ##############################
-@curry
+@wrap_curry
 @listlist_op
 def insertion_selection(offspring: List, parents: List, key = None) -> List:
     """ do exclusive selection between offspring and parents
@@ -988,7 +988,7 @@ def insertion_selection(offspring: List, parents: List, key = None) -> List:
 ##############################
 # Function naive_cyclic_selection
 ##############################
-@curry
+@wrap_curry
 @listiter_op
 def naive_cyclic_selection(population: List, indices: List = None) -> Iterator:
     """ Deterministically returns individuals, and repeats the same test_sequence
@@ -1021,7 +1021,7 @@ def naive_cyclic_selection(population: List, indices: List = None) -> Iterator:
 ##############################
 # Function cyclic_selection
 ##############################
-@curry
+@wrap_curry
 @listiter_op
 def cyclic_selection(population: List) -> Iterator:
     """ Deterministically returns individuals in order, then shuffles the
@@ -1057,7 +1057,7 @@ def cyclic_selection(population: List) -> Iterator:
 ##############################
 # Function random_selection
 ##############################
-@curry
+@wrap_curry
 @listiter_op
 def random_selection(population: List, indices = None) -> Iterator:
     """ return a uniformly randomly selected individual from the population
@@ -1078,7 +1078,7 @@ def random_selection(population: List, indices = None) -> Iterator:
 ##############################
 # Function pool
 ##############################
-@curry
+@wrap_curry
 @iterlist_op
 def pool(next_individual: Iterator, size: int) -> List:
     """ 'Sink' for creating `size` individuals from preceding pipeline source.

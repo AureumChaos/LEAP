@@ -3,10 +3,10 @@
   This provides a synchronous fitness evaluation pipeline operator.
 """
 import logging
-from toolz import curry
 
 from leap_ec import leap_logger_name
 from leap_ec.global_vars import context
+from leap_ec.util import wrap_curry
 
 from .evaluate import evaluate
 from leap_ec import ops
@@ -24,7 +24,7 @@ logger = logging.getLogger(leap_logger_name)
 # logger.addHandler(console_handler)
 
 
-@curry
+@wrap_curry
 @ops.listlist_op
 def eval_population(population, client, context=context):
     """ Concurrently evaluate all the individuals in the given population
@@ -48,7 +48,7 @@ def eval_population(population, client, context=context):
     return evaluated_individuals
 
 
-@curry
+@wrap_curry
 @ops.iterlist_op
 def eval_pool(next_individual, client, size, context=context):
     """ concurrently evaluate `size` individuals

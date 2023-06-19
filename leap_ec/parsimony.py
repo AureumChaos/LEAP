@@ -7,7 +7,8 @@
     Provided are Koza-style parsimony pressure and lexicographic parsimony
     key functions.
 """
-from toolz import curry
+from leap_ec.util import wrap_curry
+
 
 def lexical_parsimony(ind):
     """ If two fitnesses are the same, break the tie with the smallest genome
@@ -52,7 +53,7 @@ def lexical_parsimony(ind):
         return (-ind.fitness, -len(ind.genome))
 
 
-@curry
+@wrap_curry
 def koza_parsimony(ind, *, penalty):
     """ Penalize fitness by genome length times a constant
 

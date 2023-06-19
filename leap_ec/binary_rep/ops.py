@@ -4,17 +4,17 @@
 """
 from random import random
 from typing import Iterator
-from toolz import curry
 
 import numpy as np
 
+from leap_ec.util import wrap_curry
 from leap_ec.ops import compute_expected_probability, iteriter_op, random_bernoulli_vector
 
 
 ##############################
 # Function mutate_bitflip
 ##############################
-@curry
+@wrap_curry
 @iteriter_op
 def mutate_bitflip(next_individual: Iterator,
                    expected_num_mutations: float = None,
@@ -59,7 +59,7 @@ def mutate_bitflip(next_individual: Iterator,
 ##############################
 # Function perform_mutate_bitflip
 ##############################
-@curry
+@wrap_curry
 def genome_mutate_bitflip(genome: np.ndarray,
                           expected_num_mutations: float = None,
                           probability: float = None) -> np.ndarray:
