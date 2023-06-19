@@ -24,7 +24,7 @@ class Individual:
         converted into phenomes for fitness evaluation.
     """
 
-    def __init__(self, genome, decoder=IdentityDecoder(), problem=None, parent_id=None, child_number=None):
+    def __init__(self, genome, decoder=IdentityDecoder(), problem=None):
         """
         Initialize an `Individual` with a given genome.
 
