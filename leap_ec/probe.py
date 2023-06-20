@@ -11,8 +11,8 @@ from typing import Dict, Iterator
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
-from toolz import curry
 
+from leap_ec.util import wrap_curry
 from leap_ec import Individual
 from leap_ec.global_vars import context
 from leap_ec import ops as op
@@ -23,7 +23,7 @@ from leap_ec.util import get_step
 ##############################
 # print_probe
 ##############################
-@curry
+@wrap_curry
 @listlist_op
 def print_probe(population, probe, stream=sys.stdout, prefix=''):
     """ pipeline operator for printing the given population
@@ -50,7 +50,7 @@ def print_probe(population, probe, stream=sys.stdout, prefix=''):
 ##############################
 # print_individual
 ##############################
-@curry
+@wrap_curry
 @iteriter_op
 def print_individual(next_individual: Iterator, prefix='',
                      stream=sys.stdout) -> Iterator:

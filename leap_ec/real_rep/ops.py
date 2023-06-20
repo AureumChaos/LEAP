@@ -8,15 +8,14 @@ from typing import Iterator, List, Tuple, Union
 
 import numpy as np
 
-from toolz import curry
-
+from leap_ec.util import wrap_curry
 from leap_ec.ops import compute_expected_probability, iteriter_op, random_bernoulli_vector
 
 
 ##############################
 # Function mutate_gaussian
 ##############################
-@curry
+@wrap_curry
 @iteriter_op
 def mutate_gaussian(next_individual: Iterator,
                     std,
@@ -77,7 +76,7 @@ def mutate_gaussian(next_individual: Iterator,
 ##############################
 # Function genome_mutate_gaussian
 ##############################
-@curry
+@wrap_curry
 def genome_mutate_gaussian(genome,
                            std: float,
                            expected_num_mutations,

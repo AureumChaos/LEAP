@@ -10,8 +10,20 @@
 import collections
 import itertools
 import inspect
+from functools import wraps
+from toolz import curry
 
 from leap_ec.global_vars import context
+
+
+###############################
+# Function wrap_curry
+###############################
+def wrap_curry(f):
+    """
+    Wraps and curries in conjunction, so the function signature remains.
+    """
+    return wraps(f)(curry(f))
 
 
 ###############################
