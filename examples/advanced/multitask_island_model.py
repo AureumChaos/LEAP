@@ -129,7 +129,7 @@ if __name__ == '__main__':
                              shared_pipeline=[
                                  ops.tournament_selection,
                                  ops.clone,
-                                 mutate_gaussian(std=0.03, expected_num_mutations=1, hard_bounds=bounds),
+                                 mutate_gaussian(std=0.03, expected_num_mutations=1, bounds=bounds),
                                  ops.evaluate,
                                  ops.pool(size=pop_size),
                                  ops.migrate(topology=topology,

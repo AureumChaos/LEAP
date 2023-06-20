@@ -142,7 +142,7 @@ if __name__ == '__main__':
                             cgp.cgp_genome_mutate(decoder, expected_num_mutations=1),
                             genome_mutate_gaussian(std=params_mutate_std,
                                                 expected_num_mutations=1,
-                                                hard_bounds=(0, 255))
+                                                bounds=(0, 255))
                         ]),
                         ops.evaluate,
                         ops.pool(size=pop_size),

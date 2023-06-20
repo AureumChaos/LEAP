@@ -953,7 +953,7 @@ class CartesianPhenotypePlotProbe:
     ...                         trajectory_probe,  # Insert the probe into the pipeline like so
     ...                         ops.tournament_selection,
     ...                         ops.clone,
-    ...                         mutate_gaussian(std=0.05, expected_num_mutations='isotropic', hard_bounds=(0, 1)),
+    ...                         mutate_gaussian(std=0.05, expected_num_mutations='isotropic', bounds=(0, 1)),
     ...                         ops.evaluate,
     ...                         ops.pool(size=pop_size)
     ...                      ])
@@ -998,7 +998,7 @@ class CartesianPhenotypePlotProbe:
                                  trajectory_probe,  # Insert the probe into the pipeline like so
                                  ops.tournament_selection,
                                  ops.clone,
-                                 mutate_gaussian(std=0.05, expected_num_mutations='isotropic', hard_bounds=(0, 1)),
+                                 mutate_gaussian(std=0.05, expected_num_mutations='isotropic', bounds=(0, 1)),
                                  ops.evaluate,
                                  ops.pool(size=pop_size)
                              ])

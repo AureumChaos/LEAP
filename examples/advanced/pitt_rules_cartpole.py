@@ -105,7 +105,7 @@ if __name__ == '__main__':
                             decoder.mutator(
                                 condition_mutator=genome_mutate_gaussian(
                                                             std=mutate_std,
-                                                            hard_bounds=decoder.condition_bounds,
+                                                            bounds=decoder.condition_bounds,
                                                             expected_num_mutations=1/num_rules),
                                 action_mutator=individual_mutate_randint(bounds=decoder.action_bounds,
                                                                             probability=1.0)
