@@ -9,8 +9,11 @@ Being a terse compilation by version of changes.
    * Replaced `n_ary_crossover` and `uniform_crossover` functions with classes `NAryCrossover` and `UniformCrossover`
    * Added a `persist_children` flag to crossover operators, which allows offspring pairs
    to be used with steady-state algorithms
-   * Added a `uuid` field to the `Individual` base class, and `Individual` now also tracks parent & offspring UUIDs
+   * Added a `uuid` field to the `Individual` base class, and `Individual` now also tracks parent & offspring UUIDs; this
+     moved UUID support from `DistributedIndividual`
    * Improved auto-scaling of axes for `PopulationMetricsPlotProbe` and `FitnessPlotProbe`
+   * standardized on parameter name `bounds` for mutation operators; previously was inconsistent nomenclature between
+     `hard_bounds` and `bounds`
 
 ## 0.8.0, 4/14/2023
 
