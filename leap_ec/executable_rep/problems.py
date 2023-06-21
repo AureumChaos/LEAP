@@ -140,7 +140,7 @@ class TruthTableProblem(ScalarProblem):
 
     def evaluate(self, phenome):
         """
-        Say our object function is $(x_0 \wedge x_1) \vee x_3$:
+        Say our object function is :math:`$(x_0 \\wedge x_1) \\vee x_3$:`
 
         >>> problem = TruthTableProblem(lambda x: [ (x[0] and x[1]) or x[2] ], num_inputs=3, num_outputs=1)
 
@@ -155,7 +155,7 @@ class TruthTableProblem(ScalarProblem):
         T T F=T
         T T T=T
 
-        Now consider a different function, $(x_0 \wedge x_1) \oplus x_3$.
+        Now consider a different function, :math:`$(x_0 \\wedge x_1) \\oplus x_3$`.
         
         >>> executable = lambda x: [ (x[0] and x[1]) ^ x[2] ]
 
