@@ -4,3 +4,6 @@
 0.8
     Lucas McCombs for fix in MultiObjectiveProblem.__init__() for per-objective maximize flags
     Gabriel Rudloff for performance enhancements to mutation operators via the ops.random_bernoulli_vector() function
+
+0.7
+    Thomas Hopkins for changing genome from python list to numpy array, thus garnering a significant speedup
