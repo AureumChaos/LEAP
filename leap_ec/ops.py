@@ -389,6 +389,10 @@ class Crossover(Operator):
                     first_child, self.second_child = parent_a, parent_b
                 else:
                     first_child, self.second_child = self.recombine(parent_a, parent_b)
+                    
+                    first_child.parents.extend(self.second_child.parents)
+                    self.second_child.parents.extend(first_child.parents)
+
                     first_child.fitness = self.second_child.fitness = None
                 
                 # Generators only execute code if necessary, so children will only be generated
