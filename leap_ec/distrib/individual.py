@@ -11,6 +11,7 @@
 import itertools
 
 from leap_ec.individual import RobustIndividual
+import pickle
 
 
 class DistributedIndividual(RobustIndividual):
@@ -32,6 +33,11 @@ class DistributedIndividual(RobustIndividual):
         self.stop_eval_time = None
         self.is_viable = False
         self.exception = None
+    
+    def clone(self):
+        cloned = super().clone()
+        cloned.birth_id = next(DistributedIndividual.birth_id)
+        return cloned
 
     def __str__(self):
         return f'{self.uuid} birth: {self.birth_id} fitness: {self.fitness!s} ' \

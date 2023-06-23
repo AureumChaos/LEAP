@@ -5,6 +5,7 @@ import itertools
 
 import pytest
 import numpy as np
+from toolz import partition
 
 from leap_ec.individual import Individual
 import leap_ec.ops as ops
@@ -55,6 +56,43 @@ def test_uniform_crossover_probability1():
             unmodified_count += 1
 
     assert(unmodified_count == N)
+
+
+def test_uniform_crossover_lineage():
+    """Any result of crossover between individuals should result in individuals with the combined parents of those input.
+    
+    This test calls uniform crossover on a few combinations of individuals to ensure that the parents uuid lists are built
+    correctly.
+    """
+    
+    parents = [Individual(np.array([0, 0])) for _ in range(4)]
+    children = [p.clone() for p in parents]
+
+    pair_cross = list(itertools.islice(
+            ops.UniformCrossover(p_xover=1.0)(ops.naive_cyclic_selection(children)), 4
+        ))
+    
+    parent_uuids = [{lp.uuid, rp.uuid} for lp, rp in partition(2, parents)]
+    for (lc, rc), pu in zip(partition(2, pair_cross), parent_uuids):
+        assert len(lc.parents) == 2, "Left child did not have 2 parents."
+        assert lc.parents == pu, "Left child's parent set is incorrect."
+        assert len(rc.parents) == 2, "Right child did not have 2 parents."
+        assert rc.parents == pu, "Right child's parent set is incorrect."
+    
+    triplet_child, = itertools.islice(
+            ops.UniformCrossover(p_xover=1.0)(ops.naive_cyclic_selection([pair_cross[0], parents[2].clone()])), 1
+        )    
+    triplet_uuids = parent_uuids[0] | {parents[2].uuid}
+    assert len(triplet_child.parents) == 3, "Crossing a crossed individual a second time did not result in 3 parents."
+    assert triplet_child.parents == triplet_uuids, "Crossing a crossed individual a second time did not produce the correct parents."
+
+    # Note: this is child 1 and child 3 being crossed, so neither was in the triplet
+    quadruplet_child, = itertools.islice(
+            ops.UniformCrossover(p_xover=1.0)(ops.naive_cyclic_selection(pair_cross[1::2])), 1
+        )
+    quadruplet_uuids = {p.uuid for p in parents}
+    assert len(quadruplet_child.parents) == 4, "Crossing two crossed individuals a second time did not result in 4 parents."
+    assert quadruplet_child.parents == quadruplet_uuids, "Crossing two crossed individuals a second time did not produce the correct parents."
 
 
 @pytest.mark.stochastic
