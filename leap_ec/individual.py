@@ -70,8 +70,8 @@ class Individual:
         self._phenome = None
         
         self.uuid = uuid.uuid4()
-        self.parents = []
-        self.children = []
+        self.parents = set()
+        self.children = set()
 
     @property
     def phenome(self):
@@ -139,8 +139,8 @@ class Individual:
         cloned.fitness = None
 
         cloned.uuid = uuid.uuid4()
-        cloned.parents = [self.uuid]
-        self.children.append(cloned.uuid)
+        cloned.parents = {self.uuid}
+        self.children.add(cloned.uuid)
         
         return cloned
 
