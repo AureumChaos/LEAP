@@ -119,6 +119,39 @@ def enlu_inds_rank(start_point, layer_pops):
         for ind in moving_points:
             ind.rank = len(layer_pops) + 1
         layer_pops.append(moving_points)
+
+
+class ENLUInserter:
+
+    def __init__(self):
+        # This is a 2d work list for ordering layers. Functionally it is the
+        # real population, with the one the algorithm sees being overwritten
+        # by this population's flattened contents
+        self._layer_pops = []
+
+    def __call__(self, ind, flat_pop, pop_size):
+        enlu_inds_rank(ind, self._layer_pops)
+        
+        # Calculate crowding distance
+        for lp in self._layer_pops:
+            per_rank_crowding_calc(lp, lp[0].problem.maximize)
+        
+        # If the population is too big, drop the most crowded
+        if sum(len(lp) for lp in self._layer_pops) > pop_size:
+            rem_idx = min(range(len(self._layer_pops[-1])), key=lambda i: self._layer_pops[-1][i].distance)
+            self._layer_pops[-1].pop(rem_idx)
+            
+            if self._layer_pops[-1]:
+                # Since this layer is losing a member, needs recalculation of crowding
+                per_rank_crowding_calc(self._layer_pops[-1], self._layer_pops[-1][0].problem.maximize)
+            else:
+                del self._layer_pops[-1]
+        
+        # Reconstruct flat_pop
+        flat_pop.clear()
+        for lp in self._layer_pops:
+            flat_pop.extend(lp)
+
             
 def steady_state_nsga_2(
             client, max_births: int, init_pop_size: int, pop_size: int,
@@ -131,6 +164,7 @@ def steady_state_nsga_2(
             context=context
         ):
     """ A steady state version of the NSGA-II multi-objective evolutionary algorithm.
+        Functionally, a wrapper around steady_state that chooses the inserter for you.
     
         - K. Li, K. Deb, Q. Zhang and Q. Zhang, "Efficient Nondomination Level Update Method for
             Steady-State Evolutionary Multiobjective Optimization," in IEEE Transactions on
@@ -144,9 +178,6 @@ def steady_state_nsga_2(
     :param representation: of the individuals
     :param problem: to be solved
     :param offspring_pipeline: for creating new offspring from the pop
-    :param inserter: function with signature (new_individual, pop, popsize)
-           used to insert newly evaluated individuals into the population;
-           defaults to greedy_insert_into_pop()
     :param count_nonviable: True if we want to count non-viable individuals
            towards the birth budget
     :param evaluated_probe: is a function taking an individual that is given
@@ -157,39 +188,14 @@ def steady_state_nsga_2(
     :return: the population containing the final individuals
     """
 
-    # This holds the separated layers, so we don't have to rebuild it each time
-    layer_pops = []
-        
-    def inds_inserter(ind, flat_pop, pop_size):
-        # The bulk of the logic for this insertion happens in inds_rank
-        nonlocal layer_pops
-        enlu_inds_rank(ind, layer_pops)
-        
-        # Rank the layers
-        for lp in layer_pops:
-            per_rank_crowding_calc(lp, lp[0].problem.maximize)
-        
-        # If the population is too big, drop the most crowded
-        if sum(len(lp) for lp in layer_pops) > pop_size:
-            rem_idx = min(range(len(layer_pops[-1])), key=lambda i: layer_pops[-1][i].distance)
-            layer_pops[-1].pop(rem_idx)
-            
-            if layer_pops[-1]:
-                # Since this layer is losing a member, needs recalculation of crowding
-                per_rank_crowding_calc(layer_pops[-1], layer_pops[-1][0].problem.maximize)
-            else:
-                del layer_pops[-1]
-        
-        # Calculate the rankings of each layer and reconstruct flat_pop
-        flat_pop.clear()
-        for lp in layer_pops:
-            flat_pop.extend(lp)
+    # Construct the ENLU inserter for the wrapper
+    inserter = ENLUInserter()
     
-    # This is functionally just a wrapper around steady state, all of the logic is the same
-    # with the exception of a special population structure and inserter
+    # This is just a wrapper around steady state, all of the logic is the same
+    # with the exception of a special inserter
     return steady_state(
             client, max_births, init_pop_size, pop_size,
             representation, problem, offspring_pipeline,
-            inds_inserter, count_nonviable, evaluated_probe,
+            inserter, count_nonviable, evaluated_probe,
             pop_probe, context
         )
