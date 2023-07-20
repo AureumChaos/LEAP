@@ -93,7 +93,7 @@ pure-eval==0.2.2
 pycodestyle==2.10.0
 pycparser==2.21
 pyflakes==3.0.1
-Pygments==2.14.0
+Pygments==2.15.0
 pyparsing==3.0.9
 pyrsistent==0.19.3
 pytest==7.2.1
