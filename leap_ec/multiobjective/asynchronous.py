@@ -75,13 +75,14 @@ def enlu_inds_rank(start_point, layer_pops):
     """
     
     # CASE I: Find the first layer where start_point is not dominated
-    depth = _find_start_layer(start_point, layer_pops)
+    start_depth = _find_start_layer(start_point, layer_pops)
     moving_points = [start_point]
     
+    depth = start_depth
     while depth < len(layer_pops):
         # CASE II: If the last layer merged perfectly, done
         if not moving_points:
-            return
+            return start_depth, depth
         
         # Find the individuals who are dominated by the zenith
         nondominated, dominated = _split_dominated(moving_points, layer_pops[depth])
@@ -94,7 +95,7 @@ def enlu_inds_rank(start_point, layer_pops):
             for i, lp in enumerate(layer_pops[depth:]):
                 for ind in lp:
                     ind.rank = depth + i + 1
-            return
+            return start_depth, depth + 1
         
         # CASE IV: Some points are dominated, propagate those onwards
         # The moving points stay in this layer, while those not dominated by the zenith
@@ -119,6 +120,7 @@ def enlu_inds_rank(start_point, layer_pops):
         for ind in moving_points:
             ind.rank = len(layer_pops) + 1
         layer_pops.append(moving_points)
+    return start_depth, len(layer_pops)
 
 
 class ENLUInserter:
@@ -130,10 +132,10 @@ class ENLUInserter:
         self._layer_pops = []
 
     def __call__(self, ind, flat_pop, pop_size):
-        enlu_inds_rank(ind, self._layer_pops)
+        start_depth, end_depth = enlu_inds_rank(ind, self._layer_pops)
         
-        # Calculate crowding distance
-        for lp in self._layer_pops:
+        # Calculate crowding distance for updated layers
+        for lp in self._layer_pops[start_depth:end_depth]:
             per_rank_crowding_calc(lp, lp[0].problem.maximize)
         
         # If the population is too big, drop the most crowded
