@@ -111,10 +111,10 @@ def generational_ea(max_generations: int,
 
     You can get the best individual by using `max` (since comparison on
     individuals is based on the `Problem` associated with them, this will
-    return the best individaul even on minimization problems)):
+    return the best individaul even on minimization problems):
 
-    >>> max(final_pop)
-    Individual<...>(...)
+    >>> max(final_pop) # doctest:+ELLIPSIS
+    Individual<...>...
 
     """
     # Initialize a population of pop_size individuals of the same type as
