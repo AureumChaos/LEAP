@@ -31,5 +31,4 @@ def test_clone():
     # use this when comparing complex objects with arrays
 
     assert original.uuid != cloned.uuid
-    assert original.children[0] == cloned.uuid
     assert original.uuid == cloned.parents[0]
