@@ -77,8 +77,10 @@ if __name__ == '__main__':
     # When running the test harness, just run for two generations
     # (we use this to quickly ensure our examples don't get bitrot)
     if os.environ.get(test_env_var, False) == 'True':
+        test_mode = True
         generations = 2
     else:
+        test_mode = False
         generations = 1000
 
     # Uncomment these lines to see logs of what genomes and fitness values are sent to your external process.
@@ -91,15 +93,20 @@ if __name__ == '__main__':
     #########################
     # Set up up the network of connections between islands
     topology = nx.complete_graph(3)
-    nx.draw(topology)
+    if not test_mode:
+        # not need to draw the graph when running in test mode
+        nx.draw_networkx(topology, with_labels=True)
     problem = SchwefelProblem(maximize=False)
 
     #########################
     # Visualization probes
     #########################
-    genotype_probes, fitness_probes = viz_plots(
-        [problem] * topology.number_of_nodes(), modulo=10)
-    subpop_probes = list(zip(genotype_probes, fitness_probes))
+    if not test_mode:
+        genotype_probes, fitness_probes = viz_plots(
+            [problem] * topology.number_of_nodes(), modulo=10)
+        subpop_probes = list(zip(genotype_probes, fitness_probes))
+    else:
+        subpop_probes = []
 
 
     def get_island(context):
