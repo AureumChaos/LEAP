@@ -8,6 +8,7 @@ on:
 #     - develop
 env:
   MPLBACKEND: agg
+  ACTIONS_RUNNER_DEBUG: true
 
 
 jobs:
