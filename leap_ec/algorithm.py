@@ -203,7 +203,7 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
     >>> from leap_ec.real_rep.initializers import create_real_vector
     >>>
     >>> topology = nx.complete_graph(4)
-    >>> nx.draw(topology)
+    >>> nx.draw_networkx(topology, with_labels=True)
     >>> problem = problems.SchwefelProblem(maximize=False)
     ...
     >>> l = 2  # Length of the genome
