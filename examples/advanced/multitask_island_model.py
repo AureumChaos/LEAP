@@ -84,7 +84,7 @@ if __name__ == '__main__':
     # file_probe = probe.AttributesCSVProbe(context, stream=sys.stdout, do_fitness=True, do_genome=True)
 
     topology = nx.complete_graph(3)
-    nx.draw(topology)
+    nx.draw_networkx(topology, with_labels=True)
 
     l = 2
     bounds = (0, 1)
