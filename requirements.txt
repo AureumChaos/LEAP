@@ -8,8 +8,8 @@
 
 click
 coveralls
-dask==2023.8.1
-distributed==2023.8.1
+dask==2023.3.2
+distributed==2023.3.2
 flake8
 gymnasium
 jupyter
