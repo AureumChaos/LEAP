@@ -111,10 +111,10 @@ def generational_ea(max_generations: int,
 
     You can get the best individual by using `max` (since comparison on
     individuals is based on the `Problem` associated with them, this will
-    return the best individaul even on minimization problems)):
+    return the best individaul even on minimization problems):
 
-    >>> max(final_pop)
-    Individual<...>(...)
+    >>> max(final_pop) # doctest:+ELLIPSIS
+    Individual<...>...
 
     """
     # Initialize a population of pop_size individuals of the same type as
@@ -203,7 +203,7 @@ def multi_population_ea(max_generations, num_populations, pop_size, problem,
     >>> from leap_ec.real_rep.initializers import create_real_vector
     >>>
     >>> topology = nx.complete_graph(4)
-    >>> nx.draw(topology)
+    >>> nx.draw_networkx(topology, with_labels=True)
     >>> problem = problems.SchwefelProblem(maximize=False)
     ...
     >>> l = 2  # Length of the genome

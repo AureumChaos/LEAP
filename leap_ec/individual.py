@@ -69,9 +69,9 @@ class Individual:
         self.fitness = None
         self._phenome = None
         
-        self.uuid = uuid.uuid4()
-        self.parents = set()
-        self.children = set()
+        self.uuid = uuid.uuid4() # every individual gets a unique ID
+        self.parents = set() # set of uuids of parents
+
 
     @property
     def phenome(self):
@@ -140,8 +140,7 @@ class Individual:
 
         cloned.uuid = uuid.uuid4()
         cloned.parents = {self.uuid}
-        self.children.add(cloned.uuid)
-        
+
         return cloned
 
     def decode(self, *args, **kwargs):

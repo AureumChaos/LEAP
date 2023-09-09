@@ -13,6 +13,7 @@ Options:
 """
 import os
 import sys
+from pathlib import Path
 
 from docopt import docopt
 from matplotlib import pyplot as plt
@@ -65,7 +66,7 @@ if __name__ == '__main__':
     # Fixed parameters
     pop_size = 5
     params_mutate_std = 0.1*255  # 10% of the genes' range
-    image_path = './examples/advanced/cgp_image_centipede_small.jpg'
+    image_path = Path(__file__).parent / 'cgp_image_centipede_small.jpg'
     modulo = 25  # For visualization
 
     # When running the test harness, just run for two generations

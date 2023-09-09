@@ -54,7 +54,7 @@ test:
 	python -m pytest -m "not jupyter"
 
 test-fast:
-	python -m pytest -m "not slow and not jupyter"
+	python -m pytest -m "not slow and not jupyter and not stochastic"
 
 test-slow:
 	python -m pytest -m slow
