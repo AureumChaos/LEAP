@@ -1204,7 +1204,7 @@ class SumPhenotypePlotProbe:
         from leap_ec.algorithm import generational_ea
 
         from leap_ec import ops
-        from leap_ec.binary_rep.problems import Deceptive
+        from leap_ec.binary_rep.problems import DeceptiveTrapProblem
         from leap_ec.binary_rep.initializers import creat
         from leap_ec.binary_rep.ops import mutate_bitflip
 
