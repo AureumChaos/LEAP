@@ -1204,12 +1204,12 @@ class SumPhenotypePlotProbe:
         from leap_ec.algorithm import generational_ea
 
         from leap_ec import ops
-        from leap_ec.binary_rep.problems import DeceptiveTrapProblem
+        from leap_ec.binary_rep.problems import DeceptiveTrap
         from leap_ec.binary_rep.initializers import creat
         from leap_ec.binary_rep.ops import mutate_bitflip
 
         # The fitness landscape
-        problem = DeceptiveTrapProblem()
+        problem = DeceptiveTrap()
 
         # If no axis is provided, a new figure will be created for the probe to write to
         trajectory_probe = SumPhenotypePlotProbe(problem=problem,
