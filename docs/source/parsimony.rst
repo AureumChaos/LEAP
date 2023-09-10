@@ -20,3 +20,4 @@ API
 .. automodule:: leap_ec.parsimony
     :members:
     :undoc-members:
+    :noindex:
