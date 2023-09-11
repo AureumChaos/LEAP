@@ -855,6 +855,7 @@ def test_migrate2():
 ##############################
 # Test random_bernoulli_vector()
 ##############################
+@pytest.mark.stochastic
 def test_random_bernoulli_vector_shape():
     """ Checks if shape parameters can be int and a tuple and that probability and mean are close """
     shape = (100, 2)
@@ -866,6 +867,7 @@ def test_random_bernoulli_vector_shape():
     x = ops.random_bernoulli_vector(shape, p)
     assert(pytest.approx(np.mean(x), abs=1e-1) == p)
 
+@pytest.mark.stochastic
 def test_random_bernoulli_vector_p():
     """ Checks if error is thrown when p is out of range """
     shape = 10
