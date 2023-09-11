@@ -1,25 +1,28 @@
-# This is our manually-curated lists of requirements, which we have not pinned down to specific versions.
+# This is our manually-curated lists of requirements.  We've locked
+# some of the versions to ensure that we get the same results when
+# running the tests on different machines.
 #
-# This is more complete than the install_requires list used by setup.py for the package (which only contains
-# the bare minimal dependencies required by LEAP's core features).
-#
-# We periodically run 'pip freeze' on this to generate requirements_freeze.txt, which pins dependencies to
-# versions that are known to be compatible with LEAP.
+# This is more complete than the install_requires list used by setup.py for
+# the package (which only contains the bare minimal dependencies required
+# by LEAP's core features).
+--index-url https://pypi.python.org/simple/
 
-click
+-e .
+
+click==8.0.4
 coveralls
 dask==2023.3.2
 distributed==2023.3.2
 flake8
-gymnasium
-jupyter
-matplotlib
+gymnasium==0.26.3
+jupyter==1.0.0
+matplotlib==3.7.1
 nbconvert
 nbformat
-networkx
-numpy
-pandas
-Pillow
+networkx==2.8.4
+numpy==1.23.5
+pandas==1.4.1
+Pillow==9.4.0
 pytest
 pytest-cov
 python-coveralls
@@ -27,4 +30,4 @@ rich
 seaborn
 sphinx
 sphinx_rtd_theme
-toolz
+toolz==0.12.0
