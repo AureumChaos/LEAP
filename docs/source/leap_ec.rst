@@ -123,3 +123,11 @@ leap\_ec.util module
    :members:
    :undoc-members:
    :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: leap_ec
+   :members:
+   :undoc-members:
+   :show-inheritance:

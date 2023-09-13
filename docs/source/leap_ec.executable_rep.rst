@@ -44,4 +44,10 @@ leap\_ec.executable\_rep.rules module
    :undoc-members:
    :show-inheritance:
 
+Module contents
+---------------
 
+.. automodule:: leap_ec.executable_rep
+   :members:
+   :undoc-members:
+   :show-inheritance:
