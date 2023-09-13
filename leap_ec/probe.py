@@ -1212,7 +1212,7 @@ class SumPhenotypePlotProbe:
 
         from leap_ec import ops
         from leap_ec.binary_rep.problems import DeceptiveTrap
-        from leap_ec.binary_rep.initializers import creat
+        from leap_ec.binary_rep.initializers import create_binary_sequence
         from leap_ec.binary_rep.ops import mutate_bitflip
 
         # The fitness landscape

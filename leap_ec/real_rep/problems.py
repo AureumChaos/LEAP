@@ -1286,10 +1286,19 @@ class TranslatedProblem(ScalarProblem):
         """ Apply a random real-valued translation to a fitness function, sampled uniformly between min_offset and
         max_offset in every dimension.
 
+        >>> from leap_ec.real_rep.problems import TranslatedProblem, RastriginProblem, plot_2d_problem
+
+        >>> original_problem = RastriginProblem()
+        >>> bounds = RastriginProblem.bounds  # Contains traditional bounds
+        >>> translated_problem = TranslatedProblem.random(original_problem, bounds, 2)
+
+        >>> plot_2d_problem(translated_problem, kind='contour', xlim=bounds, ylim=bounds)
+        <matplotlib.contour...>
+    
         .. plot::
            :include-source:
 
-           from leap_ec.real_rep.problems import RastriginProblem, plot_2d_problem
+           from leap_ec.real_rep.problems import TranslatedProblem, RastriginProblem, plot_2d_problem
 
            original_problem = RastriginProblem()
            bounds = RastriginProblem.bounds  # Contains traditional bounds
