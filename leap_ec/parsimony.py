@@ -13,7 +13,7 @@ from leap_ec.util import wrap_curry
 def lexical_parsimony(ind):
     """ If two fitnesses are the same, break the tie with the smallest genome
 
-    This implements Lexicographical Parsimony Pressure, which is essentially
+    This implements Lexicographical Parsimony Pressure :cite:p:`Luke2002`, which is essentially
     where if the fitnesses of two individuals are close, then break the tie
     with the smallest genome.
 
@@ -36,11 +36,6 @@ def lexical_parsimony(ind):
     >>> print(best.genome, best.fitness)
     [1 1 1] 3
 
-    .. [Luke2002]
-        Luke, S., & Panait, L. (2002, July). Lexicographic parsimony pressure.
-        In Proceedings of the 4th Annual Conference on Genetic and Evolutionary
-        Computation (pp. 829-836).
-
     :param ind: to be compared
     :return: altered comparison criteria
     """
@@ -55,7 +50,7 @@ def lexical_parsimony(ind):
 
 @wrap_curry
 def koza_parsimony(ind, *, penalty):
-    """ Penalize fitness by genome length times a constant
+    """ Penalize fitness by genome length times a constant, in the style of :cite:t:`Koza1992`.
 
     >>> import toolz
     >>> from leap_ec.individual import Individual
@@ -76,11 +71,6 @@ def koza_parsimony(ind, *, penalty):
     >>> best, = ops.truncation_selection(pop, size=1, key=koza_parsimony(penalty=.5))
     >>> print(best.genome, best.fitness)
     [1 1 1] 3
-
-    .. [Koza1992]
-        J. R. Koza. Genetic Programming: On the Programming of
-        Computers by Means of Natural Selection. MIT Press, Cambridge, MA, USA,
-        1992.
 
     .. math::
         f_p(x) = f(x) - cl(x)

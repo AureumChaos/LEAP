@@ -961,12 +961,7 @@ class GaussianProblem(ScalarProblem):
 class CosineFamilyProblem(ScalarProblem):
     """
     A configurable multi-modal function based on combinations of cosines,
-    taken from the problem generators proposed in
-
-    .. [Jani2008] "A Generator for Multimodal Test Functions with Multiple Global Optima,"
-         Jani Rönkkönen et al., *Asia-Pacific Conference on Simulated Evolution and Learning*. Springer, Berlin, Heidelberg, 2008.
-
-    [Jani2008]_
+    taken from the problem generators proposed by :cite:t:`RonkkonenEtAl2008generator`.
 
     .. math::
 
@@ -1048,9 +1043,7 @@ class QuadraticFamilyProblem(ScalarProblem):
     """
     A configurable multi-modal function based on combinations of
     spheroids or parabaloids.  Taken from the problem generators
-    proposed in
-
-    [Jani2008]_
+    proposed by :cite:t:`RonkkonenEtAl2008generator`.
 
     The function is given by
 
