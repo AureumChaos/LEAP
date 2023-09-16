@@ -185,7 +185,7 @@ Office (VTO) for their funding support.
 
 Citing LEAP
 -----------
-.. _10.1145/3377929.3398147:
+.. ColettiEtAl2020:
 
 BiBTeX::
 
@@ -204,9 +204,3 @@ BiBTeX::
             Title = {Library for Evolutionary Algorithms in Python (LEAP)},
             Url = {https://doi.org/10.1145/3377929.3398147},
             Year = {2020}}
-
-
-
-.. bibliography::
-
-
