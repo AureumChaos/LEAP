@@ -20,4 +20,10 @@ leap\_ec.int\_rep.ops module
    :undoc-members:
    :show-inheritance:
 
+Module contents
+---------------
 
+.. automodule:: leap_ec.int_rep
+   :members:
+   :undoc-members:
+   :show-inheritance:

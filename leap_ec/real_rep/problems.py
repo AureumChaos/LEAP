@@ -961,12 +961,7 @@ class GaussianProblem(ScalarProblem):
 class CosineFamilyProblem(ScalarProblem):
     """
     A configurable multi-modal function based on combinations of cosines,
-    taken from the problem generators proposed in
-
-    .. [Jani2008] "A Generator for Multimodal Test Functions with Multiple Global Optima,"
-         Jani Rönkkönen et al., *Asia-Pacific Conference on Simulated Evolution and Learning*. Springer, Berlin, Heidelberg, 2008.
-
-    [Jani2008]_
+    taken from the problem generators proposed by :cite:t:`RonkkonenEtAl2008generator`.
 
     .. math::
 
@@ -1048,9 +1043,7 @@ class QuadraticFamilyProblem(ScalarProblem):
     """
     A configurable multi-modal function based on combinations of
     spheroids or parabaloids.  Taken from the problem generators
-    proposed in
-
-    [Jani2008]_
+    proposed by :cite:t:`RonkkonenEtAl2008generator`.
 
     The function is given by
 
@@ -1286,10 +1279,19 @@ class TranslatedProblem(ScalarProblem):
         """ Apply a random real-valued translation to a fitness function, sampled uniformly between min_offset and
         max_offset in every dimension.
 
+        >>> from leap_ec.real_rep.problems import TranslatedProblem, RastriginProblem, plot_2d_problem
+
+        >>> original_problem = RastriginProblem()
+        >>> bounds = RastriginProblem.bounds  # Contains traditional bounds
+        >>> translated_problem = TranslatedProblem.random(original_problem, bounds, 2)
+
+        >>> plot_2d_problem(translated_problem, kind='contour', xlim=bounds, ylim=bounds)
+        <matplotlib.contour...>
+    
         .. plot::
            :include-source:
 
-           from leap_ec.real_rep.problems import RastriginProblem, plot_2d_problem
+           from leap_ec.real_rep.problems import TranslatedProblem, RastriginProblem, plot_2d_problem
 
            original_problem = RastriginProblem()
            bounds = RastriginProblem.bounds  # Contains traditional bounds

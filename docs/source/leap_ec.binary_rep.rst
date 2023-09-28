@@ -36,4 +36,10 @@ leap\_ec.binary\_rep.problems module
    :undoc-members:
    :show-inheritance:
 
+Module contents
+---------------
 
+.. automodule:: leap_ec.binary_rep
+   :members:
+   :undoc-members:
+   :show-inheritance:

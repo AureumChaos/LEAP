@@ -71,7 +71,7 @@ LEAP implements an asynchronous steady-state evolutionary algorithm (ASEA).
 .. figure:: _static/asea.png
 
     Algorithm 1: Asynchronous steady-state evolutionary algorithm concurrently
-    updates a population as individuals are evaluated.  (:cite:`10.1145/3377929.3398147`)
+    updates a population as individuals are evaluated :cite:p:`ColettiEtAl2020`.
 
 Algorithm 1 shows the details of how an ASEA works.  Newly evaluated individuals
 are inserted into the population, which then leaves a computing resource available.

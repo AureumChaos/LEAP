@@ -63,8 +63,9 @@ def enlu_inds_rank(start_point, layer_pops):
     layer composition changes down the rankings.
     
         - K. Li, K. Deb, Q. Zhang and Q. Zhang, "Efficient Nondomination Level Update Method for
-            Steady-State Evolutionary Multiobjective Optimization," in IEEE Transactions on
-            Cybernetics, vol. 47, no. 9, pp. 2838-2849, Sept. 2017, doi: 10.1109/TCYB.2016.2621008.
+          Steady-State Evolutionary Multiobjective Optimization," in IEEE Transactions on
+          Cybernetics, vol. 47, no. 9, pp. 2838-2849, Sept. 2017, doi: 10.1109/TCYB.2016.2621008.
+    
     
     :param moving points: the set of points descending in rank from the previous layer.
         In the first recursion this is the inserted individual.
@@ -169,8 +170,8 @@ def steady_state_nsga_2(
         Functionally, a wrapper around steady_state that chooses the inserter for you.
     
         - K. Li, K. Deb, Q. Zhang and Q. Zhang, "Efficient Nondomination Level Update Method for
-            Steady-State Evolutionary Multiobjective Optimization," in IEEE Transactions on
-            Cybernetics, vol. 47, no. 9, pp. 2838-2849, Sept. 2017, doi: 10.1109/TCYB.2016.2621008.
+          Steady-State Evolutionary Multiobjective Optimization," in IEEE Transactions on
+          Cybernetics, vol. 47, no. 9, pp. 2838-2849, Sept. 2017, doi: 10.1109/TCYB.2016.2621008.
 
     :param client: Dask client that should already be set-up
     :param max_births: how many births are we allowing?

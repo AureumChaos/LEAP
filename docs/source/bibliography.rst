@@ -1,4 +1,4 @@
 References
 ==========
 
-.. bibliography::leap.bib
+.. bibliography::
