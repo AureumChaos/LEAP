@@ -76,3 +76,10 @@ Class API
     :noindex:
 
     .. automethod:: __init__
+
+.. autoclass:: leap_ec.individual.WholeEvaluatedIndividual
+    :members:
+    :undoc-members:
+    :noindex:
+
+    .. automethod:: __init__
