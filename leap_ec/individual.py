@@ -313,7 +313,7 @@ class WholeEvaluatedIndividual(Individual):
     evaluation needs access to more information about an individual than
     its phenome.  This is strange in most cases and should be avoided,
     but can make certain algorithms more elegant (ex. it's helpful when
-    interpretting cooperative coevolution as an island model).
+    interpreting cooperative coevolution as an island model).
     
     This can dramatically slow down distributed evaluation (i.e. with dask)
     in some applications—use with caution.
