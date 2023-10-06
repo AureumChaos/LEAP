@@ -210,7 +210,8 @@ def mutate_binomial(next_individual: Iterator, std: float, bounds: list,
 
     genome_mutator = genome_mutate_binomial(std, bounds,
                                             expected_num_mutations=expected_num_mutations,
-                                            probability=probability)
+                                            probability=probability,
+                                            n=n)
 
     while True:
         try:
