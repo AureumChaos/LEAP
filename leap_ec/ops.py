@@ -328,6 +328,10 @@ def const_evaluate(population: List, value) -> List:
 def clone(next_individual: Iterator) -> Iterator:
     """ clones and returns the next individual in the pipeline
 
+    The clone's fitness is set to None, its parents are set to the individual
+    from which it was cloned (i.e., the parent), and it is assigned its own
+    UUID.
+
     >>> from leap_ec.individual import Individual
     >>> import numpy as np
 

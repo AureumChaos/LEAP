@@ -339,7 +339,7 @@ representations that will similarly have their own operators.
 
 .. warning:: **Are all operators really representation agnostic?**
     In reality, most of the operators assume that `Individual.genome` is a
-    python sequence, which may not always be the case.  For example, the user
+    `numpy` array, which may not always be the case.  For example, the user
     may come up with a representation that employs, say, a sparse matrix.  In
     that case, the crossover operators will fail.
 
