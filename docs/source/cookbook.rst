@@ -1,6 +1,8 @@
 LEAP Cookbook
 =============
 
+This is a collection of "recipes" in the spirit of the O'Reilly "Cookbook" series. That
+is, it's a collection of common howtos and examples for using LEAP.
 
 Enforcing problem bounds constraints
 ------------------------------------
