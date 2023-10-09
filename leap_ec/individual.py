@@ -26,7 +26,9 @@ class Individual:
 
     def __init__(self, genome, decoder=IdentityDecoder(), problem=None):
         """
-        Initialize an `Individual` with a given genome.
+        Initialize an `Individual` with a given genome.  A UUID is generated
+        and assigned to `self.uuid`.  The `parents` set is initialized to be
+        empty.
 
         We also require `Individual`s to maintain a reference to the `Problem`:
 
@@ -117,6 +119,11 @@ class Individual:
         """Create a 'clone' of this `Individual`, copying the genome, but not
         fitness.
 
+        The fitness of the clone is set to `None`.  A new UUID is generated and
+        assigned to `sefl.uuid`.  The `parents` set is updated to include the
+        UUID of the parent.  A shallow copy of the parent is made, too, so that
+        ancillary state is also copied.
+
         A deep copy of the genome will be created, so if your `Individual`
         has a custom genome type, it's important that it implements the
         `__deepcopy__()` method.
@@ -145,11 +152,11 @@ class Individual:
 
     def decode(self, *args, **kwargs):
         """
-        Determe the indivduals phenome.
+        Determine the indivdual's phenome.
 
-        This is done by passing the genome self.decoder.
+        This is done by passing the genome `self.decoder`.
 
-        The result is both returned and saved to self.phenome.
+        The result is both returned and saved to `self.phenome`.
 
         :return: the decoded value for this individual
         """
@@ -170,7 +177,7 @@ class Individual:
         """ determine this individual's fitness
 
         This is done by outsourcing the fitness evaluation to the associated
-        Problem object since it "knows" what is good or bad for a given
+        `Problem` object since it "knows" what is good or bad for a given
         phenome.
 
 
@@ -316,7 +323,8 @@ class WholeEvaluatedIndividual(Individual):
     interpreting cooperative coevolution as an island model).
     
     This can dramatically slow down distributed evaluation (i.e. with dask)
-    in some applications—use with caution.
+    in some applications because the entire individual will be sent over a
+    TCP/IP connection instead of just the `phenome`, so use with caution.
     """
     def evaluate_imp(self):
         """ This is the evaluate 'implementation' called by
