@@ -20,17 +20,19 @@ Class Summary
 An `Individual` poses a unique instance of a solution to the associated `Problem`.
 Each `Individual` has a `genome`, which contains state representing that
 posed solution.  The `genome` can be a sequence or a matrix or a tree or some
-other data structure, but in practice a `genome` is usually a binary or a
-real-value sequence.  Every `Individual` is connected to an associated `Problem`
-and relies on the `Problem` to evaluate its fitness and to
+other data structure, but in practice a `genome` is usually a binary or a real-value
+sequence represented as a numpy array.  Every `Individual` is connected to an
+associated `Problem` and relies on the `Problem` to evaluate its fitness and to
 compare itself with another `Individual` to determine the better of the two.
 
 The `clone()` method will create a duplicate of a given `Individual`; the new
 `Individual` gets a deep copy of the `genome` and refers to the same `Problem` and
-`Decoder`.  `evaluate()` calls `evaluate_imp()`that, in turn, calls `decode()`to
+`Decoder`; also, the clone gets its own UUID and has its `self.parents` set updated
+to include the individual from which it was cloned (i.e., its parent).
+`evaluate()` calls `evaluate_imp()` that, in turn, calls `decode()` to
 translate the `genome` into phenomes, or values meaningful to the `Problem`, and
-then passes those values to the `Problem`
-where it returns a fitness. This fitness is then assigned to the `Individual`.
+then passes those values to the `Problem` where it returns a fitness. This
+fitness is then assigned to the `Individual`.
 
 The reason for the indirection using `evaluate_imp()` is that `evaluate_imp()`
 allows sub-classes to pass ancillary information to `Problem` during evaluation.
