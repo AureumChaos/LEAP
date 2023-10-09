@@ -15,6 +15,7 @@ TypeError: mutate_binomial() missing 1 required positional argument: 'next_indiv
 The corresponding code may look like this:
 
 .. code-block:: python
+    :emphasize-lines: 3
 
     int_ops.mutate_binomial(std=[context['leap']['std0'],
                                  context['leap']['std1']],
