@@ -3,6 +3,9 @@
 Being a terse compilation by version of changes.
 
 ## 0.9.dev, in progress
+ * New Features
+   * Added asynchronous NSGA-II, which is in `leap_ec.distrib.asynchronous`; 
+     note that the API may change in the future
 
  * API changes
    * Added `CGPDecoder.initialize()` method for convenience, offering a default genome initializer
@@ -11,9 +14,12 @@ Being a terse compilation by version of changes.
    to be used with steady-state algorithms
    * Added a `uuid` field to the `Individual` base class, and `Individual` now also tracks parent & offspring UUIDs; this
      moved UUID support from `DistributedIndividual`
+   * Added a `parents` attribute to `Individual` base class that tracks the 
+     UUIDs of the parents via clone or crossover
    * Improved auto-scaling of axes for `PopulationMetricsPlotProbe` and `FitnessPlotProbe`
    * standardized on parameter name `bounds` for mutation operators; previously was inconsistent nomenclature between
      `hard_bounds` and `bounds`
+   * Made improvements to ReadTheDocs documentation.
 
 ## 0.8.0, 4/14/2023
 
