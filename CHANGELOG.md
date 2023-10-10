@@ -2,6 +2,8 @@
 
 Being a terse compilation by version of changes.
 
+## 0.9dev, in progress
+
 ## 0.8.1, 10/10/2023
 
  * New Features
