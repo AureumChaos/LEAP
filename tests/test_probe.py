@@ -9,6 +9,7 @@ import pytest
 
 import leap_ec.ops as ops
 from leap_ec import data
+from leap_ec.global_vars import context
 from leap_ec.probe import *
 
 
@@ -43,9 +44,6 @@ def test_AttributesCSVProbe_1():
     """When recording the attribute 'my_value' and leaving other arguments at their default,
     running CSVProbe on a population of individuals with just the attribute 'my_value' should
     produce the correct CSV-formatted output."""
-    # Create the context
-    context = {'leap':{'generation': 10}}
-    
     # Set up a population
     pop = data.test_population
 
@@ -57,7 +55,10 @@ def test_AttributesCSVProbe_1():
 
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
-    probe = AttributesCSVProbe(['my_value'], stream, context=context)
+    probe = AttributesCSVProbe(['my_value'], stream)
+
+    # Set the generation in the context
+    context['leap']['generation'] = 10
 
     # Execute
     probe(pop)
@@ -77,12 +78,12 @@ def test_AttributesCSVProbe_2(test_pop_with_attributes):
     """When recording the attribute 'my_value' and leaving other arguments at their default,
     running CSVProbe on a population of individuals with several attributes should
     produce CSV-formatted output that only records 'my_value'."""
-    # Create the context
-    context = {'leap':{'generation': 10}}
-    
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
-    probe = AttributesCSVProbe(['foo', 'bar'], stream, context=context)
+    probe = AttributesCSVProbe(['foo', 'bar'], stream)
+
+    # Set the generation in the context
+    context['leap']['generation'] = 10
 
     # Execute
     probe(test_pop_with_attributes)
@@ -100,13 +101,13 @@ def test_AttributesCSVProbe_2(test_pop_with_attributes):
 
 def test_AttributesCSVProbe_3(test_pop_with_attributes):
     """Changing the order of the attributes list changes the order of the columns."""
-    # Create the context
-    context = {'leap':{'generation': 10}}
-    
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
     # Passing params in reverse order from the other test above
-    probe = AttributesCSVProbe(['bar', 'foo'], stream, context=context)
+    probe = AttributesCSVProbe(['bar', 'foo'], stream)
+
+    # Set the generation in the context
+    context['leap']['generation'] = 10
 
     # Execute
     probe(test_pop_with_attributes)
@@ -124,12 +125,12 @@ def test_AttributesCSVProbe_3(test_pop_with_attributes):
 
 def test_AttributesCSVProbe_4(test_pop_with_attributes):
     """Providng an attribute that contains list data should work flawlessly.."""
-    # Create the context
-    context = {'leap':{'generation': 10}}
-    
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
-    probe = AttributesCSVProbe(['bar', 'baz'], stream, context=context)
+    probe = AttributesCSVProbe(['bar', 'baz'], stream)
+
+    # Set the generation in the context
+    context['leap']['generation'] = 10
 
     # Execute
     probe(test_pop_with_attributes)
@@ -147,12 +148,12 @@ def test_AttributesCSVProbe_4(test_pop_with_attributes):
 
 def test_AttributesCSVProbe_5(test_pop_with_attributes):
     """The `job` attribute should print as a column, even if its value is 0."""
-    # Create the context
-    context = {'leap':{'generation': 10}}
-    
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
-    probe = AttributesCSVProbe(['foo', 'bar'], stream, job=0, context=context)
+    probe = AttributesCSVProbe(['foo', 'bar'], stream, job=0)
+
+    # Set the generation in the context
+    context['leap']['generation'] = 10
 
     # Execute
     probe(test_pop_with_attributes)
@@ -169,10 +170,7 @@ def test_AttributesCSVProbe_5(test_pop_with_attributes):
 
 
 def test_AttributesCSVProbe_6(test_pop_with_attributes):
-    """When printing numpy arrays with numpy_as_list=True, there should only be as many rows as indviduals."""
-    # Create the context
-    context = {'leap':{'generation': 10}}
-    
+    """When printing numpy arrays with numpy_as_json=True, there should only be as many rows as indviduals."""
     # Alter the test population to have multidimensional numpy arrays for some important attributes
     pop = ops.pool(ops.clone(iter(test_pop_with_attributes)), len(test_pop_with_attributes))
     for ind in pop:
@@ -181,7 +179,10 @@ def test_AttributesCSVProbe_6(test_pop_with_attributes):
     
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
-    probe = AttributesCSVProbe(do_fitness=True, do_genome=True, header=False, numpy_as_list=True, stream=stream, context=context)
+    probe = AttributesCSVProbe(do_fitness=True, do_genome=True, header=False, numpy_as_json=True, stream=stream)
+
+    # Set the generation in the context
+    context['leap']['generation'] = 10
 
     # Execute
     probe(pop)

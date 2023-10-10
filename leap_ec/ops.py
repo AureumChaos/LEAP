@@ -356,12 +356,12 @@ def clone(next_individual: Iterator) -> Iterator:
 # Crossover base class
 ##############################
 class Crossover(Operator):
-    
+
     def __init__(self, persist_children, p_xover):
         self.persist_children = persist_children
         self.second_child = None
         self.p_xover = p_xover
-    
+
     @abc.abstractmethod
     def recombine(self, parent_a, parent_b):
         """
@@ -384,7 +384,7 @@ class Crossover(Operator):
                 # Swap with None has to happen before the yield to be certain its executed
                 ret_child, self.second_child = self.second_child, None
                 yield ret_child
-            
+
             while True:
                 parent_a = next(next_individual)
                 parent_b = next(next_individual)
@@ -398,17 +398,17 @@ class Crossover(Operator):
                     self.second_child.parents |= first_child.parents
 
                     first_child.fitness = self.second_child.fitness = None
-                
+
                 # Generators only execute code if necessary, so children will only be generated
                 # if the first child needs to be yielded. That's why it doesn't need to be stored
                 # in the class as well.
                 yield first_child
-                
+
                 # Remove the second child from the class and yield it if the generator does
                 # get requested for it
                 ret_child, self.second_child = self.second_child, None
                 yield ret_child
-        
+
         return _call(next_individual)
 
 
@@ -444,10 +444,10 @@ class UniformCrossover(Crossover):
     The probability can be tuned via the `p_swap` parameter:
     >>> op = UniformCrossover(p_swap=0.1)
     >>> result = op(select)
-    
+
     If `persist_children` is True and there is a child that was made by crossover but isn't
     used in the first call, it will be yielded in a future call.
-    
+
     >>> op = UniformCrossover(p_xover=0.0, persist_children=True)
     >>>
     >>> next(op(select)) is first  # Create an iterator loop with op(select) and consume 1 individual
@@ -479,7 +479,7 @@ class UniformCrossover(Crossover):
     def __init__(self, p_swap: float=0.2, p_xover: float=1.0, persist_children=False):
         super().__init__(p_xover=p_xover, persist_children=persist_children)
         self.p_swap = p_swap
-    
+
     def recombine(self, parent_a, parent_b):
         """
         Perform recombination between two parents to produce two new individuals.
@@ -519,17 +519,17 @@ class NAryCrossover(Crossover):
     >>> second = Individual(genome2)
     >>> pop = [first, second]
     >>> select = naive_cyclic_selection(pop)
-    
+
     >>> op = NAryCrossover()
     >>> result = op(select)
 
     >>> new_first = next(result)
     >>> new_second = next(result)
-    
-    
+
+
     If `persist_children` is True and there is a child that was made by crossover but isn't
     used in the first call, it will be yielded in a future call.
-    
+
     >>> op = NAryCrossover(p_xover=0.0, persist_children=True)
     >>>
     >>> next(op(select)) is first  # Create an iterator loop with op(select) and consume 1 individual

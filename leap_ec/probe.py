@@ -17,7 +17,6 @@ from leap_ec import Individual
 from leap_ec.global_vars import context
 from leap_ec import ops as op
 from leap_ec.ops import iteriter_op, listlist_op
-from leap_ec.util import get_step
 
 
 ##############################
@@ -83,7 +82,7 @@ class BestSoFarProbe(op.Operator):
         format.
 
         Like many operators, this operator checks the context object to
-        retrieve the current generation or birth number for output purposes.
+        retrieve the current generation number for output purposes.
 
         >>> from leap_ec import context, data
         >>> from leap_ec import probe
@@ -123,13 +122,15 @@ class BestSoFarProbe(op.Operator):
 
     def __call__(self, population):
         assert (population is not None)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
 
         ind = max(population)
         assert(ind.fitness is not None), f"Probe expects individuals to have fitness values, but found one that doesn't."
         if self.bsf is None or (ind > self.bsf):
             self.bsf = ind
 
-        self.writer.writerow({'step': get_step(self.context),
+        self.writer.writerow({'step': self.context['leap']['generation'],
                             'bsf' : self.bsf.fitness
                             })
 
@@ -149,7 +150,7 @@ class BestSoFarIterProbe(op.Operator):
         format.
 
         Like many operators, this operator checks the context object to
-        retrieve the current generation or birth number for output purposes.
+        retrieve the current generation number for output purposes.
 
         >>> from leap_ec import context, data
         >>> from leap_ec import probe
@@ -191,6 +192,8 @@ class BestSoFarIterProbe(op.Operator):
 
     def __call__(self, next_individual):
         assert (next_individual is not None)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
 
         while True:
             ind = next(next_individual)
@@ -198,7 +201,7 @@ class BestSoFarIterProbe(op.Operator):
             if self.bsf is None or (ind > self.bsf):
                 self.bsf = ind
 
-            self.writer.writerow({'step': get_step(self.context),
+            self.writer.writerow({'step': self.context['leap']['generation'],
                                 'bsf' : self.bsf.fitness
                                 })
 
@@ -209,17 +212,17 @@ class BestSoFarIterProbe(op.Operator):
 def _maybe_list(numpy_as_list):
     """ A conditional context manager that sets the numpy str and repr
     functions to use a normal python list implementation.
-    
+
     This uses a context manager so if anything preemptively terminates during
     writing, say by stopping a jupyter cell, default behavior is restored.
 
     :param numpy_as_list: whether or not in the scope of this context
         manager numpy arrays should be formatted as python lists.
     """
-    
+
     def to_str_list(arr):
         return str(arr.tolist())
-    
+
     if numpy_as_list:
         try:
             np.set_string_function(to_str_list, True)
@@ -246,9 +249,6 @@ class FitnessStatsCSVProbe(op.Operator):
     compute them.
 
     :param stream: the file object to write to (defaults to sys.stdout)
-    :param bool do_best: if True (the default), the best-so-far individual is
-        included on each row. When using multiobjective, disabling this may
-        be better since a singular "best" isn't well formed.
     :param header: whether to print column names in the first line
     :param extra_metrics: a dict of `'column_name': function` pairs, to compute
         optional extra columns.  The functions take a the population as input
@@ -288,8 +288,8 @@ class FitnessStatsCSVProbe(op.Operator):
 
     and the output has the following columns:
     >>> print(stream.getvalue())
-    job,description,step,bsf,mean_fitness,std_fitness,min_fitness,max_fitness
-    15,just a test,100,4,2.5,1.11803...,1,4
+    job, description, step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness
+    15, just a test, 100, 4, 2.5, 1.11803..., 1, 4
     <BLANKLINE>
 
     To add custom columns, use the `extra_metrics` dict.  For example, here's a function
@@ -306,8 +306,8 @@ class FitnessStatsCSVProbe(op.Operator):
     True
 
     >>> print(stream.getvalue())
-    job,step,bsf,mean_fitness,std_fitness,min_fitness,max_fitness,median_fitness
-    15,100,4,2.5,1.11803...,1,4,2.5
+    job, step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness, median_fitness
+    15, 100, 4, 2.5, 1.11803..., 1, 4, 2.5
     <BLANKLINE>
 
     """
@@ -317,7 +317,6 @@ class FitnessStatsCSVProbe(op.Operator):
     default_metric_cols=('bsf', 'mean_fitness', 'std_fitness', 'min_fitness', 'max_fitness')
 
     def __init__(self, stream=sys.stdout,
-                 do_best=True,
                  header=True,
                  extra_metrics=None,
                  comment=None,
@@ -331,7 +330,6 @@ class FitnessStatsCSVProbe(op.Operator):
         assert (context is not None)
 
         self.stream = stream
-        self.do_best = do_best
         self.context = context
         self.bsf_ind = None
         self.modulo = modulo
@@ -340,27 +338,19 @@ class FitnessStatsCSVProbe(op.Operator):
         self.job = job
         self.comment = comment
         self.numpy_as_list = numpy_as_list
-        
-        fieldnames = []
-        if job is not None:
-            fieldnames.append("job")
-        fieldnames.extend(self.notes.keys())
-        fieldnames.append("step")
-        if self.do_best:
-            fieldnames.append("bsf")
-        fieldnames.extend(["mean_fitness", "std_fitness", "min_fitness", "max_fitness"])
-        fieldnames.extend(self.extra_metrics.keys())
-        
-        self.fieldnames = fieldnames
-        
-        self.writer = None
-        if stream is not None:
-            if header:
-                self.write_comment(stream)
-            self.writer = csv.DictWriter(
-                stream, fieldnames=fieldnames, lineterminator='\n')
-            if header:
-                self.writer.writeheader()
+
+        if header:
+            self.write_comment(stream)
+            self.write_header(stream)
+
+    def write_header(self, stream):
+        job_header = 'job, ' if self.job is not None else ''
+        note_extras = '' if not self.notes else ', '.join(self.notes.keys()) + ', '
+        extras = '' if not self.extra_metrics else ', ' + ', '.join(
+            self.extra_metrics.keys())
+        stream.write(
+            job_header + note_extras + 'step, bsf, mean_fitness, std_fitness, min_fitness, max_fitness'
+            + extras + '\n')
 
     def write_comment(self, stream):
         if self.comment:
@@ -371,50 +361,43 @@ class FitnessStatsCSVProbe(op.Operator):
 
     def __call__(self, population):
         assert (population is not None)
-        
-        if self.do_best:
-            # Always update the best-so-far variable
-            best_ind = best_of_gen(population)
-            if self.bsf_ind is None or (best_ind > self.bsf_ind):
-                self.bsf_ind = best_ind
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
         
         # If numpy_as_list is true, then numpy arrays are printed as lists in this scope
         with _maybe_list(self.numpy_as_list):
 
+            # Always update the best-so-far variable
+            best_ind = best_of_gen(population)
+            if self.bsf_ind is None or (best_ind > self.bsf_ind):
+                self.bsf_ind = best_ind
+
             # Check if we've reached a measurement interval
-            step = get_step(self.context)
-            if step % self.modulo != 0:
+            generation = self.context['leap']['generation']
+            if generation % self.modulo != 0:
                 # If not, don't write fitness info
                 return population
             else:
-                row = self.get_row_dict(population)
-                if self.writer is not None:
-                    self.writer.writerow(row)
-                
-                return population
-        
-    def get_row_dict(self, pop):
-        """Compute a full row of data from the population."""
+                # Do write fitness info
+                if self.job is not None:
+                    self.stream.write(str(self.job) + ', ')
+                for _, v in self.notes.items():
+                    self.stream.write(str(v) + ', ')
 
-        row = {'step': get_step(self.context)}
-        
-        if self.job is not None:
-            row['job'] = self.job
-        for k, v in self.notes.items():
-            row[k] = v        
-        if self.do_best:
-            row['bsf'] = self.bsf_ind.fitness
-        
-        fitnesses = [x.fitness for x in pop]
-        row["mean_fitness"] = np.mean(fitnesses, axis=0)
-        row["std_fitness"] = np.std(fitnesses, axis=0)
-        row["min_fitness"] = np.min(fitnesses, axis=0)
-        row["max_fitness"] = np.max(fitnesses, axis=0)
-        
-        for k, f in self.extra_metrics.items():
-            row[k] = f(pop)
-        
-        return row
+                self.stream.write(str(generation) + ', ')
+
+                self.stream.write(str(self.bsf_ind.fitness) + ', ')
+
+                fitnesses = [x.fitness for x in population]
+                self.stream.write(str(np.mean(fitnesses)) + ', ')
+                self.stream.write(str(np.std(fitnesses)) + ', ')
+                self.stream.write(str(np.min(fitnesses)) + ', ')
+                self.stream.write(str(np.max(fitnesses)))
+                for _, f in self.extra_metrics.items():
+                    self.stream.write(', ' + str(f(population)))
+                self.stream.write('\n')
+                return population
+
 
 ##############################
 # Class AttributesCSVProbe
@@ -571,8 +554,10 @@ class AttributesCSVProbe(op.Operator):
         """When called (i.e. as part of an operator pipeline), take a
         population of individuals and collect data from it. """
         assert (population is not None)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
 
-        individuals = [best_of_gen(population)] if self.best_only else population
+        individuals = [max(population)] if self.best_only else population
         
         # If numpy_as_list is true, then numpy arrays are printed as lists in this scope
         with _maybe_list(self.numpy_as_list):
@@ -588,7 +573,7 @@ class AttributesCSVProbe(op.Operator):
 
     def get_row_dict(self, ind):
         """Compute a full row of data from a given individual."""
-        row = {'step': get_step(self.context)}
+        row = {'step': self.context['leap']['generation']}
 
         for attr in self.attributes:
             if attr not in ind.__dict__:
@@ -642,7 +627,7 @@ class PopulationMetricsPlotProbe:
         self.modulo = modulo
         # x-axis defaults to generation
         if x_axis_value is None:
-            x_axis_value = lambda: get_step(context)
+            x_axis_value = lambda: context['leap']['generation']
         self.x_axis_value = x_axis_value
         self.context = context
 
@@ -656,7 +641,9 @@ class PopulationMetricsPlotProbe:
 
     def __call__(self, population):
         assert (population is not None)
-        step = get_step(self.context)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
+        step = self.context['leap']['generation']
 
         if step % self.modulo == 0:
             self.x = np.append(self.x, self.x_axis_value())
@@ -1040,7 +1027,9 @@ class CartesianPhenotypePlotProbe:
 
     def __call__(self, population):
         assert (population is not None)
-        step = get_step(self.context)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
+        step = self.context['leap']['generation']
 
         if step % self.modulo == 0:
             self.x = np.array([ind.decode()[0] for ind in population])
@@ -1084,7 +1073,9 @@ class HistPhenotypePlotProbe():
 
     def __call__(self, population):
         assert (population is not None)
-        step = get_step(self.context)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
+        step = self.context['leap']['generation']
 
         if step % self.modulo == 0:
             phenomes = [ ind.decode() for ind in population ]
@@ -1117,7 +1108,9 @@ class HeatMapPhenotypeProbe():
 
     def __call__(self, population):
         assert (population is not None)
-        step = get_step(self.context)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
+        step = self.context['leap']['generation']
 
         if step % self.modulo == 0:
             phenomes = [ ind.decode() for ind in population ]
@@ -1285,7 +1278,9 @@ class SumPhenotypePlotProbe:
 
     def __call__(self, population):
         assert (population is not None)
-        step = get_step(self.context)
+        assert ('leap' in self.context)
+        assert ('generation' in self.context['leap'])
+        step = self.context['leap']['generation']
 
         if step % self.modulo == 0:
             self.x = np.array([np.sum(ind.decode()) for ind in population])
