@@ -170,7 +170,7 @@ def test_AttributesCSVProbe_5(test_pop_with_attributes):
 
 
 def test_AttributesCSVProbe_6(test_pop_with_attributes):
-    """When printing numpy arrays with numpy_as_json=True, there should only be as many rows as indviduals."""
+    """When printing numpy arrays with numpy_as_list=True, there should only be as many rows as indviduals."""
     # Alter the test population to have multidimensional numpy arrays for some important attributes
     pop = ops.pool(ops.clone(iter(test_pop_with_attributes)), len(test_pop_with_attributes))
     for ind in pop:
@@ -179,7 +179,7 @@ def test_AttributesCSVProbe_6(test_pop_with_attributes):
     
     # Setup a probe that writes to a str in memory
     stream = io.StringIO()
-    probe = AttributesCSVProbe(do_fitness=True, do_genome=True, header=False, numpy_as_json=True, stream=stream)
+    probe = AttributesCSVProbe(do_fitness=True, do_genome=True, header=False, numpy_as_list=True, stream=stream)
 
     # Set the generation in the context
     context['leap']['generation'] = 10
