@@ -2,7 +2,8 @@
 
 Being a terse compilation by version of changes.
 
-## 0.9.dev, in progress
+## 0.8.1, 10/10/2023
+
  * New Features
    * Added asynchronous NSGA-II, which is in `leap_ec.distrib.asynchronous`; 
      note that the API may change in the future
