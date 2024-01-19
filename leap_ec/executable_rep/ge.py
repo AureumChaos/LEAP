@@ -12,10 +12,96 @@ class Grammar(object):
 
     def __init__(self, file_stream, num_permutation_ramps: int):
         """
-        Initialises an instance of the grammar class. This instance is used
-        to parse a given file_name grammar.
+        Parses sthe grammar given in the file_stream object into terminals,
+        non-terminals, and production rules, and computes a
+        number of auxiliary values for aspects of it (such as min_steps) that are
+        useful for grammatical evolution operations.
 
-        :param file_name: A specified BNF grammar file.
+        :param file_stream: A stream (ex. file) containing a BNF grammar.
+
+        For example, here we load a simple arithmetic grammar:
+
+        >>> from io import StringIO  # We'll use this stream as an example, but you can use a file too
+        >>> grammar_str = '''
+        ...     <expression> ::= <expression><op><expression>
+        ...                 | (<expression>)
+        ...                 | <variable>
+        ...                 | <constant>
+        ...     <variable> ::= x | y | z
+        ...     <constant> ::= GE_RANGE:20
+        ...     <op> ::= + | - | * | /
+        ... '''
+        >>> grammar = Grammar(
+        ...     file_stream=StringIO(grammar_str),
+        ...     num_permutation_ramps=10 # XXX Using an arbitrary value here until I can work out what this parameter does
+        ... )
+
+        Loading a file with this constructer produces parsed data structures.
+
+        These include a list of non-terminals:
+        
+        >>> list(grammar.non_terminals)
+        ['<expression>', '<variable>', '<constant>', '<op>']
+
+        And a list of terminals:
+
+        >>> list(grammar.terminals)
+        ['(', ')', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '+', '-', '*', '/']
+
+        And a complex 'rules' object that defines the expansion choices for each non-terminal,
+        along with a variety of additional attributes.  These attributes include
+        precomputed information about which choices are recursive, the minimum number of steps
+        between each choice and a non-terminal, etc.:
+
+        >>> from pprint import PrettyPrinter
+        >>> pp = PrettyPrinter(indent=2)
+        >>> pp.pprint(grammar.rules['<expression>'])
+        { 'choices': [ { 'NT_kids': True,
+                         'choice': [ { 'min_steps': 2,
+                                       'recursive': True,
+                                       'symbol': '<expression>',
+                                       'type': 'NT'},
+                                     { 'min_steps': 1,
+                                       'recursive': False,
+                                       'symbol': '<op>',
+                                       'type': 'NT'},
+                                     { 'min_steps': 2,
+                                       'recursive': True,
+                                       'symbol': '<expression>',
+                                       'type': 'NT'}],
+                         'max_path': 2,
+                         'recursive': True},
+                       { 'NT_kids': True,
+                         'choice': [ { 'min_steps': 0,
+                                       'recursive': False,
+                                       'symbol': '(',
+                                       'type': 'T'},
+                                     { 'min_steps': 2,
+                                       'recursive': True,
+                                       'symbol': '<expression>',
+                                       'type': 'NT'},
+                                     { 'min_steps': 0,
+                                       'recursive': False,
+                                       'symbol': ')',
+                                       'type': 'T'}],
+                         'max_path': 2,
+                         'recursive': True},
+                       { 'NT_kids': True,
+                         'choice': [ { 'min_steps': 1,
+                                       'recursive': False,
+                                       'symbol': '<variable>',
+                                       'type': 'NT'}],
+                         'max_path': 1,
+                         'recursive': False},
+                       { 'NT_kids': True,
+                         'choice': [ { 'min_steps': 1,
+                                       'recursive': False,
+                                       'symbol': '<constant>',
+                                       'type': 'NT'}],
+                         'max_path': 1,
+                         'recursive': False}],
+          'no_choices': 4}
+
         """
         # XXX Removed a parameter called "codon_size" because it was unused in this class.
 
