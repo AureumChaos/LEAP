@@ -2,7 +2,12 @@
 
 Being a terse compilation by version of changes.
 
+
 ## 0.9dev, in progress
+
+ * API changes
+   * Mutation operators that take an `expected_num_mutations` now give a clear error message if this is greater than the genome size.
+
 
 ## 0.8.1, 10/10/2023
 
@@ -23,6 +28,7 @@ Being a terse compilation by version of changes.
    * standardized on parameter name `bounds` for mutation operators; previously was inconsistent nomenclature between
      `hard_bounds` and `bounds`
    * Made improvements to ReadTheDocs documentation.
+
 
 ## 0.8.0, 4/14/2023
 
