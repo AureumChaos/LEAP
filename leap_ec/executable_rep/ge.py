@@ -1,8 +1,8 @@
 """
-
 This code is adapted (with permission) from PonyGE2 (https://github.com/PonyGE/PonyGE2).
 """
 from re import *
+import sys
 
 
 class Grammar(object):
@@ -38,14 +38,14 @@ class Grammar(object):
 
         Loading a file with this constructer produces parsed data structures.
 
-        These include a list of non-terminals:
+        These include a dictionary of non-terminals:
         
-        >>> list(grammar.non_terminals)
+        >>> list(grammar.non_terminals.keys())
         ['<expression>', '<variable>', '<constant>', '<op>']
 
-        And a list of terminals:
+        And a dictionary of terminals:
 
-        >>> list(grammar.terminals)
+        >>> list(grammar.terminals.keys())
         ['(', ')', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '+', '-', '*', '/']
 
         And a complex 'rules' object that defines the expansion choices for each non-terminal,
@@ -102,12 +102,58 @@ class Grammar(object):
                          'recursive': False}],
           'no_choices': 4}
 
+        The non-terminals structure similarly contains a complex assemblage of attributes:
+
+        >>> pp.pprint(grammar.non_terminals['<expression>'])
+        { 'b_factor': 4,
+          'expanded': True,
+          'id': '<expression>',
+          'min_path': [ { 'NT_kids': True,
+                          'choice': [ { 'min_steps': 1,
+                                        'recursive': False,
+                                        'symbol': '<variable>',
+                                        'type': 'NT'}],
+                          'max_path': 1,
+                          'recursive': False},
+                        { 'NT_kids': True,
+                          'choice': [ { 'min_steps': 1,
+                                        'recursive': False,
+                                        'symbol': '<constant>',
+                                        'type': 'NT'}],
+                          'max_path': 1,
+                          'recursive': False}],
+          'min_steps': 2,
+          'recursive': [ { 'NT_kids': True,
+                           'choice': [ { 'min_steps': 2,
+                                         'recursive': True,
+                                         'symbol': '<expression>',
+                                         'type': 'NT'},
+                                       { 'min_steps': 1,
+                                         'recursive': False,
+                                         'symbol': '<op>',
+                                         'type': 'NT'},
+                                       { 'min_steps': 2,
+                                         'recursive': True,
+                                         'symbol': '<expression>',
+                                         'type': 'NT'}],
+                           'max_path': 2,
+                           'recursive': True},
+                         { 'NT_kids': True,
+                           'choice': [ { 'min_steps': 0,
+                                         'recursive': False,
+                                         'symbol': '(',
+                                         'type': 'T'},
+                                       { 'min_steps': 2,
+                                         'recursive': True,
+                                         'symbol': '<expression>',
+                                         'type': 'NT'},
+                                       { 'min_steps': 0,
+                                         'recursive': False,
+                                         'symbol': ')',
+                                         'type': 'T'}],
+                           'max_path': 2,
+                           'recursive': True}]}
         """
-        # XXX Removed a parameter called "codon_size" because it was unused in this class.
-
-        # FIXME Hardcoding this for the moment until I can go figure out where this undefined variable came from in PonyGE2.
-        self.maxsize = 10000
-
         # XXX Not clear to me what this variable means or why we pass this specific value in below.
         self.num_permutation_ramps = num_permutation_ramps
 
@@ -203,7 +249,7 @@ class Grammar(object):
             # Create and add a new rule.
             self.non_terminals[rule.group('rulename')] = {
                 'id': rule.group('rulename'),
-                'min_steps': self.maxsize,
+                'min_steps': sys.maxsize,
                 'expanded': False,
                 'recursive': True,
                 'b_factor': 0}
@@ -647,7 +693,7 @@ class Grammar(object):
 
 
     # XXX Disabling these more advanced features for now until we come
-    #     back to impelment the algorithms they support.  May need refatoring even then. —Siggy
+    #     back to impelment the algorithms they support.  May need refactoring even then. —Siggy
     # def get_min_ramp_depth(self):
     #     """
     #     Find the minimum depth at which ramping can start where we can have
