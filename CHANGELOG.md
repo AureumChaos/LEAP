@@ -5,8 +5,10 @@ Being a terse compilation by version of changes.
 
 ## 0.9dev, in progress
 
+ * Bugfixes
+   * Fixed incorrect internal calcluation of mutation probability `segmented_rep.ops.apply_mutation()`
  * API changes
-   * Mutation operators that take an `expected_num_mutations` now give a clear error message if this is greater than the genome size.
+   * Mutation operators that take an `expected_num_mutations` now give a clear error message if this is greater than the genome size
 
 
 ## 0.8.1, 10/10/2023

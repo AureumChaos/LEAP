@@ -38,7 +38,7 @@ def test_apply_mutation():
     """Applying segment-wise mutation operators with expected_num_mutations=len(genome) should
     result in every gene of every segment being mutated."""
     mutation_op = apply_mutation(mutator=genome_mutate_bitflip,
-                                 expected_num_mutations=4)
+                                 expected_num_mutations=2)
     original = Individual([np.array([0, 0]), np.array([1, 1])])
     mutated = next(mutation_op(iter([original])))
 
