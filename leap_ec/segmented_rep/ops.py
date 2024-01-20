@@ -47,11 +47,10 @@ def apply_mutation(next_individual: Iterator,
         # compute expected probability of mutation _per segment_
         per_segment_expected_prob = compute_expected_probability(
             expected_num_mutations, individual.genome)
-
         # Apply mutation function using the expected probability to create a
         # new test_sequence of sequences to be assigned to the genome.
         mutated_genome = [mutator(segment,
-                                  expected_num_mutations=per_segment_expected_prob)
+                                  probability=per_segment_expected_prob)
                           for segment in individual.genome]
 
         individual.genome = mutated_genome
