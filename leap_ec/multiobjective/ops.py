@@ -176,9 +176,9 @@ def per_rank_crowding_calc(ranked_population: list, is_maximizing) -> list:
     :returns: population with crowding distance calculate for one rank
     """
     if len(ranked_population) == 1:
-        # There is just one individual in this rank, so set their distance to inf
+        # There is just one individual in this rank, so set their distance to 0
         # since there are no neighbors.
-        ranked_population[0].distance = inf
+        ranked_population[0].distance = 0
         return ranked_population
 
     # Presuming this is a population with homogeneous objectives, then the size of
