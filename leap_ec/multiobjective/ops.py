@@ -175,6 +175,12 @@ def per_rank_crowding_calc(ranked_population: list, is_maximizing) -> list:
     :param ranked_population: A population of entirely one rank
     :returns: population with crowding distance calculate for one rank
     """
+    if len(ranked_population) == 1:
+        # There is just one individual in this rank, so set their distance to 0
+        # since there are no neighbors.
+        ranked_population[0].distance = 0
+        return ranked_population
+
     # Presuming this is a population with homogeneous objectives, then the size of
     # the optimization directions array should be equal to the number of objectives.
     num_objectives = is_maximizing.shape[0]
@@ -212,7 +218,7 @@ def per_rank_crowding_calc(ranked_population: list, is_maximizing) -> list:
     sorted_pop = []
 
     for objective in range(num_objectives):
-        if objective_ranges[objective] == 0:
+        if objective_ranges[objective] == 0 or objective_ranges[objective] == np.nan:
             continue
         
         # sort by objective being mindful that maximization vs. minimization may
@@ -239,7 +245,8 @@ def per_rank_crowding_calc(ranked_population: list, is_maximizing) -> list:
                                             objective]) / objective_ranges[
                                             objective]
 
-    return sorted_pop
+    # return ranked_population not sorted since sometimes sorted_pop will be empty
+    return ranked_population
 
 @wrap_curry
 @listlist_op
