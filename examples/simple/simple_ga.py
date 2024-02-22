@@ -30,7 +30,7 @@ if __name__ == '__main__':
     parents = Individual.evaluate_population(parents)
 
     # print initial, random population
-    util.print_population(parents, generation=0)
+    probe.print_population(parents, generation=0)
 
 
     # When running the test harness, just run for two generations
@@ -65,4 +65,4 @@ if __name__ == '__main__':
 
         # Just to demonstrate that we can also get the current generation from
         # the context
-        util.print_population(parents, context['leap']['generation'])
+        probe.print_population(parents, context['leap']['generation'])

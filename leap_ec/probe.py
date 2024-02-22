@@ -52,21 +52,42 @@ def print_probe(population, probe, stream=sys.stdout, prefix=''):
 @wrap_curry
 @iteriter_op
 def print_individual(next_individual: Iterator, prefix='',
-                     stream=sys.stdout) -> Iterator:
+                     numpy_as_list=False, stream=sys.stdout) -> Iterator:
     """ Just echoes the individual from within the pipeline
 
     Uses next_individual.__str__
 
     :param next_individual: iterator for next individual to be printed
+    :param prefix: prefix appended to the start of the line
+    :param numpy_as_list: If True, numpy arrays are converted to lists before printing
+    :param stream: File object passed to print
     :return: the same individual, unchanged
     """
 
     while True:
         individual = next(next_individual)
 
-        print(f'{prefix}{individual!s}', file=stream)
+        with _maybe_list(numpy_as_list):
+            print(f'{prefix}{individual!s}', file=stream)
 
         yield individual
+
+
+###############################
+# Function print_population
+###############################
+def print_population(population, generation, numpy_as_list=False):
+    """ Convenience function for pretty printing a population that's
+    associated with a given generation
+
+    :param population: The population of individuals to be printed
+    :param generation: The generation of the population
+    :param numpy_as_list: If True, numpy arrays are converted to lists before printing
+    :return: None
+    """
+    with _maybe_list(numpy_as_list):
+        for individual in population:
+            print(generation, individual.genome, individual.fitness)
 
 
 ##############################
@@ -216,11 +237,16 @@ def _maybe_list(numpy_as_list):
     This uses a context manager so if anything preemptively terminates during
     writing, say by stopping a jupyter cell, default behavior is restored.
 
+    Now also modifies booleans to print as binary integers instead.
+    FIXME Make this into a fully featured pretty printting context manager
+
     :param numpy_as_list: whether or not in the scope of this context
         manager numpy arrays should be formatted as python lists.
     """
 
     def to_str_list(arr):
+        if arr.dtype == np.bool_:
+            return str([int(b) for b in arr])
         return str(arr.tolist())
 
     if numpy_as_list:
@@ -232,7 +258,8 @@ def _maybe_list(numpy_as_list):
             np.set_string_function(None, True)
             np.set_string_function(None, False)
     else:
-        yield
+        with np.printoptions(formatter={"bool": lambda x: str(int(x))}):
+            yield
 
 
 ##############################
