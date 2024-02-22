@@ -8,6 +8,7 @@ Being a terse compilation by version of changes.
  * API changes
    * Remove `expected_num_mutations` from `segmented_rep.ops.apply_mutation()`; mutation rates should now be set directly on nested operators
    * Mutation operators that take an `expected_num_mutations` now give a clear error message if this is greater than the genome size
+   * moved `print_population` to `probe` from `util`
 
 
 ## 0.8.1, 10/10/2023
